@@ -5,7 +5,7 @@
 ## Customize your APP title, subtitle and menus here
 #########################################################################
 
-response.logo = A(B('web',SPAN(2),'py'),XML('&trade;&nbsp;'),
+response.logo = A(B('Ctrl',SPAN('PyME')),XML('&trade;&nbsp;'),
                   _class="navbar-brand",_href="http://www.web2py.com/",
                   _id="web2py-logo")
 response.title = request.application.replace('_',' ').title()
@@ -26,9 +26,14 @@ response.google_analytics_id = None
 
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
-    (T('Configuration'),False,None,[
-        (T('Brands'), False, URL('brand', 'index'), []),
+    (T('Configuration'),False,None, [
+        (T('Brands'), False, URL('brand', 'index'), [])
+        , (T('Addresses'), False, URL('address', 'list'), [])
+
         ])
+    # , (T('Company'), False, None, [
+    #     (T('Stores'), False, URL('store', 'list'))
+    # ])
 ]
 
 DEVELOPMENT_MENU = False
@@ -138,4 +143,4 @@ def _():
         ]
 if DEVELOPMENT_MENU: _()
 
-if "auth" in locals(): auth.wikimenu() 
+if "auth" in locals(): auth.wikimenu()
