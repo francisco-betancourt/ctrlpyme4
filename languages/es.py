@@ -86,6 +86,7 @@
 'compiled application removed': 'aplicación compilada eliminada',
 'Components and Plugins': 'Componentes y Plugins',
 'Config.ini': 'Config.ini',
+'Confirm Password': 'Confirm Password',
 'contains': 'contiene',
 'Controller': 'Controlador',
 'Controllers': 'Controladores',
