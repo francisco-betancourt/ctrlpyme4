@@ -29,6 +29,7 @@ response.menu = [
     (T('Configuration'),False,None, [
         (T('Brands'), False, URL('brand', 'index'), [])
         , (T('Addresses'), False, URL('address', 'list'), [])
+        , (T('Payment Options'), False, URL('payment_opt', 'list'), [])
 
         ])
     # , (T('Company'), False, None, [

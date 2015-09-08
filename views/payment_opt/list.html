@@ -1,0 +1,35 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Payment Options')}}</h1>
+
+
+
+{{if payment_opts:}}
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead>
+      <th>#</th>
+      <th>{{=T('Name')}}</th>
+      <th>{{=T('Allows Change')}}</th>
+      <th>{{=T('Credit Days')}}</th>
+    </thead>
+    <tbody>
+      {{for payment_opt in payment_opts:}}
+        <tr>
+          <td>{{=payment_opt.id}}</td>
+          <td>{{=payment_opt.name}}</td>
+          <td>{{=payment_opt.allow_change}}</td>
+          <td>{{=payment_opt.credit_days}}</td>
+        </tr>
+      {{pass}}
+    </tbody>
+  </table>
+</div>
+{{else:}}
+  {{=T('No Payment Options Found, click the plus button to create one')}}
+{{pass}}
+
+
+<button type="button" class="cp-fab right"
+        onclick="window.location.href = '{{=URL('create')}}'">
+  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+</button>

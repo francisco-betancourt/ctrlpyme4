@@ -121,7 +121,7 @@ db.define_table(
 
 
 db.define_table("payment_opt",
-    Field("name", "integer", default=None),
+    Field("name", "string", default=None),
     Field("allow_change", "boolean", default=None),
     Field("credit_days", "integer", default=None),
     auth.signature)
