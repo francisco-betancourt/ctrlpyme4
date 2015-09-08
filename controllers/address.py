@@ -27,7 +27,7 @@ def update():
     if not address:
         raise HTTP(404, T('Address NOT FOUND'))
 
-    form = SQLFORM(db.address, address)
+    form = SQLFORM(db.address, address, showid=False)
     if form.process().accepted:
         response.flash = 'form accepted'
         redirect(URL('list'))
