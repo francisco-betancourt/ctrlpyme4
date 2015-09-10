@@ -30,6 +30,8 @@ response.menu = [
           (T('Brands'), False, URL('brand', 'index'), None)
         , (T('Addresses'), False, URL('address', 'list'), None)
         , (T('Payment Options'), False, URL('payment_opt', 'list'), None)
+        , (T('Measure Units'), False, URL('measure_unit', 'list'), None)
+
         # , (T('Users'), False, URL('users', 'list'), None)
         # , (T('Roles'), False, URL('store_role', 'list'), None)
     ])

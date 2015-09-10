@@ -20,7 +20,7 @@ def get():
 
 
 def update():
-    payment_opt(request.args(0))
+    payment_opt = db.payment_opt(request.args(0))
     if not payment_opt:
         raise HTTP(404, T('Payment Option NOT FOUND'))
 

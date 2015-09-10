@@ -1,17 +1,17 @@
 {{extend 'layout.html'}}
-<h1>{{=T('Addresses')}}</h1>
+<h1>{{=T('Measure Units')}}</h1>
 
 
-{{if addresses:}}
+{{if measure_units:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
 
   {{
-    =data_table(['#', 'Address'], addresses,
-                ['id', ['street', 'exterior', 'interior', 'neighborhood']])
+    =data_table(['#', 'Name', 'Symbol'], measure_units,
+                ['id', 'name', 'symbol'])
   }}
 {{else:}}
-  {{=T('No addresses found')}}
+  {{=T('No measure units found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
   {{=T('click the plus button to create one.')}}
 {{pass}}

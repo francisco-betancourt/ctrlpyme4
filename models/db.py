@@ -102,9 +102,9 @@ db.define_table("trait_category",
     Field("name", "string", default=None),
     auth.signature)
 
-db.define_table("measure_units",
-    Field("name", "text", default=None),
-    Field("symbol", "text", default=None),
+db.define_table("measure_unit",
+    Field("name", "string", default=None),
+    Field("symbol", "string", default=None),
     auth.signature)
 
 db.define_table("tax",
@@ -173,7 +173,7 @@ db.define_table("item",
     Field("trait2", "integer", default=None),
     Field("id_trait3", "reference trait"),
     Field("trait3", "integer", default=None),
-    Field("id_measure_units", "reference measure_units"),
+    Field("id_measure_unit", "reference measure_unit"),
     Field("taxes", "list:reference tax"),
     Field("url_name", "string", default=None),
     Field("extra_data1", "string", default=None),
@@ -353,7 +353,7 @@ db.item.id_brand.requires=IS_IN_DB( db, 'brand.id', ' %(name)s %(logo)s')
 db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
 db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
 db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
-db.item.id_measure_units.requires=IS_IN_DB( db, 'measure_units.id', ' %(name)s %(symbol)s')
+db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
 db.category.parent.requires=IS_IN_DB( db, 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s')
 db.category.trait_category1.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
 db.category.trait_category2.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')

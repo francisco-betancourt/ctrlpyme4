@@ -13,7 +13,7 @@ def data_table(headers=[], rows=[], fields=[]):
     # the master checkbox
     thead = TH(INPUT(_type='checkbox', _id='master_checkbox'))
     for header in headers:
-        thead.append(TH(header))
+        thead.append(TH(T(header)))
     thead = THEAD(thead)
     tbody = TBODY()
     for row in rows:
