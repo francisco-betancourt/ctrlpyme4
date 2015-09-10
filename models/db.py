@@ -135,7 +135,8 @@ db.define_table("address",
     Field("municipality", "string", default=None),
     Field("state_province", "string", default=None),
     Field("country", "string", default=None),
-    Field("reference", "string", default=None))
+    Field("reference", "string", default=None),
+    auth.signature)
 
 db.define_table("category",
     Field("name", "string", default=None),
@@ -224,7 +225,8 @@ db.define_table("purchase_item",
     Field("quantity", "decimal(16,6)", default=None),
     Field("price", "decimal(16,6)", default=None),
     Field("taxes", "integer", default=None),
-    Field("serial_numbers", "text", default=None))
+    Field("serial_numbers", "text", default=None),
+    auth.signature)
 
 db.define_table("stock",
     Field("id_store", "reference store"),
@@ -248,7 +250,8 @@ db.define_table("bag_items",
     Field("sale_taxes", "decimal(16,6)", default=None),
     Field("product_name", "string", default=None),
     Field("sale_code", "string", default=None),
-    Field("serial_number", "string", default=None))
+    Field("serial_number", "string", default=None),
+    auth.signature)
 
 db.define_table("sale",
     Field("id_bag", "reference bag"),

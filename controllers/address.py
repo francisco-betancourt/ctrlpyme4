@@ -44,15 +44,15 @@ def delete():
 
     if not request.args:
         raise HTTP(400)
-    query = (db.payment_opt.id < 0)
+    query = (db.address.id < 0)
     for arg in request.args:
         query |= (db.address.id == arg)
-    db(query).delete()
+    db(query).update(is_active=False)
     redirect(URL('list'))
 
 
 def list():
     """ """
-    addresses = db(db.address.id > 0).select()
+    addresses = db((db.address.id > 0) & (db.address.is_active == True)).select()
 
     return locals()
