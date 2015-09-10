@@ -128,5 +128,49 @@
     {{pass}}
     <!-- Share ============================y============ -->
     <script src="{{=URL('static','js/share.js',vars=dict(static=URL('static','images')))}}"></script>
+
+
+    <script>
+      var countChecked = function() {
+        var n = $( ".row_checkbox:checked" ).length;
+        // in this case we have to show the selection options
+        if (n > 0) {
+          $('#selection_menu').show();
+        }
+        else {
+          $('#selection_menu').hide();
+        }
+      };
+
+      $('.row_checkbox').click(function(event) {
+        countChecked();
+      });
+
+      $('#master_checkbox').click(function(event) {
+        if (event.target.checked) {
+          checkboxes = $('.row_checkbox');
+          $.each(checkboxes, function(i, element) {
+            element.checked = true;
+          });
+        }
+        else {
+          checkboxes = $('.row_checkbox');
+          $.each(checkboxes, function(i, element) {
+            element.checked = false;
+          });
+        }
+        countChecked();
+      });
+
+      $('#delete').click(function(event) {
+        var ids = '/';
+        $.each( $(".row_checkbox:checked"), function(i, item) {
+          ids += item.value + '/';
+        })
+        var delete_url = '{{=URL("delete")}}' + ids;
+        window.location.href = delete_url;
+      });
+    </script>
+
   </body>
 </html>

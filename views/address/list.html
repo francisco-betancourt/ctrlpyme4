@@ -3,22 +3,14 @@
 
 
 {{if addresses:}}
-<div class="table-responsive">
-  <table class="table table-hover">
-    <thead>
-      <th>#</th>
-      <th>{{=T('Address')}}</th>
-    </thead>
-    <tbody>
-      {{for address in addresses:}}
-        <tr onclick="window.location.href = '{{=URL('update', args=address.id)}}';">
-          <td>{{=address.id}}</td>
-          <td>{{=address.street}} {{=address.exterior}} {{=address.interior}}  {{=address.neighborhood}}</td>
-        </tr>
-      {{pass}}
-    </tbody>
-  </table>
-</div>
+
+{{delete_enabled = True}}
+{{include 'selection_menu.html'}}
+
+{{
+  =data_table(['#', 'Address'], addresses,
+              ['id', ['street', 'exterior', 'interior', 'neighborhood']])
+ }}
 {{else:}}
   {{=T('No addresses found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}

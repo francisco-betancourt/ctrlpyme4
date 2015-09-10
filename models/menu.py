@@ -27,15 +27,23 @@ response.google_analytics_id = None
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Configuration'),False,None, [
-        (T('Brands'), False, URL('brand', 'index'), [])
-        , (T('Addresses'), False, URL('address', 'list'), [])
-        , (T('Payment Options'), False, URL('payment_opt', 'list'), [])
-
-        ])
+          (T('Brands'), False, URL('brand', 'index'), None)
+        , (T('Addresses'), False, URL('address', 'list'), None)
+        , (T('Payment Options'), False, URL('payment_opt', 'list'), None)
+        # , (T('Users'), False, URL('users', 'list'), None)
+        # , (T('Roles'), False, URL('store_role', 'list'), None)
+    ])
     # , (T('Company'), False, None, [
     #     (T('Stores'), False, URL('store', 'list'))
     # ])
 ]
+
+# response.menu += [
+#     (T('Admin'), False, None, [
+#         (T('Users'), False, URL('users', 'list'), None)
+#         , (T('Roles'), False, URL('store_role', 'list'), None)
+#     ])
+# ]
 
 DEVELOPMENT_MENU = False
 

@@ -38,18 +38,21 @@ def update():
 
 
 def delete():
-    pass
+    """
+    args: [id_1, id_2, ..., id_n]
+    """
+
+    if not request.args:
+        raise HTTP(400)
+    query = (db.payment_opt.id < 0)
+    for arg in request.args:
+        query |= (db.address.id == arg)
+    db(query).delete()
+    redirect(URL('list'))
+
 
 def list():
-    """
-    #args: [company_id]
-
-    """
-
-    # company = db.company(request.args(0))
-    # if not company:
-    #     raise HTTP(404)
-
+    """ """
     addresses = db(db.address.id > 0).select()
 
     return locals()
