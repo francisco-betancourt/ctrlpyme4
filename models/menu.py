@@ -28,22 +28,22 @@ response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Configuration'),False,None, [
           (T('Brands'), False, URL('brand', 'index'), None)
-        , (T('Addresses'), False, URL('address', 'list'), None)
-        , (T('Payment Options'), False, URL('payment_opt', 'list'), None)
-        , (T('Measure Units'), False, URL('measure_unit', 'list'), None)
+        , (T('Addresses'), False, URL('address', 'index'), None)
+        , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
+        , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
 
-        # , (T('Users'), False, URL('users', 'list'), None)
-        # , (T('Roles'), False, URL('store_role', 'list'), None)
+        # , (T('Users'), False, URL('users', 'index'), None)
+        # , (T('Roles'), False, URL('store_role', 'index'), None)
     ])
     # , (T('Company'), False, None, [
-    #     (T('Stores'), False, URL('store', 'list'))
+    #     (T('Stores'), False, URL('store', 'index'))
     # ])
 ]
 
 # response.menu += [
 #     (T('Admin'), False, None, [
-#         (T('Users'), False, URL('users', 'list'), None)
-#         , (T('Roles'), False, URL('store_role', 'list'), None)
+#         (T('Users'), False, URL('users', 'index'), None)
+#         , (T('Roles'), False, URL('store_role', 'index'), None)
 #     ])
 # ]
 
