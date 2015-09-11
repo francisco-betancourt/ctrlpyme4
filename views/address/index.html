@@ -13,11 +13,12 @@
 {{else:}}
   {{=T('No addresses found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
-  {{=T('click the plus button to create one.')}}
+  {{=T('the plus button to create one.')}}
 {{pass}}
 
-
-<button type="button" class="cp-fab right"
-        onclick="window.location.href = '{{=URL('create')}}'">
-  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-</button>
+<div class="cp-fab-container">
+  <button type="button" class="cp-fab right"
+	      onclick="window.location.href = '{{=URL('create')}}'">
+	<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+  </button>
+</div>

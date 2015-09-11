@@ -1,2 +1,24 @@
 {{extend 'layout.html'}}
-{{=grid}}
+<h1>{{=T('Brands')}}</h1>
+
+
+{{if brands:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{
+    =data_table(['#', 'Brand'], brands,
+                ['id', ['name', 'logo']])
+  }}
+{{else:}}
+  {{=T('No brands found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+<div class="cp-fab-container">
+  <button type="button" class="cp-fab right"
+	      onclick="window.location.href = '{{=URL('create')}}'">
+	<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+  </button>
+</div>
