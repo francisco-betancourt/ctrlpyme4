@@ -21,7 +21,7 @@ def common_update(table_name, args, success_msg=''):
     form = SQLFORM(db[table_name], row)
     if form.process().accepted:
         response.flash = 'form accepted'
-        redirect(URL('list'))
+        redirect(URL('index'))
     elif form.errors:
         response.flash=  'form has errors'
     return dict(form=form)
@@ -38,4 +38,4 @@ def common_delete(table_name, args):
     for arg in args:
         query |= (db[table_name].id == arg)
     db(query).update(is_active=False)
-    redirect(URL('list'))
+    redirect(URL('index'))
