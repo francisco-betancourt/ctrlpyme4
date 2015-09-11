@@ -3,56 +3,19 @@
 # Author: Daniel J. Ramirez
 
 def create():
-
-    form = SQLFORM(db.address)
-    if form.process().accepted:
-        response.flash = T('Address created')
-        redirect(URL('list'))
-    elif form.errors:
-        response.flash = T('form has errors')
-
-    return locals()
-
+    return common_create('address')
 
 def get():
     pass
 
-
 def update():
-    """
-    args: [address_id]
-    """
-
-    address = db.address(request.args(0))
-    if not address:
-        raise HTTP(404, T('Address NOT FOUND'))
-
-    form = SQLFORM(db.address, address, showid=False)
-    if form.process().accepted:
-        response.flash = 'form accepted'
-        redirect(URL('list'))
-    elif form.errors:
-        response.flash = 'form has errors'
-
-    return locals()
+    return common_update('address',request.args)
 
 
 def delete():
-    """
-    args: [id_1, id_2, ..., id_n]
-    """
+    common_delete('address',request.args)
 
-    if not request.args:
-        raise HTTP(400)
-    query = (db.address.id < 0)
-    for arg in request.args:
-        query |= (db.address.id == arg)
-    db(query).update(is_active=False)
-    redirect(URL('list'))
-
-
-def list():
+def index():
     """ """
-    addresses = db((db.address.id > 0) & (db.address.is_active == True)).select()
-
+    addresses = db(db.address.is_active == True).select()
     return locals()

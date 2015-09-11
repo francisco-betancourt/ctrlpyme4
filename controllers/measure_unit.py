@@ -28,7 +28,7 @@ def delete():
     common_delete('measure_unit', request.args)
 
 
-def list():
+def index():
     measure_units = db((db.measure_unit.id > 0) & (db.measure_unit.is_active == True)).select()
 
     return locals()

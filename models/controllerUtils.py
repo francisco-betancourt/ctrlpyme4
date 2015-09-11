@@ -2,7 +2,7 @@ def common_create(table_name, success_msg=''):
     form = SQLFORM(db[table_name])
     if form.process().accepted:
         response.flash = T(success_msg)
-        redirect(URL('list'))
+        redirect(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
 
@@ -23,7 +23,7 @@ def common_update(table_name, args, success_msg=''):
         response.flash = 'form accepted'
         redirect(URL('list'))
     elif form.errors:
-        response.flash = 'form has errors'
+        response.flash=  'form has errors'
     return dict(form=form)
 
 
