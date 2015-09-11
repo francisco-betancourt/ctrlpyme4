@@ -16,9 +16,4 @@
   {{=T('the plus button to create one.')}}
 {{pass}}
 
-<div class="cp-fab-container">
-  <button type="button" class="cp-fab right"
-	      onclick="window.location.href = '{{=URL('create')}}'">
-	<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-  </button>
-</div>
+{{include 'fab.html'}}

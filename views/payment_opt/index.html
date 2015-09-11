@@ -15,8 +15,4 @@
   {{=T('No Payment Options Found, click the plus button to create one')}}
 {{pass}}
 
-
-<button type="button" class="cp-fab right"
-        onclick="window.location.href = '{{=URL('create')}}'">
-  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-</button>
+{{include 'fab.html'}}
