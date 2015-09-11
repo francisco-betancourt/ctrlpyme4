@@ -1,0 +1,19 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Taxes')}}</h1>
+
+
+{{if taxes:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{
+    =data_table(['#', 'Name', 'Percentage', 'Symbol'], taxes,
+                ['id', 'name', 'percentage', 'symbol'])
+  }}
+{{else:}}
+  {{=T('No taxes found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+{{include 'fab.html'}}

@@ -29,6 +29,6 @@ def delete():
 
 
 def index():
-    measure_units = db((db.measure_unit.id > 0) & (db.measure_unit.is_active == True)).select()
+    measure_units = db(db.measure_unit.is_active == True).select()
 
     return locals()

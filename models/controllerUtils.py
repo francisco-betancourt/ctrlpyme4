@@ -39,3 +39,10 @@ def common_delete(table_name, args):
         query |= (db[table_name].id == arg)
     db(query).update(is_active=False)
     redirect(URL('index'))
+
+
+def common_index(table_name):
+    """
+    """
+
+    return db(db[table_name].is_active == True).select()
