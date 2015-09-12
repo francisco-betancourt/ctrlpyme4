@@ -1,0 +1,19 @@
+{{extend 'layout.html'}}
+<h1>Stores</h1>
+
+{{if stores:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{
+    =data_table(['#', 'Name'], stores,
+                ['id', 'name'],
+                extra_options=[{'name': 'View', 'url_action': 'get'}])
+  }}
+{{else:}}
+  {{=T('No stores found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+{{include 'fab.html'}}

@@ -163,15 +163,19 @@
         countChecked();
       });
 
-      $('#delete').click(function(event) {
-        var ids = '/';
+      function delete_rows(ids) {
         if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
-          $.each( $(".row_checkbox:checked"), function(i, item) {
-            ids += item.value + '/';
-          })
           var delete_url = '{{=URL("delete")}}' + ids;
           window.location.href = delete_url;
         }
+      };
+
+      $('#delete').click(function(event) {
+        var ids = '/';
+        $.each( $(".row_checkbox:checked"), function(i, item) {
+          ids += item.value + '/';
+        });
+        delete_rows(ids);
       });
     </script>
 

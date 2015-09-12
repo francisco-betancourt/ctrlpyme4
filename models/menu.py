@@ -27,11 +27,13 @@ response.google_analytics_id = None
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Configuration'),False,None, [
-          (T('Brands'), False, URL('brand', 'index'), None)
+         (T('Stores'), False, URL('store', 'index'), None)
+        , (T('Brands'), False, URL('brand', 'index'), None)
         , (T('Addresses'), False, URL('address', 'index'), None)
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
+
 
 
         # , (T('Users'), False, URL('users', 'index'), None)
