@@ -32,17 +32,19 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[]):
         if deletable:
             delete_action = 'delete_rows("/%s")' % row.id
             options_td.append(option_btn('trash', onclick=delete_action))
+        # options must be related to the row, for that reason this function only allows same controller urls, and also it asumes that the first argument in the specified action is the row id.
         if extra_options:
             for option in extra_options:
                 icon_name = option['icon_name'] if option.has_key('icon_name') else ''
                 url_action = option['url_action'] if option.has_key('url_action') else None
+                onclick = option['onclick'] if option.has_key('onclick') else None
                 url_args=option['url_args'] if option.has_key('url_args') else []
                 url_args.insert(0, row.id)
                 url = URL(url_action, args=url_args)
 
                 option_name = option['name'] if option.has_key('name') else ''
 
-                options_td.append(option_btn(icon_name, url, option_name))
+                options_td.append(option_btn(icon_name, url, option_name, onclick))
         tr.append(options_td)
 
         return tr
@@ -78,6 +80,6 @@ def data_table(headers=[], rows=[], fields=[], deletable=True,
         tr = data_row(row, fields=fields, deletable=deletable, editable=editable, extra_options=extra_options)
         tbody.append(tr)
     table = TABLE(thead, tbody, _class="table table-hover")
-    table = DIV(table, _class="table_responsive") # responsiveness
+    table = DIV(table, _class="table-responsive") # responsiveness
 
     return table
