@@ -9,10 +9,13 @@ def common_create(table_name, success_msg=''):
     return dict(form=form)
 
 
-def common_update(table_name, args, success_msg=''):
+def common_update(table_name, args, _vars=None, success_msg=''):
     """
     args: [measure_unit_id]
     """
+
+    next_url = _vars.next if _vars else URL('index')
+    print next_url
 
     row = db[table_name](args(0))
     if not row:
@@ -21,10 +24,10 @@ def common_update(table_name, args, success_msg=''):
     form = SQLFORM(db[table_name], row)
     if form.process().accepted:
         response.flash = 'form accepted'
-        redirect(URL('index'))
+        redirect(next_url)
     elif form.errors:
         response.flash=  'form has errors'
-    return dict(form=form)
+    return dict(form=form, row=row)
 
 
 def common_delete(table_name, args):

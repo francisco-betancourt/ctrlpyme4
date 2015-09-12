@@ -194,6 +194,13 @@ db.define_table("store",
     Field("name", "string", default=None, label=T('name')),
     auth.signature)
 
+db.define_table(
+    'store_role'
+    , Field('id_user', "reference auth_user", label=T('user'))
+    , Field('id_store', "reference store", label=T('store'))
+    , Field('id_role', "reference auth_group", label=T('role'))
+)
+
 db.define_table("store_config",
     Field("id_store", "reference store", label=T('store')),
     Field("param_name", "string", default=None, label=T('parameter name')),
