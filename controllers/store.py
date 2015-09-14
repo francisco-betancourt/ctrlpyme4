@@ -13,11 +13,12 @@ def get():
 
     # store_roles = db(db.store_role.id_store == store.id).select()
     store_config = db(db.store_config.id_store == store.id).select()
+    store_roles = db(db.store_role.id_store == store.id).select()
     return locals()
 
 
 def update():
-    return common_update('store', request.args)
+    return common_update('store', request.args, _vars=request.vars)
 
 
 def delete():

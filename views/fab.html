@@ -1,6 +1,40 @@
 <div class="cp-fab-container">
-  <button type="button" class="cp-fab right"
-          onclick="window.location.href = '{{=fab_action}}';">
+  <button type="button" class="cp-fab right" id="main_fab">
     <span class="glyphicon glyphicon-{{=fab_icon}}" aria-hidden="true"></span>
   </button>
 </div>
+
+
+{{if fab_options_mode and fab_options_mode == 'expand_list':}}
+  <!-- <div class="cp-modal-overlay"> -->
+    <div class="cp-fab-list" id="main_fab_list">
+      {{for fab_option in fab_options:}}
+        <div class="cp-fab-option">{{=fab_option['name']}}</div>
+      {{pass}}
+    </div>
+  <!-- </div> -->
+{{pass}}
+
+
+{{if fab_options:}}
+  <script>
+    function hide_options() {
+      $('#main_fab_list').hide();
+      $('*').off('click');
+    };
+
+    $('#main_fab').on('click', function(event) {
+      $('#main_fab_list').show();
+
+      $('html').addEventListener('click', function() {
+        hide_options();
+      });
+    });
+  </script>
+{{else:}}
+  <script>
+    $('#main_fab').on('click', function(event) {
+      window.location.href = '{{=fab_action}}';
+    });
+  </script>
+{{pass}}

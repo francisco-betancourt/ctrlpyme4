@@ -2,5 +2,74 @@
 <h1>{{=T('Store')}}: {{=store.name}}</h1>
 
 
-<h2>{{=T('Store Configuration')}}</h2>
-{{}}
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist" id="tabs">
+    <li role="presentation" class="active"><a href="#configuration" aria-controls="home" role="tab" data-toggle="tab">{{=T('Configuration')}}</a>
+    </li>
+    <li role="presentation"><a href="#roles" aria-controls="profile" role="tab" data-toggle="tab">{{=T('Roles')}}</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content" id="tab_content">
+    <div role="tabpanel" class="tab-pane active" id="configuration">
+      AAA
+    </div>
+    <div role="tabpanel" class="tab-pane" id="roles">
+      {{users = db(db.auth_user.id > 0).select()}}
+      {{roles = db(db.auth_group.id > 0).select()}}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            {{for role in roles:}}
+              <th>{{=role.role}}</th>
+            {{pass}}
+          </tr>
+        </thead>
+        <tbody>
+          {{for user in users:}}
+            <tr>
+              <td>{{=user.first_name}}</td>
+              {{for role in roles:}}
+                {{
+                  store_role = db((db.store_role.id_user == user.id) &
+                                  (db.store_role.id_role == role.id) &
+                                  (db.store_role.id_store == store.id)
+                                  ).select().first()
+                }}
+                {{checked = 'checked="true"' if store_role else ''}}
+                {{print checked}}
+                <td>
+                  <input type="checkbox" class="role-check" id="{{=user.id}}{{=role.id}}" {{=checked}} value='{{=user.id}}/{{=role.id}}/'/>
+                </td>
+              {{pass}}
+            </tr>
+          {{pass}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  $('.role-check').on('click', function(e) {
+    e.preventDefault();
+    var args = $(this).val() + "{{=store.id}}";
+    var cb_id = $(this).attr('id');
+    $.ajax({url:"{{=URL('store_role', 'create_or_delete')}}.json/" + args
+    }).done(function (res) {
+      if (res.action == 'deleted') {
+        $('#' + cb_id).prop('checked', false);
+      }
+      else {
+        $('#' + cb_id).prop('checked', true);
+      }
+    });
+  });
+</script>
+
+{{include 'fab.html'}}
