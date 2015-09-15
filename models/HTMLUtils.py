@@ -9,9 +9,12 @@ def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     return button
 
 
-def data_row(row, fields=[], deletable=True, editable=True, extra_options=[]):
+def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}):
     """ """
     options_enabled = deletable or editable or extra_options
+
+    if not controller:
+        controller = request.controller
 
     # per row checkbox
     tr = TH(INPUT(_type='checkbox', _class='row_checkbox', _value=row.id), _scope='row')
@@ -26,11 +29,12 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[]):
         tr.append(TD(td))
     # Options
     if options_enabled:
+        vars_string = URL(vars=_vars).split('?')[1] if _vars else ''
         options_td = TD()
         if editable:
-            options_td.append(option_btn('pencil', URL('update', args=row.id)))
+            options_td.append(option_btn('pencil', URL(controller, 'update', args=row.id, vars=_vars)))
         if deletable:
-            delete_action = 'delete_rows("/%s")' % row.id
+            delete_action = 'delete_rows("/%s", "", "%s")' % (row.id, vars_string)
             options_td.append(option_btn('trash', onclick=delete_action))
         # options must be related to the row, for that reason this function only allows same controller urls, and also it asumes that the first argument in the specified action is the row id.
         if extra_options:
@@ -40,7 +44,7 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[]):
                 onclick = option['onclick'] if option.has_key('onclick') else None
                 url_args=option['url_args'] if option.has_key('url_args') else []
                 url_args.insert(0, row.id)
-                url = URL(url_action, args=url_args)
+                url = URL(controller, url_action, args=url_args, vars=_vars)
 
                 option_name = option['name'] if option.has_key('name') else ''
 
@@ -61,8 +65,12 @@ def data_headers(headers=[], options_enabled=True):
     return thead
 
 
+def data_table(head_cols, rows):
+    pass
+
+
 def data_table(headers=[], rows=[], fields=[], deletable=True,
-               editable=True, extra_options=[]):
+               editable=True, extra_options=[], controller='', _vars={}):
     """ Creates a data table with multiselect via checkboxes
 
         headers: the table headers
@@ -77,7 +85,7 @@ def data_table(headers=[], rows=[], fields=[], deletable=True,
     thead = THEAD(thead)
     tbody = TBODY()
     for row in rows:
-        tr = data_row(row, fields=fields, deletable=deletable, editable=editable, extra_options=extra_options)
+        tr = data_row(row, fields=fields, deletable=deletable, editable=editable, extra_options=extra_options, controller=controller, _vars=_vars)
         tbody.append(tr)
     table = TABLE(thead, tbody, _class="table table-hover")
     table = DIV(table, _class="table-responsive") # responsiveness

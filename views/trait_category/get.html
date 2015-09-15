@@ -1,0 +1,11 @@
+{{extend 'layout.html'}}
+<h1>{{=trait_category.name}} Traits</h1>
+
+{{
+  =data_table(['Option'], traits,
+              ['trait_option'], controller='trait'
+  )
+}}
+
+{{fab_action = URL('trait', 'create', args=trait_category.id)}}
+{{include "fab.html"}}

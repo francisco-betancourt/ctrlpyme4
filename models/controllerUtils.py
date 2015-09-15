@@ -1,4 +1,4 @@
-def common_create(table_name, success_msg=''):
+def common_create(table_name, success_msg='', _vars=None):
     form = SQLFORM(db[table_name])
     if form.process().accepted:
         response.flash = T(success_msg)
@@ -15,7 +15,6 @@ def common_update(table_name, args, _vars=None, success_msg=''):
     """
 
     next_url = _vars.next if _vars else URL('index')
-    print next_url
 
     row = db[table_name](args(0))
     if not row:
@@ -30,7 +29,7 @@ def common_update(table_name, args, _vars=None, success_msg=''):
     return dict(form=form, row=row)
 
 
-def common_delete(table_name, args):
+def common_delete(table_name, args, _vars=None):
     """
     args: request.args
     """

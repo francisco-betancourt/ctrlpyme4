@@ -165,9 +165,11 @@
         countChecked();
       });
 
-      function delete_rows(ids) {
+      {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
+
+      function delete_rows(ids, controller, vars) {
         if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
-          var delete_url = '{{=URL("delete")}}' + ids;
+          var delete_url = '{{=URL("delete")}}' + ids + '?' + vars;
           window.location.href = delete_url;
         }
       };
@@ -177,7 +179,7 @@
         $.each( $(".row_checkbox:checked"), function(i, item) {
           ids += item.value + '/';
         });
-        delete_rows(ids);
+        delete_rows(ids, "", "{{=vars_string}}");
       });
 
 

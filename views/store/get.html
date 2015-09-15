@@ -6,18 +6,17 @@
 <div>
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist" id="tabs">
-    <li role="presentation" class="active"><a href="#configuration" aria-controls="home" role="tab" data-toggle="tab">{{=T('Configuration')}}</a>
+    <li role="presentation" class="active">
+      <a href="#roles" aria-controls="profile" role="tab" data-toggle="tab">{{=T('Roles')}}</a>
     </li>
-    <li role="presentation"><a href="#roles" aria-controls="profile" role="tab" data-toggle="tab">{{=T('Roles')}}</a>
+    <li role="presentation">
+      <a href="#configuration" aria-controls="home" role="tab" data-toggle="tab">{{=T('Configuration')}}</a>
     </li>
   </ul>
 
   <!-- Tab panes -->
   <div class="tab-content" id="tab_content">
-    <div role="tabpanel" class="tab-pane active" id="configuration">
-      AAA
-    </div>
-    <div role="tabpanel" class="tab-pane" id="roles">
+    <div role="tabpanel" class="tab-pane active" id="roles">
       {{users = db(db.auth_user.id > 0).select()}}
       {{roles = db(db.auth_group.id > 0).select()}}
       <table class="table">
@@ -51,6 +50,9 @@
         </tbody>
       </table>
     </div>
+    <div role="tabpanel" class="tab-pane" id="configuration">
+      AAA
+    </div>
   </div>
 </div>
 
@@ -71,5 +73,3 @@
     });
   });
 </script>
-
-{{include 'fab.html'}}

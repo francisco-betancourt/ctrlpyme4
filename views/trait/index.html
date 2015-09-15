@@ -1,0 +1,20 @@
+{{extend 'layout.html'}}
+<h1>{{=trait_category.name}} Traits</h1>
+
+
+{{if traits:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+  {{
+    =data_table(['Option'], traits,
+                ['trait_option'], _vars=request.vars
+    )
+  }}
+{{else:}}
+  {{=T('No taxes found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+{{fab_action = URL('create', vars=request.vars)}}
+{{include "fab.html"}}
