@@ -138,7 +138,9 @@ db.define_table("address",
     Field("reference", "string", default=None, label=T('reference')),
     auth.signature)
 
-db.define_table("category",
+
+db.define_table(
+    "category",
     Field("name", "string", default=None, label=T('name')),
     Field("description", "text", default=None, label=T('description')),
     Field("url_name", "string", default=None, label=T('url name')),
@@ -148,6 +150,11 @@ db.define_table("category",
     Field("trait_category2", "reference trait_category", label=T('trait category')),
     Field("trait_category3", "reference trait_category", label=T('trait category')),
     auth.signature)
+db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db, 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s'))
+db.category.trait_category1.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
+db.category.trait_category2.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
+db.category.trait_category3.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
+
 
 db.define_table("trait",
     Field("id_trait_category", "reference trait_category", label=T('trait category')),
@@ -361,10 +368,7 @@ db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(o
 db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
 db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
-db.category.parent.requires=IS_IN_DB( db, 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s')
-db.category.trait_category1.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
-db.category.trait_category2.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
-db.category.trait_category3.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
+
 db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
 db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')

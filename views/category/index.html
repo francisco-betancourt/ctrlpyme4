@@ -1,0 +1,20 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Categories')}}</h1>
+
+
+{{if rows:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{
+    =data_table(['#', 'Name'], rows,
+                ['id', 'name'],
+                extra_options=[{'name': 'View', 'url_action': 'get'}])
+  }}
+{{else:}}
+  {{=T('No categories found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+{{include 'fab.html'}}
