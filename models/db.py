@@ -143,7 +143,7 @@ db.define_table(
     "category",
     Field("name", "string", default=None, label=T('name')),
     Field("description", "text", default=None, label=T('description')),
-    Field("url_name", "string", default=None, label=T('url name')),
+    Field("url_name", "string", default=None, label=T('url name'), readable=False),
     Field("icon", "upload", default=None, label=T('icon')),
     Field("parent", "reference category", label=T('parent')),
     Field("trait_category1", "reference trait_category", label=T('trait category')),
@@ -169,17 +169,14 @@ db.define_table("item",
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
     Field("sku", "string", length=20, default=None, label=T('SKU')),
-    Field("is_group", "boolean", default=False, label=T('is group')),
+    Field("is_bundle", "boolean", default=False, label=T('is bundle')),
     Field("has_inventory", "boolean", default=True, label=T('has inventory')),
     Field("base_price", "decimal(16,6)", default=None, label=T('base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('price 2')),
     Field("price3", "decimal(16,6)", default=None, label=T('price 3')),
     Field("id_trait1", "reference trait", label=T('trait 1')),
-    Field("trait1", "integer", default=None, label=T('trait 1')),
     Field("id_trait2", "reference trait", label=T('trait 2')),
-    Field("trait2", "integer", default=None, label=T('trait 2')),
     Field("id_trait3", "reference trait", label=T('trait 3')),
-    Field("trait3", "integer", default=None, label=T('trait 3')),
     Field("id_measure_unit", "reference measure_unit", label=T('measure unit')),
     Field("taxes", "list:reference tax", label=T('taxes')),
     Field("url_name", "string", default=None, label=T('url name')),
@@ -190,10 +187,17 @@ db.define_table("item",
     Field("extra_data3", "string", default=None, label=T('extra data 3')),
     Field("is_extra3_public", "boolean", default=None, label=T('is extra data 3 public')),
     Field("allow_fractions", "boolean", default=None, label=T('allow fractions')),
-    Field("id_item_group", "reference item", label=T('item group')),
+    Field("id_bundle_item", "reference item", label=T('bundle item'), readable=False, writable=False),
     Field("thumb", "upload", default=None, label=T('thumb')),
     Field("reward_points", "integer", default=None, label=T('reward points')),
     auth.signature)
+db.item.id_brand.requires=IS_IN_DB( db, 'brand.id', ' %(name)s %(logo)s')
+db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
+db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
+db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
+db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
+
+
 
 db.define_table("store",
     Field("id_company", "reference company", label=T('company')),
@@ -363,11 +367,7 @@ db.define_table("invoice",
     auth.signature)
 
 """ Relations between tables (remove fields you don't need from requires) """
-db.item.id_brand.requires=IS_IN_DB( db, 'brand.id', ' %(name)s %(logo)s')
-db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
-db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
-db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(option)s')
-db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
+
 
 db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
 db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
