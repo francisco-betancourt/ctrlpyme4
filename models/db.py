@@ -94,61 +94,59 @@ auth.settings.reset_password_requires_verification = True
 
 """ database class object creation (initialization) """
 db.define_table("brand",
-    Field("name", "string", default=None, label=T('name')),
-    Field("logo", "upload", default=None, label=T('logo')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("logo", "upload", default=None, label=T('Logo')),
     auth.signature)
 
 db.define_table("trait_category",
-    Field("name", "string", default=None, label=T('name')),
+    Field("name", "string", default=None, label=T('Name')),
     auth.signature)
 
 db.define_table("measure_unit",
-    Field("name", "string", default=None, label=T('name')),
-    Field("symbol", "string", default=None, label=T('symbol')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("symbol", "string", default=None, label=T('Symbol')),
     auth.signature)
 
 db.define_table("tax",
-    Field("name", "string", default=None, label=T('name')),
-    Field("percentage", "integer", default=None, label=T('percentage')),
-    Field("symbol", "string", default=None, label=T('symbol')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("percentage", "integer", default=None, label=T('Percentage')),
+    Field("symbol", "string", default=None, label=T('Symbol')),
     auth.signature)
 
 
 db.define_table(
     "company"
-    , Field('name', 'string', default=None, label=T('name'))
+    , Field('name', 'string', default=None, label=T('Name'))
 )
 
 
 db.define_table("payment_opt",
-    Field("name", "string", default=None, label=T('name')),
-    Field("allow_change", "boolean", default=None, label=T('allow change')),
-    Field("credit_days", "integer", default=None, label=T('credit days')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("allow_change", "boolean", default=None, label=T('Allow change')),
+    Field("credit_days", "integer", default=None, label=T('Credit days')),
     auth.signature)
 
 db.define_table("address",
-    Field("street", "string", default=None, label=T('street')),
-    Field("exterior", "string", default=None, label=T('exterior')),
-    Field("interior", "string", default=None, label=T('interior')),
-    Field("neighborhood", "string", default=None, label=T('neighborhood')),
-    Field("city", "string", default=None, label=T('city')),
-    Field("municipality", "string", default=None, label=T('municipality')),
-    Field("state_province", "string", default=None, label=T('state / province')),
-    Field("country", "string", default=None, label=T('country')),
-    Field("reference", "string", default=None, label=T('reference')),
+    Field("street", "string", default=None, label=T('Street')),
+    Field("exterior", "string", default=None, label=T('Exterior number')),
+    Field("interior", "string", default=None, label=T('Interior number')),
+    Field("neighborhood", "string", default=None, label=T('Neighborhood')),
+    Field("city", "string", default=None, label=T('City')),
+    Field("municipality", "string", default=None, label=T('Municipality')),
+    Field("state_province", "string", default=None, label=T('State or Province')),
+    Field("country", "string", default=None, label=T('Country')),
+    Field("reference", "string", default=None, label=T('Address Reference')),
     auth.signature)
 
-
-db.define_table(
-    "category",
-    Field("name", "string", default=None, label=T('name')),
-    Field("description", "text", default=None, label=T('description')),
-    Field("url_name", "string", default=None, label=T('url name')),
-    Field("icon", "upload", default=None, label=T('icon')),
-    Field("parent", "reference category", label=T('parent')),
-    Field("trait_category1", "reference trait_category", label=T('trait category')),
-    Field("trait_category2", "reference trait_category", label=T('trait category')),
-    Field("trait_category3", "reference trait_category", label=T('trait category')),
+db.define_table("category",
+    Field("name", "string", default=None, label=T('Name')),
+    Field("description", "text", default=None, label=T('Description')),
+    Field("url_name", "string", default=None, label=T('URL Name')),
+    Field("icon", "upload", default=None, label=T('Icon')),
+    Field("parent", "reference category", label=T('Parent category')),
+    Field("trait_category1", "reference trait_category", label=T('Trait')+" 1"),
+    Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
+    Field("trait_category3", "reference trait_category", label=T('Trait')+" 3"),
     auth.signature)
 db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db, 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s'))
 db.category.trait_category1.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
@@ -157,48 +155,48 @@ db.category.trait_category3.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.i
 
 
 db.define_table("trait",
-    Field("id_trait_category", "reference trait_category", label=T('trait category')),
-    Field("trait_option", "string", default=None, label=T('trait option')),
+    Field("id_trait_category", "reference trait_category", label=T('Trait category')),
+    Field("trait_option", "string", default=None, label=T('Option')),
     auth.signature)
 
 db.define_table("item",
-    Field("id_brand", "reference brand", label=T('brand')),
-    Field("categories", "list:reference category", label=T('categories')),
-    Field("name", "string", default=None, label=T('name')),
-    Field("description", "text", default=None, label=T('description')),
+    Field("id_brand", "reference brand", label=T('Brand')),
+    Field("categories", "list:reference category", label=T('Categories')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("description", "text", default=None, label=T('Description')),
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
     Field("sku", "string", length=20, default=None, label=T('SKU')),
-    Field("is_group", "boolean", default=False, label=T('is group')),
-    Field("has_inventory", "boolean", default=True, label=T('has inventory')),
-    Field("base_price", "decimal(16,6)", default=None, label=T('base price')),
-    Field("price2", "decimal(16,6)", default=None, label=T('price 2')),
-    Field("price3", "decimal(16,6)", default=None, label=T('price 3')),
-    Field("id_trait1", "reference trait", label=T('trait 1')),
-    Field("trait1", "integer", default=None, label=T('trait 1')),
-    Field("id_trait2", "reference trait", label=T('trait 2')),
-    Field("trait2", "integer", default=None, label=T('trait 2')),
-    Field("id_trait3", "reference trait", label=T('trait 3')),
-    Field("trait3", "integer", default=None, label=T('trait 3')),
-    Field("id_measure_unit", "reference measure_unit", label=T('measure unit')),
-    Field("taxes", "list:reference tax", label=T('taxes')),
-    Field("url_name", "string", default=None, label=T('url name')),
-    Field("extra_data1", "string", default=None, label=T('extra data 1')),
-    Field("is_extra1_public", "boolean", default=None, label=T('is extra data 1 public')),
-    Field("extra_data2", "string", default=None, label=T('extra data 2')),
-    Field("is_extra2_public", "boolean", default=None, label=T('is extra data 2 public')),
-    Field("extra_data3", "string", default=None, label=T('extra data 3')),
-    Field("is_extra3_public", "boolean", default=None, label=T('is extra data 3 public')),
-    Field("allow_fractions", "boolean", default=None, label=T('allow fractions')),
-    Field("id_item_group", "reference item", label=T('item group')),
-    Field("thumb", "upload", default=None, label=T('thumb')),
-    Field("reward_points", "integer", default=None, label=T('reward points')),
+    Field("is_group", "boolean", default=False, label=T('Is group')),
+    Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
+    Field("base_price", "decimal(16,6)", default=None, label=T('Base price')),
+    Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
+    Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
+    Field("id_trait1", "reference trait", label=T('Trait category')+" 1"),
+    Field("trait1", "integer", default=None, label=T('Trait')+" 1"),
+    Field("id_trait2", "reference trait", label=T('Trait category')+" 2"),
+    Field("trait2", "integer", default=None, label=T('Trait')+" 2"),
+    Field("id_trait3", "reference trait", label=T('Trait category')+" 3"),
+    Field("trait3", "integer", default=None, label=T('Trait')+" 3"),
+    Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
+    Field("taxes", "list:reference tax", label=T('Taxes')),
+    Field("url_name", "string", default=None, label=T('URL Name')),
+    Field("extra_data1", "string", default=None, label=T('Extra Data')+" 1"),
+    Field("is_extra1_public", "boolean", default=None, label=T('Extra')+" 1 "+T('Is Public')),
+    Field("extra_data2", "string", default=None, label=T('Extra Data')+" 1"),
+    Field("is_extra2_public", "boolean", default=None, label=T('Extra')+" 2 "+T('Is Public')),
+    Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
+    Field("is_extra3_public", "boolean", default=None, label=T('Extra')+" 3 "+T('Is Public')),
+    Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
+    Field("id_item_group", "reference item", label=T('Item group')),
+    Field("thumb", "upload", default=None, label=T('Thumbnail')),
+    Field("reward_points", "integer", default=None, label=T('Reward Points')),
     auth.signature)
 
 db.define_table("store",
-    Field("id_company", "reference company", label=T('company')),
-    Field("id_address", "reference address", label=T('address')),
-    Field("name", "string", default=None, label=T('name')),
+    Field("id_company", "reference company", label=T('Company')),
+    Field("id_address", "reference address", label=T('Address')),
+    Field("name", "string", default=None, label=T('Name')),
     auth.signature)
 
 db.define_table(
@@ -209,157 +207,157 @@ db.define_table(
 )
 
 db.define_table("store_config",
-    Field("id_store", "reference store", label=T('store')),
-    Field("param_name", "string", default=None, label=T('parameter name')),
-    Field("param_value", "string", default=None, label=T('parameter value')),
-    Field("param_type", "string", default=None, label=T('parameter type')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("param_name", "string", default=None, label=T('Parameter name')),
+    Field("param_value", "string", default=None, label=T('Parameter value')),
+    Field("param_type", "string", default=None, label=T('Parameter type')),
     auth.signature)
 
 db.define_table("supplier",
-    Field("business_name", "string", default=None, label=T('bussines name')),
-    Field("tax_id", "string", default=None, label=T('tax id')),
-    Field("id_address", "reference address", label=T('address')),
+    Field("business_name", "string", default=None, label=T('Business Name')),
+    Field("tax_id", "string", default=None, label=T('Tax ID')),
+    Field("id_address", "reference address", label=T('Address')),
     auth.signature)
 
 db.define_table("purchase",
-    Field("id_payment_opt", "reference payment_opt", label=T('payment option')),
-    Field("id_supplier", "reference supplier", label=T('supplier')),
-    Field("id_store", "reference store", label=T('store')),
-    Field("invoice_number", "integer", default=None, label=T('invoice number')),
-    Field("subtotal", "integer", default=None, label=T('subtotal')),
-    Field("total", "decimal(16,6)", default=None, label=T('total')),
-    Field("shipping_cost", "decimal(16,6)", default=None, label=T('shipping cost')),
-    Field("tracking_number", "integer", default=None, label=T('tracking number')),
-    Field("purchase_xml", "text", default=None, label=T('xml')),
+    Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
+    Field("id_supplier", "reference supplier", label=T('Supplier')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("invoice_number", "integer", default=None, label=T('Invoice number')),
+    Field("subtotal", "integer", default=None, label=T('Subtotal')),
+    Field("total", "decimal(16,6)", default=None, label=T('Total')),
+    Field("shipping_cost", "decimal(16,6)", default=None, label=T('Shipping cost')),
+    Field("tracking_number", "integer", default=None, label=T('Tracking number')),
+    Field("purchase_xml", "text", default=None, label=T('XML')),
     auth.signature)
 
 db.define_table("purchase_item",
-    Field("id_purchase", "reference purchase", label=T('purchase')),
-    Field("id_item", "reference item", label=T('item')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('quantity')),
-    Field("price", "decimal(16,6)", default=None, label=T('price')),
-    Field("taxes", "integer", default=None, label=T('taxes')),
-    Field("serial_numbers", "text", default=None, label=T('serial numbers')),
+    Field("id_purchase", "reference purchase", label=T('Purchase')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
+    Field("price", "decimal(16,6)", default=None, label=T('Price')),
+    Field("taxes", "integer", default=None, label=T('Taxes')),
+    Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
     auth.signature)
 
 db.define_table("stock",
-    Field("id_store", "reference store", label=T('store')),
-    Field("id_purchase", "reference purchase", label=T('purchase')),
-    Field("id_item", "reference item", label=T('item')),
-    Field("quantity", "integer", default=None, label=T('quantity')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("id_purchase", "reference purchase", label=T('Purchase')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("quantity", "integer", default=None, label=T('Quantity')),
     auth.signature)
 
 db.define_table("bag",
-    Field("id_store", "reference store", label=T('store')),
-    Field("completed", "string", default=None, label=T('completed')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("completed", "string", default=None, label=T('Completed')),
     auth.signature)
 
 db.define_table("bag_items",
-    Field("id_item", "reference item", label=T('item')),
-    Field("id_bag", "reference bag", label=T('bag')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('quantity')),
-    Field("buy_price", "decimal(16,6)", default=None, label=T('buy price')),
-    Field("buy_date", "datetime", default=None, label=T('buy date')),
-    Field("sale_price", "decimal(16,6)", default=None, label=T('sale price')),
-    Field("sale_taxes", "decimal(16,6)", default=None, label=T('sale taxes')),
-    Field("product_name", "string", default=None, label=T('product name')),
-    Field("sale_code", "string", default=None, label=T('sale code')),
-    Field("serial_number", "string", default=None, label=T('serial number')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("id_bag", "reference bag", label=T('Bag')),
+    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
+    Field("buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
+    Field("buy_date", "datetime", default=None, label=T('Buy date')),
+    Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
+    Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
+    Field("product_name", "string", default=None, label=T('Product name')),
+    Field("sale_code", "string", default=None, label=T('Sale code')),
+    Field("serial_number", "string", default=None, label=T('Serial number')),
     auth.signature)
 
 db.define_table("sale",
-    Field("id_bag", "reference bag", label=T('bag')),
-    Field("consecutive", "integer", default=None, label=T('consecutive')),
-    Field("subtotal", "decimal(16,6)", default=None, label=T('subtotal')),
-    Field("total", "integer", default=None, label=T('total')),
-    Field("quantity", "integer", default=None, label=T('quantity')),
-    Field("client", "integer", default=None, label=T('client')),
-    Field("reward_points", "integer", default=None, label=T('reward points')),
-    Field("is_invoiced", "boolean", default=None, label=T('is invoiced')),
-    Field("id_store", "reference store", label=T('store')),
+    Field("id_bag", "reference bag", label=T('Bag')),
+    Field("consecutive", "integer", default=None, label=T('Consecutive')),
+    Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
+    Field("total", "integer", default=None, label=T('Total')),
+    Field("quantity", "integer", default=None, label=T('Quantity')),
+    Field("client", "integer", default=None, label=T('Client')),
+    Field("reward_points", "integer", default=None, label=T('Reward Points')),
+    Field("is_invoiced", "boolean", default=None, label=T('Is invoiced')),
+    Field("id_store", "reference store", label=T('Store')),
     auth.signature)
 
 db.define_table("sale_log",
-    Field("id_sale", "reference sale", label=T('sale')),
-    Field("sale_event", "string", default=None, label=T('event')),
-    Field("event_date", "datetime", default=None, label=T('date')),
+    Field("id_sale", "reference sale", label=T('Sale')),
+    Field("sale_event", "string", default=None, label=T('Event')),
+    Field("event_date", "datetime", default=None, label=T('Date')),
     auth.signature)
 
 db.define_table("credit_note",
-    Field("id_sale", "reference sale", label=T('sale')),
-    Field("subtotal", "decimal(16,6)", default=None, label=T('subtotal')),
-    Field("total", "decimal(16,6)", default=None, label=T('total')),
-    Field("is_usable", "boolean", default=None, label=T('usable')),
-    Field("code", "string", default=None, label=T('code')),
+    Field("id_sale", "reference sale", label=T('Sale')),
+    Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
+    Field("total", "decimal(16,6)", default=None, label=T('Total')),
+    Field("is_usable", "boolean", default=None, label=T('Is usable')),
+    Field("code", "string", default=None, label=T('Code')),
     auth.signature)
 
 db.define_table("credit_note_item",
-    Field("id_credit_note", "reference credit_note", label=T('credit note')),
-    Field("id_bag_items", "reference bag_items", label=T('bag items')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('quantity')))
+    Field("id_credit_note", "reference credit_note", label=T('Credit note')),
+    Field("id_bag_items", "reference bag_items", label=T('Bag Items')),
+    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
 
 db.define_table("inventory",
-    Field("id_store", "reference store", label=T('store')),
-    Field("is_partital", "boolean", default=None, label=T('partial')),
-    Field("is_done", "boolean", default=None, label=T('done')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("is_partital", "boolean", default=None, label=T('Is partial')),
+    Field("is_done", "boolean", default=None, label=T('Is done')),
     auth.signature)
 
 db.define_table("inventory_items",
-    Field("id_inventory", "reference inventory", label=T('inventory')),
-    Field("id_item", "reference item", label=T('item')),
-    Field("system_qty", "integer", default=None, label=T('system quantity')),
-    Field("physical_qty", "integer", default=None, label=T('physical quantity')))
+    Field("id_inventory", "reference inventory", label=T('Inventory')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("system_qty", "integer", default=None, label=T('System quantity')),
+    Field("physical_qty", "integer", default=None, label=T('Physical quantity')))
 
 db.define_table("payment",
-    Field("id_payment_opt", "reference payment_opt", label=T('payment option')),
-    Field("id_sale", "reference sale", label=T('sale')),
-    Field("amount", "decimal(16,6)", default=None, label=T('amount')),
-    Field("account", "string", default=None, label=T('account')),
-    Field("change_amount", "decimal(16,6)", default=None, label=T('change amount')),
+    Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
+    Field("id_sale", "reference sale", label=T('Sale')),
+    Field("amount", "decimal(16,6)", default=None, label=T('Amount')),
+    Field("account", "string", default=None, label=T('Account')),
+    Field("change_amount", "decimal(16,6)", default=None, label=T('Change amount')),
     auth.signature)
 
 db.define_table("item_images",
-    Field("id_item", "reference item", label=T('item')),
-    Field("image", "upload", default=None, label=T('image')),
-    Field("thumb", "upload", default=None, label=T('thumb')))
+    Field("id_item", "reference item", label=T('Item')),
+    Field("image", "upload", default=None, label=T('Image')),
+    Field("thumb", "upload", default=None, label=T('Thumbnail')))
 
 db.define_table("promotion",
-    Field("id_store", "reference store", label=T('store')),
-    Field("json_data", "text", default=None, label=T('json data')),
-    Field("code", "string", default=None, label=T('code')),
-    Field("starts_on", "datetime", default=None, label=T('starts on')),
-    Field("ends_on", "datetime", default=None, label=T('ends on')),
-    Field("is_coupon", "boolean", default=None, label=T('is coupon')),
-    Field("is_combinable", "boolean", default=None, label=T('combinable')),
+    Field("id_store", "reference store", label=T('Store')),
+    Field("json_data", "text", default=None, label=T('JSON data')),
+    Field("code", "string", default=None, label=T('Code')),
+    Field("starts_on", "datetime", default=None, label=T('Starts on')),
+    Field("ends_on", "datetime", default=None, label=T('Ends on')),
+    Field("is_coupon", "boolean", default=None, label=T('Is coupon')),
+    Field("is_combinable", "boolean", default=None, label=T('Is combinable')),
     auth.signature)
 
 db.define_table("account_receivable",
-    Field("id_sale", "reference sale", label=T('sale')),
-    Field("is_settled", "boolean", default=None, label=T('settled')),
+    Field("id_sale", "reference sale", label=T('Sale')),
+    Field("is_settled", "boolean", default=None, label=T('Is settled')),
     auth.signature)
 
 db.define_table("account_payable",
-    Field("id_purchase", "reference purchase", label=T('purchase')),
-    Field("is_settled", "boolean", default=None, label=T('settled')),
+    Field("id_purchase", "reference purchase", label=T('Purchase')),
+    Field("is_settled", "boolean", default=None, label=T('Is settled')),
     auth.signature)
 
 db.define_table("tax_data",
-    Field("tax_id", "integer", default=None, label=T('tax id')),
-    Field("business_name", "string", default=None, label=T('business name')),
-    Field("id_address", "reference address", label=T('address')),
+    Field("tax_id", "integer", default=None, label=T('Tax ID')),
+    Field("business_name", "string", default=None, label=T('Business Name')),
+    Field("id_address", "reference address", label=T('Address')),
     auth.signature)
 
 db.define_table("invoice",
-    Field("id_sale", "reference sale", label=T('sale')),
-    Field("id_tax_data", "reference tax_data", label=T('tax data')),
+    Field("id_sale", "reference sale", label=T('Sale')),
+    Field("id_tax_data", "reference tax_data", label=T('Tax data')),
     Field("invoice_xml", "text", default=None, label=T('XML')),
     Field("uuid", "string", default=None, label=T('UUID')),
-    Field("sat_seal", "string", default=None, label=T('SAT seal')),
-    Field("certification_date", "datetime", default=None, label=T('certification date')),
-    Field("folio", "integer", default=None, label=T('folio')),
-    Field("is_cancelled", "boolean", default=None, label=T('cancelled')),
-    Field("cancel_date", "datetime", default=None, label=T('cancel date')),
-    Field("acknowledgement", "text", default=None, label=T('acknowledgement')),
+    Field("sat_seal", "string", default=None, label=T('SAT Seal')),
+    Field("certification_date", "datetime", default=None, label=T('Certification date')),
+    Field("folio", "integer", default=None, label=T('Folio')),
+    Field("is_cancelled", "boolean", default=None, label=T('Is cancelled')),
+    Field("cancel_date", "datetime", default=None, label=T('Cancel date')),
+    Field("acknowledgement", "text", default=None, label=T('Acknowledgement')),
     auth.signature)
 
 """ Relations between tables (remove fields you don't need from requires) """
