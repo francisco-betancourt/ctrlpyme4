@@ -11,7 +11,6 @@ def common_create(table_name, success_msg='', _vars=None):
 
 def common_update(table_name, args, _vars=None, success_msg=''):
     """
-    args: [measure_unit_id]
     """
 
     next_url = _vars.next if _vars else URL('index')

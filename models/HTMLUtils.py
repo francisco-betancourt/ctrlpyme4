@@ -5,7 +5,7 @@
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
-    button = BUTTON(SPAN(_class='glyphicon glyphicon-%s' % icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
+    button = BUTTON(I(_class='fa fa-%s' % icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
     return button
 
 

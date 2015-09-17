@@ -38,7 +38,8 @@ response.menu = [
         # , (T('Roles'), False, URL('store_role', 'index'), None)
     ]),
     (T('Items'),False,None, [
-         (T('Categories'), False, URL('category', 'index'), None)
+         (T('Catalog'), False, URL('item', 'index'), None)
+        , (T('Categories'), False, URL('category', 'index'), None)
         , (T('Traits'), False, URL('trait_category', 'index'), None)
     ])
     # , (T('Company'), False, None, [
