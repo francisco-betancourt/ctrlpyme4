@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap.min.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/web2py-bootstrap3.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
     <!-- All JavaScript at the bottom, except for Modernizr which enables
@@ -34,6 +35,8 @@
         <![endif]-->
     <!-- Favicons -->
     {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
+    <script src="{{=URL('static','js/bootstrap-treeview.min.js')}}"></script>
+    
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use

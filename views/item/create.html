@@ -1,0 +1,38 @@
+{{extend 'layout.html'}}
+{{=form}}
+
+
+<script type="text/javascript">
+  $('#categories_tree').treeview({
+    data: categories_tree_data,
+    checkedIcon: 'fa fa-check-square-o',
+    uncheckedIcon: 'fa fa-square-o',
+    expandIcon: 'fa fa-plus',
+    collapseIcon: 'fa fa-minus',
+    showCheckbox: true,
+    highlightSelected: false,
+    levels: 1
+  });
+
+  $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
+    var selected = $('#categories_tree').treeview('getChecked');
+    var selected_categories = "";
+    for(var i = 0; i < selected.length; i++) {
+      selected_categories += selected[i].category_id;
+      if (i < selected.length - 1) {
+        selected_categories += ',';
+      }
+    }
+    $('#categories_selected').prop('value', selected_categories);
+  });
+
+  $('#category_search').bind('change paste keyup', function(event) {
+    var pattern = $(this).val()
+    $('#categories_tree').treeview('collapseAll', { silent: true });
+    $('#categories_tree').treeview('search', [pattern , {
+      ignoreCase: true,     // case insensitive
+      exactMatch: false,    // like or equals
+      revealResults: true  // reveal matching nodes
+    }]);
+  })
+</script>
