@@ -9,7 +9,7 @@ def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     return button
 
 
-def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}):
+def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}, selectable=True):
     """ """
     options_enabled = deletable or editable or extra_options
 
@@ -17,7 +17,9 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], co
         controller = request.controller
 
     # per row checkbox
-    tr = TH(INPUT(_type='checkbox', _class='row_checkbox', _value=row.id), _scope='row')
+    tr = TH()
+    if selectable:
+        tr.append(INPUT(_type='checkbox', _class='row_checkbox', _value=row.id), _scope='row')
     for field in fields:
         td = ''
         # if the field is a list, we iterate over its elements to concatenate the the row fields into a  single column
@@ -54,9 +56,11 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], co
         return tr
 
 
-def data_headers(headers=[], options_enabled=True):
+def data_headers(headers=[], options_enabled=True, selectable=True):
     # the master checkbox
-    thead = TH(INPUT(_type='checkbox', _id='master_checkbox'))
+    thead = TH()
+    if selectable:
+        thead.append(INPUT(_type='checkbox', _id='master_checkbox'))
     for header in headers:
         thead.append(TH(T(header)))
     if options_enabled:
@@ -70,7 +74,8 @@ def data_table(head_cols, rows):
 
 
 def data_table(headers=[], rows=[], fields=[], deletable=True,
-               editable=True, extra_options=[], controller='', _vars={}):
+               editable=True, extra_options=[], controller='', _vars={},
+               selectable=True):
     """ Creates a data table with multiselect via checkboxes
 
         headers: the table headers
@@ -81,11 +86,11 @@ def data_table(headers=[], rows=[], fields=[], deletable=True,
     options_enabled = deletable or editable or extra_options
 
     # the master checkbox
-    thead = data_headers(headers=headers, options_enabled=options_enabled)
+    thead = data_headers(headers=headers, options_enabled=options_enabled, selectable=selectable)
     thead = THEAD(thead)
     tbody = TBODY()
     for row in rows:
-        tr = data_row(row, fields=fields, deletable=deletable, editable=editable, extra_options=extra_options, controller=controller, _vars=_vars)
+        tr = data_row(row, fields=fields, deletable=deletable, editable=editable, extra_options=extra_options, controller=controller, _vars=_vars, selectable=selectable)
         tbody.append(tr)
     table = TABLE(thead, tbody, _class="table table-hover")
     table = DIV(table, _class="table-responsive") # responsiveness

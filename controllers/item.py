@@ -44,7 +44,7 @@ def categories_tree(categories):
 
 def create():
 
-    form = SQLFORM(db.item, fields=['name', 'description', 'is_bundle'])
+    form = SQLFORM(db.item, fields=['name', 'description', 'is_bundle', 'has_inventory', 'base_price', 'id_trait1', 'id_trait2', 'id_trait3'])
 
     # brand
     field = SELECT(OPTION(""), _name='id_brand', _class="form-control")

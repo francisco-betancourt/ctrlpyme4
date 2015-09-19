@@ -40,7 +40,6 @@
                                   ).select().first()
                 }}
                 {{checked = 'checked="true"' if store_role else ''}}
-                {{print checked}}
                 <td>
                   <input type="checkbox" class="role-check" id="{{=user.id}}{{=role.id}}" {{=checked}} value='{{=user.id}}/{{=role.id}}/'/>
                 </td>
@@ -51,7 +50,12 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="configuration">
-      AAA
+      {{if store_config:}}
+        {{=data_table(
+            headers=['Name', 'Value'], rows=store_config,
+            fields=['param_name', 'param_value'], deletable=False, selectable=False, controller='store_config'
+          )}}
+      {{pass}}
     </div>
   </div>
 </div>
