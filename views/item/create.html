@@ -1,4 +1,5 @@
 {{extend 'layout.html'}}
+<h2>{{=T("New Item")}}</h2>
 {{=form}}
 
 
@@ -24,7 +25,42 @@
       }
     }
     $('#categories_selected').prop('value', selected_categories);
+    $.ajax({
+      url: "{{=URL('trait_selector_data')}}.json?categories=" + selected_categories
+    })
+    .done(function(data) {
+      if (data.status == "1") {
+      }
+      $('#traits_tree').treeview({
+        data: data.traits,
+        checkedIcon: 'fa fa-check-square-o',
+        uncheckedIcon: 'fa fa-square-o',
+        expandIcon: 'fa fa-plus',
+        collapseIcon: 'fa fa-minus',
+        showCheckbox: true,
+        highlightSelected: false,
+        levels: 1
+      });
+
+      $('#traits_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
+        var selected = $('#traits_tree').treeview('getChecked');
+        var selected_traits = "";
+        for(var i = 0; i < selected.length; i++) {
+          if (!selected[i].trait_id) {
+            continue;
+          }
+          selected_traits += selected[i].trait_id;
+          if (i < selected.length - 1) {
+            selected_traits += ',';
+          }
+        }
+        $('#traits_selected').prop('value', selected_traits);
+      });
+
+    });
   });
+
+
 
   $('#category_search').bind('change paste keyup', function(event) {
     var pattern = $(this).val()

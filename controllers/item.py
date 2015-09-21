@@ -41,10 +41,63 @@ def categories_tree(categories):
     return DIV(LABEL(T('Categories'), _class="control-label col-sm-3"), field, _class="form-group")
 
 
+def trait_selector_data():
+    """ treeview based on the selected categories, use this function as json
+
+        vars:
+            categories: list of categories (separated by comma)
+
+    """
+
+    categories_ids = request.vars.categories
+    if not categories_ids:
+        return dict(status=1)
+    categories_ids = categories_ids.split(',')
+
+    # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
+    query = (db.category.id < 0)
+    for category_id in categories_ids:
+        query |= (db.category.id == category_id)
+    categories = db(query).select()
+    query = (db.trait.id < 0)
+    for category in categories:
+        query |= (db.trait.id_trait_category == category.trait_category1)
+        query |= (db.trait.id_trait_category == category.trait_category2)
+        query |= (db.trait.id_trait_category == category.trait_category3)
+    traits = db(query & (db.trait.is_active == True)
+                ).select(orderby=db.trait.id_trait_category)
+
+    # creates the trait tree
+    trait_tree = []
+    current_trait_category = traits.first().id_trait_category
+    current_subtree = {"text": current_trait_category.name, "nodes": []}
+    for trait in traits:
+        if trait.id_trait_category != current_trait_category:
+            trait_tree.append(current_subtree)
+            current_trait_category = trait.id_trait_category
+            current_subtree = {"text": current_trait_category.name, "nodes": []}
+        node = {"text": trait.trait_option, "trait_id": trait.id}
+        current_subtree['nodes'].append(node)
+    trait_tree.append(current_subtree)
+    current_trait_category = trait.id_trait_category
+    current_subtree = {"text": current_trait_category.name, "nodes": []}
+    return dict(traits=trait_tree)
+
+
+def trait_selector():
+     return DIV(
+                LABEL(T('Traits'), _class="control-label col-sm-3"),
+                DIV(DIV(_id="traits_tree"),
+                    INPUT(_type="text", _hidden=True, _id="traits_selected", _name="traits_selected"),
+                    _class="col-sm-9"
+                ),
+                _class="form-group"
+            )
+
 
 def create():
 
-    form = SQLFORM(db.item, fields=['name', 'description', 'is_bundle', 'has_inventory', 'base_price', 'id_trait1', 'id_trait2', 'id_trait3'])
+    form = SQLFORM(db.item, fields=['name', 'description', 'is_bundle', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # brand
     field = SELECT(OPTION(""), _name='id_brand', _class="form-control")
@@ -60,14 +113,12 @@ def create():
                    ).select(orderby=~db.category.parent)
     if categories:
         form[0].insert(1, categories_tree(categories))
+        form[0].insert(2, trait_selector())
 
     if form.process().accepted:
         response.flash = 'form accepted'
     elif form.errors:
         response.flash = 'form has errors'
-    return dict(form=form)
-
-
     return dict(form=form)
 
 

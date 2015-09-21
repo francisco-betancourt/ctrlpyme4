@@ -19,7 +19,7 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], co
     # per row checkbox
     tr = TH()
     if selectable:
-        tr.append(INPUT(_type='checkbox', _class='row_checkbox', _value=row.id), _scope='row')
+        tr.append(INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
     for field in fields:
         td = ''
         # if the field is a list, we iterate over its elements to concatenate the the row fields into a  single column
