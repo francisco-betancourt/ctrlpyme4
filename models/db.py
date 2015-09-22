@@ -173,6 +173,7 @@ db.define_table("trait",
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
     Field("categories", "list:reference category", label=T('Categories')),
+    Field("traits", "list:reference trait", label=T("Traits"), readable=False, writable=False),
     Field("name", "string", default=None, label=T('Name')),
     Field("description", "text", default=None, label=T('Description')),
     Field("upc", "string", length=12, default=None, label=T('UPC')),
@@ -202,14 +203,6 @@ db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(t
 db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
 db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
-
-
-db.define_table(
-    "item_trait"
-    , Field('id_item', type="reference item", label="Item")
-    , Field('id_trait', type="reference trait", label="Trait")
-    , auth.signature
-)
 
 
 

@@ -5,24 +5,9 @@
 {{if rows:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
-
-  <table class="table">
-    <thead>
-      {{=data_headers(['name'])}}
-    </thead>
-    <tbody>
-      {{for row in rows:}}
-        {{if row.is_bundle:}}
-          {{=data_row(row, fields=['name'], extra_options={'name': 'view'})}}
-        {{else:}}
-          {{=data_row(row, fields=['name'])}}
-        {{pass}}
-      {{pass}}
-    </tbody>
-  </table>
   {{
-    =data_table(['#', 'Name', 'Percentage', 'Symbol'], rows,
-                ['id', 'name', 'percentage', 'symbol'])
+    =data_table(['Name'], rows,
+                ['name'])
   }}
 {{else:}}
   {{=T('No Items found')}}

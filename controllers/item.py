@@ -111,6 +111,10 @@ def bundle_items_html():
 
 
 def create():
+    """
+        vars:
+            is_bundle: whether the newly created item will be a bundle or not
+    """
 
     form = SQLFORM(db.item, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
@@ -127,18 +131,43 @@ def create():
                     (db.category.is_active==True)
                    ).select(orderby=~db.category.parent)
     if categories:
+        # form.vars.categories_selected
         form[0].insert(1, categories_tree_html(categories))
+        # form.vars.traits_selected
         form[0].insert(2, trait_selector_html())
 
-    # form[0].insert(6, bundle_items_html())
-
     if form.process().accepted:
+        # categories
+        categories = [int(c) for c in form.vars.categories_selected.split(',')] if form.vars.categories_selected else None
+        # add the traits
+        traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
+
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
-        db.item(form.vars.id).update_record(url_name=url_name)
-        response.flash = 'form accepted'
+        # check if the is bundle flag is active
+        is_bundle = False
+        if form.vars.is_bundle:
+            is_bundle = True
+        db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=categories)
+        response.flash = T('Item created')
+        # if the item is bundle, redirect to the bundle filling page
+        if is_bundle:
+            redirect(URL('fill_bundle', args=form.vars.id))
+        else:
+            redirect(URL('index'))
     elif form.errors:
         response.flash = 'form has errors'
     return dict(form=form)
+
+
+def fill_bundle():
+    """
+        args:
+            item_id: the bundle item that will be filled.
+    """
+    bundle = db.item(form.args(0))
+    if not bundle:
+        raise HTTP(404)
+
 
 
 def get():
@@ -155,4 +184,11 @@ def delete():
 
 def index():
     rows = common_index('item')
+    return locals()
+
+
+def bundles_index():
+    """ Return all the active bundle items  """
+
+    rows = db((db.item.is_bundle == True) & (db.item.is_active == True)).select()
     return locals()
