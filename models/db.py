@@ -93,6 +93,16 @@ auth.settings.reset_password_requires_verification = True
 # auth.enable_record_versioning(db)
 
 """ database class object creation (initialization) """
+
+db.define_table(
+    "company_config"
+    , Field('param_name', label=T("Name"), writable=False)
+    , Field('param_value', label=T("Value"))
+    , Field('param_type', label=T("Type"), readable=False, writable=False, default="string")
+    , Field('is_public', type="boolean", label=T("Is public"))
+)
+
+
 db.define_table("brand",
     Field("name", "string", default=None, label=T('Name')),
     Field("logo", "upload", default=None, label=T('Logo')),
@@ -168,7 +178,8 @@ db.define_table("item",
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
     Field("sku", "string", length=20, default=None, label=T('SKU')),
-    Field("is_bundle", "boolean", default=False, label=T('Is bundle')),
+    Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
+    Field("bundle_items", "list:reference item", label=T('Bundle items'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
     Field("base_price", "decimal(16,6)", default=None, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
@@ -180,10 +191,9 @@ db.define_table("item",
     Field("taxes", "list:reference tax", label=T('Taxes')),
     Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
     Field("extra_data1", "string", default=None, label=T('Extra Data')+" 1"),
-    Field("extra_data2", "string", default=None, label=T('Extra Data')+" 1"),
+    Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
-    Field("id_bundle_item", "reference item", label=T('Bundle item')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')),
     Field("reward_points", "integer", default=None, label=T('Reward Points')),
     auth.signature)
@@ -192,6 +202,14 @@ db.item.id_trait1.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(t
 db.item.id_trait2.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
 db.item.id_trait3.requires=IS_IN_DB( db, 'trait.id', ' %(id_trait_category)s %(trait_option)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
+
+
+db.define_table(
+    "item_trait"
+    , Field('id_item', type="reference item", label="Item")
+    , Field('id_trait', type="reference trait", label="Trait")
+    , auth.signature
+)
 
 
 

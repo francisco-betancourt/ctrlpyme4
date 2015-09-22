@@ -5,7 +5,7 @@
 import json
 
 
-def categories_tree(categories):
+def categories_tree_html(categories):
     current_category = categories.first().parent
     categories_children = {}
     current_tree = []
@@ -70,12 +70,12 @@ def trait_selector_data():
     # creates the trait tree
     trait_tree = []
     current_trait_category = traits.first().id_trait_category
-    current_subtree = {"text": current_trait_category.name, "nodes": []}
+    current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
     for trait in traits:
         if trait.id_trait_category != current_trait_category:
             trait_tree.append(current_subtree)
             current_trait_category = trait.id_trait_category
-            current_subtree = {"text": current_trait_category.name, "nodes": []}
+            current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
         node = {"text": trait.trait_option, "trait_id": trait.id}
         current_subtree['nodes'].append(node)
     trait_tree.append(current_subtree)
@@ -84,7 +84,7 @@ def trait_selector_data():
     return dict(traits=trait_tree)
 
 
-def trait_selector():
+def trait_selector_html():
      return DIV(
                 LABEL(T('Traits'), _class="control-label col-sm-3"),
                 DIV(DIV(_id="traits_tree"),
@@ -94,10 +94,25 @@ def trait_selector():
                 _class="form-group"
             )
 
+def bundle_items_html():
+    return DIV(
+               LABEL(T('Bundle items'), _class="control-label col-sm-3"),
+               DIV(
+                   INPUT(_id="bundle_item_code", _class="form-control",
+                         _placeholder=T("Scan code..."))
+                   , DIV(_id='bundle_items_list', _class="list-group")
+                   , INPUT(_id="bundle_items_ids", _name="bundle_items_ids"
+                           , _hidden=True)
+                   , _id="bundle_items_form_group", _class="col-sm-9"
+               )
+               , _class="form-group", _id="bundle_items_form_group"
+               , _hidden=True
+           )
+
 
 def create():
 
-    form = SQLFORM(db.item, fields=['name', 'description', 'is_bundle', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
+    form = SQLFORM(db.item, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # brand
     field = SELECT(OPTION(""), _name='id_brand', _class="form-control")
@@ -112,10 +127,14 @@ def create():
                     (db.category.is_active==True)
                    ).select(orderby=~db.category.parent)
     if categories:
-        form[0].insert(1, categories_tree(categories))
-        form[0].insert(2, trait_selector())
+        form[0].insert(1, categories_tree_html(categories))
+        form[0].insert(2, trait_selector_html())
+
+    # form[0].insert(6, bundle_items_html())
 
     if form.process().accepted:
+        url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
+        db.item(form.vars.id).update_record(url_name=url_name)
         response.flash = 'form accepted'
     elif form.errors:
         response.flash = 'form has errors'

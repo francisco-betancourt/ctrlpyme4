@@ -3,6 +3,19 @@
 {{=form}}
 
 
+<!-- <form action="" class="form-horizontal">
+  <div class="form-group">
+    <label>{{=T('Bundle items')}}</label>
+    <div class="col-sm-9">
+      <input type="text" id="bundle_item_code" class="form-control"
+             placeholder="{{=T('Scan code...')}}">
+      <div class="bundle_items_list"></div>
+    </div>
+
+  </div>
+</form> -->
+
+
 <script type="text/javascript">
   $('#categories_tree').treeview({
     data: categories_tree_data,
@@ -33,28 +46,30 @@
       }
       $('#traits_tree').treeview({
         data: data.traits,
-        checkedIcon: 'fa fa-check-square-o',
-        uncheckedIcon: 'fa fa-square-o',
+        multiSelect: true,
+        selectedIcon: 'fa fa-check',
         expandIcon: 'fa fa-plus',
         collapseIcon: 'fa fa-minus',
-        showCheckbox: true,
         highlightSelected: false,
         levels: 1
       });
 
-      $('#traits_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
-        var selected = $('#traits_tree').treeview('getChecked');
+      $('#traits_tree').bind('nodeSelected nodeUnselected', function(event, node) {
+        var siblings = $('#traits_tree').treeview('getSiblings', node);
+        var selected_traits = "";
+        for(var i = 0; i < siblings.length; i++) {
+          $('#traits_tree').treeview('unselectNode', [ siblings[i], { silent: true } ]);
+        }
+        var selected = $('#traits_tree').treeview('getSelected');
         var selected_traits = "";
         for(var i = 0; i < selected.length; i++) {
-          if (!selected[i].trait_id) {
-            continue;
-          }
           selected_traits += selected[i].trait_id;
           if (i < selected.length - 1) {
             selected_traits += ',';
           }
         }
         $('#traits_selected').prop('value', selected_traits);
+        console.log(selected_traits);
       });
 
     });
@@ -71,4 +86,28 @@
       revealResults: true  // reveal matching nodes
     }]);
   })
+
+  $("#item_is_bundle").on('click', function(event) {
+    console.log(event.target.checked);
+    if (event.target.checked) {
+      $("#bundle_items_form_group").show();
+    }
+    else {
+      $("#bundle_items_form_group").hide();
+    }
+  });
+
+  $("form").on("submit", function(event) {
+    console.log("submit");
+    event.preventDefault();
+    return false;
+  });
+  //
+  // $("form :submit").on("click", function(event) {
+  //   $("form").on("submit", function(event) {
+  //     console.log("real submit");
+  //     return true;
+  //   });
+  //   $("form").submit();
+  // });
 </script>

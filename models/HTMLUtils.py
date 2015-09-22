@@ -37,7 +37,7 @@ def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], co
             options_td.append(option_btn('pencil', URL(controller, 'update', args=row.id, vars=_vars)))
         if deletable:
             delete_action = 'delete_rows("/%s", "", "%s")' % (row.id, vars_string)
-            options_td.append(option_btn('trash', onclick=delete_action))
+            options_td.append(option_btn('eye-slash', onclick=delete_action))
         # options must be related to the row, for that reason this function only allows same controller urls, and also it asumes that the first argument in the specified action is the row id.
         if extra_options:
             for option in extra_options:
