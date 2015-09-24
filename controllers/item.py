@@ -96,15 +96,8 @@ def trait_selector_html():
 
 def bundle_items_html():
     return DIV(
-               LABEL(T('Bundle items'), _class="control-label col-sm-3"),
-               DIV(
-                   INPUT(_id="bundle_item_code", _class="form-control",
-                         _placeholder=T("Scan code..."))
-                   , DIV(_id='bundle_items_list', _class="list-group")
-                   , INPUT(_id="bundle_items_ids", _name="bundle_items_ids"
-                           , _hidden=True)
-                   , _id="bundle_items_form_group", _class="col-sm-9"
-               )
+               LABEL(T('Bundle items'), _class="control-label col-sm-3")
+               , DIV(DIV(_id='bundle_items_list', _class="list-group"),_class="col-sm-9")
                , _class="form-group", _id="bundle_items_form_group"
                , _hidden=True
            )
@@ -145,7 +138,7 @@ def create():
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
         # check if the is bundle flag is active
         is_bundle = False
-        if form.vars.is_bundle:
+        if request.vars.is_bundle:
             is_bundle = True
         db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=categories)
         response.flash = T('Item created')
@@ -164,14 +157,59 @@ def fill_bundle():
         args:
             item_id: the bundle item that will be filled.
     """
-    bundle = db.item(form.args(0))
+    bundle = db.item(request.args(0))
     if not bundle:
         raise HTTP(404)
+    scan_form = SQLFORM.factory(
+        Field('scan_code'), buttons=[], _id="scan_form"
+    )
+    bundle_form = SQLFORM.factory(
+        _id='bundle_form', buttons=[]
+    )
+    bundle_form[0].insert(0, bundle_items_html())
+    form = SQLFORM.factory(_id="master_form")
+    form.append(INPUT(_id="final_bundle_items_list", _type="text", _hidden=True, _name='item_ids'))
+    if form.process().accepted:
+        print form.vars.item_ids
+        for pair in form.vars.item_ids.split(','):
+            if not pair:
+                continue
+            item_id, item_qty = pair.split(':')
+            db.bundle_items.insert(id_bundle=bundle.id, id_item=item_id, quantity=item_qty)
+        redirect(URL('index'))
+        response.flash = 'form accepted'
+    elif form.errors:
+        response.flash = 'form has errors'
+    else:
+        response.flash = 'please fill the form'
+
+    return locals()
 
 
 
 def get():
-    pass
+    """
+        args:
+            item_id: the item that will be retrieved
+    """
+    item = db.item(request.args(0))
+    if not item:
+        raise HTTP(404)
+    return locals()
+
+
+def find_by_code():
+    """
+        args:
+            item_code: the item EAN, UPC or SKU
+    """
+    item = db((db.item.ean == request.args(0))
+            | (db.item.upc == request.args(0))
+            | (db.item.sku == request.args(0))
+           ).select().first()
+    if not item:
+        raise HTTP(404)
+    return locals()
 
 
 def update():
