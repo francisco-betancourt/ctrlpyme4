@@ -5,7 +5,7 @@
 import json
 
 
-def categories_tree_html(categories):
+def categories_tree_html(categories, item=None):
     current_category = categories.first().parent
     categories_children = {}
     current_tree = []
@@ -16,6 +16,9 @@ def categories_tree_html(categories):
             current_category = category.parent
         # current_tree.append({'text': category.name})
         child = {'text': category.name, 'category_id': category.id}
+        if item:
+            if category.id in item.categories:
+                child['state'] = {'checked': True};
         if categories_children.has_key(category.id):
             child['nodes'] = categories_children[category.id]
             current_tree.append(child)
@@ -44,6 +47,8 @@ def categories_tree_html(categories):
 def trait_selector_data():
     """ treeview based on the selected categories, use this function as json
 
+        args:
+            item_id: the current item (only available on updates)
         vars:
             categories: list of categories (separated by comma)
 
@@ -53,6 +58,7 @@ def trait_selector_data():
     if not categories_ids:
         return dict(status=1)
     categories_ids = categories_ids.split(',')
+    item = db.item(request.args(0))
 
     # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
     query = (db.category.id < 0)
@@ -77,6 +83,9 @@ def trait_selector_data():
             current_trait_category = trait.id_trait_category
             current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
         node = {"text": trait.trait_option, "trait_id": trait.id}
+        if item:
+            if trait.id in item.traits:
+                node['state'] = {'selected': True}
         current_subtree['nodes'].append(node)
     trait_tree.append(current_subtree)
     current_trait_category = trait.id_trait_category
@@ -103,13 +112,8 @@ def bundle_items_html():
            )
 
 
-def create():
-    """
-        vars:
-            is_bundle: whether the newly created item will be a bundle or not
-    """
-
-    form = SQLFORM(db.item, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
+def item_form(item=None, is_bundle=False):
+    form = SQLFORM(db.item, item, showid=False, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # brand
     field = SELECT(OPTION(""), _name='id_brand', _class="form-control")
@@ -125,7 +129,7 @@ def create():
                    ).select(orderby=~db.category.parent)
     if categories:
         # form.vars.categories_selected
-        form[0].insert(1, categories_tree_html(categories))
+        form[0].insert(1, categories_tree_html(categories, item))
         # form.vars.traits_selected
         form[0].insert(2, trait_selector_html())
 
@@ -136,10 +140,6 @@ def create():
         traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
 
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
-        # check if the is bundle flag is active
-        is_bundle = False
-        if request.vars.is_bundle:
-            is_bundle = True
         db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=categories)
         response.flash = T('Item created')
         # if the item is bundle, redirect to the bundle filling page
@@ -149,7 +149,34 @@ def create():
             redirect(URL('index'))
     elif form.errors:
         response.flash = 'form has errors'
+    return form
+
+
+def create():
+    """
+        vars:
+            is_bundle: whether the newly created item will be a bundle or not
+    """
+
+    is_bundle = request.vars.is_bundle
+    form = item_form(is_bundle=is_bundle)
+
     return dict(form=form)
+
+
+def create_or_update():
+    """
+        args:
+            item: if this argument is present, then this function will return an update form
+        vars:
+            is_bundle: whether the newly created item will be a bundle or not
+    """
+
+    item = db.item(request.args(0))
+    is_bundle = request.vars.is_bundle
+    form = item_form(item=item, is_bundle=is_bundle)
+
+    return locals()
 
 
 def fill_bundle():
@@ -213,7 +240,19 @@ def find_by_code():
 
 
 def update():
-    return common_update('item', request.args)
+    """
+        vars:
+            is_bundle: whether the newly created item will be a bundle or not
+    """
+
+    # item = db.item(request.args(0))
+    # if not item:
+    #     raise HTTP(404)
+    # is_bundle = request.vars.is_bundle
+    # form = item_form(item=item, is_bundle=is_bundle)
+    redirect(URL('create_or_update', args=request.args, vars=request.vars))
+
+    # return locals()
 
 
 def delete():
