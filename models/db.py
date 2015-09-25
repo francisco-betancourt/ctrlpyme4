@@ -199,7 +199,7 @@ db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(s
 
 
 db.define_table(
-  'bundle_items'
+  'bundle_item'
   , Field('id_bundle', 'reference item')
   , Field('id_item', 'reference item')
   , Field('quantity', 'decimal(16,6)')

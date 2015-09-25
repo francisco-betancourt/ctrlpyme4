@@ -5,10 +5,23 @@
 {{if rows:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
-  {{
-    =data_table(['Name'], rows,
-                ['name'])
-  }}
+  <table class="table table-hover">
+    <thead>
+      {{=data_headers(['Name'])}}
+    </thead>
+    <tbody>
+      {{for row in rows:}}
+        <tr>
+          {{if row.is_bundle:}}
+            {{=data_row(row, ['name'], _vars={'is_bundle': True})}}
+          {{else:}}
+            {{=data_row(row, ['name'])}}
+          {{pass}}
+        </tr>
+      {{pass}}
+    </tbody>
+  </table>
+
 {{else:}}
   {{=T('No Items found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}

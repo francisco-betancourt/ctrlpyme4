@@ -18,12 +18,13 @@
 
 
 <script>
-  bundle_items = {};
+  // bundle_items is a javascript variable sended by the server.
+
   $('#proto_item').hide();
 
   function remove_item(key) {
     delete bundle_items[key];
-    $('#' + key).remove()
+    $('#' + key).remove();
   }
 
 
@@ -35,8 +36,8 @@
         items_string += item.id + ':' + item.qty + ','
       }
     }
-    console.log(items_string);
     $('#final_bundle_items_list').val(items_string)
+    console.log(items_string);
   }
 
 
@@ -50,30 +51,51 @@
   }
 
 
+  function create_bundle_item_html(item, barcode) {
+    var key = 'item_' + barcode;
+    var el_item = $('#proto_item').clone();
+    el_item.attr('id', key);
+    el_item.show();
+    el_item.css('display', 'block');
+    el_item.find('h4').find('span').html(item.name);
+    el_item.find('i').on('click', function() {remove_item(key);});
+    el_item.find('p').text('{{=T("barcode")}}: ' + barcode);
+    el_item.find('input').attr('id', 'item_qty_' + item.id);
+    el_item.find('input').val(item.qty);
+    el_item.find('input').on('keyup', function() {
+      var value = parseInt($(this).val());
+      if (isNaN(value)) {value = 1; $(this).val(1);}
+      bundle_items[key].qty = value;
+      create_bundle_items_list();
+    });
+    el_item.find('input').on('focus', function() {
+      $(this).select();
+    });
+    $('#bundle_items_list').append(el_item);
+  }
+
+  // if there are bundle items (bundle update), then we add the item html elements
+  if (bundle_items) {
+    $('#bundle_items_form_group').show();
+    var items_string = "";
+    for (var key in bundle_items) {
+      if (bundle_items.hasOwnProperty(key)) {
+        var item = bundle_items[key];
+        create_bundle_item_html(item, item.barcode);
+        items_string += item.id + ':' + item.qty + ','
+      }
+    }
+    $('#final_bundle_items_list').val(items_string)
+  }
+
+
   function index_item(item) {
     var barcode = item.sku | item.ean | item.upc;
     var key = 'item_' + barcode;
     var bundle_item_data = bundle_items[key];
     if (!bundle_item_data) {
-      bundle_items[key] = {qty: 0, id: item.id}
-      var el_item = $('#proto_item').clone();
-      el_item.attr('id', key);
-      el_item.show();
-      el_item.css('display', 'block');
-      el_item.find('h4').find('span').html(item.name);
-      el_item.find('i').on('click', function() {remove_item(key);});
-      el_item.find('p').text('{{=T("barcode")}}: ' + barcode);
-      el_item.find('input').attr('id', 'item_qty_' + item.id);
-      el_item.find('input').on('keyup', function() {
-        var value = parseInt($(this).val());
-        if (isNaN(value)) {value = 1; $(this).val(1);}
-        bundle_items[key].qty = value;
-        create_bundle_items_list();
-      });
-      el_item.find('input').on('focus', function() {
-        $(this).select();
-      });
-      $('#bundle_items_list').append(el_item);
+      bundle_items[key] = {qty: 0, id: item.id, name: item.name, barcode: barcode}
+      create_bundle_item_html(item, barcode);
     }
     add_item(bundle_items[key])
   }

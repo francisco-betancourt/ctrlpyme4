@@ -103,6 +103,7 @@ def trait_selector_html():
                 _class="form-group"
             )
 
+
 def bundle_items_html():
     return DIV(
                LABEL(T('Bundle items'), _class="control-label col-sm-3")
@@ -113,6 +114,8 @@ def bundle_items_html():
 
 
 def item_form(item=None, is_bundle=False):
+    is_bundle = bool(request.vars.is_bundle)
+
     form = SQLFORM(db.item, item, showid=False, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # brand
@@ -158,7 +161,6 @@ def create():
             is_bundle: whether the newly created item will be a bundle or not
     """
 
-    is_bundle = request.vars.is_bundle
     form = item_form(is_bundle=is_bundle)
 
     return dict(form=form)
@@ -184,6 +186,7 @@ def fill_bundle():
         args:
             item_id: the bundle item that will be filled.
     """
+
     bundle = db.item(request.args(0))
     if not bundle:
         raise HTTP(404)
@@ -194,15 +197,25 @@ def fill_bundle():
         _id='bundle_form', buttons=[]
     )
     bundle_form[0].insert(0, bundle_items_html())
+    bundle_items = db(db.bundle_item.id_bundle == bundle.id).select()
+    bundle_items_data = {}
+    for b_item in bundle_items:
+        barcode = b_item.id_item.sku or b_item.id_item.ean or b_item.id_item.upc
+        if barcode:
+            bundle_items_data['item_' + barcode] = {'id': b_item.id_item, 'qty': int(b_item.quantity), 'name': b_item.id_item.name, 'barcode': barcode}
+    bundle_items_data = json.dumps(bundle_items_data)
+    bundle_items_script = SCRIPT('bundle_items = %s;' % bundle_items_data)
+    bundle_form.append(bundle_items_script)
+
     form = SQLFORM.factory(_id="master_form")
     form.append(INPUT(_id="final_bundle_items_list", _type="text", _hidden=True, _name='item_ids'))
     if form.process().accepted:
-        print form.vars.item_ids
         for pair in form.vars.item_ids.split(','):
             if not pair:
                 continue
             item_id, item_qty = pair.split(':')
-            db.bundle_items.insert(id_bundle=bundle.id, id_item=item_id, quantity=item_qty)
+            print item_qty
+            db.bundle_item.update_or_insert((db.bundle_item.id_bundle == bundle.id) & (db.bundle_item.id_item == item_id), quantity=item_qty, id_bundle=bundle.id, id_item=item_id)
         redirect(URL('index'))
         response.flash = 'form accepted'
     elif form.errors:
