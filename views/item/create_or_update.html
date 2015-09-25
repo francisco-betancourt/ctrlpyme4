@@ -1,11 +1,19 @@
 {{extend 'layout.html'}}
 <h2>{{=T("New Item")}}</h2>
+{{=barcode_form}}
 {{=form}}
 
 
 {{item_id = item.id if item else None}}
-
 <script type="text/javascript">
+  // barcode checking
+  $('#barcode_form').on('submit', function(event) {
+    event.preventDefault();
+    // #TODO we have to check if theres another item with this barcode, also determine the barcode type
+    return false;
+  })
+
+
   $('#categories_tree').treeview({
     data: categories_tree_data,
     checkedIcon: 'fa fa-check-square-o',

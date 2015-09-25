@@ -116,15 +116,13 @@ def bundle_items_html():
 def item_form(item=None, is_bundle=False):
     is_bundle = bool(request.vars.is_bundle)
 
-    form = SQLFORM(db.item, item, showid=False, fields=['name', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
+    form = SQLFORM(db.item, item, showid=False, fields=['name', 'id_brand', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
-    # brand
-    field = SELECT(OPTION(""), _name='id_brand', _class="form-control")
-    brands = db(db.brand.id > 0).select()
-    for brand in brands:
-        field.append(OPTION(brand.name))
-    # form_fields.append(field)
-    form[0].insert(0, DIV(LABEL(T('Brand'), _class="control-label col-sm-3"), DIV(field, _class="col-sm-9"), _class="form-group"))
+    # barcode input system
+    # check if theres another item with the same barcode, if there is one, then we will not be able to add this item, from the barcode input, send an ajax request to find an item by the given barcode, if the server returns an item then we will reject this form. (need to be done via javascript)
+    barcode_form = SQLFORM.factory(_id="barcode_form", buttons=[])
+    barcode_form.append(DIV(LABEL(T('Barcode'), _class="control-label col-sm-3"), DIV(INPUT(_class="form-control", _id="barcode", _name="barcode"), _class="col-sm-9"), _class="form-group"))
+
 
     # categories
     categories = db((db.category.id > 0) &
@@ -132,9 +130,9 @@ def item_form(item=None, is_bundle=False):
                    ).select(orderby=~db.category.parent)
     if categories:
         # form.vars.categories_selected
-        form[0].insert(1, categories_tree_html(categories, item))
+        form[0].insert(2, categories_tree_html(categories, item))
         # form.vars.traits_selected
-        form[0].insert(2, trait_selector_html())
+        form[0].insert(3, trait_selector_html())
 
     if form.process().accepted:
         # categories
@@ -152,7 +150,7 @@ def item_form(item=None, is_bundle=False):
             redirect(URL('index'))
     elif form.errors:
         response.flash = 'form has errors'
-    return form
+    return dict(form=form, barcode_form=barcode_form)
 
 
 def create():
@@ -161,9 +159,8 @@ def create():
             is_bundle: whether the newly created item will be a bundle or not
     """
 
-    form = item_form(is_bundle=is_bundle)
-
-    return dict(form=form)
+    # return item_form(is_bundle=request.vars.is_bundle)
+    redirect(URL('create_or_update', vars=request.vars))
 
 
 def create_or_update():
@@ -176,9 +173,9 @@ def create_or_update():
 
     item = db.item(request.args(0))
     is_bundle = request.vars.is_bundle
-    form = item_form(item=item, is_bundle=is_bundle)
+    forms = item_form(item=item, is_bundle=is_bundle)
 
-    return locals()
+    return dict(item=item, is_bundle=is_bundle, form=forms['form'], barcode_form=forms['barcode_form'])
 
 
 def fill_bundle():
@@ -214,7 +211,6 @@ def fill_bundle():
             if not pair:
                 continue
             item_id, item_qty = pair.split(':')
-            print item_qty
             db.bundle_item.update_or_insert((db.bundle_item.id_bundle == bundle.id) & (db.bundle_item.id_item == item_id), quantity=item_qty, id_bundle=bundle.id, id_item=item_id)
         redirect(URL('index'))
         response.flash = 'form accepted'
