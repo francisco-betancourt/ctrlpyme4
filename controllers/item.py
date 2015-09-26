@@ -96,7 +96,7 @@ def trait_selector_data():
 
 def trait_selector_html():
     """ Returns the trait selector html, for the treeview function """
-     return DIV(
+    return DIV(
                 LABEL(T('Traits'), _class="control-label col-sm-3"),
                 DIV(DIV(_id="traits_tree"),
                     INPUT(_type="text", _hidden=True, _id="traits_selected", _name="traits_selected"),

@@ -1,0 +1,16 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Suppliers')}}</h1>
+
+{{if data:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{=data}}
+{{else:}}
+{{=T('No taxes found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+{{include 'fab.html'}}

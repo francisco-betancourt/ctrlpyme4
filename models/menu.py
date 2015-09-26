@@ -34,15 +34,16 @@ response.menu = [
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
-    ]),
-    (T('Items'), False, None, [
+    ])
+    , (T('Items'), False, None, [
          (T('Catalog'), False, URL('item', 'index'), None)
         , (T('Categories'), False, URL('category', 'index'), None)
         , (T('Traits'), False, URL('trait_category', 'index'), None)
     ])
-    # , (T('Company'), False, None, [
-    #     (T('Stores'), False, URL('store', 'index'))
-    # ])
+    , (T('Purchases'), False, None, [
+         (T('List'), False, URL('purchase', 'index'), None)
+        , (T('Suppliers'), False, URL('supplier', 'index'), None)
+    ])
 ]
 
 # response.menu += [
