@@ -1,0 +1,18 @@
+<div class="cp-fab-container">
+  <div class="btn-group btn-group-lg" role="group" aria-label="...">
+    <button id="core_action" type="button" class="btn btn-default" aria-label="">
+      <i class="fa fa-{{=core_action_icon}}" aria-hidden="true"></i>
+    </button>
+    {{if core_options:}}
+      <button type="button" class="btn btn-default cp-multi-more" aria-label="">
+        <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+      </button>
+    {{pass}}
+  </div>
+</div>
+
+<script>
+  $('#core_action').on('click', function(event) {
+    window.location.href = '{{=core_action}}';
+  });
+</script>

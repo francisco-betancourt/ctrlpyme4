@@ -36,7 +36,7 @@
     <!-- Favicons -->
     {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
     <script src="{{=URL('static','js/bootstrap-treeview.min.js')}}"></script>
-    
+
     {{block head}}{{end}}
     {{
     # using sidebars need to know what sidebar you want to use
@@ -94,6 +94,10 @@
       {{fab_icon = 'plus'}}
       {{fab_options = None}}
       {{fab_options_mode = None}}
+
+      {{core_action = URL('create')}}
+      {{core_action_icon = 'plus'}}
+      {{core_options = None}}
 
       <div class="{{=middle_column}}">
         {{block center}}
