@@ -20,7 +20,7 @@ button.cp-fab:focus{
 
 .cp-fab-container {
   position: fixed;
-  right: 16px;
+  right: 0px;
   bottom: 72px;
   z-index: 20;
 }
@@ -65,4 +65,25 @@ button.cp-fab:focus{
 
 #main_fab_list {
 
+}
+
+
+#core_button {
+}
+
+#core_button button {
+  margin: 0px;
+  box-shadow: 0px 2px 4px rgba(0,0,0,.5);
+}
+
+
+.extra-option {
+  background-color: #1F1F1F;
+}
+
+#expand_core {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
