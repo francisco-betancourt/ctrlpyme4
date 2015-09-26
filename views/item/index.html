@@ -2,11 +2,11 @@
 <h1>{{=T('Items')}}</h1>
 
 
-{{if rows:}}
+{{if data:}}
   {{delete_enabled = True}}
 
   {{include 'selection_menu.html'}}
-  {{=table}}
+  {{=data}}
 {{else:}}
   {{=T('No Items found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}

@@ -20,7 +20,6 @@ def get():
     if not store:
         raise HTTP(404, T('Store NOT FOUND'))
 
-    # store_roles = db(db.store_role.id_store == store.id).select()
     store_config = db(db.store_config.id_store == store.id).select()
     store_roles = db(db.store_role.id_store == store.id).select()
     return locals()
@@ -36,4 +35,9 @@ def delete():
 
 def index():
     stores = common_index('store')
+    if stores:
+        data = super_table('store', ['name'], stores, show_id=True, extra_options=lambda row : [
+                option_btn('', URL('get', args=row.id), action_name=T("View"))
+            ]
+        )
     return locals()

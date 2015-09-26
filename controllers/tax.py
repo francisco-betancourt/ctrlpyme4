@@ -19,5 +19,8 @@ def delete():
 
 def index():
     taxes = common_index('tax')
+    data = None
+    if taxes:
+        data = super_table('tax', ['name', 'percentage', 'symbol'], taxes)
 
     return locals()

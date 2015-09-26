@@ -54,6 +54,7 @@ def trait_selector_data():
 
     """
 
+    # we need a category in order to retrieve the traits
     categories_ids = request.vars.categories
     if not categories_ids:
         return dict(status=1)
@@ -94,6 +95,7 @@ def trait_selector_data():
 
 
 def trait_selector_html():
+    """ Returns the trait selector html, for the treeview function """
      return DIV(
                 LABEL(T('Traits'), _class="control-label col-sm-3"),
                 DIV(DIV(_id="traits_tree"),
@@ -254,14 +256,8 @@ def update():
             is_bundle: whether the newly created item will be a bundle or not
     """
 
-    # item = db.item(request.args(0))
-    # if not item:
-    #     raise HTTP(404)
-    # is_bundle = request.vars.is_bundle
-    # form = item_form(item=item, is_bundle=is_bundle)
     redirect(URL('create_or_update', args=request.args, vars=request.vars))
 
-    # return locals()
 
 
 def delete():
@@ -298,13 +294,8 @@ def item_row(row, fields):
 
 def index():
     rows = common_index('item')
-    table = super_table('item', ['name'], rows, row_function=item_row, options_function=item_options)
+    data = None
+    if rows:
+        data = super_table('item', ['name'], rows, row_function=item_row, options_function=item_options)
 
-    return locals()
-
-
-def bundles_index():
-    """ Return all the active bundle items  """
-
-    rows = db((db.item.is_bundle == True) & (db.item.is_active == True)).select()
     return locals()
