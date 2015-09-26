@@ -9,6 +9,70 @@ def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     return button
 
 
+
+def default_row_function(row, fields):
+    """ Returns a row with the columns specified by fields, from the specified row """
+
+    tr = TR()
+    for field in fields:
+        tr.append(TD(row[field]))
+
+    return tr
+
+
+
+def hide_button(row):
+    """" Returns a button that calls the delete_row javascript function """
+
+    return option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id))
+
+
+def default_options_function(row):
+    """ Returns a column with a generci edit option and genertic delete javascript option """
+
+    td = TD()
+    # edit option
+    td.append(option_btn('pencil', URL('update', args=row.id)))
+    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
+    return td
+
+
+def super_table(table, fields, rows, row_function=default_row_function,
+                options_function=default_options_function, options_enabled=True,
+                show_id=False, selectable=True):
+    """ Returns a data table with the specified rows, if a row function is supplied then rows will follow the format stablished by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id to True of you want the table to display the id for the specific row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. This function will use the database table field labels as table headers.
+    """
+
+    thead = TR()
+    if selectable:
+        thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox')))
+    if show_id:
+        thead.append(TH('#'))
+    for field in fields:
+        thead.append(TH(db[table][field].label))
+    if options_enabled:
+        thead.append(TH(T('Options')))
+    thead = THEAD(thead)
+
+    tbody = TBODY()
+    for row in rows:
+        tr = row_function(row, fields)
+        if selectable:
+            tr.insert(0, INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
+        if show_id:
+            tr.insert(1, TD(row.id))
+        if options_enabled:
+            tr.append(options_function(row))
+        tbody.append(tr)
+    table = TABLE(thead, tbody, _class="table table-hover")
+
+    return table
+
+
+
+
+
+
 def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}, selectable=True):
     """ """
     options_enabled = deletable or editable or extra_options

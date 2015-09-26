@@ -268,8 +268,38 @@ def delete():
     return common_delete('item', request.args)
 
 
+def item_options(row):
+    td = TD()
+    # edit button
+    if row.is_bundle:
+        td.append(option_btn('pencil', URL('update', args=row.id, vars={'is_bundle': True})))
+    else:
+        td.append(option_btn('pencil', URL('update', args=row.id)))
+    # hide button
+    td.append(hide_button(row))
+
+
+    return td
+
+
+def item_row(row, fields):
+    tr = TR()
+    # item name
+    td = TD()
+    if row.is_bundle:
+        td.append(I(_class="fa fa-cubes"))
+    td.append(row.name)
+    tr.append(td)
+
+    return tr
+
+
+
+
 def index():
     rows = common_index('item')
+    table = super_table('item', ['name'], rows, row_function=item_row, options_function=item_options)
+
     return locals()
 
 
