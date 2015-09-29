@@ -2,17 +2,13 @@
 <h1>{{=T('Payment Options')}}</h1>
 
 
-{{if payment_opts:}}
+{{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
 
-  {{=data_table(
-     ['#', 'Name', 'Allows Change', 'Credit Days'],
-     payment_opts,
-     ['id', 'name', 'allow_change', 'credit_days'])
-   }}
+  {{ =data }}
 {{else:}}
   {{=T('No Payment Options Found, click the plus button to create one')}}
 {{pass}}
 
-{{include 'fab.html'}}
+{{include 'core_button.html'}}

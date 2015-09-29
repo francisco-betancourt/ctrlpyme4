@@ -72,9 +72,16 @@ button.cp-fab:focus{
 }
 
 #core_button button {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
   margin: 0px;
   box-shadow: 0px 2px 4px rgba(0,0,0,.5);
 }
+
+#core_button button:focus {
+  outline: 0;
+}
+
 
 
 .extra-option {

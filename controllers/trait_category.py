@@ -21,4 +21,5 @@ def delete():
 
 def index():
     rows = common_index('trait_category')
+    data = super_table('trait_category', ['name'], rows, extra_options=lambda row: [option_btn('', URL('get', args=row.id), 'View')])
     return locals()

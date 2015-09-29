@@ -46,6 +46,9 @@ def super_table(table, fields, rows, row_function=default_row_function,
         This function will use the database table field labels as table headers.
     """
 
+    if not rows:
+        return None
+
     thead = TR()
     if selectable:
         thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox')))

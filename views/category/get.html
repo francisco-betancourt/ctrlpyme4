@@ -8,15 +8,11 @@
    {{=category.name}} {{=T('Categories')}}</h1>
 
 
-{{if rows:}}
+{{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
 
-  {{
-    =data_table(['#', 'Name'], rows,
-                ['id', 'name'],
-                extra_options=[{'name': 'View', 'url_action': 'get'}])
-  }}
+  {{ =data }}
 {{else:}}
   {{=T('No categories found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
@@ -24,4 +20,4 @@
 {{pass}}
 
 {{fab_action = URL('create', vars={'parent': category.id})}}
-{{include 'fab.html'}}
+{{include 'core_button.html'}}

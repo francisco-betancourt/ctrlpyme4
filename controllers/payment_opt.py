@@ -15,5 +15,6 @@ def delete():
     common_delete('payment_opt',request.args)
 
 def index():
-    payment_opts = db((db.payment_opt.id > 0) & (db.payment_opt.is_active == True)).select()
+    rows = db(db.payment_opt.is_active == True).select()
+    data = super_table('payment_opt', ['name', 'allow_change', 'credit_days'], rows)
     return locals()

@@ -29,6 +29,7 @@ def delete():
 
 
 def index():
-    measure_units = db(db.measure_unit.is_active == True).select()
+    rows = db(db.measure_unit.is_active == True).select()
+    data = super_table('measure_unit', ['name', 'symbol'], rows)
 
     return locals()

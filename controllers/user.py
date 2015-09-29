@@ -20,4 +20,5 @@ def delete():
 
 def index():
     rows = db(db.auth_user.id > 0).select()
+    data = super_table('auth_user', ['email'], rows)
     return locals()

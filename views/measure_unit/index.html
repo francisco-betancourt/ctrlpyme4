@@ -2,14 +2,11 @@
 <h1>{{=T('Measure Units')}}</h1>
 
 
-{{if measure_units:}}
+{{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
 
-  {{
-    =data_table(['#', 'Name', 'Symbol'], measure_units,
-                ['id', 'name', 'symbol'])
-  }}
+  {{ =data }}
 {{else:}}
   {{=T('No measure units found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
@@ -17,4 +14,4 @@
 {{pass}}
 
 
-{{include "fab.html"}}
+{{include "core_button.html"}}

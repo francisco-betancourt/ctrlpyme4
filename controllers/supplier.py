@@ -20,7 +20,5 @@ def delete():
 
 def index():
     rows = common_index('supplier')
-    data = None
-    if rows:
-        data = super_table('supplier', ['business_name'], rows)
+    data = data = super_table('supplier', ['business_name'], rows)
     return locals()

@@ -2,14 +2,11 @@
 <h1>{{=T('Trait')}}: {{=trait_category.name}}</h1>
 
 
-{{if traits:}}
+{{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
-  {{
-    =data_table(['Option'], traits,
-                ['trait_option'], _vars=request.vars
-    )
-  }}
+  
+  {{ =data }}
 {{else:}}
   {{=T('No taxes found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}

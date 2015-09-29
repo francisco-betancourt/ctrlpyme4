@@ -37,6 +37,7 @@ def index():
         raise HTTP(400)
 
     traits = db((db.trait.is_active == True) & (db.trait.id_trait_category == trait_category.id)).select()
+    data = super_table('trait', ['trait_option'], traits)
 
     return locals()
 

@@ -243,7 +243,8 @@ db.define_table("purchase",
     Field("total", "decimal(16,6)", default=None, label=T('Total')),
     Field("shipping_cost", "decimal(16,6)", default=None, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
-    Field("purchase_xml", "text", default=None, label=T('XML')),
+    Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
+    Field("purchase_xml", "text", default=None, label=T('XML'), readable=False, writable=False),
     auth.signature)
 
 db.define_table("purchase_item",

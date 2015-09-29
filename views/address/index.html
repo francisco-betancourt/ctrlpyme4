@@ -2,18 +2,15 @@
 <h1>{{=T('Addresses')}}</h1>
 
 
-{{if addresses:}}
+{{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
 
-  {{
-    =data_table(['#', 'Address'], addresses,
-                ['id', ['street', 'exterior', 'interior', 'neighborhood']])
-  }}
+  {{=data}}
 {{else:}}
   {{=T('No addresses found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
   {{=T('the plus button to create one.')}}
 {{pass}}
 
-{{include 'fab.html'}}
+{{include 'core_button.html'}}

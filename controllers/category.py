@@ -2,6 +2,12 @@
 #
 # Author: Daniel J. Ramirez
 
+
+
+def category_extra_options(row):
+    return [option_btn('', URL('get', args=row.id), 'View')]
+    
+
 def create():
     redirect_url = URL('index')
     parent = db.category(request.vars.parent)
@@ -29,6 +35,7 @@ def get():
     if not category:
         redirect(URL('index'))
     rows = db(db.category.parent == category.id).select()
+    data = super_table('category', ['name'], rows, extra_options=category_extra_options)
     return locals()
 
 
@@ -60,6 +67,8 @@ def delete():
     return common_delete('category', request.args)
 
 
+
 def index():
     rows = db(db.category.parent == None).select()
+    data = super_table('category', ['name'], rows, extra_options=category_extra_options)
     return locals()
