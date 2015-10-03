@@ -21,3 +21,7 @@ def urlify_string(string):
     s = regex.sub(replace_match, string)
     s = urllib.quote(s)
     return s
+
+
+def item_barcode(item):
+    return item.sku or item.ean or item.upc

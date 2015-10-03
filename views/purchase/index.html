@@ -1,0 +1,21 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Purchases')}}</h1>
+
+{{if data:}}
+  {{delete_enabled = True}}
+  {{include 'selection_menu.html'}}
+
+  {{=data}}
+{{else:}}
+  {{=T('No purchases found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+
+{{
+  core_options=[
+    {'icon': 'file-text', 'tooltip': T('Create from XML'), 'url':URL('create', vars={'is_xml': True})}
+  ]
+}}
+{{include 'core_button.html'}}

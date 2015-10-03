@@ -86,8 +86,6 @@ def super_table(table, fields, rows, row_function=default_row_function,
 
 
 
-
-
 def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}, selectable=True):
     """ """
     options_enabled = deletable or editable or extra_options
