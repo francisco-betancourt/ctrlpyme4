@@ -1,6 +1,23 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Add')}} Items</h1>
 {{=form}}
+{{new_item_js_url = URL('static', 'js/create_item.js')}}
+
+<div>
+  <div class="col-sm-3"></div>
+  <div class="col-sm-9">
+    <div class="panel panel-primary" hidden="hidden" id="new_item_panel">
+      <div class="panel-heading">{{=T('New Item')}}
+        <button class="btn btn-danger">{{=T('Cancel')}}</button>
+      </div>
+      <div class="panel-body" id="new_item_form_container">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 <div>
   <div class="col-sm-3"></div>
   <div class="col-sm-9" id="items_list"></div>
@@ -49,17 +66,7 @@
       console.log(data);
     })
   }
-  //
-  //
-  // function add_item(bundle_item) {
-  //   bundle_item.qty += 1;
-  //   var el_item_qty = $('#item_qty_' + bundle_item.id);
-  //   el_item_qty.val(bundle_item.qty);
-  //
-  //   // racalculate the items list based on the bundle_items map
-  //   create_bundle_items_list();
-  // }
-  //
+
 
   function call_purchase_item_modifier(purchase_item_id, param_name, param_value) {
     $.ajax({
@@ -71,6 +78,8 @@
     console.log(' valid ');
   }
 
+
+  // clones the proto html item list element and cofigures the newly created element
   function create_html_item(item, barcode, purchase_item) {
     console.log("purchase_item" + purchase_item);
     var key = 'item_' + barcode;
@@ -152,12 +161,20 @@
       .fail(function(data) {
         alert("{{=T('Could not add item!')}}")
       });
-      // index_item(data.item);
     })
     .fail(function(data) {
       // this happens when the item wasn't found, so we need to display the item
       // creation form.
-      alert("{{=T('Item not found!')}}")
+      $('#new_item_form_container > *').remove();
+      $.ajax({
+        url: "{{=URL('item', 'create_or_update', extension='json')}}"
+      })
+      .done(function (data) {
+        $('#new_item_form_container').append(data.form);
+        $.getScript('{{=new_item_js_url}}')
+
+        $('#new_item_panel').show();
+      });
     });
 
     return false;

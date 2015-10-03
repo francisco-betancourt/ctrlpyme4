@@ -59,11 +59,12 @@ def add_purchase_item():
 
 
 def delete_purchase_item():
-    """ This function will remove a purchase item
+    """ This function removes the specified purchase item
 
         args:
             purchase_item_id
     """
+
     purchase_item_id = request.args(0)
     if not purchase_item_id:
         raise HTTP(400)
@@ -90,11 +91,6 @@ def modify_purchase_item():
         purchase_item.update_record()
     except:
         raise HTTP(400)
-
-
-def purchase_item_form():
-    form = SQLFORM(db.purchase_item_form)
-    pass
 
 
 def fill():
