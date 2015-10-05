@@ -183,14 +183,45 @@ def get():
 
 
 def update():
-    return common_update('purchase', request.args)
+    """
+        args:
+            purchase_id
+        vars:
+            is_xml: if true, then the form will accept an xml file
+    """
+
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(412)
+
+    is_xml = request.vars.is_xml
+
+    form = SQLFORM(db.purchase, purchase)
+
+    if form.process().accepted:
+        response.flash = 'form accepted'
+        redirect(URL('fill', args=purchase.id))
+    elif form.errors:
+        response.flash = 'form has errors'
+    return dict(form=form)
 
 
 def delete():
     return common_delete('purchase', request.args)
 
 
+def purchase_options(row):
+    td = TD()
+    # edit option
+    if not row.is_done:
+        td.append(option_btn('pencil', URL('update', args=row.id)))
+    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
+    return td
+
+
 def index():
     rows = common_index('purchase')
-    data = super_table('purchase', ['invoice_number', 'subtotal', 'total'], rows)
+    data = super_table('purchase', ['invoice_number', 'subtotal', 'total'], rows, options_function=purchase_options)
     return locals()

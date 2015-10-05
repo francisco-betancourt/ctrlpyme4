@@ -3,6 +3,13 @@
 {{=form}}
 {{new_item_js_url = URL('static', 'js/create_item.js')}}
 
+<style>
+  #items_list {
+    margin-bottom: 15px;
+  }
+</style>
+
+
 <div>
   <div class="col-sm-3"></div>
   <div class="col-sm-9">
@@ -19,11 +26,21 @@
 
 
 <div>
-  <div class="col-sm-3"></div>
-  <div class="col-sm-9" id="items_list"></div>
+  <!-- Items list -->
+  <div class="row">
+    <div class="col-sm-9 col-sm-offset-3" id="items_list"></div>
+  </div>
+  <!-- buttons -->
+  <div class="row">
+    <div class="col-sm-9 col-sm-offset-3">
+      <button class="btn btn-primary">{{=T('Commit')}}</button>
+      <button class="btn btn-default">{{=T('Save')}}</button>
+    </div>
+  </div>
 </div>
 
 
+<!-- Prototype element for purchase items list  -->
 <a href="#" class="list-group-item" id="proto_item">
   <h4> <span></span> <i class="fa fa-times right"></i></h4>
   <p></p>
@@ -53,14 +70,6 @@
   </div>
 </a>
 
-
-<div>
-  <div class="col-sm-3"></div>
-  <div class="col-sm-9">
-    <button class="btn btn-primary">{{=T('Commit')}}</button>
-    <button class="btn btn-default">{{=T('Save')}}</button>
-  </div>
-</div>
 
 
 
