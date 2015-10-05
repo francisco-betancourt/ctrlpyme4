@@ -171,8 +171,62 @@
       })
       .done(function (data) {
         $('#new_item_form_container').append(data.form);
-        $.getScript('{{=new_item_js_url}}')
+        var new_item_form = $('#new_item_form_container').find('form');
+        new_item_form.attr('id', 'new_item_form');
+        new_item_form.find('#item_sku').val(code);
+        // avoids default submit
+        new_item_form.on('submit', function(event) {
+          event.preventDefault();
 
+          // remove all errors
+          $(this).find('.error_wrapper').remove();
+
+          var item_data = {
+              name: $('#item_name').val()
+            , sku: $('#item_sku').val()
+            , ean: $('#item_ean').val()
+            , upc: $('#item_upc').val()
+            , description: $('#item_description').val()
+            , id_brand: $('#item_id_brand').val()
+            , categories: $('#categories_selected').val()
+            , traits: $('#traits_selected').val()
+            , has_inventory: $('#item_has_inventory').prop('checked')
+            , base_price: $('#item_base_price').val()
+            , id_measure_unit: $('#item_id_measure_unit').val()
+            , taxes: $('#item_taxes').val()
+            , allow_fractions: $('#item_allow_fractions').prop('checked')
+            , reward_points: $('#item_reward_points').val()
+          };
+          url = "{{=URL('add_item_and_purchase_item', args=purchase.id, extension='json')}}?"
+          for (var prop in item_data) {
+            if (item_data.hasOwnProperty(prop)) {
+              url += prop + '=' + item_data[prop] + '&'
+            }
+          }
+          $.ajax({
+            url: url
+          })
+          .done(function (data) {
+            // display the errors returned by the server
+            if (data.errors) {
+              for (var prop in data.errors) {
+                $('#item_' + prop + '__row').find('.help-block').before('<div class="error_wrapper"><div class="error">' + data.errors[prop] + '</div></div>')
+              }
+            }
+            else {
+              // add the new purchase item to the list
+              create_html_item(data.item, code, data.purchase_item);
+              $('#new_item_form').remove();
+              $('#new_item_panel').hide();
+            }
+          })
+          .fail(function (data) {
+            console.log('error: ' + data);
+          })
+
+          return false;
+        });
+        $.getScript('{{=new_item_js_url}}')
         $('#new_item_panel').show();
       });
     });

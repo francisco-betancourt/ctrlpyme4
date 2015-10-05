@@ -9,6 +9,7 @@ $('#categories_tree').treeview({
   levels: 1
 });
 
+// TODO: add parent category selection, when selecting a child.
 $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
   var selected = $('#categories_tree').treeview('getChecked');
   var selected_categories = "";
@@ -23,9 +24,10 @@ $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
     url: "/ctrlpyme4/item/trait_selector_data.json?categories=" + selected_categories
   })
   .done(function(data) {
-    console.log(data);
-
     if (data.status == "1") {
+    }
+    if (data.status == "no traits") {
+      return;
     }
     $('#traits_tree').treeview({
       data: data.traits,
@@ -52,13 +54,11 @@ $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
         }
       }
       $('#traits_selected').prop('value', selected_traits);
-      console.log(selected_traits);
     });
 
   })
   .fail(function(data) {
     console.log(data);
-    console.log('error ' + data);
   });
 });
 
@@ -75,11 +75,16 @@ $('#category_search').bind('change paste keyup', function(event) {
 })
 
 $("#item_is_bundle").on('click', function(event) {
-  console.log(event.target.checked);
   if (event.target.checked) {
     $("#bundle_items_form_group").show();
   }
   else {
     $("#bundle_items_form_group").hide();
   }
+});
+
+
+// check for repeated barcodes
+$('#item_sku,#item_ean,#item_upc').change(function(event) {
+  console.log('barcode_change');
 });

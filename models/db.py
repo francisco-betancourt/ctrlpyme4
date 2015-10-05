@@ -197,6 +197,8 @@ db.define_table("item",
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
 
+# db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
+
 
 db.define_table(
   'bundle_item'

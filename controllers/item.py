@@ -54,44 +54,50 @@ def trait_selector_data():
 
     """
 
-    # we need a category in order to retrieve the traits
-    categories_ids = request.vars.categories
-    if not categories_ids:
-        return dict(status=1)
-    categories_ids = categories_ids.split(',')
-    item = db.item(request.args(0))
+    try:
+        # we need a category in order to retrieve the traits
+        categories_ids = request.vars.categories
+        if not categories_ids:
+            return dict(status=1)
+        categories_ids = categories_ids.split(',')
+        item = db.item(request.args(0))
 
-    # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
-    query = (db.category.id < 0)
-    for category_id in categories_ids:
-        query |= (db.category.id == category_id)
-    categories = db(query).select()
-    query = (db.trait.id < 0)
-    for category in categories:
-        query |= (db.trait.id_trait_category == category.trait_category1)
-        query |= (db.trait.id_trait_category == category.trait_category2)
-        query |= (db.trait.id_trait_category == category.trait_category3)
-    traits = db(query & (db.trait.is_active == True)
-                ).select(orderby=db.trait.id_trait_category)
+        # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
+        query = (db.category.id < 0)
+        for category_id in categories_ids:
+            query |= (db.category.id == category_id)
+        categories = db(query).select()
+        query = (db.trait.id < 0)
+        for category in categories:
+            query |= (db.trait.id_trait_category == category.trait_category1)
+            query |= (db.trait.id_trait_category == category.trait_category2)
+            query |= (db.trait.id_trait_category == category.trait_category3)
+        traits = db(query & (db.trait.is_active == True)
+                    ).select(orderby=db.trait.id_trait_category)
 
-    # creates the trait tree
-    trait_tree = []
-    current_trait_category = traits.first().id_trait_category
-    current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
-    for trait in traits:
-        if trait.id_trait_category != current_trait_category:
-            trait_tree.append(current_subtree)
-            current_trait_category = trait.id_trait_category
-            current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
-        node = {"text": trait.trait_option, "trait_id": trait.id}
-        if item:
-            if trait.id in item.traits:
-                node['state'] = {'selected': True}
-        current_subtree['nodes'].append(node)
-    trait_tree.append(current_subtree)
-    current_trait_category = trait.id_trait_category
-    current_subtree = {"text": current_trait_category.name, "nodes": []}
-    return dict(traits=trait_tree)
+        # creates the trait tree
+        trait_tree = []
+        if not traits:
+            return dict(status='no traits')
+        current_trait_category = traits.first().id_trait_category
+        current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
+        for trait in traits:
+            if trait.id_trait_category != current_trait_category:
+                trait_tree.append(current_subtree)
+                current_trait_category = trait.id_trait_category
+                current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
+            node = {"text": trait.trait_option, "trait_id": trait.id}
+            if item:
+                if trait.id in item.traits:
+                    node['state'] = {'selected': True}
+            current_subtree['nodes'].append(node)
+        trait_tree.append(current_subtree)
+        current_trait_category = trait.id_trait_category
+        current_subtree = {"text": current_trait_category.name, "nodes": []}
+        return dict(traits=trait_tree)
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 def trait_selector_html():
@@ -118,7 +124,7 @@ def bundle_items_html():
 def item_form(item=None, is_bundle=False):
     is_bundle = bool(request.vars.is_bundle)
 
-    form = SQLFORM(db.item, item, showid=False, fields=['name', 'id_brand', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
+    form = SQLFORM(db.item, item, showid=False, fields=['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # barcode input system
     # TODO add inputs for the 3 different barcodes
@@ -133,9 +139,9 @@ def item_form(item=None, is_bundle=False):
                    ).select(orderby=~db.category.parent)
     if categories:
         # form.vars.categories_selected
-        form[0].insert(2, categories_tree_html(categories, item))
+        form[0].insert(4, categories_tree_html(categories, item))
         # form.vars.traits_selected
-        form[0].insert(3, trait_selector_html())
+        form[0].insert(5, trait_selector_html())
 
     if form.process().accepted:
         # categories

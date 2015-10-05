@@ -11,6 +11,7 @@ def create():
         vars:
             is_xml: if true, then the form will accept an xml file
     """
+
     is_xml = request.vars.is_xml
 
     form = SQLFORM(db.purchase)
@@ -91,6 +92,55 @@ def modify_purchase_item():
         purchase_item.update_record()
     except:
         raise HTTP(400)
+
+
+# TODO, make this function work
+def add_item_and_purchase_item():
+    """ Adds the item specified by the form, then add a purchase item whose id_item is the id of the newly created item, and its id_purchase is the specified purchase
+
+        args
+            id_purchase
+        vars:
+            all the item form fields
+
+    """
+
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise HTTP(404)
+    item_data = dict(request.vars)
+    # change string booleans to python booleans
+    item_data['has_inventory'] = True if item_data['has_inventory'] == 'true' else False
+    item_data['allow_fractions'] = True if item_data['allow_fractions'] == 'true' else False
+            # categories
+    item_data['categories'] = [int(c) for c in item_data['categories'].split(',')] if item_data['categories'] else None
+    # add the traits
+    item_data['traits'] = [int(trait) for trait in item_data['traits'].split(',')] if item_data['traits'] else None
+    item_data['taxes'] = [int(trait) for trait in item_data['taxes'].split(',')] if (item_data['taxes'] and item_data['taxes'] != 'null') else None
+
+    try:
+        # TODO remove when auth.
+        db.item.created_by.requires = None
+        db.item.modified_by.requires = None
+
+        print item_data
+        ret = db.item.validate_and_insert(**item_data)
+        print ret
+        if not ret.errors:
+            item = db.item(ret.id)
+            print item
+            url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
+            db.item(ret.id).update_record(url_name=url_name)
+
+            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, quantity=1)
+            return dict(item=item, purchase_item=purchase_item)
+        else:
+            del ret.errors.created_by
+            del ret.errors.modified_by
+            return dict(errors=ret.errors)
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 def fill():
