@@ -41,9 +41,9 @@
 
 
 <!-- Prototype element for purchase items list  -->
-<a href="#" class="list-group-item" id="proto_item">
+<div href="#" class="list-group-item" id="proto_item">
   <h4> <span></span> <i class="fa fa-times right"></i></h4>
-  <p></p>
+  <p class="barcode"></p>
   <div class="form-inline">
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
@@ -68,7 +68,7 @@
       </div>
     </div>
   </div>
-</a>
+</div>
 
 
 
@@ -93,14 +93,19 @@
   }
 
 
-  function call_purchase_item_modifier(purchase_item_id, param_name, param_value) {
+  function call_purchase_item_modifier(purchase_item_id, param_name, param_value, barcode) {
+    // $('#item_' + barcode).addClass('bg-warning');
+    $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
-      url: '{{=URL("modify_purchase_item")}}/' + purchase_item_id + '/' + param_name + '/' + param_value
+      url: '{{=URL("modify_purchase_item", extension="json")}}/' + purchase_item_id + '/' + param_name + '/' + param_value
     })
     .done(function(res) {
-      console.log(res);
+      $('#pitem_taxes_' + purchase_item_id).val(res.taxes);
+      $('#item_' + barcode).css('background-color', '#DFF0D8');
+      window.setTimeout(function() {
+        $('#item_' + barcode).css('background-color', 'white');
+      }, 800)
     });
-    console.log(' valid ');
   }
 
 
@@ -112,10 +117,10 @@
     el_item.attr('id', key);
     el_item.show();
     el_item.css('display', 'block');
+    var pitem_id = purchase_item.id;
     el_item.find('h4').find('span').html(item.name);
     el_item.find('i').on('click', function() {remove_item(key, purchase_item.id);});
     el_item.find('p').text('{{=T("barcode")}}: ' + barcode);
-    var pitem_id = purchase_item.id;
     el_item.find('#proto_qty').val(purchase_item.quantity);
     el_item.find('#proto_qty').attr('id', 'pitem_qty_' + pitem_id);
     el_item.find('#proto_buy_price').val(purchase_item.price);
@@ -123,22 +128,22 @@
     el_item.find('#proto_sale_price').attr('id', 'pitem_sale_price_' + pitem_id);
     el_item.find('#proto_taxes').val(purchase_item.taxes);
     el_item.find('#proto_taxes').attr('id', 'pitem_taxes_' + pitem_id);
-    el_item.find('#proto_serials').val(purchase_item.serail_numbers);
+    el_item.find('#proto_serials').val(purchase_item.serial_numbers);
     el_item.find('#proto_serials').attr('id', 'pitem_serials_' + pitem_id);
 
-    $('#items_list').append(el_item);
+    $('#items_list').prepend(el_item);
 
     $('#pitem_qty_' + pitem_id).on('change', function() {
       var qty = parseFloat($(this).val());
       if (qty) {
-        call_purchase_item_modifier(pitem_id, 'quantity', qty);
+        call_purchase_item_modifier(pitem_id, 'quantity', qty, barcode);
       }
     });
 
     $('#pitem_buy_price_' + pitem_id).on('change', function() {
       var qty = parseFloat($(this).val());
       if (qty) {
-        call_purchase_item_modifier(pitem_id, 'price', qty);
+        call_purchase_item_modifier(pitem_id, 'price', qty, barcode);
       }
     });
 
@@ -149,7 +154,7 @@
     });
 
     $('#pitem_serials_' + pitem_id).on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'serial_numbers', $(this).val());
+      call_purchase_item_modifier(pitem_id, 'serial_numbers', $(this).val(), barcode);
     });
   }
 

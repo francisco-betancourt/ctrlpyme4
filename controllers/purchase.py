@@ -4,6 +4,7 @@
 
 
 import json
+from decimal import Decimal as D
 
 
 def create():
@@ -60,7 +61,7 @@ def add_purchase_item():
 
 
 def delete_purchase_item():
-    """ This function removes the specified purchase item
+    """ This function removes the specified purchase item, this function actually deletes the record
 
         args:
             purchase_item_id
@@ -88,13 +89,21 @@ def modify_purchase_item():
     if not purchase_item:
         raise HTTP(404)
     try:
-        purchase_item[request.args(1)] = request.args(2)
+        purchase_item[request.args(1)] = request.args(2).replace('_', ',')
+        # recalculate the taxes.
+        total_tax = 1 if purchase_item.id_item.taxes else 0
+        for tax in purchase_item.id_item.taxes:
+            total_tax *= tax.percentage / 100.0
+        purchase_item.taxes = D(purchase_item.price) * D(total_tax)
         purchase_item.update_record()
+
+        return dict(taxes=purchase_item.taxes.quantize(D('.000000')))
     except:
+        import traceback
+        traceback.print_exc()
         raise HTTP(400)
 
 
-# TODO, make this function work
 def add_item_and_purchase_item():
     """ Adds the item specified by the form, then add a purchase item whose id_item is the id of the newly created item, and its id_purchase is the specified purchase
 
@@ -162,6 +171,8 @@ def fill():
     purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
     purchase_items_json = []
     for purchase_item in purchase_items:
+        serials = purchase_item.serial_numbers.replace(',', ',\n') if purchase_item.serial_numbers else ''
+
         purchase_items_json.append({
               "id": purchase_item.id
             , "id_item": purchase_item.id_item
@@ -171,6 +182,7 @@ def fill():
             , "quantity": str(purchase_item.quantity or 0)
             , "price": str(purchase_item.price or 0)
             , "taxes": str(purchase_item.taxes or 0)
+            , "serial_numbers": serials
         })
     purchase_items_json = json.dumps(purchase_items_json)
     form[0].append(SCRIPT('purchase_items = %s;' % purchase_items_json))

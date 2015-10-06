@@ -254,7 +254,7 @@ db.define_table("purchase_item",
     Field("id_item", "reference item", label=T('Item')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
     Field("price", "decimal(16,6)", default=None, label=T('Price')),
-    Field("taxes", "integer", default=None, label=T('Taxes')),
+    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
     Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
     auth.signature)
 
