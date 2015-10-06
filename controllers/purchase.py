@@ -76,6 +76,18 @@ def delete_purchase_item():
     return dict(status="ok")
 
 
+def postprocess_purchase_item(purchase_item):
+    purchase_item.serial_numbers = purchase_items.serial_numbers.replace('_', ',') if purchase_item.serial_numbers else None
+    # recalculate the taxes.
+    total_tax = 1 if purchase_item.id_item.taxes else 0
+    for tax in purchase_item.id_item.taxes:
+        total_tax *= tax.percentage / 100.0
+    purchase_item.taxes = D(purchase_item.price or 0) * D(total_tax)
+    if not purchase_item.id_item.allow_fractions:
+        purchase_item.quantity = D(purchase_item.quantity).to_integral_value()
+    return purchase_item
+
+
 def modify_purchase_item():
     """ This functions allows the modification of a purchase item, by specifying the modified fields via url arguments.
 
@@ -89,15 +101,17 @@ def modify_purchase_item():
     if not purchase_item:
         raise HTTP(404)
     try:
-        purchase_item[request.args(1)] = request.args(2).replace('_', ',')
-        # recalculate the taxes.
-        total_tax = 1 if purchase_item.id_item.taxes else 0
-        for tax in purchase_item.id_item.taxes:
-            total_tax *= tax.percentage / 100.0
-        purchase_item.taxes = D(purchase_item.price) * D(total_tax)
+        purchase_item[request.args(1)] = request.args(2)
+
+        purchase_item = postprocess_purchase_item(purchase_item)
         purchase_item.update_record()
 
-        return dict(taxes=purchase_item.taxes.quantize(D('.000000')))
+        res = {
+            'taxes': purchase_item.taxes.quantize(D('.000000'))
+            , 'quantity': purchase_item.quantity
+        }
+
+        return res
     except:
         import traceback
         traceback.print_exc()
@@ -202,6 +216,8 @@ def commit():
     # generate stocks for every purchase item
     purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
     for purchase_item in purchase_items:
+        purchase_item = postprocess_purchase_item(purchase_item)
+        purchase_item.update_record()
         db.stock.insert(id_store=purchase.id_store, id_purchase=purchase.id, id_item=purchase_item.id_item.id, quantity=purchase_item.quantity)
     purchase.is_done = True
     purchase.update_record()

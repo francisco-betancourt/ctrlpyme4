@@ -123,6 +123,8 @@ db.define_table(
     , Field('param_name', label=T("Name"), writable=False)
     , Field('param_value', label=T("Value"))
     , Field('param_type', label=T("Type"), readable=False, writable=False, default="string")
+    # used to create computed fields
+    , Field('param_expr', label=T("Expr"), readable=False, writable=False)
     , Field('is_public', type="boolean", label=T("Is public"))
 )
 
@@ -268,7 +270,7 @@ db.define_table("purchase",
     Field("id_supplier", "reference supplier", label=T('Supplier')),
     Field("id_store", "reference store", label=T('Store')),
     Field("invoice_number", "integer", default=None, label=T('Invoice number')),
-    Field("subtotal", "integer", default=None, label=T('Subtotal')),
+    Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=None, label=T('Total')),
     Field("shipping_cost", "decimal(16,6)", default=None, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
@@ -289,7 +291,7 @@ db.define_table("stock",
     Field("id_store", "reference store", label=T('Store')),
     Field("id_purchase", "reference purchase", label=T('Purchase')),
     Field("id_item", "reference item", label=T('Item')),
-    Field("quantity", "integer", default=None, label=T('Quantity')),
+    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
     auth.signature)
 
 db.define_table("bag",
@@ -363,6 +365,7 @@ db.define_table("payment",
 
 db.define_table("item_images",
     Field("id_item", "reference item", label=T('Item')),
+    Field("id_trait", "reference trait", label=T('Trait')),
     Field("image", "upload", default=None, label=T('Image')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')))
 

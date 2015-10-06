@@ -87,7 +87,7 @@
   });
 
   $('#commit_btn').on('click', function() {
-    window.location.href = '{{=URL("commit", args=purchase.id)}}';  
+    window.location.href = '{{=URL("commit", args=purchase.id)}}';
   });
 
 
@@ -115,6 +115,8 @@
     })
     .done(function(res) {
       $('#pitem_taxes_' + purchase_item_id).val(res.taxes);
+      $('#pitem_qty_' + purchase_item_id).val(res.quantity);
+
       $('#item_' + barcode).css('background-color', '#DFF0D8');
       window.setTimeout(function() {
         $('#item_' + barcode).css('background-color', 'white');
