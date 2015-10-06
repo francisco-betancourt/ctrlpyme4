@@ -132,12 +132,9 @@ def add_item_and_purchase_item():
         db.item.created_by.requires = None
         db.item.modified_by.requires = None
 
-        print item_data
         ret = db.item.validate_and_insert(**item_data)
-        print ret
         if not ret.errors:
             item = db.item(ret.id)
-            print item
             url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
             db.item(ret.id).update_record(url_name=url_name)
 
@@ -188,6 +185,41 @@ def fill():
     form[0].append(SCRIPT('purchase_items = %s;' % purchase_items_json))
 
     return locals()
+
+
+# TODO postprocessing after purchase commit
+def commit():
+    """ Commits the purchase
+
+        args:
+            purchase_id
+    """
+
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise(HTTP, 404)
+
+    # generate stocks for every purchase item
+    purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
+    for purchase_item in purchase_items:
+        db.stock.insert(id_store=purchase.id_store, id_purchase=purchase.id, id_item=purchase_item.id_item.id, quantity=purchase_item.quantity)
+    purchase.is_done = True
+    purchase.update_record()
+    redirect(URL('index'))
+
+
+def save():
+    """ Saves the specified purchase for later use
+
+        args:
+            purchase_id
+    """
+
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise(HTTP, 404)
+    redirect(URL('index'))
+
 
 
 def get():

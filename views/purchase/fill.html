@@ -33,8 +33,12 @@
   <!-- buttons -->
   <div class="row">
     <div class="col-sm-9 col-sm-offset-3">
-      <button class="btn btn-primary">{{=T('Commit')}}</button>
-      <button class="btn btn-default">{{=T('Save')}}</button>
+      <button class="btn btn-primary" id="commit_btn">
+        {{=T('Commit')}}
+      </button>
+      <button class="btn btn-default" id="save_btn">
+        {{=T('Save')}}
+      </button>
     </div>
   </div>
 </div>
@@ -43,7 +47,7 @@
 <!-- Prototype element for purchase items list  -->
 <div href="#" class="list-group-item" id="proto_item">
   <h4> <span></span> <i class="fa fa-times right"></i></h4>
-  <p class="barcode"></p>
+  <div><i class="fa fa-barcode"></i><span class="barcode"></span></div>
   <div class="form-inline">
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
@@ -61,6 +65,7 @@
       <div class="input-group-addon">{{=T('Taxes')}}</div>
       <input id="proto_taxes" type="text" class="form-control" placeholder="{{=T('Taxes')}}" disabled>
     </div>
+    <!-- <button class="btn btn-lg btn-default btn-block">Show serials</button> -->
     <div>
       <div class="input-group">
         <div class="input-group-addon">{{=T('Serial Numbers')}}</div>
@@ -75,6 +80,15 @@
 
 <script>
   $('#proto_item').hide();
+
+
+  $('#save_btn').on('click', function() {
+    window.location.href = '{{=URL("save", args=purchase.id)}}';
+  });
+
+  $('#commit_btn').on('click', function() {
+    window.location.href = '{{=URL("commit", args=purchase.id)}}';  
+  });
 
 
   $('#cancel_new_item').on('click', function() {
@@ -120,7 +134,7 @@
     var pitem_id = purchase_item.id;
     el_item.find('h4').find('span').html(item.name);
     el_item.find('i').on('click', function() {remove_item(key, purchase_item.id);});
-    el_item.find('p').text('{{=T("barcode")}}: ' + barcode);
+    el_item.find('.barcode').text(barcode);
     el_item.find('#proto_qty').val(purchase_item.quantity);
     el_item.find('#proto_qty').attr('id', 'pitem_qty_' + pitem_id);
     el_item.find('#proto_buy_price').val(purchase_item.price);

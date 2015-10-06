@@ -92,6 +92,30 @@ auth.settings.reset_password_requires_verification = True
 ## after defining tables, uncomment below to enable auditing
 # auth.enable_record_versioning(db)
 
+
+# TODO move validators to a module
+# validators
+class IS_BARCODE_AVAILABLE(object):
+    def __init__(self, db, barcode='', error_message=T('Barcode already used')):
+        self.db = db;
+        self.barcode = barcode
+        self.error_message = error_message
+    def __call__(self, value):
+        if not value:
+            return (value, None)
+        barcodes = self.db((self.db.item.sku == self.barcode)
+                    | (self.db.item.ean == self.barcode)
+                    | (self.db.item.upc == self.barcode)
+                     ).select()
+        if not barcodes:
+            return (value, None)
+        else:
+            return (value, self.error_message)
+    def formatter(self, value):
+        return value
+
+
+
 """ database class object creation (initialization) """
 
 db.define_table(
@@ -197,7 +221,10 @@ db.define_table("item",
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
 
-# db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
+db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
+db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
+db.item.upc.requires=IS_BARCODE_AVAILABLE(db, request.vars.upc)
+
 
 
 db.define_table(
