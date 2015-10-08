@@ -77,7 +77,16 @@ def delete_purchase_item():
 
 
 def postprocess_purchase_item(purchase_item):
-    purchase_item.serial_numbers = purchase_items.serial_numbers.replace('_', ',') if purchase_item.serial_numbers else None
+    purchase_item.serial_numbers = purchase_item.serial_numbers.replace('_', ',') if purchase_item.serial_numbers else None
+    # primitive serial number count verification
+    # if purchase_item.serial_numbers:
+    #     purchase_items_count = purchase_item.serial_numbers.split(',')
+    #     if not purchase_items_count[-1]:
+    #         purchase_items_count.pop()
+    #     print len(purchase_items_count)
+    # else:
+    #     purchase_item.serial_numbers = None
+
     # recalculate the taxes.
     total_tax = 1 if purchase_item.id_item.taxes else 0
     for tax in purchase_item.id_item.taxes:

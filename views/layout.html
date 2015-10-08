@@ -44,8 +44,8 @@
     mc1 = 'col-md-9'
     mc2 = 'col-md-6'
     left_sidebar_enabled = globals().get('left_sidebar_enabled', False)
-    right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
-    middle_column = {0: mc0, 1: mc1, 2: mc2}[
+    right_sidebar_enabled = globals().get('right_sidebar_enabled', True)
+      middle_column = {0: mc0, 1: mc1, 2: mc2}[
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
   </head>
@@ -107,10 +107,7 @@
 
       {{if right_sidebar_enabled:}}
         <div class="col-md-3">
-            {{block right_sidebar}}
-            <h3>Right Sidebar</h3>
-            <p></p>
-            {{end}}
+          {{include 'bag.html'}}
         </div>
       {{pass}}
 

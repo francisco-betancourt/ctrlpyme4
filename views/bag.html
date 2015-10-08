@@ -1,0 +1,122 @@
+
+<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  <div class="btn-group" role="group">
+    <button class="btn btn-primary btn-block" id="add_bag_btn">{{=T('Add Bag')}}</button>
+  </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-default" data-target="#active_bags" data-toggle="collapse">{{=T('Bags')}} <i class="fa fa-chevron-down"></i></button>
+  </div>
+</div>
+
+<!-- Active bags -->
+<div class="list-group" id="active_bags" hidden="hidden">
+  {{for bag in db(db.bag.is_active == True).select():}}
+    <a href="#" class="list-group-item">
+      {{=T('Bag')}} {{=bag.id}}
+    </a>
+  {{pass}}
+</div>
+
+<div class="panel panel-default" id="current_bag">
+  <div class="panel-heading">
+    <h3>Bag <i class="fa fa-compress right collapse_bag"></i></h3>
+  </div>
+  <div class="panel-body">
+    {{include 'barcode_scanner.html'}}
+
+    <div class="list-group" id="bag_items_list">
+    </div>
+  </div>
+
+  <div class="panel-footer">
+    <p> <span>{{=T('Subtotal')}}</span> <span class="right">00</span> </p>
+    <p> <span>{{=T('Total')}}</span> <span class="right">00</span> </p>
+
+    <button class="btn btn-danger">{{=T('Discard')}}</button>
+    <button class="btn btn-primary right">{{=T('Sell')}}</button>
+  </div>
+</div>
+
+
+
+
+<div id="proto_bag_item" class="list-group-item" hidden="hidden">
+  <div>
+    <h4><span class="item_name"></span><i class="fa fa-times right"></i></h4>
+    <p>$ <span class="item_price"></span></p>
+    <div class="input-group">
+      <div class="input-group-addon">{{=T('Quantity')}}</div>
+      <input type="number" class="form-control">
+    </div>
+  </div>
+</div>
+
+
+<!-- Scanner script -->
+<script>
+  function clone_proto_item(data, barcode) {
+    var new_item = $('#proto_bag_item').clone();
+    new_item.attr('id', 'bag_item_' + barcode);
+    new_item.find('.item_name').text(data.name);
+    new_item.find('.item_price').text(data.base_price);
+
+    console.log(new_item.find('.item_name'));
+    new_item.show();
+
+    return new_item;
+  }
+
+  function requirement(barcode) {
+    var item = $('#bag_items_list').find('#bag_item_' + barcode)[0];
+    if (item) {
+      // when the item is already added
+
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  function success_callback(data, barcode) {
+    $('#bag_items_list').prepend(clone_proto_item(data, barcode));
+  }
+
+  function fail_callback(data, barcode) {
+
+  }
+
+  setup_scanner(success_callback, fail_callback, requirement);
+</script>
+
+
+<script>
+  $('#add_bag_btn').on('click', function(event) {
+    $.ajax({
+      url: "{{=URL('bag', 'create', extension='json')}}"
+    })
+    .done(function (data) {
+      console.log(data.bag);
+    })
+  });
+
+
+  $('#proto_bag_item').hide();
+
+  function collapse_bag() {
+    console.log('collapse');
+  }
+
+
+  $('.panel').find('.collapse_bag').on('click', function(event) {
+    if ($(event.target).hasClass('fa-compress')) {
+      $(event.target).removeClass('fa-compress');
+      $(event.target).addClass('fa-expand');
+    }
+    else if ($(event.target).hasClass('fa-expand')) {
+      $(event.target).removeClass('fa-expand');
+      $(event.target).addClass('fa-compress');
+    }
+    $(event.target).parent().parent().parent().find('.panel-body').toggle()
+  });
+</script>

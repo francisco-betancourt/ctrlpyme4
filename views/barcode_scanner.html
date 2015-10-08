@@ -1,0 +1,33 @@
+<form id="barcode_scanner_form">
+  <div class="form-group">
+    <div class="input-group">
+      <div class="input-group-addon"><i class="fa fa-barcode"></i></div>
+      <input type="text" class="form-control" id="barcode" placeholder="Amount">
+    </div>
+  </div>
+</form>
+
+
+<script>
+  function setup_scanner(success_callback, fail_callback, requirement) {
+    $('#barcode_scanner_form').on('submit', function(event) {
+      event.preventDefault();
+
+      var barcode = $('#barcode').val();
+
+      if (requirement && requirement(barcode)) {
+        $.ajax({
+          url: '{{=URL("item", "find_by_code", extension="json")}}/' + barcode
+        })
+        .done(function(data) {
+          success_callback(data.item, barcode);
+        })
+        .fail(function(data) {
+          fail_callback(data, barcode);
+        });
+      }
+
+      return false;
+    });
+  };
+</script>
