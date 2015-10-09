@@ -21,6 +21,7 @@
         })
         .done(function(data) {
           success_callback(data.item, barcode);
+          $('#barcode').val('');
         })
         .fail(function(data) {
           fail_callback(data, barcode);

@@ -69,10 +69,32 @@ def delete_bag_item():
     return dict(status="ok")
 
 
+def discard_bag():
+    """
+        args:
+            id_bag
+
+    """
+
+    bag = db.bag(session.current_bag)
+    removed_bag = session.current_bag
+    if not bag:
+        raise HTTP(404)
+    db(db.bag_item.id_bag == bag.id).delete()
+    db(db.bag.id == bag.id).delete()
+
+    other_bag = db(db.bag.id > 0).select().first()
+    if other_bag:
+        session.current_bag = other_bag.id
+
+    return dict(other_bag=other_bag, removed=removed_bag)
+
+
 def create():
     """
     """
 
     bag = db.bag.insert(id_store=None, completed=False)
-    session.vars.current_bag = bag
+    session.current_bag = bag.id
+
     return dict(bag=bag)

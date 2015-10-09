@@ -4,7 +4,7 @@
     <button class="btn btn-primary btn-block" id="add_bag_btn">{{=T('Add Bag')}}</button>
   </div>
   <div class="btn-group" role="group">
-    <button type="button" class="btn btn-default" data-target="#active_bags" data-toggle="collapse">{{=T('Bags')}} <i class="fa fa-chevron-down"></i></button>
+    <button type="button" class="btn btn-default" onclick="show_active_bags();">{{=T('Bags')}} <i class="fa fa-chevron-down"></i></button>
   </div>
 </div>
 
@@ -33,8 +33,10 @@
     <p> <span>{{=T('Subtotal')}}</span> <span class="right">00</span> </p>
     <p> <span>{{=T('Total')}}</span> <span class="right">00</span> </p>
 
-    <button class="btn btn-danger">{{=T('Discard')}}</button>
-    <button class="btn btn-primary right">{{=T('Sell')}}</button>
+    <button class="btn btn-danger discard_bag" onclick="discard_bag();">
+      {{=T('Discard')}}
+    </button>
+    <button class="btn btn-primary right sell_bag">{{=T('Sell')}}</button>
   </div>
 </div>
 
@@ -108,31 +110,63 @@
 
 
 <script>
-  function load_bag(bag_id) {
-    $('#bag_items_list').children().remove();
-    $('#bag_id').text(bag_id);
+  function show_active_bags() {
+    $('#active_bags').toggle();
+  }
 
+
+  function load_bag(bag_id) {
     // retrieve bag items
     $.ajax({
       url: "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id
     })
     .done(function (data) {
+      var bag = data.bag
+      $('#bag_items_list').children().remove();
+      $('#bag_id').text(bag.id);
+
       for (var bag_item_id in data.bag_items) {
         var bag_item = data.bag_items[bag_item_id]
         $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
       }
+
+      $('#active_bags').hide();
     });
   }
+
 
   $('#add_bag_btn').on('click', function(event) {
     $.ajax({
       url: "{{=URL('bag', 'create', extension='json')}}"
     })
     .done(function (data) {
+      load_bag(data.bag);
 
-      console.log(data.bag);
+      // add the new bag to the active bags list
+      var bag_selector = document.createElement('a');
+      bag_selector.id = 'bag_selector_' + data.bag;
+      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+      bag_selector.href = '#';
+      bag_selector.className = 'list-group-item';
+      $('#active_bags').append(bag_selector);
+      $('#bag_selector_' + data.bag).click(function(event) {
+        load_bag(data.bag);
+      });
     })
   });
+
+
+  function discard_bag() {
+    $.ajax({
+        url: "{{=URL('bag', 'discard_bag', extension='json')}}"
+      })
+      .done(function (res) {
+        var removed = res.removed;
+        $('#bag_selector_' + removed).remove();
+        load_bag(res.other_bag.id)
+        return false;
+      })
+  }
 
 
   $('#proto_bag_item').hide();
