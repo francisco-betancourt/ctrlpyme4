@@ -299,7 +299,7 @@ db.define_table("bag",
     Field("completed", "string", default=None, label=T('Completed')),
     auth.signature)
 
-db.define_table("bag_items",
+db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
     Field("id_bag", "reference bag", label=T('Bag')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
@@ -340,7 +340,7 @@ db.define_table("credit_note",
 
 db.define_table("credit_note_item",
     Field("id_credit_note", "reference credit_note", label=T('Credit note')),
-    Field("id_bag_items", "reference bag_items", label=T('Bag Items')),
+    Field("id_bag_items", "reference bag_item", label=T('Bag Items')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
 
 db.define_table("inventory",
@@ -423,13 +423,13 @@ db.purchase_item.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_paymen
 db.stock.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.stock.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
 db.bag.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.bag_items.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
+db.bag_item.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
 db.sale.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
 db.sale.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.sale_log.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
 db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
 db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
-db.credit_note_item.id_bag_items.requires=IS_IN_DB( db, 'bag_items.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
+db.credit_note_item.id_bag_items.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
 db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.inventory_items.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
 db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')

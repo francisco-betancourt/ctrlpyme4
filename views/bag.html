@@ -11,15 +11,16 @@
 <!-- Active bags -->
 <div class="list-group" id="active_bags" hidden="hidden">
   {{for bag in db(db.bag.is_active == True).select():}}
-    <a href="#" class="list-group-item">
+    <a href="#" class="list-group-item" onclick="load_bag({{=bag.id}});" id="bag_selector_{{=bag.id}}">
       {{=T('Bag')}} {{=bag.id}}
     </a>
   {{pass}}
 </div>
 
+<!-- Bag -->
 <div class="panel panel-default" id="current_bag">
   <div class="panel-heading">
-    <h3>Bag <i class="fa fa-compress right collapse_bag"></i></h3>
+    <h3>{{=T('Bag')}} <span id="bag_id"></span> <i class="fa fa-compress right collapse_bag"></i></h3>
   </div>
   <div class="panel-body">
     {{include 'barcode_scanner.html'}}
@@ -42,11 +43,11 @@
 
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
-    <h4><span class="item_name"></span><i class="fa fa-times right"></i></h4>
+    <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
     <p>$ <span class="item_price"></span></p>
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
-      <input type="number" class="form-control">
+      <input type="number" class="form-control item_qty">
     </div>
   </div>
 </div>
@@ -59,8 +60,18 @@
     new_item.attr('id', 'bag_item_' + barcode);
     new_item.find('.item_name').text(data.name);
     new_item.find('.item_price').text(data.base_price);
+    new_item.find('.item_qty').val(data.quantity);
 
-    console.log(new_item.find('.item_name'));
+    new_item.find('.close').click(function(event) {
+      $.ajax({
+        url: "{{=URL('bag', 'delete_bag_item', extension='json')}}/" + data.id
+      })
+      .done(function(res) {
+        console.log(res);
+        $('#bag_item_' + barcode).remove();
+      })
+    })
+
     new_item.show();
 
     return new_item;
@@ -79,7 +90,13 @@
   }
 
   function success_callback(data, barcode) {
-    $('#bag_items_list').prepend(clone_proto_item(data, barcode));
+    $.ajax({
+      url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + data.id
+    })
+    .done(function (res) {
+      bag_item = res.bag_item;
+      $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+    })
   }
 
   function fail_callback(data, barcode) {
@@ -91,11 +108,28 @@
 
 
 <script>
+  function load_bag(bag_id) {
+    $('#bag_items_list').children().remove();
+    $('#bag_id').text(bag_id);
+
+    // retrieve bag items
+    $.ajax({
+      url: "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id
+    })
+    .done(function (data) {
+      for (var bag_item_id in data.bag_items) {
+        var bag_item = data.bag_items[bag_item_id]
+        $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+      }
+    });
+  }
+
   $('#add_bag_btn').on('click', function(event) {
     $.ajax({
       url: "{{=URL('bag', 'create', extension='json')}}"
     })
     .done(function (data) {
+
       console.log(data.bag);
     })
   });
@@ -119,4 +153,6 @@
     }
     $(event.target).parent().parent().parent().find('.panel-body').toggle()
   });
+
+  load_bag({{=session.current_bag}});
 </script>
