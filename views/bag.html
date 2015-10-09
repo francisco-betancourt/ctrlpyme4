@@ -57,9 +57,22 @@
 
 <!-- Scanner script -->
 <script>
+  function base_add_bag_item(bag_item) {
+    var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
+    if (item) {
+      $(item).find('.item_qty').val(bag_item.quantity);
+    }
+    else {
+      $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+    }
+  }
+
+
   function clone_proto_item(data, barcode) {
     var new_item = $('#proto_bag_item').clone();
-    new_item.attr('id', 'bag_item_' + barcode);
+    new_item.attr('id', 'bag_item_' + data.id);
+    new_item.attr('barcode', barcode);
+    new_item.attr('itemid', data.id_item);
     new_item.find('.item_name').text(data.name);
     new_item.find('.item_price').text(data.base_price);
     new_item.find('.item_qty').val(data.quantity);
@@ -80,15 +93,7 @@
   }
 
   function requirement(barcode) {
-    var item = $('#bag_items_list').find('#bag_item_' + barcode)[0];
-    if (item) {
-      // when the item is already added
-
-      return false;
-    }
-    else {
-      return true;
-    }
+    return true;
   }
 
   function success_callback(data, barcode) {
@@ -97,9 +102,10 @@
     })
     .done(function (res) {
       bag_item = res.bag_item;
-      $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+      base_add_bag_item(bag_item);
     })
   }
+
 
   function fail_callback(data, barcode) {
 
@@ -132,6 +138,17 @@
 
       $('#active_bags').hide();
     });
+  }
+
+
+  function add_bag_item(item_id) {
+    $.ajax({
+      url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + item_id
+    })
+    .done(function (res) {
+      bag_item = res.bag_item;
+      base_add_bag_item(bag_item);
+    })
   }
 
 

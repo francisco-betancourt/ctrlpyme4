@@ -47,14 +47,20 @@ def add_bag_item():
     """
         args:
             id_item
-            id_bag
     """
 
     item = db.item(request.args(0))
     id_bag = session.current_bag
 
-    id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1)
-    bag_item = set_bag_item(db.bag_item(id_bag_item))
+    bag_item = db(db.bag_item.id_item == item.id).select().first()
+    print bag_item
+    if not bag_item:
+        id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1)
+        bag_item = db.bag_item(id_bag_item)
+    else:
+        bag_item.quantity += 1
+        bag_item.update_record()
+    bag_item = set_bag_item(bag_item)
 
     return dict(bag_item=bag_item)
 

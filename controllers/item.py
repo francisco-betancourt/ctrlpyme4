@@ -273,6 +273,7 @@ def item_options(row):
         td.append(option_btn('pencil', URL('update', args=row.id)))
     # hide button
     td.append(hide_button(row))
+    td.append(option_btn('shopping-cart', onclick="add_bag_item(%s);"%row.id))
 
 
     return td
