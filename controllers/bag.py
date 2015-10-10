@@ -9,24 +9,38 @@
 from decimal import Decimal as D
 
 
+
+def modify_bag_item():
+    """
+        args:
+            bag_item_id
+    """
+
+    bag_item = db.bag_item(request.args(0))
+    if not bag_item:
+        raise HTTP(404)
+    bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
+
+    bag_item.update_record()
+    return dict(status='ok')
+
+
 def set_bag_item(bag_item):
     item = db.item(bag_item.id_item)
     bag_item.name = item.name
-    bag_item.base_price = item.base_price or 0
+    bag_item.base_price = D(item.base_price or 0).quantize(D('.000000'))
     bag_item.barcode = item_barcode(item)
-    taxes = 1
-    for tax in item.taxes:
-        taxes *= tax.percentage / 100.0
-    bag_item.sale_taxes = bag_item.base_price * D(taxes)
-    print bag_item.sale_taxes.quantize(D('.0000'))
+    bag_item.sale_taxes = item_taxes(item, item.base_price or 0)
 
     return bag_item
 
 
 def select_bag():
-    """
+    """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
+
         args:
             bag_id
+
     """
 
     try:
@@ -34,10 +48,17 @@ def select_bag():
         if not bag:
             raise HTTP(404)
         session.current_bag = bag.id
+        subtotal = 0
+        total = 0
         bag_items = []
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
-            bag_items.append(set_bag_item(bag_item))
-        return dict(bag=bag, bag_items=bag_items)
+            bag_item_modified = set_bag_item(bag_item)
+            bag_items.append(bag_item_modified)
+            subtotal += bag_item.base_price
+            total += bag_item.base_price + bag_item.sale_taxes
+            bag_item_modified.base_price = str(bag_item_modified.base_price)
+
+        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total)
     except:
         import traceback
         traceback.print_exc();
@@ -53,7 +74,6 @@ def add_bag_item():
     id_bag = session.current_bag
 
     bag_item = db(db.bag_item.id_item == item.id).select().first()
-    print bag_item
     if not bag_item:
         id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1)
         bag_item = db.bag_item(id_bag_item)

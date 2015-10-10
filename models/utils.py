@@ -4,6 +4,7 @@
 
 import urllib
 import re
+from decimal import Decimal as D
 
 
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
@@ -25,3 +26,10 @@ def urlify_string(string):
 
 def item_barcode(item):
     return item.sku or item.ean or item.upc
+
+
+def item_taxes(item, price):
+    taxes = 1
+    for tax in item.taxes:
+        taxes *= tax.percentage / 100.0
+    return D(D(price) * D(taxes)).quantize(D('.0000'))

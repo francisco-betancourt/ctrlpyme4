@@ -313,7 +313,7 @@ db.define_table("bag_item",
     auth.signature)
 
 db.define_table("sale",
-    Field("id_bag", "reference bag", label=T('Bag')),
+    Field("id_bag", "reference bag", label=T('Bag'), readable=False, writable=False),
     Field("consecutive", "integer", default=None, label=T('Consecutive')),
     Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
     Field("total", "integer", default=None, label=T('Total')),
