@@ -2,6 +2,7 @@
 #
 # Author: Daniel J. Ramirez
 
+@auth.requires_membership('Items management')
 def create():
     trait_category = db.trait_category(request.vars.trait_category)
     if not trait_category:
@@ -17,6 +18,7 @@ def create():
     return dict(form=form)
 
 
+@auth.requires_membership('Items management')
 def update():
     trait = db.trait(request.args(0))
     if not trait:
@@ -31,6 +33,7 @@ def update():
     return dict(form=form)
 
 
+@auth.requires_membership('Items management')
 def index():
     trait_category = db.trait_category(request.vars.trait_category)
     if not trait_category:
@@ -42,6 +45,7 @@ def index():
     return locals()
 
 
+@auth.requires_membership('Items management')
 def delete():
     if not request.vars.trait_category:
         raise HTTP(400)

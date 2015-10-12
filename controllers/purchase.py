@@ -7,6 +7,7 @@ import json
 from decimal import Decimal as D
 
 
+@auth.requires_membership('Purchases')
 def create():
     """
         vars:
@@ -38,7 +39,7 @@ def purchase_item_formstyle(form, fields):
     return parent
 
 
-
+@auth.requires_membership('Purchases')
 def add_purchase_item():
     """ Used to add a purchase_item to the specified purchase, this method will return a form to edit the newly created purchase item
 
@@ -60,6 +61,7 @@ def add_purchase_item():
     return locals()
 
 
+@auth.requires_membership('Purchases')
 def delete_purchase_item():
     """ This function removes the specified purchase item, this function actually deletes the record
 
@@ -97,6 +99,7 @@ def postprocess_purchase_item(purchase_item):
     return purchase_item
 
 
+@auth.requires_membership('Purchases')
 def modify_purchase_item():
     """ This functions allows the modification of a purchase item, by specifying the modified fields via url arguments.
 
@@ -127,6 +130,7 @@ def modify_purchase_item():
         raise HTTP(400)
 
 
+@auth.requires_membership('Purchases')
 def add_item_and_purchase_item():
     """ Adds the item specified by the form, then add a purchase item whose id_item is the id of the newly created item, and its id_purchase is the specified purchase
 
@@ -172,6 +176,7 @@ def add_item_and_purchase_item():
         traceback.print_exc()
 
 
+@auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
     args:
@@ -210,7 +215,7 @@ def fill():
     return locals()
 
 
-# TODO postprocessing after purchase commit
+@auth.requires_membership('Purchases')
 def commit():
     """ Commits the purchase
 
@@ -233,6 +238,8 @@ def commit():
     redirect(URL('index'))
 
 
+
+@auth.requires_membership('Purchases')
 def save():
     """ Saves the specified purchase for later use
 
@@ -246,11 +253,12 @@ def save():
     redirect(URL('index'))
 
 
-
+@auth.requires_membership('Purchases')
 def get():
     pass
 
 
+@auth.requires_membership('Purchases')
 def update():
     """
         args:
@@ -277,6 +285,7 @@ def update():
     return dict(form=form)
 
 
+@auth.requires_membership('Purchases')
 def delete():
     return common_delete('purchase', request.args)
 
@@ -290,6 +299,7 @@ def purchase_options(row):
     return td
 
 
+@auth.requires_membership('Purchases')
 def index():
     rows = common_index('purchase')
     data = super_table('purchase', ['invoice_number', 'subtotal', 'total'], rows, options_function=purchase_options)

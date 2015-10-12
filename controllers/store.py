@@ -4,6 +4,8 @@
 
 store_extra_fields = ['extra1', 'extra2', 'extra3']
 
+
+@auth.requires_membership('Admin')
 def create():
     form = SQLFORM(db.store)
     if form.process().accepted:
@@ -15,6 +17,7 @@ def create():
     return dict(form=form)
 
 
+@auth.requires_membership('Admin')
 def get():
     store = db.store(request.args(0))
     if not store:
@@ -25,14 +28,17 @@ def get():
     return locals()
 
 
+@auth.requires_membership('Admin')
 def update():
     return common_update('store', request.args, _vars=request.vars)
 
 
+@auth.requires_membership('Admin')
 def delete():
     return common_delete('store', request.args)
 
 
+@auth.requires_membership('Admin')
 def index():
     stores = common_index('store')
     if stores:

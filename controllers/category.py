@@ -6,8 +6,9 @@
 
 def category_extra_options(row):
     return [option_btn('', URL('get', args=row.id), 'View')]
-    
 
+
+@auth.requires_membership('Items management')
 def create():
     redirect_url = URL('index')
     parent = db.category(request.vars.parent)
@@ -30,6 +31,7 @@ def create():
     return dict(form=form)
 
 
+@auth.requires_membership('Items management')
 def get():
     category = db.category(request.args(0))
     if not category:
@@ -39,6 +41,7 @@ def get():
     return locals()
 
 
+@auth.requires_membership('Items management')
 def update():
     category = db.category(request.args(0))
     if not category:
@@ -63,11 +66,12 @@ def update():
     return dict(form=form, category=category)
 
 
+@auth.requires_membership('Items management')
 def delete():
     return common_delete('category', request.args)
 
 
-
+@auth.requires_membership('Items management')
 def index():
     rows = db(db.category.parent == None).select()
     data = super_table('category', ['name'], rows, extra_options=category_extra_options)

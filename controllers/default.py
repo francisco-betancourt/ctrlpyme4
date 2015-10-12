@@ -57,3 +57,54 @@ def call():
     return service()
 
 
+
+# TODO remove from here
+def create_groups():
+    groups = {
+          "Admin": ""
+        , "Inventories": ""
+        , "Purchases": ""
+        , "Items": ""
+        , "Merchandise delivery": ""
+        , "Changes and returns": ""
+        , "Invoices": ""
+        , "Drop item": ""
+        , "Promotions": ""
+        , "Payment options": ""
+        , "Clients": ""
+        , "Suppliers": ""
+        , "Categories": ""
+        , "Measure units": ""
+        , "Brands": ""
+        , "Taxes": ""
+        , "Accounts Payable": ""
+        , "Accounts Receivable": ""
+        , "Analytics": ""
+        , "Pages": "" # Could be Layout
+        , "Menus": "" #
+        , "Sales": ""
+        , "Cashiers": ""
+        , "Prices": ""
+        , "Bundles": ""
+    }
+
+    new_groups = {
+          "Admin": "All included"
+        , "Manager": "Accounts (Payable | Receivable), Analytics, Suppliers, Taxes"
+        , "Inventories": "Create and apply inventories"
+        , "Purchases": "Make Purchases"
+        , "Items info": "Modify basic item information"
+        , "Items management": "Modify brands, categories, hide and show items and create promotions, item drops (lost or damaged items), create items"
+        , "Items prices": "Allows item price modification"
+        , "Sales": "Sales creation and stock modification"
+        , "Sales invoices": "Invoice creation and cancellation, folios management"
+        , "Clients": "Create clients"
+        , "Cashiers": "Sale creation"
+        , "Page layout": "Menus, pages, colors, logo and visual configuration"
+    }
+
+
+    for key in new_groups.iterkeys():
+        if db(db.auth_group.role == key).select().first():
+            continue
+        auth.add_group(key, new_groups[key])

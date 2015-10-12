@@ -54,8 +54,8 @@ def select_bag():
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
             bag_item_modified = set_bag_item(bag_item)
             bag_items.append(bag_item_modified)
-            subtotal += bag_item.base_price
-            total += bag_item.base_price + bag_item.sale_taxes
+            subtotal += bag_item.base_price * bag_item.quantity
+            total += (bag_item.base_price + bag_item.sale_taxes) * bag_item.quantity
             bag_item_modified.base_price = str(bag_item_modified.base_price)
 
         return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total)

@@ -124,6 +124,13 @@ def bundle_items_html():
 def item_form(item=None, is_bundle=False):
     is_bundle = bool(request.vars.is_bundle)
 
+    fields = ['name', 'id_brand', 'description', 'id_measure_unit', 'allow_fractions']
+    if auth.has_membership('Items management'):
+        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
+    if auth.has_membership('Items prices'):
+        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3','id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
+
+
     form = SQLFORM(db.item, item, showid=False, fields=['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
 
     # categories
@@ -146,7 +153,7 @@ def item_form(item=None, is_bundle=False):
         db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=categories)
         response.flash = T('Item created')
         # if the item is bundle, redirect to the bundle filling page
-        if is_bundle:
+        if is_bundle and auth.has_membership('Items management'):
             redirect(URL('fill_bundle', args=form.vars.id))
         else:
             redirect(URL('index'))
@@ -155,6 +162,7 @@ def item_form(item=None, is_bundle=False):
     return dict(form=form)
 
 
+@auth.requires_membership('Items management')
 def create():
     """
         vars:
@@ -165,6 +173,11 @@ def create():
     redirect(URL('create_or_update', vars=request.vars))
 
 
+@auth.requires(
+       auth.has_membership('Items info')
+    or auth.has_membership('Items management')
+    or auth.has_membership('Items prices')
+)
 def create_or_update():
     """
         args:
@@ -174,12 +187,17 @@ def create_or_update():
     """
 
     item = db.item(request.args(0))
+    if not item and not auth.has_membership('Items management'):
+        response.flash = T("You can't create items")
+        redirect('index');
+
     is_bundle = request.vars.is_bundle
     forms = item_form(item=item, is_bundle=is_bundle)
 
     return dict(item=item, is_bundle=is_bundle, form=forms['form'])
 
 
+@auth.requires_membership('Items management')
 def fill_bundle():
     """
         args:
@@ -250,6 +268,7 @@ def find_by_code():
     return locals()
 
 
+@auth.requires_membership('Items management')
 def update():
     """
         vars:
@@ -259,7 +278,7 @@ def update():
     redirect(URL('create_or_update', args=request.args, vars=request.vars))
 
 
-
+@auth.requires_membership('Items management')
 def delete():
     return common_delete('item', request.args)
 
@@ -267,12 +286,14 @@ def delete():
 def item_options(row):
     td = TD()
     # edit button
-    if row.is_bundle:
-        td.append(option_btn('pencil', URL('update', args=row.id, vars={'is_bundle': True})))
-    else:
-        td.append(option_btn('pencil', URL('update', args=row.id)))
+    if auth.has_membership('Items info'):
+        if row.is_bundle:
+            td.append(option_btn('pencil', URL('update', args=row.id, vars={'is_bundle': True})))
+        else:
+            td.append(option_btn('pencil', URL('update', args=row.id)))
     # hide button
-    td.append(hide_button(row))
+    if auth.has_membership('Items management'):
+        td.append(hide_button(row))
     td.append(option_btn('shopping-cart', onclick="add_bag_item(%s);"%row.id))
 
 

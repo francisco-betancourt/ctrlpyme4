@@ -29,7 +29,6 @@ response.menu = [
     (T('Configuration'),False,None, [
          (T('Stores'), False, URL('store', 'index'), None)
         , (T('Users'), False, URL('user', 'index'), None)
-        , (T('Brands'), False, URL('brand', 'index'), None)
         , (T('Addresses'), False, URL('address', 'index'), None)
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
@@ -37,6 +36,7 @@ response.menu = [
     ])
     , (T('Items'), False, None, [
          (T('Catalog'), False, URL('item', 'index'), None)
+        , (T('Brands'), False, URL('brand', 'index'), None)
         , (T('Categories'), False, URL('category', 'index'), None)
         , (T('Traits'), False, URL('trait_category', 'index'), None)
     ])

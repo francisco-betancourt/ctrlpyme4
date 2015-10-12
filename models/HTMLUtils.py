@@ -85,6 +85,14 @@ def super_table(table, fields, rows, row_function=default_row_function,
 
 
 
+def item_card(item):
+    """ Returns a item card """
+
+    card = DIV()
+    
+
+
+
 
 def data_row(row, fields=[], deletable=True, editable=True, extra_options=[], controller=None, _vars={}, selectable=True):
     """ """
