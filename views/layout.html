@@ -99,6 +99,8 @@
       {{core_action_icon = 'plus'}}
       {{core_options = None}}
 
+      {{context_sidebar = True}}
+
       <div class="{{=middle_column}}">
         {{block center}}
         {{include}}
@@ -107,7 +109,9 @@
 
       {{if right_sidebar_enabled:}}
         <div class="col-md-3">
-          {{#include 'bag.html'}}
+          {{if context_sidebar:}}
+            {{include 'bag.html'}}
+          {{pass}}
         </div>
       {{pass}}
 

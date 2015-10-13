@@ -46,30 +46,43 @@
 
 <!-- Prototype element for purchase items list  -->
 <div href="#" class="list-group-item" id="proto_item">
-  <h4> <span></span> <i class="fa fa-times right"></i></h4>
-  <div><i class="fa fa-barcode"></i><span class="barcode"></span></div>
+  <h4> <span class="item_name"></span> <i class="fa fa-times right close"></i></h4>
+  <p><i class="fa fa-barcode"> </i> <span class="barcode"></span></p>
   <div class="form-inline">
-    <div class="input-group">
-      <div class="input-group-addon">{{=T('Quantity')}}</div>
-      <input id="proto_qty" type="text" class="form-control" name="quantity" placeholder="{{=T('Quantity')}}">
+
+    <div class="form-group">
+      <label class="control-label">{{=T('Quantity')}} </label>
+      <input type="text" class="form-control quantity" name="quantity" placeholder="{{=T('Quantity')}}">
     </div>
-    <div class="input-group">
-      <div class="input-group-addon">{{=T('Buy Price')}}</div>
-      <input id="proto_buy_price" type="text" class="form-control" name="price" placeholder="{{=T('Buy Price')}}">
+    <div class="form-group">
+      <label class="">{{=T('Buy Price')}}</label>
+      <input type="text" class="form-control price" name="price" placeholder="{{=T('Buy Price')}}">
     </div>
-    <div class="input-group">
-      <div class="input-group-addon">{{=T('Sale Price')}}</div>
-      <input id="proto_sale_price" type="text" class="form-control" placeholder="{{=T('Sale Price')}}">
+
+    <div class="form-group">
+      <label>{{=T('Taxes')}}</label>
+      <input type="text" class="form-control taxes" placeholder="{{=T('Taxes')}}" disabled>
     </div>
-    <div class="input-group">
-      <div class="input-group-addon">{{=T('Taxes')}}</div>
-      <input id="proto_taxes" type="text" class="form-control" placeholder="{{=T('Taxes')}}" disabled>
+
+    <!-- Prices -->
+    <div class="form-group">
+      <label class="">{{=T('Base Price')}}</label>
+      <input type="text" class="form-control base_price" placeholder="{{=T('Sale Price')}}">
     </div>
-    <!-- <button class="btn btn-lg btn-default btn-block">Show serials</button> -->
+    <div class="form-group">
+      <label class="">{{=T('Price 2')}}</label>
+      <input type="text" class="form-control price2" placeholder="{{=T('Sale Price')}}">
+    </div>
+    <div class="form-group">
+      <label>{{=T('Price 3')}}</label>
+      <input type="text" class="form-control price3" placeholder="{{=T('Sale Price')}}">
+    </div>
+
+    <button class="btn btn btn-default show-serials">{{=T('Serial numbers')}}</button>
     <div>
-      <div class="input-group">
-        <div class="input-group-addon">{{=T('Serial Numbers')}}</div>
-        <textarea id="proto_serials" class="form-control" name="" id="" cols="30" rows="10"></textarea>
+      <div class="form-group serial_numbers_fg" style="width: 100%; display: None">
+        <label>{{=T('Serial Numbers')}}</label>
+        <textarea class="form-control serial_numbers" name="" id="" rows="10" style="width: 100%; resize: none;" cols="auto"></textarea>
       </div>
     </div>
   </div>
@@ -106,16 +119,28 @@
     })
   }
 
+  function refresh_purchase_item(pitem) {
+    var key = "#item_" + pitem.item.barcode;
+
+    $(key).find('.quantity').val(pitem.quantity);
+    $(key).find('.price').val(pitem.price);
+    $(key).find('.taxes').val(pitem.taxes);
+    $(key).find('.base_price').val(pitem.base_price);
+    $(key).find('.price2').val(pitem.price2);
+    $(key).find('.price3').val(pitem.price3);
+    $(key).find('.serial_numbers').val(pitem.serial_numbers);
+  }
+
 
   function call_purchase_item_modifier(purchase_item_id, param_name, param_value, barcode) {
+    if (!param_value) {return false}
     // $('#item_' + barcode).addClass('bg-warning');
     $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
       url: '{{=URL("modify_purchase_item", extension="json")}}/' + purchase_item_id + '/' + param_name + '/' + param_value
     })
     .done(function(res) {
-      $('#pitem_taxes_' + purchase_item_id).val(res.taxes);
-      $('#pitem_qty_' + purchase_item_id).val(res.quantity);
+      refresh_purchase_item(res);
 
       $('#item_' + barcode).css('background-color', '#DFF0D8');
       window.setTimeout(function() {
@@ -127,51 +152,51 @@
 
   // clones the proto html item list element and cofigures the newly created element
   function create_html_item(item, barcode, purchase_item) {
-    console.log("purchase_item" + purchase_item);
     var key = 'item_' + barcode;
     var el_item = $('#proto_item').clone();
     el_item.attr('id', key);
     el_item.show();
     el_item.css('display', 'block');
     var pitem_id = purchase_item.id;
-    el_item.find('h4').find('span').html(item.name);
-    el_item.find('i').on('click', function() {remove_item(key, purchase_item.id);});
+    el_item.find('.item_name').html(item.name);
+    el_item.find('.close').on('click', function() {remove_item(key, purchase_item.id);});
     el_item.find('.barcode').text(barcode);
-    el_item.find('#proto_qty').val(purchase_item.quantity);
-    el_item.find('#proto_qty').attr('id', 'pitem_qty_' + pitem_id);
-    el_item.find('#proto_buy_price').val(purchase_item.price);
-    el_item.find('#proto_buy_price').attr('id', 'pitem_buy_price_' + pitem_id);
-    el_item.find('#proto_sale_price').attr('id', 'pitem_sale_price_' + pitem_id);
-    el_item.find('#proto_taxes').val(purchase_item.taxes);
-    el_item.find('#proto_taxes').attr('id', 'pitem_taxes_' + pitem_id);
-    el_item.find('#proto_serials').val(purchase_item.serial_numbers);
-    el_item.find('#proto_serials').attr('id', 'pitem_serials_' + pitem_id);
+
+    var quantity = el_item.find('.quantity');
+    var buy_price = el_item.find('.price');
+    var base_price = el_item.find('.base_price');
+    var price2 = el_item.find('.price2');
+    var price3 = el_item.find('.price3');
+    var serial_numbers = el_item.find('.serial_numbers')
 
     $('#items_list').prepend(el_item);
+    refresh_purchase_item(purchase_item);
 
-    $('#pitem_qty_' + pitem_id).on('change', function() {
-      var qty = parseFloat($(this).val());
-      if (qty) {
-        call_purchase_item_modifier(pitem_id, 'quantity', qty, barcode);
-      }
+    quantity.on('change', function() {
+      call_purchase_item_modifier(pitem_id, 'quantity', parseFloat($(this).val()), barcode);
     });
 
-    $('#pitem_buy_price_' + pitem_id).on('change', function() {
-      var qty = parseFloat($(this).val());
-      if (qty) {
-        call_purchase_item_modifier(pitem_id, 'price', qty, barcode);
-      }
+    buy_price.on('change', function() {
+      call_purchase_item_modifier(pitem_id, 'price', parseFloat($(this).val()), barcode);
     });
 
-    $('#pitem_sale_price_' + pitem_id).on('change', function() {
-      var qty = parseFloat($(this).val());
-      if (qty) {
-      }
+    base_price.on('change', function() {
+      call_purchase_item_modifier(pitem_id, 'base_price', parseFloat($(this).val()), barcode);
+    });
+    price2.on('change', function() {
+      call_purchase_item_modifier(pitem_id, 'price2', parseFloat($(this).val()), barcode);
+    });
+    price3.on('change', function() {
+      call_purchase_item_modifier(pitem_id, 'price3', parseFloat($(this).val()), barcode);
     });
 
-    $('#pitem_serials_' + pitem_id).on('change', function() {
+    serial_numbers.on('change', function() {
       call_purchase_item_modifier(pitem_id, 'serial_numbers', $(this).val(), barcode);
     });
+
+    el_item.find('.show-serials').click(function(event) {
+      el_item.find('.serial_numbers_fg').toggle();
+    })
   }
 
 

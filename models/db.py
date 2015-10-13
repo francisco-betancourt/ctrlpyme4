@@ -115,6 +115,29 @@ class IS_BARCODE_AVAILABLE(object):
         return value
 
 
+# class HAS_BARCODE(object):
+#     def __init__(self, sku, ean, upc, error_message=T('Barcode already used')):
+#         self.barcode1 = sku
+#         self.barcode2 = ean
+#         self.barcode3 = upc
+#         self.error_message = error_message
+#     def __call__(self, value, value2, value3):
+#         if not (value or value2 or value3):
+#             return ()
+#         if not value:
+#             return (value, None)
+#         barcodes = self.db((self.db.item.sku == self.barcode)
+#                     | (self.db.item.ean == self.barcode)
+#                     | (self.db.item.upc == self.barcode)
+#                      ).select()
+#         if not barcodes:
+#             return (value, None)
+#         else:
+#             return (value, self.error_message)
+#     def formatter(self, value):
+#         return value
+
+
 
 """ database class object creation (initialization) """
 
@@ -285,6 +308,9 @@ db.define_table("purchase_item",
     Field("price", "decimal(16,6)", default=None, label=T('Price')),
     Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
     Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
+    Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
+    Field("price2", "decimal(16,6)", default=0, label=T('Price') + '2'),
+    Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
     auth.signature)
 
 db.define_table("stock",

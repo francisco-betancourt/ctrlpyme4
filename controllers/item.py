@@ -128,10 +128,10 @@ def item_form(item=None, is_bundle=False):
     if auth.has_membership('Items management'):
         fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
     if auth.has_membership('Items prices'):
-        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3','id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
+        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
 
 
-    form = SQLFORM(db.item, item, showid=False, fields=['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points'])
+    form = SQLFORM(db.item, item, showid=False, fields=fields)
 
     # categories
     categories = db((db.category.id > 0) &
@@ -255,7 +255,8 @@ def get():
 
 
 def find_by_code():
-    """
+    """ Returns the items whose one of its barcodes matches the specified one
+
         args:
             item_code: the item EAN, UPC or SKU
     """
@@ -286,7 +287,7 @@ def delete():
 def item_options(row):
     td = TD()
     # edit button
-    if auth.has_membership('Items info'):
+    if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
         if row.is_bundle:
             td.append(option_btn('pencil', URL('update', args=row.id, vars={'is_bundle': True})))
         else:

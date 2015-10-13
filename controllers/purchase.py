@@ -7,6 +7,7 @@ import json
 from decimal import Decimal as D
 
 
+# TODO implement XML purchase
 @auth.requires_membership('Purchases')
 def create():
     """
@@ -37,6 +38,28 @@ def purchase_item_formstyle(form, fields):
 
 
     return parent
+
+
+def response_purchase_item(purchase_item):
+    """ Returns relevant purchase_item information """
+
+    serials = purchase_item.serial_numbers.replace(',', ',\n') if purchase_item.serial_numbers else ''
+    res = {
+          "id": purchase_item.id
+        , "id_item": purchase_item.id_item
+        , "item": { "name": purchase_item.id_item.name,
+                    "barcode": item_barcode(purchase_item.id_item)
+                  }
+        , "quantity": str(purchase_item.quantity or 0)
+        , "price": str(purchase_item.price or 0)
+        , "base_price": str(purchase_item.base_price or 0)
+        , "price2": str(purchase_item.price2 or 0)
+        , "price3": str(purchase_item.price3 or 0)
+        , "taxes": str(purchase_item.taxes or 0)
+        , "serial_numbers": serials
+    }
+
+    return res
 
 
 @auth.requires_membership('Purchases')
@@ -113,17 +136,15 @@ def modify_purchase_item():
     if not purchase_item:
         raise HTTP(404)
     try:
-        purchase_item[request.args(1)] = request.args(2)
+        param_name = request.args(1)
+        param_value = request.args(2)
 
-        purchase_item = postprocess_purchase_item(purchase_item)
-        purchase_item.update_record()
+        if param_name in ['quantity', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
+            purchase_item[param_name] = param_value
+            purchase_item = postprocess_purchase_item(purchase_item)
+            purchase_item.update_record()
 
-        res = {
-            'taxes': purchase_item.taxes.quantize(D('.000000'))
-            , 'quantity': purchase_item.quantity
-        }
-
-        return res
+        return response_purchase_item(purchase_item)
     except:
         import traceback
         traceback.print_exc()
@@ -155,9 +176,8 @@ def add_item_and_purchase_item():
     item_data['taxes'] = [int(trait) for trait in item_data['taxes'].split(',')] if (item_data['taxes'] and item_data['taxes'] != 'null') else None
 
     try:
-        # TODO remove when auth.
-        db.item.created_by.requires = None
-        db.item.modified_by.requires = None
+        db.item.created_by = auth.user.id
+        db.item.created_by = auth.user.id
 
         ret = db.item.validate_and_insert(**item_data)
         if not ret.errors:
@@ -198,17 +218,7 @@ def fill():
     for purchase_item in purchase_items:
         serials = purchase_item.serial_numbers.replace(',', ',\n') if purchase_item.serial_numbers else ''
 
-        purchase_items_json.append({
-              "id": purchase_item.id
-            , "id_item": purchase_item.id_item
-            , "item": { "name": purchase_item.id_item.name,
-                        "barcode": item_barcode(purchase_item.id_item)
-                      }
-            , "quantity": str(purchase_item.quantity or 0)
-            , "price": str(purchase_item.price or 0)
-            , "taxes": str(purchase_item.taxes or 0)
-            , "serial_numbers": serials
-        })
+        purchase_items_json.append(response_purchase_item(purchase_item))
     purchase_items_json = json.dumps(purchase_items_json)
     form[0].append(SCRIPT('purchase_items = %s;' % purchase_items_json))
 
@@ -233,6 +243,12 @@ def commit():
         purchase_item = postprocess_purchase_item(purchase_item)
         purchase_item.update_record()
         db.stock.insert(id_store=purchase.id_store, id_purchase=purchase.id, id_item=purchase_item.id_item.id, quantity=purchase_item.quantity)
+        # update the item prices
+        item = db.item(purchase_item.id_item)
+        item.base_price = purchase_item.base_price
+        item.price2 = purchase_item.price2
+        item.price3 = purchase_item.price3
+        item.update_record()
     purchase.is_done = True
     purchase.update_record()
     redirect(URL('index'))
