@@ -263,6 +263,8 @@
             , traits: $('#traits_selected').val()
             , has_inventory: $('#item_has_inventory').prop('checked')
             , base_price: $('#item_base_price').val()
+            , price2: $('#item_price2').val()
+            , price3: $('#item_price3').val()
             , id_measure_unit: $('#item_id_measure_unit').val()
             , taxes: $('#item_taxes').val()
             , allow_fractions: $('#item_allow_fractions').prop('checked')
@@ -297,7 +299,8 @@
 
           return false;
         });
-        $.getScript('{{=new_item_js_url}}')
+        item_id = "";
+        $.getScript('{{=new_item_js_url}}');
         $('#new_item_panel').show();
       });
     });

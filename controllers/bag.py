@@ -20,6 +20,7 @@ def modify_bag_item():
     if not bag_item:
         raise HTTP(404)
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
+    bag_item.sale_price = request.vars.sale_price if request.vars.sale_price else bag_item.sale_price
 
     bag_item.update_record()
     return dict(status='ok')
@@ -44,7 +45,7 @@ def select_bag():
     """
 
     try:
-        bag = db.bag(request.args(0))
+        bag = db((db.bag.id == request.args(0)) & (db.bag.created_by == auth.user.id)).select().first()
         if not bag:
             raise HTTP(404)
         session.current_bag = bag.id
@@ -102,14 +103,14 @@ def discard_bag():
 
     """
 
-    bag = db.bag(session.current_bag)
+    bag = db((db.bag.id == session.current_bag) & (db.bag.created_by == auth.user.id))
     removed_bag = session.current_bag
     if not bag:
         raise HTTP(404)
     db(db.bag_item.id_bag == bag.id).delete()
     db(db.bag.id == bag.id).delete()
 
-    other_bag = db(db.bag.id > 0).select().first()
+    other_bag = db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id)).select().first()
     if other_bag:
         session.current_bag = other_bag.id
 

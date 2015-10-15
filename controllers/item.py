@@ -9,6 +9,7 @@ def categories_tree_html(categories, item=None):
     current_category = categories.first().parent
     categories_children = {}
     current_tree = []
+    categories_selected_text = ""
     for category in categories:
         if category.parent != current_category:
             categories_children[current_category] = current_tree
@@ -19,6 +20,7 @@ def categories_tree_html(categories, item=None):
         if item:
             if category.id in item.categories:
                 child['state'] = {'checked': True};
+                categories_selected_text += str(category.id) + ','
         if categories_children.has_key(category.id):
             child['nodes'] = categories_children[category.id]
             current_tree.append(child)
@@ -35,7 +37,7 @@ def categories_tree_html(categories, item=None):
     # json object from python dict
     categories_tree = json.dumps(categories_tree[0])
     category_search = INPUT(_type="search", _id="category_search", _placeholder=T("search categories"), _class="form-control")
-    categories_selected = INPUT(_type="text", _id="categories_selected", _hidden=True, _name="categories_selected")
+    categories_selected = INPUT(_value=categories_selected_text, _type="text", _id="categories_selected", _hidden=True, _name="categories_selected")
     # hack: this script sets the javascript variable categories_tree_data, to
     # the categories_tree json data, so it can be used inside the view.
     categories_tree_script = SCRIPT("categories_tree_data = %s;" % categories_tree)
@@ -44,28 +46,19 @@ def categories_tree_html(categories, item=None):
     return DIV(LABEL(T('Categories'), _class="control-label col-sm-3"), field, _class="form-group")
 
 
-def trait_selector_data():
-    """ treeview based on the selected categories, use this function as json
-
-        args:
-            item_id: the current item (only available on updates)
-        vars:
-            categories: list of categories (separated by comma)
-
-    """
-
+def traits_tree(item_id=None, categories_ids=""):
     try:
         # we need a category in order to retrieve the traits
-        categories_ids = request.vars.categories
         if not categories_ids:
-            return dict(status=1)
+            return {}
         categories_ids = categories_ids.split(',')
-        item = db.item(request.args(0))
+        item = db.item(item_id)
 
         # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
         query = (db.category.id < 0)
         for category_id in categories_ids:
-            query |= (db.category.id == category_id)
+            if category_id:
+                query |= (db.category.id == category_id)
         categories = db(query).select()
         query = (db.trait.id < 0)
         for category in categories:
@@ -74,11 +67,10 @@ def trait_selector_data():
             query |= (db.trait.id_trait_category == category.trait_category3)
         traits = db(query & (db.trait.is_active == True)
                     ).select(orderby=db.trait.id_trait_category)
-
         # creates the trait tree
         trait_tree = []
         if not traits:
-            return dict(status='no traits')
+            return {}
         current_trait_category = traits.first().id_trait_category
         current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
         for trait in traits:
@@ -94,10 +86,32 @@ def trait_selector_data():
         trait_tree.append(current_subtree)
         current_trait_category = trait.id_trait_category
         current_subtree = {"text": current_trait_category.name, "nodes": []}
-        return dict(traits=trait_tree)
+        return trait_tree
     except:
         import traceback
         traceback.print_exc()
+
+
+def trait_selector_data():
+    """ treeview based on the selected categories, use this function as json
+
+        args:
+            item_id: the current item (only available on updates)
+        vars:
+            categories: list of categories (separated by comma)
+
+    """
+
+    try:
+        traits = traits_tree(request.args(0), request.vars.categories)
+        if not traits:
+            print "no traits"
+            return dict(status='no traits')
+        return dict(traits=traits)
+    except:
+        import traceback
+        traceback.print_exc()
+
 
 
 def trait_selector_html():

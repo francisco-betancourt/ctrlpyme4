@@ -3,13 +3,15 @@
 {{=form}}
 
 
-{{item_id = item.id if item else None}}
+{{item_id = item.id if item else ""}}
+<script>
+  item_id = {{=item_id}};
+</script>
 <script type="text/javascript" src="{{=URL('static', 'js/create_item.js')}}"></script>
 <script type="text/javascript">
   // barcode checking
   $('#barcode_form').on('submit', function(event) {
     event.preventDefault();
-    // #TODO we have to check if theres another item with this barcode, also determine the barcode type
     return false;
   })
 </script>

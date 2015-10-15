@@ -12,7 +12,7 @@
 
 <!-- Active bags -->
 <div class="list-group" id="active_bags" hidden="hidden">
-  {{for bag in db(db.bag.is_active == True).select():}}
+  {{for bag in db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id)).select():}}
     <a href="#" class="list-group-item" onclick="load_bag({{=bag.id}});" id="bag_selector_{{=bag.id}}">
       {{=T('Bag')}} {{=bag.id}}
     </a>

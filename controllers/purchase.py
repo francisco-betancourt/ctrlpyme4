@@ -176,8 +176,7 @@ def add_item_and_purchase_item():
     item_data['taxes'] = [int(trait) for trait in item_data['taxes'].split(',')] if (item_data['taxes'] and item_data['taxes'] != 'null') else None
 
     try:
-        db.item.created_by = auth.user.id
-        db.item.created_by = auth.user.id
+        item_data['created_by'] = auth.user.id
 
         ret = db.item.validate_and_insert(**item_data)
         if not ret.errors:
@@ -185,11 +184,10 @@ def add_item_and_purchase_item():
             url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
             db.item(ret.id).update_record(url_name=url_name)
 
-            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, quantity=1)
+            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, quantity=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
+            purchase_item = response_purchase_item(db.purchase_item(purchase_item))
             return dict(item=item, purchase_item=purchase_item)
         else:
-            del ret.errors.created_by
-            del ret.errors.modified_by
             return dict(errors=ret.errors)
     except:
         import traceback
@@ -236,6 +234,8 @@ def commit():
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise(HTTP, 404)
+
+    # TODO purchase total should match the amount stablished by the purchase items
 
     # generate stocks for every purchase item
     purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
