@@ -10,6 +10,7 @@
 
 <br>
 
+
 <!-- Active bags -->
 <div class="list-group" id="active_bags" hidden="hidden">
   {{for bag in db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id)).select():}}
@@ -61,6 +62,12 @@
 
 
 <!-- Scanner script -->
+{{if not session.current_bag:}}
+<script>
+  $('#current_bag').hide();
+</script>
+
+{{pass}}
 <script>
   function base_add_bag_item(bag_item) {
     var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
@@ -154,6 +161,8 @@
       $('#current_bag .total').text(data.total);
 
       $('#active_bags').hide();
+
+      $('#current_bag').show();
     });
   }
 

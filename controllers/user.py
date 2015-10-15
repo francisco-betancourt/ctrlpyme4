@@ -28,3 +28,16 @@ def index():
     rows = db(db.auth_user.id > 0).select()
     data = super_table('auth_user', ['email'], rows)
     return locals()
+
+
+@auth.requires_login()
+def post_login():
+    # set the current bag, if theres is one
+    if not session.current_bag:
+        some_active_bag = db((db.bag.is_active == True)
+                           & (db.bag.completed == False)
+                           & (db.bag.created_by == auth.user.id)
+                           ).select().first()
+        if some_active_bag:
+            session.current_bag = some_active_bag.id
+    redirect(URL('default', 'index'))
