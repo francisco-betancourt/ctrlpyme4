@@ -34,6 +34,7 @@
 
   <div class="panel-footer">
     <p> <span>{{=T('Subtotal')}}</span> <span class="right subtotal">00</span> </p>
+    <p> <span>{{=T('Taxes')}}</span> <span class="right taxes">00</span> </p>
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
     <hr>
 
@@ -52,10 +53,39 @@
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
     <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
-    <p>$ <span class="item_price"></span></p>
+    <p><span class="item_price base_price"></span></p>
+    <p>
+      <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
+        <a type="button" class="btn btn-default btn-primary item_price"></a>
+        <a type="button" class="btn btn-default price2"></a>
+        <a type="button" class="btn btn-default price3"></a>
+      </div>
+    </p>
+
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
       <input type="number" class="form-control item_qty">
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" tabindex="-1" role="dialog" id="access_code_modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">{{=T('Manager access')}}</h4>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="access_code" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary submit">
+          {{=T('Authenticate')}}
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -69,6 +99,24 @@
 
 {{pass}}
 <script>
+  function set_sale_price(price_index, bag_item_id, target) {
+    $('#access_code_modal').find('.submit').click(function (event) {
+      $.ajax({
+        url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
+      })
+      .done(function (data) {
+        $('#access_code_modal').modal('hide');
+        $(target).parent().find('.btn-primary').removeClass('btn-primary');
+        $(target).addClass('btn-primary');
+      })
+      .fail(function (data) {
+        alert('Invalid access');
+      })
+    })
+    $('#access_code_modal').modal();
+  }
+
+
   function base_add_bag_item(bag_item) {
     var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
     if (item) {
@@ -88,6 +136,40 @@
     new_item.attr('itemid', data.id_item);
     new_item.find('.item_name').text(data.name);
     new_item.find('.item_price').text(data.base_price);
+
+    if (data.price2 || data.price3) {
+      new_item.find('.base_price').parent().remove();
+      var price2_btn = new_item.find('.price2');
+      var price3_btn = new_item.find('.price3');
+
+      var base_price_btn = new_item.find('.item_price');
+      base_price_btn.click(function(event) {
+        set_sale_price(1, data.id, event.target);
+      });
+
+      if (data.price2) {
+        price2_btn.text(data.price2);
+        price2_btn.click(function(event) {
+          set_sale_price(2, data.id, event.target);
+        });
+      }
+      else {
+        price2_btn.remove();
+      }
+      if (data.price3) {
+        price3_btn.text(data.price3);
+        price3_btn.click(function(event) {
+          set_sale_price(3, data.id, event.target);
+        });
+      }
+      else {
+        price3_btn.remove();
+      }
+    }
+    else {
+      new_item.find('.extra_prices').remove();
+    }
+
     new_item.find('.item_qty').val(data.quantity);
 
     new_item.find('.close').click(function(event) {

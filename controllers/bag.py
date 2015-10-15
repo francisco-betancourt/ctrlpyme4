@@ -30,6 +30,9 @@ def set_bag_item(bag_item):
     item = db.item(bag_item.id_item)
     bag_item.name = item.name
     bag_item.base_price = D(item.base_price or 0).quantize(D('.000000'))
+    bag_item.price2 = D(item.price2 or 0).quantize(D('.000000'))
+    bag_item.price3 = D(item.price3 or 0).quantize(D('.000000'))
+
     bag_item.barcode = item_barcode(item)
     bag_item.sale_taxes = item_taxes(item, item.base_price or 0)
 
@@ -57,7 +60,10 @@ def select_bag():
             bag_items.append(bag_item_modified)
             subtotal += bag_item.base_price * bag_item.quantity
             total += (bag_item.base_price + bag_item.sale_taxes) * bag_item.quantity
-            bag_item_modified.base_price = str(bag_item_modified.base_price)
+            bag_item_modified.base_price = '$ ' + str(bag_item_modified.base_price)
+            bag_item_modified.price2 = '$ ' + str(bag_item_modified.price2) if bag_item_modified.price2 else 0
+            bag_item_modified.price3 = '$ ' + str(bag_item_modified.price3) if bag_item_modified.price3 else 0
+
 
         return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total)
     except:
@@ -115,6 +121,22 @@ def discard_bag():
         session.current_bag = other_bag.id
 
     return dict(other_bag=other_bag, removed=removed_bag)
+
+
+def change_bag_item_sale_price():
+    print request.args
+    price_index = request.args(0)
+    bag_item = db.bag_item(request.args(1))
+    access_code = request.args(2)
+
+    if not (price_index or bag_item or access_code):
+        raise HTTP(400)
+    user = db((db.auth_user.access_code == access_code)).select().first()
+    if user:
+        print user.has_membership('VIP seller')
+
+    print price_index, bag_item
+    return dict(status="ok")
 
 
 def create():

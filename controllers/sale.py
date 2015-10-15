@@ -19,7 +19,7 @@ def create():
                   ).select(orderby=db.stock.id_purchase).first()
         if not stock:
             print "not stock"
-        # subtotal += bag_item.sale_price
+        subtotal += bag_item.sale_price
         # total += bag_item.sale_price + bag_item.sale_taxes
         reward_points += bag_item.id_item.reward_points or 0
     form = SQLFORM(db.sale)

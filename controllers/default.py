@@ -101,6 +101,7 @@ def create_groups():
         , "Clients": "Create clients"
         , "Cashiers": "Sale creation"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"
+        , "VIP seller": "Allows price2 and price3 selection"
     }
 
 

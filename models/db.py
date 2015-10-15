@@ -58,6 +58,10 @@ auth = Auth(db)
 service = Service()
 plugins = PluginManager()
 
+auth.settings.extra_fields['auth_user'] = [
+      Field('access_code', default="000000", label=T('Access')+' '+T('code'))
+]
+
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)
 
@@ -322,9 +326,12 @@ db.define_table("stock",
     auth.signature)
 
 db.define_table("bag",
-    Field("id_store", "reference store", label=T('Store')),
-    Field("completed", "string", default=None, label=T('Completed')),
-    auth.signature)
+    Field("id_store", "reference store", label=T('Store'))
+    , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
+    , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
+    , Field("total", "decimal(16,6)", default=None, label=T('Total'))
+    , Field("completed", "string", default=None, label=T('Completed'))
+    , auth.signature)
 
 db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
