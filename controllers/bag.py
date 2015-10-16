@@ -3,11 +3,31 @@
 # Author: Daniel J. Ramirez
 
 #
-# A bag is a storage for items, that will be saled.
+# A bag is a storage for items that will be sold.
 #
 
 from decimal import Decimal as D
 
+
+
+def money_format(value):
+    return '$ ' + str(value)
+
+
+
+def refresh_bag_data(id_bag):
+    bag = db.bag(id_bag)
+
+    bag_items = db(db.bag_item.id_bag == bag.id).select()
+
+    subtotal = D(0)
+    taxes = D(0)
+    total = D(0)
+    for bag_item in bag_items:
+        subtotal += bag_item.sale_price * bag_item.quantity
+        taxes += bag_item.sale_taxes * bag_item.quantity
+        total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
+    return money_format(DQ(subtotal)), money_format(DQ(taxes)), money_format(DQ(total))
 
 
 def modify_bag_item():
@@ -20,21 +40,22 @@ def modify_bag_item():
     if not bag_item:
         raise HTTP(404)
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
-    bag_item.sale_price = request.vars.sale_price if request.vars.sale_price else bag_item.sale_price
 
     bag_item.update_record()
-    return dict(status='ok')
+    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
+    return dict(status='ok', subtotal=subtotal, taxes=taxes, total=total)
 
 
 def set_bag_item(bag_item):
     item = db.item(bag_item.id_item)
     bag_item.name = item.name
-    bag_item.base_price = D(item.base_price or 0).quantize(D('.000000'))
-    bag_item.price2 = D(item.price2 or 0).quantize(D('.000000'))
-    bag_item.price3 = D(item.price3 or 0).quantize(D('.000000'))
+    bag_item.base_price = money_format(DQ(item.base_price)) if item.base_price else 0
+    bag_item.price2 = money_format(DQ(item.price2)) if item.price2 else 0
+    bag_item.price3 = money_format(DQ(item.price3)) if item.price3 else 0
+    bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0))
 
     bag_item.barcode = item_barcode(item)
-    bag_item.sale_taxes = item_taxes(item, item.base_price or 0)
+    # bag_item.sale_taxes = item_taxes(item, bag_item.sale_price or 0)
 
     return bag_item
 
@@ -53,19 +74,20 @@ def select_bag():
             raise HTTP(404)
         session.current_bag = bag.id
         subtotal = 0
+        taxes = 0
         total = 0
         bag_items = []
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
+            subtotal += bag_item.sale_price * bag_item.quantity
+            taxes += bag_item.sale_taxes * bag_item.quantity
+            total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
             bag_item_modified = set_bag_item(bag_item)
             bag_items.append(bag_item_modified)
-            subtotal += bag_item.base_price * bag_item.quantity
-            total += (bag_item.base_price + bag_item.sale_taxes) * bag_item.quantity
-            bag_item_modified.base_price = '$ ' + str(bag_item_modified.base_price)
-            bag_item_modified.price2 = '$ ' + str(bag_item_modified.price2) if bag_item_modified.price2 else 0
-            bag_item_modified.price3 = '$ ' + str(bag_item_modified.price3) if bag_item_modified.price3 else 0
+        subtotal = money_format(DQ(subtotal))
+        taxes = money_format(DQ(taxes))
+        total = money_format(DQ(total))
 
-
-        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total)
+        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes)
     except:
         import traceback
         traceback.print_exc();
@@ -80,16 +102,22 @@ def add_bag_item():
     item = db.item(request.args(0))
     id_bag = session.current_bag
 
+    if not item or not id_bag:
+        raise HTTP(404)
+
     bag_item = db(db.bag_item.id_item == item.id).select().first()
     if not bag_item:
-        id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1)
+        id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1, sale_price=item.base_price,
+            sale_taxes=item_taxes(item, item.base_price))
         bag_item = db.bag_item(id_bag_item)
     else:
         bag_item.quantity += 1
         bag_item.update_record()
     bag_item = set_bag_item(bag_item)
 
-    return dict(bag_item=bag_item)
+    subtotal, taxes, total = refresh_bag_data(id_bag)
+
+    return dict(bag_item=bag_item, subtotal=subtotal, taxes=taxes, total=total)
 
 
 def delete_bag_item():
@@ -99,7 +127,8 @@ def delete_bag_item():
     """
 
     db(db.bag_item.id == request.args(0)).delete()
-    return dict(status="ok")
+    subtotal, taxes, total = refresh_bag_data(id_bag)
+    return dict(status="ok", subtotal=subtotal, taxes=taxes, total=total)
 
 
 def discard_bag():
@@ -124,7 +153,6 @@ def discard_bag():
 
 
 def change_bag_item_sale_price():
-    print request.args
     price_index = request.args(0)
     bag_item = db.bag_item(request.args(1))
     access_code = request.args(2)
@@ -133,10 +161,26 @@ def change_bag_item_sale_price():
         raise HTTP(400)
     user = db((db.auth_user.access_code == access_code)).select().first()
     if user:
-        print user.has_membership('VIP seller')
+        if auth.has_membership(None, user.id, role='VIP seller'):
+            # change the item bag item sale price in db
+            sale_price = bag_item.sale_price
+            if price_index == '1':
+                sale_price = bag_item.id_item.base_price
+            elif price_index == '2':
+                sale_price = bag_item.id_item.price2
+            elif price_index == '3':
+                sale_price = bag_item.id_item.price3
+            bag_item.sale_price = sale_price
+            bag_item.sale_taxes = item_taxes(bag_item.id_item, bag_item.sale_price or 0)
+            bag_item.update_record()
+        else:
+            raise HTTP(401)
+    else:
+        raise HTTP(401)
 
-    print price_index, bag_item
-    return dict(status="ok")
+    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
+
+    return dict(status="ok", subtotal=subtotal, taxes=taxes, total=total)
 
 
 def create():

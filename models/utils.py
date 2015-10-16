@@ -28,8 +28,12 @@ def item_barcode(item):
     return item.sku or item.ean or item.upc
 
 
+def DQ(value):
+    return D(value).quantize(D('.000000'))
+
+
 def item_taxes(item, price):
     taxes = 1
     for tax in item.taxes:
         taxes *= tax.percentage / 100.0
-    return D(D(price) * D(taxes)).quantize(D('.0000'))
+    return DQ(D(price) * D(taxes))

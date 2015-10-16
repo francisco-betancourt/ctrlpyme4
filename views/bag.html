@@ -56,7 +56,7 @@
     <p><span class="item_price base_price"></span></p>
     <p>
       <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
-        <a type="button" class="btn btn-default btn-primary item_price"></a>
+        <a type="button" class="btn btn-default item_price"></a>
         <a type="button" class="btn btn-default price2"></a>
         <a type="button" class="btn btn-default price3"></a>
       </div>
@@ -78,7 +78,7 @@
         <h4 class="modal-title" id="myModalLabel">{{=T('Manager access')}}</h4>
       </div>
       <div class="modal-body">
-        <input type="text" id="access_code" class="form-control">
+        <input type="password" id="access_code" class="form-control">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -99,6 +99,14 @@
 
 {{pass}}
 <script>
+
+  function set_bag_data(subtotal, taxes, total) {
+    $('#current_bag .subtotal').text(subtotal);
+    $('#current_bag .taxes').text(taxes);
+    $('#current_bag .total').text(total);
+  }
+
+
   function set_sale_price(price_index, bag_item_id, target) {
     $('#access_code_modal').find('.submit').click(function (event) {
       $.ajax({
@@ -108,8 +116,11 @@
         $('#access_code_modal').modal('hide');
         $(target).parent().find('.btn-primary').removeClass('btn-primary');
         $(target).addClass('btn-primary');
+
+        set_bag_data(data.subtotal, data.taxes, data.total)
       })
       .fail(function (data) {
+        $('#access_code_modal').modal('hide');
         alert('Invalid access');
       })
     })
@@ -117,7 +128,7 @@
   }
 
 
-  function base_add_bag_item(bag_item) {
+  function base_add_bag_item(bag_item, res) {
     var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
     if (item) {
       $(item).find('.item_qty').val(bag_item.quantity);
@@ -125,6 +136,7 @@
     else {
       $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
     }
+    set_bag_data(res.subtotal, res.taxes, res.total)
   }
 
 
@@ -139,10 +151,20 @@
 
     if (data.price2 || data.price3) {
       new_item.find('.base_price').parent().remove();
+      var base_price_btn = new_item.find('.item_price');
       var price2_btn = new_item.find('.price2');
       var price3_btn = new_item.find('.price3');
 
-      var base_price_btn = new_item.find('.item_price');
+      if (data.sale_price == data.price2) {
+        price2_btn.addClass('btn-primary');
+      }
+      else if (data.sale_price == data.price3) {
+        price3_btn.addClass('btn-primary');
+      }
+      else {
+        base_price_btn.addClass('btn-primary');
+      }
+
       base_price_btn.click(function(event) {
         set_sale_price(1, data.id, event.target);
       });
@@ -178,6 +200,7 @@
       })
       .done(function(res) {
         $('#' + new_item_id).remove();
+        set_bag_data(res.subtotal, res.taxes, res.total)
       })
     })
 
@@ -186,7 +209,7 @@
         url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
       })
       .done(function (data) {
-        console.log(data);
+        set_bag_data(data.subtotal, data.taxes, data.total)
       })
     });
 
@@ -205,7 +228,7 @@
     })
     .done(function (res) {
       bag_item = res.bag_item;
-      base_add_bag_item(bag_item);
+      base_add_bag_item(bag_item, res);
     })
   }
 
@@ -223,7 +246,6 @@
     $('#active_bags').toggle();
   }
 
-
   function load_bag(bag_id) {
     // retrieve bag items
     $.ajax({
@@ -239,8 +261,7 @@
         $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
       }
 
-      $('#current_bag .subtotal').text(data.subtotal);
-      $('#current_bag .total').text(data.total);
+      set_bag_data(data.subtotal, data.taxes, data.total);
 
       $('#active_bags').hide();
 
@@ -255,7 +276,9 @@
     })
     .done(function (res) {
       bag_item = res.bag_item;
-      base_add_bag_item(bag_item);
+      base_add_bag_item(bag_item, res);
+
+      set_bag_data(res.subtotal, res.taxes, res.total)
     })
   }
 
