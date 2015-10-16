@@ -126,8 +126,9 @@ def delete_bag_item():
             id_bag_item
     """
 
+    bag_item = db.bag_item(request.args(0))
     db(db.bag_item.id == request.args(0)).delete()
-    subtotal, taxes, total = refresh_bag_data(id_bag)
+    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
     return dict(status="ok", subtotal=subtotal, taxes=taxes, total=total)
 
 
