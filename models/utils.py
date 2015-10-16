@@ -29,6 +29,8 @@ def item_barcode(item):
 
 
 def DQ(value):
+    """ Decimal Quantized """
+
     return D(value).quantize(D('.000000'))
 
 
@@ -37,3 +39,25 @@ def item_taxes(item, price):
     for tax in item.taxes:
         taxes *= tax.percentage / 100.0
     return DQ(D(price) * D(taxes))
+
+
+def item_stock(item, id_store):
+    """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
+
+    stocks = None
+    if id_store > 0:
+        stocks = db((db.stock.id_item == item.id)
+                  & (db.stock.id_store == id_store)
+                  & (db.stock.quantity > 0)
+                  ).select()
+    else:
+        stocks = db((db.stock.id_item == item.id)
+                  & (db.stock.quantity > 0)
+                   ).select()
+    if stocks:
+        quantity = 0
+        for stock in stocks:
+            quantity += stock.quantity
+        return dict(stocks=stocks, quantity=quantity)
+    else:
+        return None

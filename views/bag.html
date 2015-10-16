@@ -23,7 +23,7 @@
 <!-- Bag -->
 <div class="panel panel-default" id="current_bag">
   <div class="panel-heading">
-    <h3>{{=T('Bag')}} <span id="bag_id"></span> <i class="fa fa-compress right collapse_bag"></i></h3>
+    <h3>{{=T('Bag')}} <span id="bag_id"></span> (<span class="bag_quantity"></span>)<i class="fa fa-compress right collapse_bag"></i></h3>
   </div>
   <div class="panel-body">
     {{include 'barcode_scanner.html'}}
@@ -53,6 +53,7 @@
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
     <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
+    <p><span class="item_stock"></span></p>
     <p><span class="item_price base_price"></span></p>
     <p>
       <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
@@ -100,10 +101,12 @@
 {{pass}}
 <script>
 
-  function set_bag_data(subtotal, taxes, total) {
-    $('#current_bag .subtotal').text(subtotal);
-    $('#current_bag .taxes').text(taxes);
-    $('#current_bag .total').text(total);
+  function set_bag_data(data) {
+    $('#current_bag .subtotal').text(data.subtotal);
+    $('#current_bag .taxes').text(data.taxes);
+    $('#current_bag .total').text(data.total);
+
+    $('#current_bag .bag_quantity').text(data.quantity);
   }
 
 
@@ -117,7 +120,7 @@
         $(target).parent().find('.btn-primary').removeClass('btn-primary');
         $(target).addClass('btn-primary');
 
-        set_bag_data(data.subtotal, data.taxes, data.total)
+        set_bag_data(data)
       })
       .fail(function (data) {
         $('#access_code_modal').modal('hide');
@@ -136,7 +139,7 @@
     else {
       $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
     }
-    set_bag_data(res.subtotal, res.taxes, res.total)
+    set_bag_data(res)
   }
 
 
@@ -147,6 +150,13 @@
     new_item.attr('barcode', barcode);
     new_item.attr('itemid', data.id_item);
     new_item.find('.item_name').text(data.name);
+    if (data.stock <= 0) {
+      new_item.find('.item_stock').text("{{=T('Out of stock')}}");
+      new_item.find('.item_stock').addClass('text-danger');
+    }
+    else {
+      new_item.find('.item_stock').text(data.stock);
+    }
     new_item.find('.item_price').text(data.base_price);
 
     if (data.price2 || data.price3) {
@@ -200,7 +210,7 @@
       })
       .done(function(res) {
         $('#' + new_item_id).remove();
-        set_bag_data(res.subtotal, res.taxes, res.total)
+        set_bag_data(res)
       })
     })
 
@@ -209,7 +219,7 @@
         url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
       })
       .done(function (data) {
-        set_bag_data(data.subtotal, data.taxes, data.total)
+        set_bag_data(data)
       })
     });
 
@@ -257,11 +267,12 @@
       $('#bag_id').text(bag.id);
 
       for (var bag_item_id in data.bag_items) {
+        console.log(bag_item_id);
         var bag_item = data.bag_items[bag_item_id]
         $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
       }
 
-      set_bag_data(data.subtotal, data.taxes, data.total);
+      set_bag_data(data);
 
       $('#active_bags').hide();
 
@@ -278,7 +289,7 @@
       bag_item = res.bag_item;
       base_add_bag_item(bag_item, res);
 
-      set_bag_data(res.subtotal, res.taxes, res.total)
+      set_bag_data(res)
     })
   }
 

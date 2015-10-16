@@ -9,6 +9,7 @@
 from decimal import Decimal as D
 
 
+# TODO on every bag opertation check if the bag is completed, when a bag is completed the user should not be able to modify it.
 
 def money_format(value):
     return '$ ' + str(value)
@@ -23,11 +24,17 @@ def refresh_bag_data(id_bag):
     subtotal = D(0)
     taxes = D(0)
     total = D(0)
+    quantity = D(0)
     for bag_item in bag_items:
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
-    return money_format(DQ(subtotal)), money_format(DQ(taxes)), money_format(DQ(total))
+        quantity += bag_item.quantity
+    subtotal = money_format(DQ(subtotal))
+    taxes = money_format(DQ(taxes))
+    total = money_format(DQ(total))
+    quantity = DQ(quantity)
+    return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
 def modify_bag_item():
@@ -42,8 +49,8 @@ def modify_bag_item():
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
 
     bag_item.update_record()
-    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
-    return dict(status='ok', subtotal=subtotal, taxes=taxes, total=total)
+    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    return dict(status='ok', **bag_data)
 
 
 def set_bag_item(bag_item):
@@ -55,6 +62,9 @@ def set_bag_item(bag_item):
     bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0))
 
     bag_item.barcode = item_barcode(item)
+    stocks = item_stock(item, 0)
+    bag_item.stock = stocks['quantity'] if stocks else 0
+    print bag_item.stock
     # bag_item.sale_taxes = item_taxes(item, bag_item.sale_price or 0)
 
     return bag_item
@@ -76,18 +86,21 @@ def select_bag():
         subtotal = 0
         taxes = 0
         total = 0
+        quantity = 0
         bag_items = []
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
+            print "id: ", bag_item.id
             subtotal += bag_item.sale_price * bag_item.quantity
             taxes += bag_item.sale_taxes * bag_item.quantity
             total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
+            quantity += bag_item.quantity
             bag_item_modified = set_bag_item(bag_item)
             bag_items.append(bag_item_modified)
         subtotal = money_format(DQ(subtotal))
         taxes = money_format(DQ(taxes))
         total = money_format(DQ(total))
 
-        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes)
+        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
     except:
         import traceback
         traceback.print_exc();
@@ -105,7 +118,9 @@ def add_bag_item():
     if not item or not id_bag:
         raise HTTP(404)
 
-    bag_item = db(db.bag_item.id_item == item.id).select().first()
+    bag_item = db((db.bag_item.id_item == item.id)
+                & (db.bag_item.id_bag == id_bag)
+                ).select().first()
     if not bag_item:
         id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1, sale_price=item.base_price,
             sale_taxes=item_taxes(item, item.base_price))
@@ -115,9 +130,11 @@ def add_bag_item():
         bag_item.update_record()
     bag_item = set_bag_item(bag_item)
 
-    subtotal, taxes, total = refresh_bag_data(id_bag)
+    bag_data = refresh_bag_data(id_bag)
 
-    return dict(bag_item=bag_item, subtotal=subtotal, taxes=taxes, total=total)
+    print "added item ", bag_item.id
+
+    return dict(bag_item=bag_item, **bag_data)
 
 
 def delete_bag_item():
@@ -128,8 +145,8 @@ def delete_bag_item():
 
     bag_item = db.bag_item(request.args(0))
     db(db.bag_item.id == request.args(0)).delete()
-    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
-    return dict(status="ok", subtotal=subtotal, taxes=taxes, total=total)
+    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    return dict(status="ok", **bag_data)
 
 
 def discard_bag():
@@ -179,9 +196,9 @@ def change_bag_item_sale_price():
     else:
         raise HTTP(401)
 
-    subtotal, taxes, total = refresh_bag_data(bag_item.id_bag.id)
+    bag_data = refresh_bag_data(bag_item.id_bag.id)
 
-    return dict(status="ok", subtotal=subtotal, taxes=taxes, total=total)
+    return dict(status="ok", **bag_data)
 
 
 def create():
