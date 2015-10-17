@@ -51,11 +51,11 @@ def response_purchase_item(purchase_item):
                     "barcode": item_barcode(purchase_item.id_item)
                   }
         , "quantity": str(purchase_item.quantity or 0)
-        , "price": str(purchase_item.price or 0)
-        , "base_price": str(purchase_item.base_price or 0)
-        , "price2": str(purchase_item.price2 or 0)
-        , "price3": str(purchase_item.price3 or 0)
-        , "taxes": str(purchase_item.taxes or 0)
+        , "price": str(DQ(purchase_item.price or 0))
+        , "base_price": str(DQ(purchase_item.base_price or 0))
+        , "price2": str(DQ(purchase_item.price2 or 0))
+        , "price3": str(DQ(purchase_item.price3 or 0))
+        , "taxes": str(DQ(purchase_item.taxes) or 0)
         , "serial_numbers": serials
     }
 
@@ -79,8 +79,9 @@ def add_purchase_item():
                        (db.purchase_item.id_purchase == purchase.id)
                       ).select().first()
     if not purchase_item:
-        purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id)
+        purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, quantity=1)
         purchase_item = db.purchase_item(purchase_item)
+        purchase_item = response_purchase_item(purchase_item)
     return locals()
 
 
@@ -118,7 +119,7 @@ def postprocess_purchase_item(purchase_item):
         total_tax *= tax.percentage / 100.0
     purchase_item.taxes = D(purchase_item.price or 0) * D(total_tax)
     if not purchase_item.id_item.allow_fractions:
-        purchase_item.quantity = D(purchase_item.quantity).to_integral_value()
+        purchase_item.quantity = DQ(remove_fractions(purchase_item.quantity))
     return purchase_item
 
 

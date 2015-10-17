@@ -5,6 +5,7 @@
 import urllib
 import re
 from decimal import Decimal as D
+import math
 
 
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
@@ -32,6 +33,12 @@ def DQ(value):
     """ Decimal Quantized """
 
     return D(value).quantize(D('.000000'))
+
+
+def remove_fractions(value):
+    """ Return integer decimal representation """
+
+    return D(math.floor(float(value))).quantize(D('1'))
 
 
 def item_taxes(item, price):
