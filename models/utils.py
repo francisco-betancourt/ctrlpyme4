@@ -35,7 +35,7 @@ def DQ(value):
 
 
 def item_taxes(item, price):
-    taxes = 1
+    taxes = 1 if item.taxes else 0
     for tax in item.taxes:
         taxes *= tax.percentage / 100.0
     return DQ(D(price) * D(taxes))

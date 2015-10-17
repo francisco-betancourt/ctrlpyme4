@@ -150,12 +150,13 @@
     new_item.attr('barcode', barcode);
     new_item.attr('itemid', data.id_item);
     new_item.find('.item_name').text(data.name);
+    new_item_stock = new_item.find('.item_stock');
     if (data.stock <= 0) {
-      new_item.find('.item_stock').text("{{=T('Out of stock')}}");
-      new_item.find('.item_stock').addClass('text-danger');
+      new_item_stock.text("{{=T('Out of stock')}}");
+      new_item_stock.addClass('text-danger');
     }
     else {
-      new_item.find('.item_stock').text(data.stock);
+      new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
     }
     new_item.find('.item_price').text(data.base_price);
 
