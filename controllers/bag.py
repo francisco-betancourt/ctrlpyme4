@@ -66,10 +66,8 @@ def set_bag_item(bag_item):
     bag_item.measure_unit = item.id_measure_unit.symbol
 
     bag_item.barcode = item_barcode(item)
-    # TODO select store id
-    stocks = item_stock(item, 0)
+    stocks = item_stock(item, session.store)
     bag_item.stock = stocks['quantity'] if stocks else 0
-    # bag_item.sale_taxes = item_taxes(item, bag_item.sale_price or 0)
 
     return bag_item
 
@@ -83,7 +81,7 @@ def select_bag():
     """
 
     try:
-        bag = db((db.bag.id == request.args(0)) & (db.bag.created_by == auth.user.id)).select().first()
+        bag = db((db.bag.id == request.args(0)) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store)).select().first()
         if not bag:
             raise HTTP(404)
         session.current_bag = bag.id
@@ -165,7 +163,7 @@ def discard_bag():
         db(db.bag_item.id_bag == bag.id).delete()
         db(db.bag.id == bag.id).delete()
 
-        other_bag = db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id)).select().first()
+        other_bag = db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store)).select().first()
         if other_bag:
             session.current_bag = other_bag.id
 
