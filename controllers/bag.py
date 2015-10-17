@@ -93,7 +93,6 @@ def select_bag():
         quantity = 0
         bag_items = []
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
-            print "id: ", bag_item.id
             subtotal += bag_item.sale_price * bag_item.quantity
             taxes += bag_item.sale_taxes * bag_item.quantity
             total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
@@ -210,7 +209,7 @@ def create():
     """
     """
 
-    bag = db.bag.insert(id_store=None, completed=False)
+    bag = db.bag.insert(id_store=session.store, completed=False)
     session.current_bag = bag.id
 
     return dict(bag=bag)
