@@ -1,0 +1,19 @@
+{{include 'web2py_ajax.html'}}
+
+<style>
+  body {
+    font-size: 11px;
+    font-family: monospace;
+  }
+</style>
+
+{{for bag_item in bag_items:}}
+<div>{{=bag_item.quantity}} {{=bag_item.product_name}} ${{=bag_item.sale_price}}</div>
+{{pass}}
+
+<div id="barcode"></div>
+
+<script type="text/javascript" src="{{=URL('static','js/jquery-barcode.min.js')}}"></script>
+<script>
+  $("#barcode").barcode("00{{=bag.id}}", "int25");
+</script>
