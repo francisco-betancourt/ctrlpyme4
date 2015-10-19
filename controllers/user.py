@@ -53,6 +53,9 @@ def post_logout():
 def store_selection():
     """ Admin does not need to select a store """
 
+    if session.store:
+        redirect(URL('default', 'index'))
+
     form = SQLFORM.factory(
         Field('store', "reference store", label=T('Store'), requires=IS_IN_DB(db, 'store.id', '%(name)s'))
     )

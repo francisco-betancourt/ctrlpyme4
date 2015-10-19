@@ -96,8 +96,12 @@ def create_groups():
         , "Items info": "Modify basic item information"
         , "Items management": "Modify brands, categories, hide and show items and create promotions, item drops (lost or damaged items), create items"
         , "Items prices": "Allows item price modification"
-        , "Sales": "Sales creation and stock modification"
+
+        , "Sales bags": "Bag creation and modification"
+        , "Sales checkout": "Users in this group will be able to create a sale, register money income"
+        , "Sales delivery": "Allows the modification of stocks and serial number capture for sold items"
         , "Sales invoices": "Invoice creation and cancellation, folios management"
+
         , "Clients": "Create clients"
         , "Cashiers": "Sale creation"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"

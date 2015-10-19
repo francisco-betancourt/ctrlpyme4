@@ -9,7 +9,17 @@
 from decimal import Decimal as D
 
 
-# TODO on every bag opertation check if the bag is completed, when a bag is completed the user should not be able to modify it.
+def get_valid_bag(id_bag, completed=False):
+    try:
+        bag = db((db.bag.id == id_bag)
+               & (db.bag.id_store == session.store)
+               & (db.bag.created_by == auth.user.id)
+               & (db.bag.completed == completed)
+               ).select().first()
+        return bag
+    except:
+        return None
+
 
 def money_format(value):
     return '$ ' + str(value)
@@ -37,25 +47,37 @@ def refresh_bag_data(id_bag):
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
+@auth.requires_membership('Sales bags')
 def modify_bag_item():
     """
+        modifies the bag_item quantity.
+
         args:
             bag_item_id
     """
 
     bag_item = db.bag_item(request.args(0))
+    if not get_valid_bag(bag_item.id_bag):
+        raise HTTP(403)
     if not bag_item:
         raise HTTP(404)
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
     if not bag_item.id_item.allow_fractions:
         bag_item.quantity = remove_fractions(bag_item.quantity)
+    bag_item.quantity = DQ(bag_item.quantity)
+
+    qty = item_stock(db.item(bag_item.id_item), session.store)['quantity']
+    if qty < bag_item.quantity:
+        bag_item.quantity = qty
 
     bag_item.update_record()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
     return dict(status='ok', bag_item=bag_item, **bag_data)
 
 
+@auth.requires_membership('Sales bags')
 def set_bag_item(bag_item):
+    """ modifies bag item data, in order to display it properly, this method does not modify the database """
     item = db.item(bag_item.id_item)
     # bag_item.name = item.name
     bag_item.base_price = money_format(DQ(item.base_price)) if item.base_price else 0
@@ -72,6 +94,7 @@ def set_bag_item(bag_item):
     return bag_item
 
 
+@auth.requires_membership('Sales bags')
 def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
@@ -81,7 +104,7 @@ def select_bag():
     """
 
     try:
-        bag = db((db.bag.id == request.args(0)) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store)).select().first()
+        bag = get_valid_bag(request.args(0))
         if not bag:
             raise HTTP(404)
         session.current_bag = bag.id
@@ -107,6 +130,7 @@ def select_bag():
         traceback.print_exc();
 
 
+@auth.requires_membership('Sales bags')
 def add_bag_item():
     """
         args:
@@ -114,7 +138,13 @@ def add_bag_item():
     """
 
     item = db.item(request.args(0))
-    id_bag = session.current_bag
+    bag = get_valid_bag(session.current_bag)
+
+    id_bag = bag.id if bag else None
+
+    # if theres no stock notify the user
+    if item_stock(item, session.store)['quantity'] < 1:
+        return dict(status="out of stock")
 
     if not item or not id_bag:
         raise HTTP(404)
@@ -136,6 +166,7 @@ def add_bag_item():
     return dict(bag_item=bag_item, **bag_data)
 
 
+@auth.requires_membership('Sales bags')
 def delete_bag_item():
     """
         args:
@@ -143,27 +174,30 @@ def delete_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
+    if not get_valid_bag(bag_item.id_bag):
+        raise HTTP(401)
     db(db.bag_item.id == request.args(0)).delete()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
     return dict(status="ok", **bag_data)
 
 
+@auth.requires_membership('Sales bags')
 def discard_bag():
-    """
-        args:
-            id_bag
-
-    """
-
     try:
-        bag = db((db.bag.id == session.current_bag) & (db.bag.created_by == auth.user.id)).select().first()
+        bag = get_valid_bag(session.current_bag)
+        if not bag:
+            raise HTTP(401)
         removed_bag = session.current_bag
         if not bag:
             raise HTTP(404)
         db(db.bag_item.id_bag == bag.id).delete()
         db(db.bag.id == bag.id).delete()
 
-        other_bag = db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store)).select().first()
+        other_bag = db((db.bag.is_active == True)
+                     & (db.bag.created_by == auth.user.id)
+                     & (db.bag.id_store == session.store)
+                     & (db.bag.completed == False)
+                     ).select().first()
         if other_bag:
             session.current_bag = other_bag.id
 
@@ -172,6 +206,8 @@ def discard_bag():
         import traceback
         traceback.print_exc()
 
+
+@auth.requires_membership('Sales bags')
 def change_bag_item_sale_price():
     price_index = request.args(0)
     bag_item = db.bag_item(request.args(1))
@@ -179,6 +215,8 @@ def change_bag_item_sale_price():
 
     if not (price_index or bag_item or access_code):
         raise HTTP(400)
+    if not get_valid_bag(bag_item.id_bag):
+        raise HTTP(401)
     user = db((db.auth_user.access_code == access_code)).select().first()
     if user:
         if auth.has_membership(None, user.id, role='VIP seller'):
@@ -203,6 +241,39 @@ def change_bag_item_sale_price():
     return dict(status="ok", **bag_data)
 
 
+@auth.requires_membership('Sales bags')
+def complete():
+    bag = get_valid_bag(session.current_bag)
+    if not bag:
+        raise HTTP(404)
+    bag.completed = True
+    bag.update_record()
+
+    if auth.has_membership('Sales checkout'):
+        redirect(URL('sale', 'create', args=bag.id))
+    else:
+        redirect(URL('ticket', args=bag.id))
+
+
+@auth.requires_membership('Sales bags')
+def ticket():
+    """
+        args:
+            bag_id
+    """
+
+    bag = get_valid_bag(request.args(0), completed=True)
+
+    if not bag:
+        raise HTTP(404)
+
+    # bag items
+    bag_items = db(db.bag_item.id_bag == bag.id).select()
+
+    return locals()
+
+
+@auth.requires_membership('Sales bags')
 def create():
     """
     """

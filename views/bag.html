@@ -42,7 +42,7 @@
       {{=T('Discard')}}
     </button>
     <button class="btn btn-primary right sell_bag" onclick="sell_bag();">
-      {{=T('Sell')}}
+      {{=T('Complete')}}
     </button>
   </div>
 </div>
@@ -241,8 +241,13 @@
       url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + data.id
     })
     .done(function (res) {
-      bag_item = res.bag_item;
-      base_add_bag_item(bag_item, res);
+      if (res.status == "out of stock") {
+        alert('{{=T("Out of stock!!!")}}');
+      }
+      else {
+        bag_item = res.bag_item;
+        base_add_bag_item(bag_item, res);
+      }
     })
   }
 
@@ -333,7 +338,7 @@
 
 
   function sell_bag() {
-    window.location.href = "{{=URL('sale', 'create')}}";
+    window.location.href = "{{=URL('bag', 'complete')}}";
   }
 
 

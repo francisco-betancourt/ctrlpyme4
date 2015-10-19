@@ -67,4 +67,4 @@ def item_stock(item, id_store):
             quantity += stock.quantity
         return dict(stocks=stocks, quantity=quantity)
     else:
-        return None
+        return dict(stocks=None, quantity=0)
