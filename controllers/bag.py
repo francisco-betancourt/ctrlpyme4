@@ -40,10 +40,10 @@ def refresh_bag_data(id_bag):
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
-    subtotal = money_format(DQ(subtotal))
-    taxes = money_format(DQ(taxes))
-    total = money_format(DQ(total))
-    quantity = DQ(quantity)
+    subtotal = money_format(DQ(subtotal, True))
+    taxes = money_format(DQ(taxes, True))
+    total = money_format(DQ(total, True))
+    quantity = DQ(quantity, True)
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
@@ -80,10 +80,10 @@ def set_bag_item(bag_item):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
     item = db.item(bag_item.id_item)
     # bag_item.name = item.name
-    bag_item.base_price = money_format(DQ(item.base_price)) if item.base_price else 0
-    bag_item.price2 = money_format(DQ(item.price2)) if item.price2 else 0
-    bag_item.price3 = money_format(DQ(item.price3)) if item.price3 else 0
-    bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0))
+    bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
+    bag_item.price2 = money_format(DQ(item.price2, True)) if item.price2 else 0
+    bag_item.price3 = money_format(DQ(item.price3, True)) if item.price3 else 0
+    bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0, True))
 
     bag_item.measure_unit = item.id_measure_unit.symbol
 
@@ -120,9 +120,9 @@ def select_bag():
             quantity += bag_item.quantity
             bag_item_modified = set_bag_item(bag_item)
             bag_items.append(bag_item_modified)
-        subtotal = money_format(DQ(subtotal))
-        taxes = money_format(DQ(taxes))
-        total = money_format(DQ(total))
+        subtotal = money_format(DQ(subtotal, True))
+        taxes = money_format(DQ(taxes, True))
+        total = money_format(DQ(total, True))
 
         return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
     except:
@@ -137,34 +137,37 @@ def add_bag_item():
             id_item
     """
 
-    item = db.item(request.args(0))
-    bag = get_valid_bag(session.current_bag)
+    try:
+        item = db.item(request.args(0))
+        bag = get_valid_bag(session.current_bag)
 
-    id_bag = bag.id if bag else None
+        id_bag = bag.id if bag else None
 
-    # if theres no stock notify the user
-    if item_stock(item, session.store)['quantity'] < 1:
-        return dict(status="out of stock")
+        # if theres no stock notify the user
+        if item_stock(item, session.store)['quantity'] < 1:
+            return dict(status="out of stock")
 
-    if not item or not id_bag:
-        raise HTTP(404)
+        if not item or not id_bag:
+            raise HTTP(404)
 
-    bag_item = db((db.bag_item.id_item == item.id)
-                & (db.bag_item.id_bag == id_bag)
-                ).select().first()
-    if not bag_item:
-        id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1, sale_price=item.base_price, product_name=item.name,
-            sale_taxes=item_taxes(item, item.base_price))
-        bag_item = db.bag_item(id_bag_item)
-    else:
-        bag_item.quantity += 1
-        bag_item.update_record()
-    bag_item = set_bag_item(bag_item)
+        bag_item = db((db.bag_item.id_item == item.id)
+                    & (db.bag_item.id_bag == id_bag)
+                    ).select().first()
+        if not bag_item:
+            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1, sale_price=item.base_price, product_name=item.name,
+                sale_taxes=item_taxes(item, item.base_price))
+            bag_item = db.bag_item(id_bag_item)
+        else:
+            bag_item.quantity += 1
+            bag_item.update_record()
+        bag_item = set_bag_item(bag_item)
 
-    bag_data = refresh_bag_data(id_bag)
+        bag_data = refresh_bag_data(id_bag)
 
-    return dict(bag_item=bag_item, **bag_data)
-
+        return dict(bag_item=bag_item, **bag_data)
+    except:
+        import traceback
+        traceback.print_exc()
 
 @auth.requires_membership('Sales bags')
 def delete_bag_item():
@@ -271,6 +274,21 @@ def ticket():
     bag_items = db(db.bag_item.id_bag == bag.id).select()
 
     return locals()
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
+def get():
+    """
+        args: bag_id
+    """
+
+    bag = db((db.bag.completed == True) & (db.bag.id == request.args(0)) & (db.bag.id_store == session.store)).select().first()
+    if not bag:
+        raise HTTP(404)
+    return dict(bag=bag)
 
 
 @auth.requires_membership('Sales bags')

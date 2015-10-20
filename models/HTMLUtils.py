@@ -85,11 +85,20 @@ def super_table(table, fields, rows, row_function=default_row_function,
 
 
 
+def sqlform_field(id, label, content):
+    return DIV(
+                LABEL(T(label), _class="control-label col-sm-3"),
+                DIV(content, _class="col-sm-9", _id=id + '_contents' ),
+                _id=id, _class="form-group"
+            )
+
+
+
 def item_card(item):
     """ Returns a item card """
 
     card = DIV()
-    
+
 
 
 

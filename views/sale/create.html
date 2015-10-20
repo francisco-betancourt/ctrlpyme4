@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+<h1>{{=T('New Sale')}}</h1>
+{{=form}}
+{{context_sidebar = False}}
+
+
+<div id="payments_field">
+  <select class="form-control generic-widget">
+    {{for payment_option in db(db.payment_opt.is_active == True).select():}}
+      <option>{{=payment_option.name}}</option>
+    {{pass}}
+  </select>
+  <button type="submit" class="btn btn-default">{{=T("Add")}}</button>
+</div>
+
+
+<script>
+  var payments_field = $('#payments_field').detach();
+  $('#payments_contents').html(payments_field);
+  payments_field.show();
+
+</script>

@@ -2,14 +2,28 @@
 #
 # Author: Daniel J. Ramirez
 
-@auth.requires(auth.has_membership('Sales')
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
+def scan_ticket():
+    return dict()
+
+
+@auth.requires(auth.has_membership('Sales checkout')
             or auth.has_membership('Cashier')
             or auth.has_membership('Admin')
             or auth.has_membership('Manager')
             )
 def create():
-    # current bag must be set, because the seller need to review the bag before sell it.
-    bag = db.bag(session.current_bag)
+    """
+        args:
+            id_bag
+    """
+
+    bag = db.bag(request.args(0))
     if not bag:
         raise HTTP(404)
     # get bag items data
@@ -32,15 +46,19 @@ def create():
         reward_points += bag_item.id_item.reward_points or 0
     form = SQLFORM(db.sale)
     form.vars.id_bag = bag.id
-    form.vars.subtotal = DQ(subtotal)
-    form.vars.taxes = DQ(taxes)
-    form.vars.total = DQ(total)
-    form.vars.quantity = DQ(quantity)
+    form.vars.subtotal = DQ(subtotal, True)
+    form.vars.taxes = DQ(taxes, True)
+    form.vars.total = DQ(total, True)
+    form.vars.quantity = DQ(quantity, True)
     form.vars.reward_points = reward_points
     form.vars.id_store = bag.id_store.id
+
+    form[0].insert(-1, sqlform_field('payments', 'Payments', None))
+
     if form.process().accepted:
         sale = db.sale(form.vars.id)
         # set sale parameters
+        sale.consecutive = db.store(session.store).consecutive
         sale.id_bag = bag.id
         sale.subtotal = DQ(subtotal)
         sale.total = DQ(total)
@@ -48,6 +66,11 @@ def create():
         sale.reward_points = reward_points
         sale.id_store = session.store
         sale.update_record()
+
+        db.sale_log.insert(id_sale=sale.id, sale_event="paid")
+
+        # TODO: add request for update, to update the store consecutive
+
         response.flash = T('Sale created')
     elif form.errors:
         response.flash = T('form has errors')

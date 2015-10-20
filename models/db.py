@@ -271,6 +271,7 @@ db.define_table("store",
     Field("id_company", "reference company", label=T('Company')),
     Field("id_address", "reference address", label=T('Address')),
     Field("name", "string", default=None, label=T('Name')),
+    Field("consecutive", "integer", default=1),
     auth.signature)
 
 db.define_table(
@@ -328,9 +329,9 @@ db.define_table("stock",
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
-    , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
-    , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
-    , Field("total", "decimal(16,6)", default=None, label=T('Total'))
+    # , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
+    # , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
+    # , Field("total", "decimal(16,6)", default=None, label=T('Total'))
     , Field("completed", "string", default=None, label=T('Completed'))
     , auth.signature)
 
@@ -349,16 +350,18 @@ db.define_table("bag_item",
 
 db.define_table("sale",
     Field("id_bag", "reference bag", label=T('Bag'), readable=False, writable=False),
-    Field("consecutive", "integer", default=None, label=T('Consecutive')),
+    Field("consecutive", "integer", default=None, label=T('Consecutive'), readable=False, writable=False),
     Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
     Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
     Field("total", "integer", default=None, label=T('Total')),
     Field("quantity", "integer", default=None, label=T('Quantity')),
-    Field("client", "integer", default=None, label=T('Client')),
+    Field("client", "reference auth_user", default=None, label=T('Client')),
     Field("reward_points", "integer", default=None, label=T('Reward Points')),
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
     auth.signature)
+db.sale.client.requires = IS_EMPTY_OR(IS_IN_DB(db, 'auth_user.id', '%(email)s'))
+
 
 db.define_table("sale_log",
     Field("id_sale", "reference sale", label=T('Sale')),

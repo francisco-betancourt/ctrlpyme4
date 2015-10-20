@@ -1,3 +1,4 @@
+
 <form id="barcode_scanner_form">
   <div class="form-group">
     <div class="input-group">
@@ -9,18 +10,28 @@
 
 
 <script>
-  function setup_scanner(success_callback, fail_callback, requirement) {
+  function setup_scanner(success_callback, fail_callback, requirement, url) {
+    var items = false;
+    if (!url) {
+      url = '{{=URL("item", "find_by_code", extension="json")}}/';
+      items = true
+    }
     $('#barcode_scanner_form').on('submit', function(event) {
       event.preventDefault();
 
       var barcode = $('#barcode').val();
 
-      if (requirement && requirement(barcode)) {
+      if ((requirement && requirement(barcode)) || !requirement) {
         $.ajax({
-          url: '{{=URL("item", "find_by_code", extension="json")}}/' + barcode
+          url: url + barcode
         })
         .done(function(data) {
-          success_callback(data.item, barcode);
+          if (items) {
+            success_callback(data.item, barcode);
+          }
+          else {
+            success_callback(data, barcode);
+          }
           $('#barcode').val('');
         })
         .fail(function(data) {

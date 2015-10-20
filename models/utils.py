@@ -29,10 +29,13 @@ def item_barcode(item):
     return item.sku or item.ean or item.upc
 
 
-def DQ(value):
+def DQ(value, lite=False):
     """ Decimal Quantized """
 
-    return D(value).quantize(D('.000000'))
+    if lite:
+        return D(value).quantize(D('.00'))
+    else:
+        return D(value).quantize(D('.000000'))
 
 
 def remove_fractions(value):

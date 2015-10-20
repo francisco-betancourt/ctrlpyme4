@@ -1,0 +1,20 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Scan Ticket')}}</h1>
+
+{{include 'barcode_scanner.html'}}
+
+<script>
+  function fail_callback(data, barcode) {
+    alert("{{=T('Nothing found')}}");
+  }
+
+  function success_callback(data, barcode) {
+    window.location.href = "{{=URL('sale', 'create')}}/" + barcode;
+  }
+
+
+  setup_scanner(success_callback, fail_callback, null, "{{=URL('bag', 'get', extension='json')}}/");
+
+  console.log();
+</script>

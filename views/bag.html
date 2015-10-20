@@ -13,7 +13,7 @@
 
 <!-- Active bags -->
 <div class="list-group" id="active_bags" hidden="hidden">
-  {{for bag in db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store)).select():}}
+  {{for bag in db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store) & (db.bag.completed == False)).select():}}
     <a href="#" class="list-group-item" onclick="load_bag({{=bag.id}});" id="bag_selector_{{=bag.id}}">
       {{=T('Bag')}} {{=bag.id}}
     </a>
@@ -361,5 +361,8 @@
     $('#current_bag .panel-body').toggle();
   });
 
-  load_bag({{=session.current_bag}});
+  {{if session.current_bag:}}
+    load_bag({{=session.current_bag}});
+  {{pass}}
+
 </script>
