@@ -4,19 +4,103 @@
 {{context_sidebar = False}}
 
 
-<div id="payments_field">
-  <select class="form-control generic-widget">
-    {{for payment_option in db(db.payment_opt.is_active == True).select():}}
-      <option>{{=payment_option.name}}</option>
-    {{pass}}
-  </select>
-  <button type="submit" class="btn btn-default">{{=T("Add")}}</button>
+<div id="proto_payment" hidden="hidden">
+  <h3 class="payment_name">Item Name</h3>
+  <div class="form-inline">
+    <input type="text" placeholder="Amount" class="form-control amount">
+    <input type="text" placeholder="Change" class="form-control change">
+    <input type="text" placeholder="Account" class="form-control account">
+  </div>
 </div>
 
 
 <script>
-  var payments_field = $('#payments_field').detach();
-  $('#payments_contents').html(payments_field);
-  payments_field.show();
+  var payments = [];
+  var payments_total = 0;
+
+  function new_payment(id, amount, change, account) {
+    var new_payment = $('#proto_payment').clone().show();
+    var payment_no = payments.length;
+    new_payment.attr('id', 'payment_' + payment_no);
+    if (!payment_options_data[id].allow_change) {
+      new_payment.find('.change').remove();
+    }
+    new_payment.find('.payment_name').text(payment_options_data[id].name);
+    $('#payments_list').append(new_payment);
+    payments.push({'payment_id': id, 'amount': 0});
+
+    if (amount) {
+      new_payment.find('.amount').val(amount);
+    }
+    if (change) {
+      new_payment.find('.change').val(change);
+    }
+    if (account) {
+      new_payment.find('.account').val(account);
+    }
+
+    new_payment.find('input').change(function (event) {
+      refresh_payment_data(payment_no);
+    });
+  }
+
+
+  function recreate_payments() {
+    var payments_data = $('#payments_data').val().split(',');
+    for (var i in payments_data) {
+      if (payments_data[i]) {
+        payment_data = payments_data[i].split(':');
+        new_payment(payment_data[0], payment_data[1], payment_data[2], payment_data[3]);
+        payments_total += amount;
+      }
+    }
+  }
+  recreate_payments();
+
+  function write_payments_list() {
+    payments_total = 0;
+    var payments_data_str = ""
+    for (var index in payments) {
+      payments_data_str += payments[index].payment_id + ':'
+      payments_data_str += payments[index].amount + ':'
+      payments_data_str += payments[index].change + ':'
+      payments_data_str += payments[index].account + ','
+      payments_total += payments[index].amount;
+    }
+    $('#payments_data').val(payments_data_str);
+  }
+
+
+  function refresh_payment_data(payment_no) {
+    var payment = $('#payment_' + payment_no);
+    var amount = payment.find('.amount').val();
+    if (!payment_options_data[payments[payment_no].payment_id].allow_change) {
+      if (payments_total - payments[payment_no].amount + amount > {{=total}}) {
+        amount = {{=total}} - payments_total - payments[payment_no].amount;
+        payment.find('.amount').val(amount);
+      }
+    }
+    var change = payment.find('.change').val();
+    var account = payment.find('.account').val();
+
+    payments[payment_no].amount = amount;
+    payments[payment_no].change = change;
+    payments[payment_no].account = account;
+
+    write_payments_list();
+  }
+
+
+  $('#payment_options>a').click(function (event) {
+    selected_payment_opt = $(event.target).attr('value');
+    $('.payment_opt').removeClass('btn-primary');
+    $('#payment_opt_' + $(event.target).attr('value')).addClass('btn-primary');
+  })
+
+  $('#add_payment').click(function (event) {
+    if (payments_total < {{=total}}) {
+      new_payment(selected_payment_opt);
+    }
+  })
 
 </script>
