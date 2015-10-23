@@ -17,27 +17,34 @@
 <script>
   var payments = [];
   var payments_total = 0;
+  var change_total = 0;
+
 
   function new_payment(id, amount, change, account) {
+    id = parseInt(id)
+    amount = parseFloat(amount)
+    change = parseFloat(change)
     var new_payment = $('#proto_payment').clone().show();
     var payment_no = payments.length;
     new_payment.attr('id', 'payment_' + payment_no);
     if (!payment_options_data[id].allow_change) {
       new_payment.find('.change').remove();
     }
+    if (!payment_options_data[id].requires_account) {
+      new_payment.find('.account').remove();
+    }
+    var payments_list = $('#payments_list_' + id)[0];
+    if (!payments_list) {
+      $('#payments_list').prepend('<div id="payments_list_'+id+'"></div>');
+    }
     new_payment.find('.payment_name').text(payment_options_data[id].name);
-    $('#payments_list').append(new_payment);
-    payments.push({'payment_id': id, 'amount': 0});
+    $('#payments_list_' + id).prepend(new_payment);
+    // $(payments_list).prepend(new_payment);
+    payments.push({'payment_id': id, 'amount': amount, 'change': change, 'account': account});
 
-    if (amount) {
-      new_payment.find('.amount').val(amount);
-    }
-    if (change) {
-      new_payment.find('.change').val(change);
-    }
-    if (account) {
-      new_payment.find('.account').val(account);
-    }
+    new_payment.find('.amount').val(amount);
+    new_payment.find('.change').val(change);
+    new_payment.find('.account').val(account);
 
     new_payment.find('input').change(function (event) {
       refresh_payment_data(payment_no);
@@ -45,43 +52,75 @@
   }
 
 
-  function recreate_payments() {
-    var payments_data = $('#payments_data').val().split(',');
-    for (var i in payments_data) {
-      if (payments_data[i]) {
-        payment_data = payments_data[i].split(':');
-        new_payment(payment_data[0], payment_data[1], payment_data[2], payment_data[3]);
-        payments_total += amount;
-      }
-    }
-  }
-  recreate_payments();
+
 
   function write_payments_list() {
-    payments_total = 0;
+    payments_total = 0.0;
     var payments_data_str = ""
     for (var index in payments) {
+      var amount = parseFloat(payments[index].amount)
+      if (isNaN(amount)) {
+        amount = 0
+      }
+      var change = parseFloat(payments[index].change)
+      if (isNaN(change)) {
+        change = 0
+      }
+      var account = payments[index].account
+      if (!account) { account = ''; }
+
       payments_data_str += payments[index].payment_id + ':'
-      payments_data_str += payments[index].amount + ':'
-      payments_data_str += payments[index].change + ':'
-      payments_data_str += payments[index].account + ','
-      payments_total += payments[index].amount;
+      payments_data_str += amount + ':'
+      payments_data_str += change + ':'
+      payments_data_str += account + ','
+      payments_total += amount;
+      change_total += change;
     }
+    $('#payments_data').removeClass('invalidinput');
     $('#payments_data').val(payments_data_str);
   }
 
 
+  function recreate_payments() {
+    var payments_data = $('#payments_data').val().split(',');
+    for (var i in payments_data) {
+      if (payments_data[i]) {
+        var payment_data = payments_data[i].split(':');
+        id = payment_data[0];
+        amount = payment_data[1];
+        change = payment_data[2];
+        account = payment_data[3];
+        new_payment(id, amount, change, account);
+        payments_total += amount;
+        change_total += change;
+      }
+    }
+    write_payments_list();
+  }
+  recreate_payments();
+
+
   function refresh_payment_data(payment_no) {
     var payment = $('#payment_' + payment_no);
-    var amount = payment.find('.amount').val();
+    var amount = parseFloat(payment.find('.amount').val());
+    var change = parseFloat(payment.find('.change').val());
+    var account = payment.find('.account').val();
     if (!payment_options_data[payments[payment_no].payment_id].allow_change) {
       if (payments_total - payments[payment_no].amount + amount > {{=total}}) {
-        amount = {{=total}} - payments_total - payments[payment_no].amount;
+        amount = {{=total}} - (payments_total - payments[payment_no].amount);
         payment.find('.amount').val(amount);
       }
     }
-    var change = payment.find('.change').val();
-    var account = payment.find('.account').val();
+    else {
+      if ((payments_total - payments[payment_no].amount) + amount > {{=total}}) {
+        var remainder = ((parseFloat(payments_total) - payments[payment_no].amount) + amount) - parseFloat({{=total}})
+        change = remainder;
+      }
+      else {
+        change = 0;
+      }
+      payment.find('.change').val(change);
+    }
 
     payments[payment_no].amount = amount;
     payments[payment_no].change = change;
@@ -99,7 +138,7 @@
 
   $('#add_payment').click(function (event) {
     if (payments_total < {{=total}}) {
-      new_payment(selected_payment_opt);
+      new_payment(selected_payment_opt,0,0,0,'');
     }
   })
 

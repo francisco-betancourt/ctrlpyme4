@@ -13,7 +13,6 @@ rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
        }
 def replace_match(match):
     key = match.group(0)
-    print key
     if rmap.has_key(key):
         return rmap[key]
     return ""
@@ -59,11 +58,11 @@ def item_stock(item, id_store):
         stocks = db((db.stock.id_item == item.id)
                   & (db.stock.id_store == id_store)
                   & (db.stock.quantity > 0)
-                  ).select()
+                  ).select(orderby=db.stock.id_purchase)
     else:
         stocks = db((db.stock.id_item == item.id)
                   & (db.stock.quantity > 0)
-                   ).select()
+                   ).select(orderby=db.stock.id_purchase)
     if stocks:
         quantity = 0
         for stock in stocks:
