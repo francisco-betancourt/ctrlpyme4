@@ -143,22 +143,35 @@ def add_bag_item():
 
         id_bag = bag.id if bag else None
 
-        # if theres no stock notify the user
-        if item_stock(item, session.store)['quantity'] < 1:
-            return dict(status="out of stock")
-
         if not item or not id_bag:
             raise HTTP(404)
 
         bag_item = db((db.bag_item.id_item == item.id)
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
+
+        # if theres no stock notify the user
+        base_qty = 1
         if not bag_item:
-            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=1, sale_price=item.base_price, product_name=item.name,
+            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
+            if item_stock_qty < base_qty:
+                base_qty = item_stock_qty - item_stock_qty.to_integral()
+                if base_qty <= 0:
+                    return dict(status="out of stock")
+        else:
+            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
+            if item_stock_qty < bag_item.quantity + base_qty:
+                base_qty = item_stock_qty - item_stock_qty.to_integral()
+                if base_qty <= 0:
+                    return dict(status="out of stock")
+
+
+        if not bag_item:
+            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:
-            bag_item.quantity += 1
+            bag_item.quantity += base_qty
             bag_item.update_record()
         bag_item = set_bag_item(bag_item)
 
@@ -296,7 +309,11 @@ def create():
     """
     """
 
-    bag = db.bag.insert(id_store=session.store, completed=False)
-    session.current_bag = bag.id
+    try:
+        bag = db.bag.insert(id_store=session.store, completed=False)
+        session.current_bag = bag.id
 
-    return dict(bag=bag)
+        return dict(bag=bag)
+    except:
+        import traceback
+        traceback.print_exc()

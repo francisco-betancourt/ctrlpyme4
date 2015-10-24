@@ -5,6 +5,23 @@
 import json
 
 
+def remove_stocks(bag_items):
+    for bag_item in bag_items:
+        if bag_item.id_item.has_serial_number:
+            pass
+        else:
+            stocks, quantity = item_stock(bag_item.id_item, session.store).itervalues()
+            quantity = DQ(bag_item.quantity)
+            for stock in stocks:
+                if not quantity:
+                    return
+                stock_qty = DQ(stock.quantity) - DQ(bag_item.quantity)
+                stock.quantity = max(0, stock_qty)
+                stock.update_record()
+                quantity = abs(stock_qty)
+
+
+
 @auth.requires(auth.has_membership('Sales checkout')
             or auth.has_membership('Cashier')
             or auth.has_membership('Admin')
@@ -37,6 +54,28 @@ def validate_sale_form(form):
             or auth.has_membership('Admin')
             or auth.has_membership('Manager')
             )
+def ticket():
+    """
+        args:
+            id_sale
+    """
+
+    sale = db.sale(request.args(0))
+    print_ticket = request.vars.print_ticket
+
+    if not sale:
+        raise HTTP(404)
+    # get bag items data
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+
+    return locals()
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
 def create():
     """
         args:
@@ -47,7 +86,8 @@ def create():
     if not bag:
         raise HTTP(404)
     if db(db.sale.id_bag == bag.id).select().first():
-        raise HTTP(500)
+        redirect(URL('default', 'index'))
+        # raise HTTP(500)
     # get bag items data
     bag_items = db(db.bag_item.id_bag == bag.id).select()
     total = 0
@@ -55,6 +95,7 @@ def create():
     subtotal = 0
     reward_points = 0
     quantity = 0
+    requires_serials = False
     for bag_item in bag_items:
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
         stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
@@ -66,6 +107,7 @@ def create():
         total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
         quantity += bag_item.quantity
         reward_points += bag_item.id_item.reward_points or 0
+        requires_serials |= bag_item.id_item.has_serial_number or False
     subtotal = DQ(subtotal, True)
     taxes = DQ(taxes, True)
     total = DQ(total, True)
@@ -105,13 +147,14 @@ def create():
     if form.process(onvalidation=validate_sale_form).accepted:
         sale = db.sale(form.vars.id)
         # set sale parameters
-        # TODO: add request for update, to update the store consecutive
+        store = db(db.store.id == session.store).select(for_update=True).first()
         sale.consecutive = db.store(session.store).consecutive
+        store.consecutive += 1;
+        store.update_record()
 
         payments = form.vars.payments_data.split(',')
         total = 0
         # register payments
-        # TODO make sure the payments are correct, they fit the total, does not have change when it is not needed
         for payment in payments:
             if not payment:
                 continue
@@ -122,25 +165,15 @@ def create():
         sale.update_record()
         db.sale_log.insert(id_sale=sale.id, sale_event="paid")
 
-        # remove stocks
-        # assuming we have enough stock
-        for bag_item in bag_items:
-            stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
-            # if theres no stock the user needs to modify the bag
-            if stock_qty <= quantity:
-                print "not stock"
-            subtotal += bag_item.sale_price * bag_item.quantity
-            taxes += bag_item.sale_taxes * bag_item.quantity
-            total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
-            quantity += bag_item.quantity
-            reward_points += bag_item.id_item.reward_points or 0
-
-
         response.flash = T('Sale created')
         if not auth.has_membership('Sales delivery'):
             redirect(URL('scan_ticket'))
         else:
-            redirect(URL('deliver', args=sale.id))
+            if requires_serials:
+                redirect(URL('serials', args=sale.id))
+            remove_stocks(bag_items)
+            db.sale_log.insert(id_sale=sale.id, sale_event="delivered")
+            redirect(URL('ticket', args=sale.id, vars={'print_ticket': True}))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, bag=bag)
@@ -157,12 +190,22 @@ def deliver():
     """
 
     sale = db.sale(request.args(0))
+    print sale
     if not sale:
         raise HTTP(404)
     # find all the sold items whose purchase had serial numbers
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+    resume = DIV()
     for bag_item in bag_items:
-        pass
+        resume.append(bag_item.product_name + str(DQ(bag_item.quantity, True)) + ' x $' + str(DQ(bag_item.sale_price, True)))
+
+    form = SQLFORM.factory(
+        submit_button=T("Deliver")
+    )
+    form[0].insert(0, sqlform_field("", "", resume))
+
+    if form.process().accepted:
+        db.sale_log.insert(id_sale=sale.id, sale_event="Delivered")
 
     return locals()
 
@@ -188,10 +231,21 @@ def delete():
     return common_delete('sale', request.args)
 
 
+
+def sale_row(row, fields):
+    tr = TR()
+    # sale status
+    last_log = db(db.sale_log.id_sale == row.id).select().last()
+    tr.append(TD(T(last_log.sale_event or 'Unknown')))
+    for field in fields:
+        tr.append(TD(row[field]))
+    return tr
+
+
 @auth.requires(auth.has_membership('Admin')
             or auth.has_membership('Manager')
             )
 def index():
     rows = common_index('sale')
-    data = super_table('sale', ['consecutive', 'subtotal', 'total'], rows)
+    data = super_table('sale', ['consecutive', 'subtotal', 'total'], rows, row_function=sale_row, custom_headers=['Status', 'Invoice number', 'Subtotal', 'Total'])
     return locals()

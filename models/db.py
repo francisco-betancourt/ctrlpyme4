@@ -249,6 +249,7 @@ db.define_table("item",
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')),
     Field("reward_points", "integer", default=None, label=T('Reward Points')),
+    Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')

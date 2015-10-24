@@ -71,18 +71,22 @@ def add_purchase_item():
             item_id
     """
 
-    purchase = db.purchase(request.args(0))
-    item = db.item(request.args(1))
-    if not purchase or not item:
-        raise HTTP(404)
-    purchase_item = db((db.purchase_item.id_item == item.id) &
-                       (db.purchase_item.id_purchase == purchase.id)
-                      ).select().first()
-    if not purchase_item:
-        purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, quantity=1)
-        purchase_item = db.purchase_item(purchase_item)
-        purchase_item = response_purchase_item(purchase_item)
-    return locals()
+    try:
+        purchase = db.purchase(request.args(0))
+        item = db.item(request.args(1))
+        if not purchase or not item:
+            raise HTTP(404)
+        purchase_item = db((db.purchase_item.id_item == item.id) &
+                           (db.purchase_item.id_purchase == purchase.id)
+                          ).select().first()
+        if not purchase_item:
+            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, quantity=1)
+            purchase_item = db.purchase_item(purchase_item)
+            purchase_item = response_purchase_item(purchase_item)
+        return locals()
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 @auth.requires_membership('Purchases')

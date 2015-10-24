@@ -1,0 +1,91 @@
+{{include 'web2py_ajax.html'}}
+
+
+<style>
+  .ticket {
+    font-size: 12px;
+    min-width: 2.25in;
+  }
+
+  .ticket p {
+    text-align: center;
+  }
+
+  .ticket #items_list {
+  }
+
+  #items_list .item>.qty {
+    width: 1cm;
+    max-width: 1cm;
+    min-width: 1cm;
+  }
+  #items_list .item>.name {
+    margin-left: 8px;
+  }
+  #items_list .item>.price {
+    float: right;
+  }
+
+  #total_data {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  #total_data>div {
+    text-align: right;
+  }
+
+  #barcode {
+    margin: auto;
+  }
+</style>
+
+
+<div class="ticket">
+  <div class="logo"></div>
+  <p>
+    {{=sale.id_store.id_address.street}} {{=sale.id_store.id_address.exterior}} {{=sale.id_store.id_address.interior}} {{=sale.id_store.id_address.neighborhood}} {{=sale.id_store.id_address.city}} {{=sale.id_store.id_address.municipality}} {{=sale.id_store.id_address.state_province}} {{=sale.id_store.id_address.country}}
+  </p>
+
+  <p>{{=T('Seller')}}: {{=auth.user.first_name}}</p>
+  <p>{{=sale.created_on}}</p>
+
+  <div id="items_list">
+    {{for bag_item in bag_items:}}
+    <div class="item">
+      <span class="qty">{{=DQ(bag_item.quantity, True)}}</span>
+      <span class="name">{{=bag_item.product_name}}</span>
+      <span class="price">$ {{=DQ(bag_item.sale_price, True)}}</span>
+    </div>
+    {{pass}}
+  </div>
+
+  <div id="total_data">
+    <div>Subtotal: $ {{=DQ(sale.subtotal, True)}}</div>
+    <div>Total: $ {{=DQ(sale.total, True)}}</div>
+  </div>
+
+  <div id="barcode"> </div>
+
+  <p id="ticket_footer">
+    This is a ticket footer
+  </p>
+</div>
+
+
+<script type="text/javascript" src="{{=URL('static','js/jquery-barcode.min.js')}}"></script>
+<script>
+  var code = "{{=sale.id_store.id}}{{=sale.id}}";
+  var code_length = code.length;
+  for (var i = 0; i < 13 - code_length; i++) {
+    code = '0' + code
+  }
+  $("#barcode").barcode({code: code, crc: false}, "ean13");
+</script>
+
+
+{{if print_ticket:}}
+  <script>
+    window.print();
+  </script>
+{{pass}}

@@ -32,9 +32,9 @@ def DQ(value, lite=False):
     """ Decimal Quantized """
 
     if lite:
-        return D(value).quantize(D('.00'))
+        return D(value or 0).quantize(D('.00'))
     else:
-        return D(value).quantize(D('.000000'))
+        return D(value or 0).quantize(D('.000000'))
 
 
 def remove_fractions(value):
