@@ -28,9 +28,11 @@ def item_barcode(item):
     return item.sku or item.ean or item.upc
 
 
-def DQ(value, lite=False):
+def DQ(value, lite=False, normalize=False):
     """ Decimal Quantized """
 
+    if normalize:
+        return D(value or 0).normalize()
     if lite:
         return D(value or 0).quantize(D('.00'))
     else:

@@ -105,6 +105,7 @@
     var amount = parseFloat(payment.find('.amount').val());
     var change = parseFloat(payment.find('.change').val());
     var account = payment.find('.account').val();
+    // does not allow change
     if (!payment_options_data[payments[payment_no].payment_id].allow_change) {
       if (payments_total - payments[payment_no].amount + amount > {{=total}}) {
         amount = {{=total}} - (payments_total - payments[payment_no].amount);
@@ -114,7 +115,7 @@
     else {
       if ((payments_total - payments[payment_no].amount) + amount > {{=total}}) {
         var remainder = ((parseFloat(payments_total) - payments[payment_no].amount) + amount) - parseFloat({{=total}})
-        change = remainder;
+        change = remainder.toFixed(2);
       }
       else {
         change = 0;

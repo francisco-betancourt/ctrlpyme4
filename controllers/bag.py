@@ -7,6 +7,7 @@
 #
 
 from decimal import Decimal as D
+from decimal import ROUND_FLOOR
 
 
 def get_valid_bag(id_bag, completed=False):
@@ -43,7 +44,7 @@ def refresh_bag_data(id_bag):
     subtotal = money_format(DQ(subtotal, True))
     taxes = money_format(DQ(taxes, True))
     total = money_format(DQ(total, True))
-    quantity = DQ(quantity, True)
+    quantity = DQ(quantity, True, True)
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
@@ -120,6 +121,7 @@ def select_bag():
             quantity += bag_item.quantity
             bag_item_modified = set_bag_item(bag_item)
             bag_items.append(bag_item_modified)
+        quantity = DQ(quantity, True, True)
         subtotal = money_format(DQ(subtotal, True))
         taxes = money_format(DQ(taxes, True))
         total = money_format(DQ(total, True))
@@ -151,30 +153,22 @@ def add_bag_item():
                     ).select().first()
 
         # if theres no stock notify the user
-        base_qty = 1
+        item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
         if not bag_item:
-            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
-            if item_stock_qty < base_qty:
-                base_qty = item_stock_qty - item_stock_qty.to_integral()
-                if base_qty <= 0:
-                    return dict(status="out of stock")
-        else:
-            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
-            if item_stock_qty < bag_item.quantity + base_qty:
-                base_qty = item_stock_qty - item_stock_qty.to_integral()
-                if base_qty <= 0:
-                    return dict(status="out of stock")
-
-
-        if not bag_item:
+            base_qty = 1 if item_stock_qty >= 1 else item_stock_qty % 1
+            if base_qty <= 0:
+                return dict(status="out of stock")
             id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:
+            base_qty = item_stock_qty - bag_item.quantity if item_stock_qty - bag_item.quantity < 1 else 1
+            if base_qty <= 0:
+                return dict(status="out of stock")
             bag_item.quantity += base_qty
             bag_item.update_record()
-        bag_item = set_bag_item(bag_item)
 
+        bag_item = set_bag_item(bag_item)
         bag_data = refresh_bag_data(id_bag)
 
         return dict(bag_item=bag_item, **bag_data)
