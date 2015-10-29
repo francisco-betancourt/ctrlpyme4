@@ -140,9 +140,9 @@ def item_form(item=None, is_bundle=False):
 
     fields = ['name', 'id_brand', 'description', 'id_measure_unit', 'allow_fractions']
     if auth.has_membership('Items management'):
-        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
+        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'id_measure_unit', 'taxes', 'allow_fractions', 'is_returnable', 'reward_points']
     if auth.has_membership('Items prices'):
-        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3', 'id_measure_unit', 'taxes', 'allow_fractions', 'reward_points']
+        fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3', 'id_measure_unit', 'taxes', 'allow_fractions', 'is_returnable', 'reward_points']
 
 
     form = SQLFORM(db.item, item, showid=False, fields=fields)
@@ -159,12 +159,17 @@ def item_form(item=None, is_bundle=False):
 
     if form.process().accepted:
         # categories
-        categories = [int(c) for c in form.vars.categories_selected.split(',')] if form.vars.categories_selected else None
+        form.vars.categories_selected
+        l_categories = []
+        for c in (form.vars.categories_selected or '').split(','):
+            if not c:
+                continue
+            l_categories.append(int(c))
         # add the traits
         traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
 
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
-        db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=categories)
+        db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=l_categories)
         response.flash = T('Item created')
         # if the item is bundle, redirect to the bundle filling page
         if is_bundle and auth.has_membership('Items management'):

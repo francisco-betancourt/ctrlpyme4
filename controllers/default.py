@@ -101,6 +101,7 @@ def create_groups():
         , "Sales checkout": "Users in this group will be able to create a sale, register money income"
         , "Sales delivery": "Allows the modification of stocks and serial number capture for sold items"
         , "Sales invoices": "Invoice creation and cancellation, folios management"
+        , "Sales returns": "Items returns"
 
         , "Clients": "Create clients"
         , "Cashiers": "Sale creation"

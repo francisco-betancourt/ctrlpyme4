@@ -8,6 +8,7 @@
 
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
+from math import floor
 
 
 def get_valid_bag(id_bag, completed=False):
@@ -151,6 +152,24 @@ def add_bag_item():
         bag_item = db((db.bag_item.id_item == item.id)
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
+
+        # bundle: chack if theres stock for every item in the bundle
+        item_stock_qty = float('inf')
+        # TODO implement item bundle sale
+        if item.is_bundle:
+            bundle_items = db(db.bundle_item.id_bundle == item.id).select()
+            # check for stock
+            for bundle_item in bundle_items:
+
+                stock_qty = item_stock(bundle_item.id_item, session.store)['quantity']
+                item_stock_qty = min(floor(stock_qty / bundle_item.quantity), item_stock_qty)
+
+                if stock_qty < bundle_item.quantity:
+                    return dict(status="out of stock")
+        else:
+            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
+        print item_stock_qty
+
 
         # if theres no stock notify the user
         item_stock_qty = DQ(item_stock(item, session.store)['quantity'])

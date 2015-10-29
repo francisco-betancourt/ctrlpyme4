@@ -65,6 +65,8 @@ def ticket():
 
     if not sale:
         raise HTTP(404)
+    # format ticket barcode
+    ticket_barcode = "%010d" % sale.id
     # get bag items data
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
@@ -212,9 +214,103 @@ def deliver():
 
 @auth.requires(auth.has_membership('Admin')
             or auth.has_membership('Manager')
+            or auth.has_membership('Sales returns')
+            or auth.has_membership('Sales checkout')
             )
 def get():
-    pass
+    """
+        args:
+            sale_id
+    """
+
+    sale = db.sale(request.args(0))
+    return dict(sale=sale)
+
+
+@auth.requires(auth.has_membership('Sales returns')
+            or auth.has_membership('Manager')
+            or auth.has_membership('Admin')
+            )
+def scan_for_refund():
+    return dict()
+
+
+@auth.requires(auth.has_membership('Sales returns')
+            or auth.has_membership('Manager')
+            or auth.has_membership('Admin')
+            )
+def refund():
+    """ Performs the logic to refund a sale
+
+        args:
+            sale_id
+    """
+
+    sale = db.sale(request.args(0))
+    if not sale:
+        raise HTTP(404)
+
+    # check if the sale has been delivered
+    if not db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == "delivered")).select().first():
+        print "not delivered"
+        response.flash = T('The sale has not been delivered!')
+        redirect(URL('scan_for_refund'))
+
+
+    bag = db.bag(sale.id_bag)
+    bag_items_data = {}
+    bag_items = []
+    query_result = db((db.bag_item.id_item == db.item.id)
+                    & (db.bag_item.id_bag == bag.id)
+                    & (db.item.is_returnable == True)
+                     ).select()
+    for row in query_result:
+        bag_items.append(row.bag_item)
+        bag_items_data[str(row.bag_item.id)] = row.bag_item
+
+    # check if there's still unreturned items
+    returnable_items_qty = 0
+    returned_items = db(
+           (db.credit_note.id_sale == db.sale.id)
+         & (db.credit_note_item.id_credit_note == db.credit_note.id)
+         & (db.sale.id == sale.id)
+            ).select()
+    for row in returned_items:
+        returnable_items_qty += 
+        bag_items_data[str(row.credit_note_item.id_bag_item)].quantity -= row.credit_note_item.quantity
+
+    form = SQLFORM.factory(
+        Field('returned_items')
+        , submit_button=T("Refund")
+    )
+
+    if form.process().accepted:
+        r_items = form.vars.returned_items.split(',')
+        # stores the returned item quantity, accesed via bag item id
+        credit_note_items = {}
+        # calculate subtotal and total, also validate the specified return items
+        subtotal = 0
+        total = 0
+        returned_items_qty = 0 # stores the total number of returned items
+        for r_item in r_items:
+            id_bag_item, quantity = r_item.split(':')[0:2]
+            # check if the item was sold in the specified sale
+            max_return_qty = max(min(bag_items_data[id_bag_item].quantity, DQ(quantity)), 0) if bag_items_data[id_bag_item] else 0
+            if max_return_qty:
+                credit_note_items[id_bag_item] = max_return_qty
+                subtotal += bag_items_data[id_bag_item].sale_price * max_return_qty
+                total += subtotal + bag_items_data[id_bag_item].sale_taxes * max_return_qty
+                returned_items_qty += max_return_qty
+        # create the credit note
+        if returned_items_qty:
+            id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True)
+            # add the credit note items
+            for bag_item_id in credit_note_items.iterkeys():
+                # add credit note item
+                db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=credit_note_items[bag_item_id], id_credit_note=id_new_credit_note)
+
+
+    return locals()
 
 
 @auth.requires(auth.has_membership('Admin')

@@ -58,8 +58,15 @@ auth = Auth(db)
 service = Service()
 plugins = PluginManager()
 
+db.define_table(
+  'wallet'
+  , Field('wallet_code', notnull=True, label=T('Wallet code'), writable=False, readable=False)
+  , Field('balance', 'decimal(16,6)', default=0, label=T('Balance'), writable=False, readable=False)
+)
+
 auth.settings.extra_fields['auth_user'] = [
-      Field('access_code', default="000000", label=T('Access')+' '+T('code'))
+        Field('access_code', default="000000", label=T('Access code'))
+      , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -106,13 +113,16 @@ class IS_BARCODE_AVAILABLE(object):
         self.db = db;
         self.barcode = barcode
         self.error_message = error_message
+    def set_self_id(self, id):
+        self.record_id = id
     def __call__(self, value):
         if not value:
             return (value, None)
         barcodes = self.db((self.db.item.sku == self.barcode)
-                    | (self.db.item.ean == self.barcode)
-                    | (self.db.item.upc == self.barcode)
-                     ).select()
+                         | (self.db.item.ean == self.barcode)
+                         | (self.db.item.upc == self.barcode)
+                         & (self.db.item.id != self.record_id)
+                          ).select()
         if not barcodes:
             return (value, None)
         else:
@@ -249,6 +259,7 @@ db.define_table("item",
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')),
     Field("reward_points", "integer", default=None, label=T('Reward Points')),
+    Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
@@ -381,7 +392,7 @@ db.define_table("credit_note",
 
 db.define_table("credit_note_item",
     Field("id_credit_note", "reference credit_note", label=T('Credit note')),
-    Field("id_bag_items", "reference bag_item", label=T('Bag Items')),
+    Field("id_bag_item", "reference bag_item", label=T('Bag Item')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
 
 db.define_table("inventory",
@@ -470,7 +481,7 @@ db.sale.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_addres
 db.sale_log.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
 db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
 db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
-db.credit_note_item.id_bag_items.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
+db.credit_note_item.id_bag_item.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
 db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.inventory_items.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
 db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')

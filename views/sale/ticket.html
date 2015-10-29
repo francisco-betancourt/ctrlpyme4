@@ -41,7 +41,7 @@
 </style>
 
 
-<div class="ticket">
+<div class="ticket" id="ticket">
   <div class="logo"></div>
   <p>
     {{=sale.id_store.id_address.street}} {{=sale.id_store.id_address.exterior}} {{=sale.id_store.id_address.interior}} {{=sale.id_store.id_address.neighborhood}} {{=sale.id_store.id_address.city}} {{=sale.id_store.id_address.municipality}} {{=sale.id_store.id_address.state_province}} {{=sale.id_store.id_address.country}}
@@ -75,17 +75,23 @@
 
 <script type="text/javascript" src="{{=URL('static','js/jquery-barcode.min.js')}}"></script>
 <script>
-  var code = "{{=sale.id_store.id}}{{=sale.id}}";
-  var code_length = code.length;
-  for (var i = 0; i < 13 - code_length; i++) {
-    code = '0' + code
-  }
-  $("#barcode").barcode({code: code, crc: false}, "ean13");
+  $("#barcode").barcode({code: "{{=ticket_barcode}}", crc: false}, "code39");
 </script>
 
 
 {{if print_ticket:}}
   <script>
     window.print();
+    $('body').keyup(function (event) {
+      if (event.charCode == 0) {
+        window.close();
+      }
+    });
   </script>
+
+  <script>
+    window.open("{{=URL('ticket', args=sale.id)}}", '1', resizable=1)
+  </script>
+{{else:}}
+
 {{pass}}
