@@ -8,39 +8,44 @@
 <p>{{=T('Total')}} {{=sale.total}}</p>
 
 
-<table class="table">
-  <tbody>
-    {{for bag_item in bag_items:}}
-      <tr>
-        <td>{{=bag_item.product_name}}</td>
-        <td>
-          <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=bag_item.id}}" max={{=bag_item.quantity}} min=0 value="0">
-        </td>
-      </tr>
-    {{pass}}
-  </tbody>
-</table>
+{{if not invalid:}}
+  <table class="table">
+    <tbody>
+      {{for bag_item in bag_items:}}
+        <tr>
+          <td>{{=bag_item.product_name}}</td>
+          <td>
+            <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=bag_item.id}}" max={{=bag_item.quantity}} min=0 value="0">
+          </td>
+        </tr>
+      {{pass}}
+    </tbody>
+  </table>
 
 
 
-{{=form}}
+  {{=form}}
 
 
 
-<script>
-  return_items_data = {}
+  <script>
+    return_items_data = {}
 
-  function refresh_return_items() {
-    var return_items_str = ""
-    for (var k in return_items_data) {
-      return_items_str += k + ':' + return_items_data[k] + ',';
+    function refresh_return_items() {
+      var return_items_str = ""
+      for (var k in return_items_data) {
+        return_items_str += k + ':' + return_items_data[k] + ',';
+      }
+      $('#no_table_returned_items').val(return_items_str.slice(0, -1));
     }
-    $('#no_table_returned_items').val(return_items_str.slice(0, -1));
-  }
 
-  $('.return_item_qty').change(function(event) {
-    var bag_item_id = $(event.target).attr('bagitemid');
-    return_items_data[bag_item_id] = event.target.value
-    refresh_return_items();
-  })
-</script>
+    $('.return_item_qty').change(function(event) {
+      var bag_item_id = $(event.target).attr('bagitemid');
+      return_items_data[bag_item_id] = event.target.value
+      refresh_return_items();
+    })
+  </script>
+{{else:}}
+  <p>{{=T('All the items have been returned!')}}</p>
+
+{{pass}}

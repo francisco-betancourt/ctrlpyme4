@@ -7,11 +7,14 @@ import json
 
 def remove_stocks(bag_items):
     for bag_item in bag_items:
+        # TODO implement stock removal for bag items with serial number
         if bag_item.id_item.has_serial_number:
             pass
         else:
             stocks, quantity = item_stock(bag_item.id_item, session.store).itervalues()
             quantity = DQ(bag_item.quantity)
+            total_buy_price = 0
+            wavg_days_in_shelf = 0
             for stock in stocks:
                 if not quantity:
                     return
@@ -19,6 +22,20 @@ def remove_stocks(bag_items):
                 stock.quantity = max(0, stock_qty)
                 stock.update_record()
                 quantity = abs(stock_qty)
+
+                # set the buy price and buy date from the selected stock
+                purchase_item = db(
+                    (db.purchase_item.id_purchase == stock.id_purchase)
+                  & (db.purchase_item.id_item == stock.id_item.id)
+                    ).select().first()
+                total_buy_price += bag_item.quantity * purchase_item.price
+                days_since_purchase = (bag_item.created_on - stock.created_on).days
+                print "Days since purchase: ", days_since_purchase
+                wavg_days_in_shelf += days_since_purchase
+            bag_item.total_buy_price = total_buy_price
+            bag_item.wavg_days_in_shelf = wavg_days_in_shelf / bag_item.quantity
+
+            bag_item.update_record()
 
 
 
@@ -264,20 +281,22 @@ def refund():
                     & (db.bag_item.id_bag == bag.id)
                     & (db.item.is_returnable == True)
                      ).select()
+    returnable_items_qty = 0
     for row in query_result:
         bag_items.append(row.bag_item)
         bag_items_data[str(row.bag_item.id)] = row.bag_item
+        returnable_items_qty += row.bag_item.quantity
 
     # check if there's still unreturned items
-    returnable_items_qty = 0
     returned_items = db(
            (db.credit_note.id_sale == db.sale.id)
          & (db.credit_note_item.id_credit_note == db.credit_note.id)
          & (db.sale.id == sale.id)
             ).select()
     for row in returned_items:
-        returnable_items_qty += 
         bag_items_data[str(row.credit_note_item.id_bag_item)].quantity -= row.credit_note_item.quantity
+        returnable_items_qty -= row.credit_note_item.quantity
+    invalid = returnable_items_qty <= 0
 
     form = SQLFORM.factory(
         Field('returned_items')
@@ -308,8 +327,15 @@ def refund():
             for bag_item_id in credit_note_items.iterkeys():
                 # add credit note item
                 db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=credit_note_items[bag_item_id], id_credit_note=id_new_credit_note)
-
-
+                # return items to stock
+                id_item = bag_items_data[bag_item_id].id_item.id
+                buy_price = bag_items_data[bag_item_id].buy_price
+                stock_data = ((db.stock.id_purchase == db.purchase.id)
+                            & (db.purchase_item.id_purchase == db.purchase.id)
+                            & (db.stock.id_item == id_item)
+                            & (db.purchase_item.price == buy_price)
+                            ).select().first()
+                print stock_data
     return locals()
 
 
@@ -332,7 +358,8 @@ def sale_row(row, fields):
     tr = TR()
     # sale status
     last_log = db(db.sale_log.id_sale == row.id).select().last()
-    tr.append(TD(T(last_log.sale_event or 'Unknown')))
+    sale_event = last_log.sale_event if last_log else None
+    tr.append(TD(T(sale_event or 'Unknown')))
     for field in fields:
         tr.append(TD(row[field]))
     return tr
