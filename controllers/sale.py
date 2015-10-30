@@ -3,11 +3,12 @@
 # Author: Daniel J. Ramirez
 
 import json
+from uuid import uuid4
 
 
 def remove_stocks(bag_items):
     for bag_item in bag_items:
-        # TODO implement stock removal for bag items with serial number
+        #TODO:60 implement stock removal for bag items with serial number
         if bag_item.id_item.has_serial_number:
             pass
         else:
@@ -30,7 +31,7 @@ def remove_stocks(bag_items):
                     ).select().first()
                 total_buy_price += bag_item.quantity * purchase_item.price
                 days_since_purchase = (bag_item.created_on - stock.created_on).days
-                print "Days since purchase: ", days_since_purchase
+                # print "Days since purchase: ", days_since_purchase
                 wavg_days_in_shelf += days_since_purchase
             bag_item.total_buy_price = total_buy_price
             bag_item.wavg_days_in_shelf = wavg_days_in_shelf / bag_item.quantity
@@ -323,19 +324,36 @@ def refund():
         # create the credit note
         if returned_items_qty:
             id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True)
+            # create wallet and add funds to it
+
+            wallet_code = None
+            if sale.id_client:
+                client = db.auth_user(sale.id_client)
+                wallet = client.id_wallet
+                if not wallet:
+                    client.id_wallet = db.wallet.insert(balance=total, wallet_code=uuid4())
+                else:
+                    wallet.balance += total
+                    wallet.update_record()
+            else:
+                wallet_code = uuid4()
+                db.wallet.insert(balance=total, wallet_code=wallet_code)
+                response.flash = DIV(FORM(INPUT(_type='submit')))
+
             # add the credit note items
             for bag_item_id in credit_note_items.iterkeys():
                 # add credit note item
                 db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=credit_note_items[bag_item_id], id_credit_note=id_new_credit_note)
                 # return items to stock
                 id_item = bag_items_data[bag_item_id].id_item.id
-                buy_price = bag_items_data[bag_item_id].buy_price
-                stock_data = ((db.stock.id_purchase == db.purchase.id)
-                            & (db.purchase_item.id_purchase == db.purchase.id)
-                            & (db.stock.id_item == id_item)
-                            & (db.purchase_item.price == buy_price)
-                            ).select().first()
-                print stock_data
+                # buy_price = bag_items_data[bag_item_id].buy_price
+                #TODO:10 stock reintegration
+                # stock_data = ((db.stock.id_purchase == db.purchase.id)
+                #             & (db.purchase_item.id_purchase == db.purchase.id)
+                #             & (db.stock.id_item == id_item)
+                #             & (db.purchase_item.price == buy_price)
+                #             ).select().first()
+                # print stock_data
     return locals()
 
 

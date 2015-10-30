@@ -106,7 +106,7 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # auth.enable_record_versioning(db)
 
 
-# TODO move validators to a module
+# #TODO:70 move validators to a module
 # validators
 class IS_BARCODE_AVAILABLE(object):
     def __init__(self, db, barcode='', error_message=T('Barcode already used')):
@@ -339,14 +339,13 @@ db.define_table("stock",
     Field("id_item", "reference item", label=T('Item')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
     auth.signature)
+    
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
-    # , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
-    # , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
-    # , Field("total", "decimal(16,6)", default=None, label=T('Total'))
     , Field("completed", "string", default=None, label=T('Completed'))
     , auth.signature)
+
 
 db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
@@ -369,11 +368,11 @@ db.define_table("sale",
     Field("total", "decimal(16,6)", default=None, label=T('Total'), readable=False, writable=False),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity'), readable=False, writable=False),
     Field("reward_points", "integer", default=None, label=T('Reward Points'), readable=False, writable=False),
-    Field("client", "reference auth_user", default=None, label=T('Client')),
+    Field("id_client", "reference auth_user", default=None, label=T('Client')),
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
     auth.signature)
-db.sale.client.requires = IS_EMPTY_OR(IS_IN_DB(db, 'auth_user.id', '%(email)s'))
+db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db, 'auth_user.id', '%(email)s'))
 
 
 db.define_table("sale_log",

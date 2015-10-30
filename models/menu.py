@@ -24,7 +24,7 @@ response.google_analytics_id = None
 ## this is the main application menu add/remove items as required
 #########################################################################
 
-# TODO customize menus based on the user group
+# #TODO:30 customize menus based on the user group
 response.menu = [
     (T('Home'), False, URL('default', 'index'), []),
     (T('Configuration'),False,None, [
