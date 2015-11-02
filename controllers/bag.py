@@ -153,9 +153,9 @@ def add_bag_item():
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
 
-        # bundle: chack if theres stock for every item in the bundle
+        # bundle: check if theres stock for every item in the bundle
         item_stock_qty = float('inf')
-        # #TODO:50 implement item bundle sale
+        #TODO:50 implement item bundle sale
         if item.is_bundle:
             bundle_items = db(db.bundle_item.id_bundle == item.id).select()
             # check for stock

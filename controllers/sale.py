@@ -50,6 +50,10 @@ def scan_ticket():
 
 
 def validate_sale_form(form):
+    print form.vars.id_bag
+
+    # payments = db(db.payment.id_bag == form.vars.id_bag).select():
+
     payments = form.vars.payments_data.split(',')
     total = 0
     for payment in payments:
@@ -96,6 +100,65 @@ def ticket():
             or auth.has_membership('Admin')
             or auth.has_membership('Manager')
             )
+def modify_payment():
+    """ Modifies the specified payment
+        args:
+            id_payment
+        vars:
+            payment_data
+    """
+    payment = db.payment(request.args(0))
+    amount = DQ(request.vars.amount, True)
+    change_amount = DQ(request.vars.change_amount, True)
+    account = request.vars.account
+    wallet_code = request.vars.wallet_code
+
+    if not payment:
+        raise HTTP(404)
+    if wallet_code and payment.id_payment_opt.name == 'wallet':
+        print wallet_code
+        # request wallet credit
+    if not payment.id_payment_opt.allow_change:
+        change_amount = DQ(0, True)
+    if not payment.id_payment_opt.requires_account:
+        account = None
+
+
+    payment.amount = amount
+    payment.change_amount = change_amount
+    payment.account = account
+    payment.update_record()
+    print payment
+    return dict()
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
+def add_payment():
+    """ Adds a payment related to a bag, with the specified payment option
+        args:
+            id_bag
+            id_payment_opt
+    """
+
+    id_bag = request.args(0)
+    payment_opt = db.payment_opt(request.args(1))
+    if not payment_opt or not id_bag:
+        raise HTTP(400)
+
+    new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_bag=id_bag))
+
+    return dict(payment_opt=payment_opt, payment=new_payment)
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
 def create():
     """
         args:
@@ -108,7 +171,7 @@ def create():
     if db(db.sale.id_bag == bag.id).select().first():
         redirect(URL('default', 'index'))
         # raise HTTP(500)
-    # get bag items data
+    # get bag items data, calculate total, subtotal, taxes, quantity, reward points.
     bag_items = db(db.bag_item.id_bag == bag.id).select()
     total = 0
     taxes = 0
@@ -134,6 +197,7 @@ def create():
     quantity = DQ(quantity, True)
     reward_points = DQ(reward_points, True)
 
+    # set the form data to the previously calculated values
     form = SQLFORM(db.sale)
     form.vars.id_bag = bag.id
     form.vars.subtotal = DQ(subtotal)
@@ -143,20 +207,24 @@ def create():
     form.vars.reward_points = reward_points
     form.vars.id_store = bag.id_store.id
 
-    payment_options_data = {}
+    payments = db(db.payment.id_bag == bag.id).select()
 
     payment_options = db(db.payment_opt.is_active == True).select()
     payments_toolbar = DIV(_class='btn-toolbar btn-justified', _role="toolbar")
     payments_select = DIV(_class="btn-group", _role="group", _id="payment_options")
+    payments_lists = DIV()
     for payment_option in payment_options:
         classes = "btn-primary" if payment_option == payment_options.first() else ""
         payments_select.append(A(payment_option.name, _class='payment_opt btn btn-default ' + classes, _value=payment_option.id, _id="payment_opt_%s"%payment_option.id))
-
-        payment_options_data[str(payment_option.id)] = {'allow_change': payment_option.allow_change, 'name': payment_option.name, 'requires_account':payment_option.requires_account}
+        payments_lists.append(
+            DIV(H3(payment_option.name),
+                DIV(_id="payments_list_%s" % payment_option.id)
+            , _hidden=True, _id="payments_list_container_%s" % payment_option.id
+            )
+        )
     payments_toolbar.append(payments_select)
     payments_toolbar.append(DIV(A(I(_class="fa fa-plus"), _class="btn btn-default"), _class="btn-group", _role="group", _id="add_payment"))
-    payments_row = DIV( payments_toolbar, DIV(_id="payments_list"), INPUT(_id="payments_data" ,_name="payments_data", _hidden=True), SCRIPT('var payment_options_data = %s; selected_payment_opt = %s' % (json.dumps(payment_options_data), payment_options.first().id)) )
-
+    payments_row = DIV( payments_toolbar, payments_lists)
     form[0].insert(-1, sqlform_field('payments', 'Payments', payments_row))
     form[0].insert(0, sqlform_field('', T('Reward Points'), reward_points))
     form[0].insert(0, sqlform_field('', T('Quantity'), quantity))
@@ -196,7 +264,7 @@ def create():
             redirect(URL('ticket', args=sale.id, vars={'print_ticket': True}))
     elif form.errors:
         response.flash = T('form has errors')
-    return dict(form=form, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, bag=bag)
+    return dict(form=form, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, bag=bag, payments=payments, selected_payment_opt=payment_options.first().id)
 
 
 @auth.requires(auth.has_membership('Admin')
@@ -325,20 +393,23 @@ def refund():
         if returned_items_qty:
             id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True)
             # create wallet and add funds to it
-
             wallet_code = None
             if sale.id_client:
                 client = db.auth_user(sale.id_client)
                 wallet = client.id_wallet
                 if not wallet:
                     client.id_wallet = db.wallet.insert(balance=total, wallet_code=uuid4())
+                    client.update_record()
                 else:
                     wallet.balance += total
                     wallet.update_record()
+                response.info = T('Sale returned, funds added to wallet for client: ') + sale.id_client.first_name
             else:
                 wallet_code = uuid4()
-                db.wallet.insert(balance=total, wallet_code=wallet_code)
+                id_wallet = db.wallet.insert(balance=total, wallet_code=wallet_code)
                 response.flash = DIV(FORM(INPUT(_type='submit')))
+                response.info = T('Sale returned, your wallet code is: ') + wallet_code
+                response.info_btn = {'text': T('Print'), 'ref': URL('wallet', 'print_wallet', args=id_wallet), 'target': 'blank'}
 
             # add the credit note items
             for bag_item_id in credit_note_items.iterkeys():

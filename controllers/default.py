@@ -17,6 +17,8 @@ def index():
     return auth.wiki()
     """
     response.flash = T("Hello World")
+    response.info = T('Look here for relevant info')
+    response.info_btn = {'text': 'More', 'ref': URL('index')}
     return dict(message=T('Welcome to web2py!'))
 
 

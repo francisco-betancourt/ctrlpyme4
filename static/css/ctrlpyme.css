@@ -94,3 +94,21 @@ button.cp-fab:focus{
   padding-left: 15px;
   padding-right: 15px;
 }
+
+
+.info-card {
+  position: absolute;
+  bottom: 10px;
+  left: 15px;
+  width: 300px;
+  z-index: 100;
+  background-color: grey;
+  color: white;
+  border-color: black;
+
+  box-shadow: 0px 4px 4px rgba(0,0,0,.4);
+}
+
+.info-card .info-btn {
+  margin-top: 15px;
+}

@@ -339,7 +339,7 @@ db.define_table("stock",
     Field("id_item", "reference item", label=T('Item')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
     auth.signature)
-    
+
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
@@ -409,9 +409,12 @@ db.define_table("inventory_items",
 db.define_table("payment",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
     Field("id_sale", "reference sale", label=T('Sale')),
+    # used to reference the payment before the sale creation
+    Field("id_bag", "reference bag", label=T('bag')),
     Field("amount", "decimal(16,6)", default=None, label=T('Amount')),
     Field("account", "string", default=None, label=T('Account')),
     Field("change_amount", "decimal(16,6)", default=None, label=T('Change amount')),
+    Field("wallet_code", default=None, label=T('Wallet code')),
     auth.signature)
 
 db.define_table("item_images",
