@@ -30,7 +30,7 @@ def create():
 
 
 
-def purchase_item_formstyle(form, fields):
+def stock_item_formstyle(form, fields):
     form.add_class('form-inline')
     parent = FIELDSET()
     parent.append(INPUT(type='text', _class="form-control"))
@@ -40,22 +40,22 @@ def purchase_item_formstyle(form, fields):
     return parent
 
 
-def response_purchase_item(purchase_item):
-    """ Returns relevant purchase_item information """
+def response_stock_item(stock_item):
+    """ Returns relevant stock_item information """
 
-    serials = purchase_item.serial_numbers.replace(',', ',\n') if purchase_item.serial_numbers else ''
+    serials = stock_item.serial_numbers.replace(',', ',\n') if stock_item.serial_numbers else ''
     res = {
-          "id": purchase_item.id
-        , "id_item": purchase_item.id_item
-        , "item": { "name": purchase_item.id_item.name,
-                    "barcode": item_barcode(purchase_item.id_item)
+          "id": stock_item.id
+        , "id_item": stock_item.id_item
+        , "item": { "name": stock_item.id_item.name,
+                    "barcode": item_barcode(stock_item.id_item)
                   }
-        , "quantity": str(purchase_item.quantity or 0)
-        , "price": str(DQ(purchase_item.price or 0))
-        , "base_price": str(DQ(purchase_item.base_price or 0))
-        , "price2": str(DQ(purchase_item.price2 or 0))
-        , "price3": str(DQ(purchase_item.price3 or 0))
-        , "taxes": str(DQ(purchase_item.taxes) or 0)
+        , "purchase_qty": str(stock_item.purchase_qty or 0)
+        , "price": str(DQ(stock_item.price or 0))
+        , "base_price": str(DQ(stock_item.base_price or 0))
+        , "price2": str(DQ(stock_item.price2 or 0))
+        , "price3": str(DQ(stock_item.price3 or 0))
+        , "taxes": str(DQ(stock_item.taxes) or 0)
         , "serial_numbers": serials
     }
 
@@ -63,8 +63,8 @@ def response_purchase_item(purchase_item):
 
 
 @auth.requires_membership('Purchases')
-def add_purchase_item():
-    """ Used to add a purchase_item to the specified purchase, this method will return a form to edit the newly created purchase item
+def add_stock_item():
+    """ Used to add a stock_item to the specified purchase, this method will return a form to edit the newly created purchase item
 
         args:
             purchase_id
@@ -76,13 +76,13 @@ def add_purchase_item():
         item = db.item(request.args(1))
         if not purchase or not item:
             raise HTTP(404)
-        purchase_item = db((db.purchase_item.id_item == item.id) &
-                           (db.purchase_item.id_purchase == purchase.id)
+        stock_item = db((db.stock_item.id_item == item.id) &
+                           (db.stock_item.id_purchase == purchase.id)
                           ).select().first()
-        if not purchase_item:
-            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, quantity=1)
-            purchase_item = db.purchase_item(purchase_item)
-            purchase_item = response_purchase_item(purchase_item)
+        if not stock_item:
+            stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
+            stock_item = db.stock_item(stock_item)
+            stock_item = response_stock_item(stock_item)
         return locals()
     except:
         import traceback
@@ -90,66 +90,66 @@ def add_purchase_item():
 
 
 @auth.requires_membership('Purchases')
-def delete_purchase_item():
-    """ This function removes the specified purchase item, this function actually deletes the record
+def delete_stock_item():
+    """ This function removes the specified stock item, this function actually deletes the record
 
         args:
-            purchase_item_id
+            stock_item_id
     """
 
-    purchase_item_id = request.args(0)
-    if not purchase_item_id:
+    stock_item_id = request.args(0)
+    if not stock_item_id:
         raise HTTP(400)
 
-    db(db.purchase_item.id == purchase_item_id).delete()
+    db(db.stock_item.id == stock_item_id).delete()
 
     return dict(status="ok")
 
 
-def postprocess_purchase_item(purchase_item):
-    purchase_item.serial_numbers = purchase_item.serial_numbers.replace('_', ',') if purchase_item.serial_numbers else None
+def postprocess_stock_item(stock_item):
+    stock_item.serial_numbers = stock_item.serial_numbers.replace('_', ',') if stock_item.serial_numbers else None
     # primitive serial number count verification
-    # if purchase_item.serial_numbers:
-    #     purchase_items_count = purchase_item.serial_numbers.split(',')
-    #     if not purchase_items_count[-1]:
-    #         purchase_items_count.pop()
-    #     print len(purchase_items_count)
+    # if stock_item.serial_numbers:
+    #     stock_items_count = stock_item.serial_numbers.split(',')
+    #     if not stock_items_count[-1]:
+    #         stock_items_count.pop()
+    #     print len(stock_items_count)
     # else:
-    #     purchase_item.serial_numbers = None
+    #     stock_item.serial_numbers = None
 
     # recalculate the taxes.
-    total_tax = 1 if purchase_item.id_item.taxes else 0
-    for tax in purchase_item.id_item.taxes:
+    total_tax = 1 if stock_item.id_item.taxes else 0
+    for tax in stock_item.id_item.taxes:
         total_tax *= tax.percentage / 100.0
-    purchase_item.taxes = D(purchase_item.price or 0) * D(total_tax)
-    if not purchase_item.id_item.allow_fractions:
-        purchase_item.quantity = DQ(remove_fractions(purchase_item.quantity))
-    return purchase_item
+    stock_item.taxes = D(stock_item.price or 0) * D(total_tax)
+    if not stock_item.id_item.allow_fractions:
+        stock_item.purchase_qty = DQ(remove_fractions(stock_item.purchase_qty))
+    return stock_item
 
 
 @auth.requires_membership('Purchases')
-def modify_purchase_item():
-    """ This functions allows the modification of a purchase item, by specifying the modified fields via url arguments.
+def modify_stock_item():
+    """ This functions allows the modification of a stock item, by specifying the modified fields via url arguments.
 
         args:
-            purchase_item_id
+            stock_item_id
             param_name
             param_value
     """
 
-    purchase_item = db.purchase_item(request.args(0))
-    if not purchase_item:
+    stock_item = db.stock_item(request.args(0))
+    if not stock_item:
         raise HTTP(404)
     try:
         param_name = request.args(1)
         param_value = request.args(2)
 
-        if param_name in ['quantity', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
-            purchase_item[param_name] = param_value
-            purchase_item = postprocess_purchase_item(purchase_item)
-            purchase_item.update_record()
+        if param_name in ['purchase_qty', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
+            stock_item[param_name] = param_value
+            stock_item = postprocess_stock_item(stock_item)
+            stock_item.update_record()
 
-        return response_purchase_item(purchase_item)
+        return response_stock_item(stock_item)
     except:
         import traceback
         traceback.print_exc()
@@ -157,7 +157,7 @@ def modify_purchase_item():
 
 
 @auth.requires_membership('Purchases')
-def add_item_and_purchase_item():
+def add_item_and_stock_item():
     """ Adds the item specified by the form, then add a purchase item whose id_item is the id of the newly created item, and its id_purchase is the specified purchase
 
         args
@@ -189,9 +189,9 @@ def add_item_and_purchase_item():
             url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
             db.item(ret.id).update_record(url_name=url_name)
 
-            purchase_item = db.purchase_item.insert(id_purchase=purchase.id, id_item=item.id, quantity=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
-            purchase_item = response_purchase_item(db.purchase_item(purchase_item))
-            return dict(item=item, purchase_item=purchase_item)
+            stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, purchase_qty=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
+            stock_item = response_stock_item(db.stock_item(stock_item))
+            return dict(item=item, stock_item=stock_item)
         else:
             return dict(errors=ret.errors)
     except:
@@ -216,14 +216,14 @@ def fill():
         , _id="scan_form", buttons=[]
     )
 
-    purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
-    purchase_items_json = []
-    for purchase_item in purchase_items:
-        serials = purchase_item.serial_numbers.replace(',', ',\n') if purchase_item.serial_numbers else ''
+    stock_items = db(db.stock_item.id_purchase == purchase.id).select()
+    stock_items_json = []
+    for stock_item in stock_items:
+        serials = stock_item.serial_numbers.replace(',', ',\n') if stock_item.serial_numbers else ''
 
-        purchase_items_json.append(response_purchase_item(purchase_item))
-    purchase_items_json = json.dumps(purchase_items_json)
-    form[0].append(SCRIPT('purchase_items = %s;' % purchase_items_json))
+        stock_items_json.append(response_stock_item(stock_item))
+    stock_items_json = json.dumps(stock_items_json)
+    form[0].append(SCRIPT('stock_items = %s;' % stock_items_json))
 
     return locals()
 
@@ -243,16 +243,18 @@ def commit():
     # #TODO:80 purchase total should match the amount stablished by the purchase items
 
     # generate stocks for every purchase item
-    purchase_items = db(db.purchase_item.id_purchase == purchase.id).select()
-    for purchase_item in purchase_items:
-        purchase_item = postprocess_purchase_item(purchase_item)
-        purchase_item.update_record()
-        db.stock.insert(id_store=purchase.id_store, id_purchase=purchase.id, id_item=purchase_item.id_item.id, quantity=purchase_item.quantity)
+    stock_items = db(db.stock_item.id_purchase == purchase.id).select()
+    for stock_item in stock_items:
+        stock_item = postprocess_stock_item(stock_item)
+        stock_item.stock_qty = stock_item.purchase_qty
+        stock_item.id_store = session.store
+        # set the stock quantity to the purchased quantity
+        stock_item.update_record()
         # update the item prices
-        item = db.item(purchase_item.id_item)
-        item.base_price = purchase_item.base_price
-        item.price2 = purchase_item.price2
-        item.price3 = purchase_item.price3
+        item = db.item(stock_item.id_item)
+        item.base_price = stock_item.base_price
+        item.price2 = stock_item.price2
+        item.price3 = stock_item.price3
         item.update_record()
     purchase.is_done = True
     purchase.update_record()

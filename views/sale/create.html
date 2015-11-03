@@ -26,21 +26,24 @@
     payment_data.change_amount = el_payment.find('.change_amount').val();
     payment_data.account = el_payment.find('.account').val();
     payment_data.wallet_code = el_payment.find('.wallet_code').val();
-    console.log(payment_data);
-    var vars_str = '';
+    // create an URL vars argument
     for (k in payment_data) {
-      vars_str += k + '=' + payment_data[k] + '&';
+      var payment_data_value = payment_data[k]
+      if (!payment_data_value) { payment_data_value = 0 }
+      vars_str += k + '=' + payment_data_value + '&';
     }
-    console.log(vars_str);
 
     $.ajax({
       url: "{{=URL('modify_payment', extension='json')}}/" + payment_id + '?' + vars_str
     })
     .done(function (res) {
-      console.log(res);
+      el_payment.find('.amount').val(res.payment.amount);
+      el_payment.find('.change_amount').val(res.payment.change_amount);
+      el_payment.find('.account').val(res.payment.account);
+      el_payment.find('.wallet_code').val(res.payment.wallet_code);
     })
     .fail(function (res) {
-      console.log(res);
+      alert('{{=T("Unable to modify payment")}}')
     });
   }
 
@@ -108,6 +111,7 @@
       , amount: {{=p.amount or 'null'}}
       , account: {{=p.account or 'null'}}
       , change_amount: {{=p.change_amount or 'null'}}
+      , wallet_code: "{{=p.wallet_code or ''}}"
     }
     add_payment_element(payment_opt, payment);
   {{pass}}

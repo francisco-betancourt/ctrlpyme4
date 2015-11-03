@@ -57,14 +57,14 @@ def item_stock(item, id_store):
 
     stocks = None
     if id_store > 0:
-        stocks = db((db.stock.id_item == item.id)
-                  & (db.stock.id_store == id_store)
-                  & (db.stock.quantity > 0)
-                  ).select(orderby=db.stock.id_purchase)
+        stocks = db((db.stock_item.id_item == item.id)
+                  & (db.stock_item.id_store == id_store)
+                  & (db.stock_item.stock_qty > 0)
+                  ).select(orderby=db.stock_item.created_on)
     else:
-        stocks = db((db.stock.id_item == item.id)
-                  & (db.stock.quantity > 0)
-                   ).select(orderby=db.stock.id_purchase)
+        stocks = db((db.stock_item.id_item == item.id)
+                  & (db.stock_item.stock_qty > 0)
+                   ).select(orderby=db.stock_item.created_on)
     if stocks:
         quantity = 0
         for stock in stocks:

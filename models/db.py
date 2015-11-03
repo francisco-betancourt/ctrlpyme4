@@ -321,25 +321,6 @@ db.define_table("purchase",
     Field("purchase_xml", "text", default=None, label=T('XML'), readable=False, writable=False),
     auth.signature)
 
-db.define_table("purchase_item",
-    Field("id_purchase", "reference purchase", label=T('Purchase')),
-    Field("id_item", "reference item", label=T('Item')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
-    Field("price", "decimal(16,6)", default=None, label=T('Price')),
-    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
-    Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
-    Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
-    Field("price2", "decimal(16,6)", default=0, label=T('Price') + '2'),
-    Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
-    auth.signature)
-
-db.define_table("stock",
-    Field("id_store", "reference store", label=T('Store')),
-    Field("id_purchase", "reference purchase", label=T('Purchase')),
-    Field("id_item", "reference item", label=T('Item')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
-    auth.signature)
-
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
@@ -393,6 +374,28 @@ db.define_table("credit_note_item",
     Field("id_credit_note", "reference credit_note", label=T('Credit note')),
     Field("id_bag_item", "reference bag_item", label=T('Bag Item')),
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
+
+
+db.define_table("stock_item",
+    Field("id_purchase", "reference purchase", label=T('Purchase')),
+    # When the item is returned we have to create a stock item with the
+    # associated credit note
+    Field("id_credit_note", "reference credit_note", label=T('Credit note')),
+    # to simplify queries
+    Field("id_store", "reference store", label=T('Store')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("purchase_qty", "decimal(16,6)", default=None, label=T('Purchase quantity')),
+    Field("stock_qty", "decimal(16,6)", default=0, label=T('Stock quantity')),
+    # the buy price
+    Field("price", "decimal(16,6)", default=None, label=T('Price')),
+    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
+    Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
+    # base sale price, this will update the item base price when the purchase is applied
+    Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
+    Field("price2", "decimal(16,6)", default=0, label=T('Price') + '2'),
+    Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
+    auth.signature)
+
 
 db.define_table("inventory",
     Field("id_store", "reference store", label=T('Store')),
@@ -473,9 +476,7 @@ db.purchase.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %
 db.purchase.id_supplier.requires=IS_IN_DB( db, 'supplier.id', ' %(business_name)s %(tax_id)s %(id_address)s')
 db.purchase.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.supplier.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
-db.purchase_item.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
-db.stock.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.stock.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
+
 db.bag.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.bag_item.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
 db.sale.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')

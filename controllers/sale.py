@@ -107,29 +107,35 @@ def modify_payment():
         vars:
             payment_data
     """
-    payment = db.payment(request.args(0))
-    amount = DQ(request.vars.amount, True)
-    change_amount = DQ(request.vars.change_amount, True)
-    account = request.vars.account
-    wallet_code = request.vars.wallet_code
+    try:
+        payment = db.payment(request.args(0))
+        amount = DQ(request.vars.amount, True)
+        change_amount = DQ(request.vars.change_amount, True)
+        account = request.vars.account
+        wallet_code = request.vars.wallet_code
 
-    if not payment:
-        raise HTTP(404)
-    if wallet_code and payment.id_payment_opt.name == 'wallet':
-        print wallet_code
-        # request wallet credit
-    if not payment.id_payment_opt.allow_change:
-        change_amount = DQ(0, True)
-    if not payment.id_payment_opt.requires_account:
-        account = None
+        if not payment:
+            raise HTTP(404)
+        if wallet_code and payment.id_payment_opt.name == 'wallet':
+            print wallet_code
+            payment.wallet_code = wallet_code
+            # request wallet credit
+            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+            payment.amount = wallet.balance
+        if not payment.id_payment_opt.allow_change:
+            change_amount = DQ(0, True)
+        if not payment.id_payment_opt.requires_account:
+            account = None
 
 
-    payment.amount = amount
-    payment.change_amount = change_amount
-    payment.account = account
-    payment.update_record()
-    print payment
-    return dict()
+        payment.amount = amount
+        payment.change_amount = change_amount
+        payment.account = account
+        payment.update_record()
+        return dict(payment=payment)
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 @auth.requires(auth.has_membership('Sales checkout')

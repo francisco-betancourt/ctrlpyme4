@@ -109,20 +109,20 @@
     $('#new_item_panel').hide();
   });
 
-  function remove_item(key, purchase_item_id) {
+  function remove_item(key, stock_item_id) {
     $('#' + key).remove();
     $.ajax({
-      url: "{{=URL('delete_purchase_item', extension='json')}}/" + purchase_item_id
+      url: "{{=URL('delete_stock_item', extension='json')}}/" + stock_item_id
     })
     .done(function (data) {
       console.log(data);
     })
   }
 
-  function refresh_purchase_item(pitem) {
+  function refresh_stock_item(pitem) {
     var key = "#item_" + pitem.item.barcode;
 
-    $(key).find('.quantity').val(pitem.quantity);
+    $(key).find('.quantity').val(pitem.purchase_qty);
     $(key).find('.price').val(pitem.price);
     $(key).find('.taxes').val(pitem.taxes);
     $(key).find('.base_price').val(pitem.base_price);
@@ -132,15 +132,15 @@
   }
 
 
-  function call_purchase_item_modifier(purchase_item_id, param_name, param_value, barcode) {
+  function call_stock_item_modifier(stock_item_id, param_name, param_value, barcode) {
     if (!param_value) {return false}
     // $('#item_' + barcode).addClass('bg-warning');
     $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
-      url: '{{=URL("modify_purchase_item", extension="json")}}/' + purchase_item_id + '/' + param_name + '/' + param_value
+      url: '{{=URL("modify_stock_item", extension="json")}}/' + stock_item_id + '/' + param_name + '/' + param_value
     })
     .done(function(res) {
-      refresh_purchase_item(res);
+      refresh_stock_item(res);
 
       $('#item_' + barcode).css('background-color', '#DFF0D8');
       window.setTimeout(function() {
@@ -151,15 +151,15 @@
 
 
   // clones the proto html item list element and cofigures the newly created element
-  function create_html_item(item, barcode, purchase_item) {
+  function create_html_item(item, barcode, stock_item) {
     var key = 'item_' + barcode;
     var el_item = $('#proto_item').clone();
     el_item.attr('id', key);
     el_item.show();
     el_item.css('display', 'block');
-    var pitem_id = purchase_item.id;
+    var pitem_id = stock_item.id;
     el_item.find('.item_name').html(item.name);
-    el_item.find('.close').on('click', function() {remove_item(key, purchase_item.id);});
+    el_item.find('.close').on('click', function() {remove_item(key, stock_item.id);});
     el_item.find('.barcode').text(barcode);
 
     var quantity = el_item.find('.quantity');
@@ -170,28 +170,28 @@
     var serial_numbers = el_item.find('.serial_numbers')
 
     $('#items_list').prepend(el_item);
-    refresh_purchase_item(purchase_item);
+    refresh_stock_item(stock_item);
 
     quantity.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'quantity', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(pitem_id, 'purchase_qty', parseFloat($(this).val()), barcode);
     });
 
     buy_price.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'price', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(pitem_id, 'price', parseFloat($(this).val()), barcode);
     });
 
     base_price.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'base_price', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(pitem_id, 'base_price', parseFloat($(this).val()), barcode);
     });
     price2.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'price2', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(pitem_id, 'price2', parseFloat($(this).val()), barcode);
     });
     price3.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'price3', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(pitem_id, 'price3', parseFloat($(this).val()), barcode);
     });
 
     serial_numbers.on('change', function() {
-      call_purchase_item_modifier(pitem_id, 'serial_numbers', $(this).val(), barcode);
+      call_stock_item_modifier(pitem_id, 'serial_numbers', $(this).val(), barcode);
     });
 
     el_item.find('.show-serials').click(function(event) {
@@ -224,10 +224,10 @@
     .done(function(data) {
       var item = data.item;
       $.ajax({
-        url: "{{=URL('add_purchase_item', args=purchase.id, extension='json')}}/" + item.id
+        url: "{{=URL('add_stock_item', args=purchase.id, extension='json')}}/" + item.id
       })
       .done(function(data) {
-        create_html_item(item, code, data.purchase_item);
+        create_html_item(item, code, data.stock_item);
       })
       .fail(function(data) {
         alert("{{=T('Could not add item!')}}")
@@ -270,7 +270,7 @@
             , allow_fractions: $('#item_allow_fractions').prop('checked')
             , reward_points: $('#item_reward_points').val()
           };
-          url = "{{=URL('add_item_and_purchase_item', args=purchase.id, extension='json')}}?"
+          url = "{{=URL('add_item_and_stock_item', args=purchase.id, extension='json')}}?"
           for (var prop in item_data) {
             if (item_data.hasOwnProperty(prop)) {
               url += prop + '=' + item_data[prop] + '&'
@@ -288,7 +288,7 @@
             }
             else {
               // add the new purchase item to the list
-              create_html_item(data.item, code, data.purchase_item);
+              create_html_item(data.item, code, data.stock_item);
               $('#new_item_form').remove();
               $('#new_item_panel').hide();
             }
@@ -310,9 +310,9 @@
 
 
   // purchase_items is a javascript variable sended by the server. in the purchase_items_form
-  for (var i in purchase_items) {
-    var purchase_item = purchase_items[i];
-    create_html_item(purchase_item.item, purchase_item.item.barcode, purchase_item);
+  for (var i in stock_items) {
+    var stock_item = stock_items[i];
+    create_html_item(stock_item.item, stock_item.item.barcode, stock_item);
   }
 
 </script>
