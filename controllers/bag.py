@@ -42,6 +42,7 @@ def refresh_bag_data(id_bag):
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
+    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total))
     subtotal = money_format(DQ(subtotal, True))
     taxes = money_format(DQ(taxes, True))
     total = money_format(DQ(total, True))

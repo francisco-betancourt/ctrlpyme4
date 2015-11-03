@@ -12,7 +12,7 @@ def remove_stocks(bag_items):
         if bag_item.id_item.has_serial_number:
             pass
         else:
-            stocks, quantity = item_stock(bag_item.id_item, session.store).itervalues()
+            stock_items, quantity = item_stock(bag_item.id_item, session.store).itervalues()
             quantity = DQ(bag_item.quantity)
             total_buy_price = 0
             wavg_days_in_shelf = 0
@@ -21,7 +21,7 @@ def remove_stocks(bag_items):
                     return
                 stock_qty = DQ(stock_item.stock_qty) - DQ(bag_item.quantity)
                 stock_item.stock_qty = max(0, stock_qty)
-                stock.update_record()
+                stock_item.update_record()
                 quantity = abs(stock_qty)
 
                 # set the buy price and buy date from the selected stock
@@ -46,24 +46,15 @@ def scan_ticket():
 
 
 def validate_sale_form(form):
-    print form.vars.id_bag
-
-    # payments = db(db.payment.id_bag == form.vars.id_bag).select():
-
-    payments = form.vars.payments_data.split(',')
+    payments = db(db.payment.id_bag == form.vars.id_bag).select()
     total = 0
     for payment in payments:
-        if not payment:
-            continue
-        payment_opt_id, amount, change, account = payment.split(':')
-        payment_opt = db.payment_opt(payment_opt_id)
-        if not payment_opt:
-            continue
-        total += DQ(amount)
-        if len(account) != 4 and payment_opt.requires_account:
+        requires_account = payment.id_payment_opt.requires_account
+        total += DQ(payment.amount)
+        if payment.account and len(payment.account) != 4 and requires_account:
             form.errors.payments_data = T('Some payments require an account')
             return
-    if not total >= form.vars.total:
+    if total < form.vars.total:
         form.errors.payments_data = T('Payments amount is lower than the total')
 
 
@@ -91,6 +82,7 @@ def ticket():
     return locals()
 
 
+
 @auth.requires(auth.has_membership('Sales checkout')
             or auth.has_membership('Cashier')
             or auth.has_membership('Admin')
@@ -110,19 +102,35 @@ def modify_payment():
         account = request.vars.account
         wallet_code = request.vars.wallet_code
 
+        s = db.payment.amount.sum()
+        payments_total = db(db.payment.id_bag == payment.id_bag).select(s).first()[s]
+        if not payments_total:
+            payments_total = 0
+
+        remainder = payment.id_bag.total - payments_total
+        if remainder <= 0:
+            return dict()
+
         if not payment:
             raise HTTP(404)
         if wallet_code and payment.id_payment_opt.name == 'wallet':
-            print wallet_code
             payment.wallet_code = wallet_code
             # request wallet credit
             wallet = db(db.wallet.wallet_code == wallet_code).select().first()
-            payment.amount = wallet.balance
+            if not wallet:
+                raise HTTP(404, T('Wallet not found'))
+            amount = DQ(wallet.balance, True)
+            payment.wallet_code = wallet.wallet_code
         if not payment.id_payment_opt.allow_change:
             change_amount = DQ(0, True)
         if not payment.id_payment_opt.requires_account:
             account = None
 
+        if amount > remainder:
+            if payment.id_payment_opt.allow_change:
+                change_amount = DQ(amount - remainder, True)
+            else:
+                amount = remainder
 
         payment.amount = amount
         payment.change_amount = change_amount
@@ -147,13 +155,48 @@ def add_payment():
     """
 
     id_bag = request.args(0)
+    bag = db.bag(id_bag)
     payment_opt = db.payment_opt(request.args(1))
-    if not payment_opt or not id_bag:
-        raise HTTP(400)
+    if not payment_opt or not bag:
+        raise HTTP(404)
+
+    # check if the payments total is lower than the total
+    s = db.payment.amount.sum()
+    payments_total = db(db.payment.id_bag == id_bag).select(s).first()[s]
+
+    if not payments_total < db.bag(id_bag).total:
+        return dict(msg=T("You dont need to add more payments"))
 
     new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_bag=id_bag))
 
     return dict(payment_opt=payment_opt, payment=new_payment)
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
+def remove_payment():
+    """ removes a payment related to a bag, with the specified payment option
+        args:
+            id_payment
+    """
+
+    payment = db.payment(request.args(0))
+    if not payment:
+        raise HTTP(404)
+    id_bag = payment.id_bag.id
+    if is_wallet(payment.id_payment_opt):
+        # get the payment wallet
+        wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
+        wallet += payment.amount
+    payment.delete_record()
+
+    # sice there could be other payments with some change in them, we need to recalculate the total change (if any)
+    payments = db(db.payment.id_bag == id_bag).select()
+
+    return dict()
 
 
 @auth.requires(auth.has_membership('Sales checkout')
@@ -226,7 +269,7 @@ def create():
         )
     payments_toolbar.append(payments_select)
     payments_toolbar.append(DIV(A(I(_class="fa fa-plus"), _class="btn btn-default"), _class="btn-group", _role="group", _id="add_payment"))
-    payments_row = DIV( payments_toolbar, payments_lists)
+    payments_row = DIV( payments_toolbar, INPUT(_name='payments_data', _hidden=True), payments_lists)
     form[0].insert(-1, sqlform_field('payments', 'Payments', payments_row))
     form[0].insert(0, sqlform_field('', T('Reward Points'), reward_points))
     form[0].insert(0, sqlform_field('', T('Quantity'), quantity))
@@ -411,24 +454,8 @@ def refund():
                 id_item = bag_items_data[bag_item_id].id_item.id
                 # buy_price = bag_items_data[bag_item_id].buy_price
                 #TODO:10 stock reintegration
-                
-                # print stock_data
+
     return locals()
-
-
-@auth.requires(auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
-def update():
-    return common_update('sale', request.args)
-
-
-@auth.requires(auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
-def delete():
-    return common_delete('sale', request.args)
-
 
 
 def sale_row(row, fields):

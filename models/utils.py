@@ -72,3 +72,9 @@ def item_stock(item, id_store):
         return dict(stocks=stocks, quantity=quantity)
     else:
         return dict(stocks=None, quantity=0)
+
+
+def is_wallet(payment_opt):
+    if not payment_opt:
+        return False
+    return payment_opt.name == 'wallet'

@@ -10,7 +10,7 @@
     <input type="text" placeholder="Change" class="form-control change_amount">
     <input type="text" placeholder="Account" class="form-control account">
     <input type="text" placeholder="Wallet code" class="form-control wallet_code">
-    <i class="fa fa-times"></i>
+    <i class="fa fa-times remove_payment"></i>
   </div>
 </div>
 
@@ -27,6 +27,7 @@
     payment_data.account = el_payment.find('.account').val();
     payment_data.wallet_code = el_payment.find('.wallet_code').val();
     // create an URL vars argument
+    var vars_str = '';
     for (k in payment_data) {
       var payment_data_value = payment_data[k]
       if (!payment_data_value) { payment_data_value = 0 }
@@ -43,6 +44,7 @@
       el_payment.find('.wallet_code').val(res.payment.wallet_code);
     })
     .fail(function (res) {
+      console.log(res);
       alert('{{=T("Unable to modify payment")}}')
     });
   }
@@ -74,6 +76,23 @@
     el_new_payment.find('input').change(function (event) {
       modify_payment(payment.id);
     });
+
+    // remove payment
+    el_new_payment.find('.remove_payment').click(function (event) {
+      $.ajax({
+        url: "{{=URL('remove_payment', extension='json')}}/" + payment.id
+      })
+      .done(function (res) {
+        $('#payment_' + payment.id).remove();
+
+        if (!$('#payments_list_' + payment_opt.id).children().length) {
+          $('#payments_list_container_' + payment_opt.id).hide();
+        }
+      })
+      .fail(function (res) {
+
+      })
+    })
   }
 
 
@@ -98,6 +117,7 @@
   })
 
 
+  {{# recreate payments }}
   {{for p in payments:}}
     payment_opt = {
       id: {{=p.id_payment_opt}}

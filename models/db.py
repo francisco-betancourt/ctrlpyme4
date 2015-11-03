@@ -324,6 +324,9 @@ db.define_table("purchase",
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
+    , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
+    , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
+    , Field("total", "decimal(16,6)", default=None, label=T('Total'))
     , Field("completed", "string", default=None, label=T('Completed'))
     , auth.signature)
 
