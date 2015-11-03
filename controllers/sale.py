@@ -16,21 +16,17 @@ def remove_stocks(bag_items):
             quantity = DQ(bag_item.quantity)
             total_buy_price = 0
             wavg_days_in_shelf = 0
-            for stock in stocks:
+            for stock_item in stock_items:
                 if not quantity:
                     return
-                stock_qty = DQ(stock.quantity) - DQ(bag_item.quantity)
-                stock.quantity = max(0, stock_qty)
+                stock_qty = DQ(stock_item.stock_qty) - DQ(bag_item.quantity)
+                stock_item.stock_qty = max(0, stock_qty)
                 stock.update_record()
                 quantity = abs(stock_qty)
 
                 # set the buy price and buy date from the selected stock
-                purchase_item = db(
-                    (db.purchase_item.id_purchase == stock.id_purchase)
-                  & (db.purchase_item.id_item == stock.id_item.id)
-                    ).select().first()
-                total_buy_price += bag_item.quantity * purchase_item.price
-                days_since_purchase = (bag_item.created_on - stock.created_on).days
+                total_buy_price += bag_item.quantity * stock_item.price
+                days_since_purchase = (bag_item.created_on - stock_item.created_on).days
                 # print "Days since purchase: ", days_since_purchase
                 wavg_days_in_shelf += days_since_purchase
             bag_item.total_buy_price = total_buy_price
@@ -246,16 +242,6 @@ def create():
         store.consecutive += 1;
         store.update_record()
 
-        payments = form.vars.payments_data.split(',')
-        total = 0
-        # register payments
-        for payment in payments:
-            if not payment:
-                continue
-            payment_opt_id, amount, change, account = payment.split(':')
-            change = DQ(change or 0)
-            account = account or None
-            db.payment.insert(id_payment_opt=payment_opt_id, id_sale=sale.id, amount=DQ(amount), change_amount=DQ(change), account=account)
         sale.update_record()
         db.sale_log.insert(id_sale=sale.id, sale_event="paid")
 
@@ -425,11 +411,7 @@ def refund():
                 id_item = bag_items_data[bag_item_id].id_item.id
                 # buy_price = bag_items_data[bag_item_id].buy_price
                 #TODO:10 stock reintegration
-                # stock_data = ((db.stock.id_purchase == db.purchase.id)
-                #             & (db.purchase_item.id_purchase == db.purchase.id)
-                #             & (db.stock.id_item == id_item)
-                #             & (db.purchase_item.price == buy_price)
-                #             ).select().first()
+                
                 # print stock_data
     return locals()
 
