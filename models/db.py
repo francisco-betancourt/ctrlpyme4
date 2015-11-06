@@ -417,9 +417,9 @@ db.define_table("payment",
     Field("id_sale", "reference sale", label=T('Sale')),
     # used to reference the payment before the sale creation
     Field("id_bag", "reference bag", label=T('bag')),
-    Field("amount", "decimal(16,6)", default=None, label=T('Amount')),
+    Field("amount", "decimal(16,6)", default=0, label=T('Amount')),
     Field("account", "string", default=None, label=T('Account')),
-    Field("change_amount", "decimal(16,6)", default=None, label=T('Change amount')),
+    Field("change_amount", "decimal(16,6)", default=0, label=T('Change amount')),
     Field("wallet_code", default=None, label=T('Wallet code')),
     auth.signature)
 

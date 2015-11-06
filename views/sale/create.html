@@ -7,7 +7,7 @@
 <div id="proto_payment" hidden="hidden">
   <div class="form-inline">
     <input type="text" placeholder="Amount" class="form-control amount">
-    <input type="text" placeholder="Change" class="form-control change_amount">
+    <input type="text" placeholder="Change" class="form-control change_amount" disabled="">
     <input type="text" placeholder="Account" class="form-control account">
     <input type="text" placeholder="Wallet code" class="form-control wallet_code">
     <i class="fa fa-times remove_payment"></i>
@@ -42,6 +42,13 @@
       el_payment.find('.change_amount').val(res.payment.change_amount);
       el_payment.find('.account').val(res.payment.account);
       el_payment.find('.wallet_code').val(res.payment.wallet_code);
+
+      console.log(res.payments);
+      for (var index in res.payments) {
+        var other_payment_data = res.payments[index];
+        var el_other_payment = $('#payment_' + other_payment_data.id + ' .change_amount')
+        el_other_payment.val(other_payment_data.change_amount);
+      }
     })
     .fail(function (res) {
       console.log(res);
@@ -129,7 +136,7 @@
         id: {{=p.id}}
       , id_bag: {{=p.id_bag}}
       , amount: {{=p.amount or 'null'}}
-      , account: {{=p.account or 'null'}}
+      , account: "{{=p.account or 'null'}}"
       , change_amount: {{=p.change_amount or 'null'}}
       , wallet_code: "{{=p.wallet_code or ''}}"
     }
