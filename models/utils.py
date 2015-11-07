@@ -78,3 +78,7 @@ def is_wallet(payment_opt):
     if not payment_opt:
         return False
     return payment_opt.name == 'wallet'
+
+
+def get_wallet_payment_opt():
+    return db(db.payment_opt.name == 'wallet').select().first()

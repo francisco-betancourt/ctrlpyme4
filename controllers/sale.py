@@ -6,6 +6,8 @@ import json
 from uuid import uuid4
 
 
+# TODO cancel sale, (dont forget) to return the wallet payments
+
 def remove_stocks(bag_items):
     for bag_item in bag_items:
         #TODO:60 implement stock removal for bag items with serial number
@@ -95,6 +97,49 @@ def get_payments_data(id_bag):
     return total, change, payments
 
 
+def fix_payment_data(payment, amount, change_amount, account, wallet_code):
+    """ This function will adjust the specified payment parameters in order to satisfy the global constraints, meaning it will set the correct amount, the change, the wallet code, and account, so the payment is coherent with the rest of the payments, when the payment method modification produces an inconsistent change amount, this function will reset all the payments changes, and place the total change in the modified payment """
+
+    bag_total = payment.id_bag.total
+    payments_total, total_change, payments = get_payments_data(payment.id_bag.id)
+
+    if not payments_total:
+        payments_total = 0
+
+    # total after the payment amount modification
+    new_payments_total = payments_total - payment.amount + amount
+
+    # when this payment allows change, then we have to recalculate all the changes from the other payments, in order to set this payment change amount
+    if payment.id_payment_opt.allow_change:
+        # this is the total change that will be returned on the sale
+        change_amount = new_payments_total - bag_total
+        change_amount = max(0, change_amount)
+        # this will remove all the change amounts from payment options that can return change, the total change will be stored in the modified payment, if this payment allows change
+        for other_payment in payments:
+            if payment == other_payment:
+                continue
+            other_payment.change_amount = 0
+            other_payment.update_record()
+    else:
+        change_amount = DQ(0, True)
+        if amount != payment.amount and amount > payment.amount:
+            amount = max(0, bag_total - (payments_total - payment.amount))
+
+    # wallet payment
+    if wallet_code and is_wallet(payment.id_payment_opt):
+        # request wallet credit
+        wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+        if not wallet:
+            raise HTTP(404, T('Wallet not found'))
+        amount = max(0, bag_total - (payments_total - payment.amount))
+        wallet.balance = wallet.balance - amount
+        wallet.update_record()
+    if not payment.id_payment_opt.requires_account:
+        account = None
+
+    return amount, change_amount, account, wallet_code
+
+
 @auth.requires(auth.has_membership('Sales checkout')
             or auth.has_membership('Cashier')
             or auth.has_membership('Admin')
@@ -117,56 +162,58 @@ def modify_payment():
         account = request.vars.account
         wallet_code = request.vars.wallet_code
 
-        bag_total = payment.id_bag.total
-        payments_total, total_change, payments = get_payments_data(payment.id_bag.id)
-        if not payments_total:
-            payments_total = 0
-
-        # total after the payment amount modification
-        new_payments_total = payments_total - payment.amount + amount
-
-        # if the payments_total plus the new amount is greater than the total we have to adjust the amount, so it becomes the remainder
-        # if new_payments_total > bag_total:
-        #     amount = bag_total - new_payments_total
-
-        # when this payment allows change, then we have to recalculate all the changes from the other payments, in order to set this payment change amount
-        if payment.id_payment_opt.allow_change:
-            # this is the total change that will be returned on the sale
-            change_amount = new_payments_total - bag_total
-            change_amount = max(0, change_amount)
-            # this will remove all the change amounts from payment options that can return change, the total change will be stored in the modified payment, if this payment allows change
-            for other_payment in payments:
-                if payment == other_payment:
-                    continue
-                other_payment.change_amount = 0
-                other_payment.update_record()
-        else:
-            if amount != payment.amount and amount > payment.amount:
-                amount = max(0, bag_total - (payments_total - payment.amount))
-
-        # wallet payment
-        if wallet_code and is_wallet(payment.id_payment_opt):
-            payment.wallet_code = wallet_code
-            # request wallet credit
-            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
-            if not wallet:
-                raise HTTP(404, T('Wallet not found'))
-            amount = max(0, bag_total - (payments_total - payment.amount))
-            wallet.balance = wallet.balance - amount
-            print wallet
-            wallet.update_record()
-            payment.wallet_code = wallet.wallet_code
-        if not payment.id_payment_opt.requires_account:
-            account = None
+        amount, change_amount, account, wallet_code = fix_payment_data(payment, amount, change_amount, account, wallet_code)
 
         payment.amount = amount
         payment.change_amount = change_amount
         payment.account = account
+        payment.wallet_code = wallet_code
         payment.update_record()
         return dict(payment=payment, payments=[])
     except:
         import traceback
         traceback.print_exc()
+
+
+@auth.requires(auth.has_membership('Sales checkout')
+            or auth.has_membership('Cashier')
+            or auth.has_membership('Admin')
+            or auth.has_membership('Manager')
+            )
+def add_user_wallet_payment():
+    """ Adds a payment related to a bag, with the specified payment option
+        args:
+            id_bag
+            id_user
+    """
+
+    id_bag = request.args(0)
+    bag = db.bag(id_bag)
+    user = db.auth_user(request.args(1))
+    wallet_payment_opt = get_wallet_payment_opt()
+    if not user or not bag:
+        raise HTTP(404)
+    wallet = user.id_wallet
+
+    if not wallet or wallet.balance <= 0:
+        return dict()
+
+    # check if the payments total is lower than the total
+    s = db.payment.amount.sum()
+    payments_total = db(db.payment.id_bag == id_bag).select(s).first()[s]
+
+    if not payments_total < db.bag(id_bag).total:
+        return dict(msg=T("You dont need to add more payments"))
+
+    wallet_payment = db.payment.insert(id_payment_opt=wallet_payment_opt.id, id_bag=bag.id, wallet_code=wallet.wallet_code)
+    wallet_payment = db.payment(wallet_payment)
+
+    amount, change_amount, account, wallet_code = fix_payment_data(wallet_payment, 0, 0, '', wallet.wallet_code)
+
+    wallet_payment.amount = amount
+    wallet_payment.update_record()
+
+    return dict()
 
 
 @auth.requires(auth.has_membership('Sales checkout')
@@ -218,8 +265,9 @@ def remove_payment():
         if is_wallet(payment.id_payment_opt):
             # get the payment wallet
             wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-            wallet += payment.amount
-            wallet.update_record()
+            if wallet:
+                wallet.balance += payment.amount
+                wallet.update_record()
         payment.delete_record()
 
         # sice there could be other payments with some change in them, we need to recalculate the total change (if any) and add it to a payment that allows change
@@ -293,7 +341,11 @@ def create():
     payment_options = db(db.payment_opt.is_active == True).select()
     payments_toolbar = DIV(_class='btn-toolbar btn-justified', _role="toolbar")
     payments_select = DIV(_class="btn-group", _role="group", _id="payment_options")
-    payments_lists = DIV()
+    payments_lists = DIV(DIV(H3(T('User Wallet')),
+         DIV(_id="payments_list_user_wallet")
+         , _hidden=True, _id="payments_list_container_user_wallet"
+         )
+    )
     for payment_option in payment_options:
         classes = "btn-primary" if payment_option == payment_options.first() else ""
         payments_select.append(A(payment_option.name, _class='payment_opt btn btn-default ' + classes, _value=payment_option.id, _id="payment_opt_%s"%payment_option.id))
@@ -323,6 +375,11 @@ def create():
 
         sale.update_record()
         db.sale_log.insert(id_sale=sale.id, sale_event="paid")
+
+        # set the newly created sale as the payments id_sale
+        for payment in db(db.payment.id_bag == sale.id_bag.id).select():
+            payment.id_sale = sale.id
+            payment.update_record()
 
         response.flash = T('Sale created')
         if not auth.has_membership('Sales delivery'):

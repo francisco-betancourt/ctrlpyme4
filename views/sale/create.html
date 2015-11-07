@@ -15,6 +15,13 @@
 </div>
 
 
+<div id="proto_wallet_data" hidden="hidden" class="col-sm-9 col-sm-offset-3">
+  <h3>{{=T("Wallet Balance")}}</h3>
+  <h3>$ <span class="balance"></span> <button click="add_user_wallet_payment()" class="right"> {{=T('Pay')}} </button></h3>
+
+</div>
+
+
 <script>
   var selected_payment_opt = {{=selected_payment_opt}};
 
@@ -101,6 +108,37 @@
       })
     })
   }
+
+
+  function add_user_wallet_payment() {
+    var wallet_code = $('#user_wallet').attr('wallet_code');
+
+    console.log(wallet_code);
+
+    return false;
+  }
+
+
+  // get selected user wallet and add a new wallet payment based on it
+  $('#sale_id_client').change(function(event) {
+    var user_id = event.target.value;
+    $.ajax({
+      url: "{{=URL('wallet', 'get_user_wallet', extension='json')}}/" + user_id
+    })
+    .done(function (res) {
+      if (!res.wallet) { return false; }
+      var el_wallet = $('#proto_wallet_data').clone().show();
+      el_wallet.attr('id', 'user_wallet');
+      el_wallet.attr('wallet_code', res.wallet.wallet_code);
+      $('#sale_id_client__row').append(el_wallet);
+      el_wallet.find('.balance').text(res.wallet.balance);
+
+      console.log(res);
+    })
+    .fail(function (res) {
+      console.log(res);
+    });
+  })
 
 
   // change the selected payment option

@@ -21,7 +21,7 @@ def get_user_wallet():
     print user
     if not user:
         raise HTTP(404)
-    return dict(wallet=user.id_wallet.balance)
+    return dict(wallet=db.wallet(user.id_wallet))
 
 
 def get_by_code():
