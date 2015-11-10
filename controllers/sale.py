@@ -205,15 +205,17 @@ def add_user_wallet_payment():
     if not payments_total < db.bag(id_bag).total:
         return dict(msg=T("You dont need to add more payments"))
 
-    wallet_payment = db.payment.insert(id_payment_opt=wallet_payment_opt.id, id_bag=bag.id, wallet_code=wallet.wallet_code)
+    wallet_payment = db.payment.insert(id_payment_opt=wallet_payment_opt.id, id_bag=bag.id, wallet_code=wallet.wallet_code, account="user")
     wallet_payment = db.payment(wallet_payment)
 
     amount, change_amount, account, wallet_code = fix_payment_data(wallet_payment, 0, 0, '', wallet.wallet_code)
 
+    wallet_balance = DQ(db.wallet(wallet.id).balance, True)
+
     wallet_payment.amount = amount
     wallet_payment.update_record()
 
-    return dict()
+    return dict(payment_opt=wallet_payment_opt, payment=wallet_payment, wallet_balance=wallet_balance)
 
 
 @auth.requires(auth.has_membership('Sales checkout')
@@ -257,6 +259,8 @@ def remove_payment():
             id_payment
     """
 
+    extra_params = {}
+
     try:
         payment = db.payment(request.args(0))
         if not payment:
@@ -268,6 +272,8 @@ def remove_payment():
             if wallet:
                 wallet.balance += payment.amount
                 wallet.update_record()
+                if payment.account == 'user':
+                    extra_params["wallet_balance"] = DQ(wallet.balance, True)
         payment.delete_record()
 
         # sice there could be other payments with some change in them, we need to recalculate the total change (if any) and add it to a payment that allows change
@@ -277,7 +283,7 @@ def remove_payment():
             other_payment.change_amount = 0
             other_payment.update_record()
 
-        return dict(payments=payments)
+        return dict(payments=payments, **extra_params)
     except:
         import traceback
         traceback.print_exc()

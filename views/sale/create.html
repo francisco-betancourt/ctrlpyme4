@@ -17,13 +17,14 @@
 
 <div id="proto_wallet_data" hidden="hidden" class="col-sm-9 col-sm-offset-3">
   <h3>{{=T("Wallet Balance")}}</h3>
-  <h3>$ <span class="balance"></span> <button click="add_user_wallet_payment()" class="right"> {{=T('Pay')}} </button></h3>
+  <h3>$ <span class="balance"></span> <button class="right pay"> {{=T('Pay')}} </button></h3>
 
 </div>
 
 
 <script>
   var selected_payment_opt = {{=selected_payment_opt}};
+  var current_user = null;
 
 
   function modify_payment(payment_id) {
@@ -102,6 +103,10 @@
         if (!$('#payments_list_' + payment_opt.id).children().length) {
           $('#payments_list_container_' + payment_opt.id).hide();
         }
+
+        if (res.wallet_balance) {
+          $('#user_wallet').find('.balance').text(res.wallet_balance)
+        }
       })
       .fail(function (res) {
 
@@ -112,9 +117,21 @@
 
   function add_user_wallet_payment() {
     var wallet_code = $('#user_wallet').attr('wallet_code');
+    var user_id = $('#user_wallet').attr('user_id');
+
+    $.ajax({
+      url: "{{=URL('add_user_wallet_payment', extension='json')}}/{{=bag.id}}/"  + user_id
+    })
+    .done(function (res) {
+      console.log(res);
+      add_payment_element(res.payment_opt, res.payment);
+      $('#user_wallet').find('.balance').text(res.wallet_balance);
+    })
+    .fail(function (res) {
+      console.log(res);
+    })
 
     console.log(wallet_code);
-
     return false;
   }
 
@@ -130,10 +147,14 @@
       var el_wallet = $('#proto_wallet_data').clone().show();
       el_wallet.attr('id', 'user_wallet');
       el_wallet.attr('wallet_code', res.wallet.wallet_code);
+      el_wallet.attr('user_id', user_id);
       $('#sale_id_client__row').append(el_wallet);
       el_wallet.find('.balance').text(res.wallet.balance);
+      el_wallet.find('.pay').click(function (event) {
+        event.preventDefault();
+        add_user_wallet_payment();
+      });
 
-      console.log(res);
     })
     .fail(function (res) {
       console.log(res);
