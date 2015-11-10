@@ -93,13 +93,31 @@
 </div>
 
 
-<!-- Scanner script -->
-{{if not session.current_bag:}}
 <script>
-  $('#current_bag').hide();
+
+  function add_bag() {
+    $.ajax({
+      url: "{{=URL('bag', 'create', extension='json')}}"
+    })
+    .done(function (data) {
+      load_bag(data.bag);
+
+      // add the new bag to the active bags list
+      var bag_selector = document.createElement('a');
+      bag_selector.id = 'bag_selector_' + data.bag;
+      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+      bag_selector.href = '#';
+      bag_selector.className = 'list-group-item';
+      $('#active_bags').append(bag_selector);
+      $('#bag_selector_' + data.bag).click(function(event) {
+        load_bag(data.bag);
+      });
+    })
+  }
 </script>
 
-{{pass}}
+
+<!-- Scanner script -->
 <script>
 
   function set_bag_data(data) {
@@ -331,7 +349,12 @@
       .done(function (res) {
         var removed = res.removed;
         $('#bag_selector_' + removed).remove();
-        load_bag(res.other_bag.id)
+        if (res.other_bag) {
+          load_bag(res.other_bag.id)
+        }
+        else {
+          add_bag();
+        }
         return false;
       })
   }
@@ -363,6 +386,8 @@
 
   {{if session.current_bag:}}
     load_bag({{=session.current_bag}});
+  {{else:}}
+    add_bag();
   {{pass}}
 
 </script>
