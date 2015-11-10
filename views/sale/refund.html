@@ -6,7 +6,7 @@
 <p>{{=T('Subtotal')}} {{=sale.subtotal}}</p>
 <p>{{=T('Taxes')}} {{=sale.taxes}}</p>
 <p>{{=T('Total')}} {{=sale.total}}</p>
-
+<p>{{=T('Client')}} {{=sale.id_client.email}}</p>
 
 {{if not invalid:}}
   <table class="table">

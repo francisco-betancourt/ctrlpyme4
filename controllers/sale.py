@@ -26,10 +26,8 @@ def remove_stocks(bag_items):
                 stock_item.update_record()
                 quantity = abs(stock_qty)
 
-                # set the buy price and buy date from the selected stock
                 total_buy_price += bag_item.quantity * stock_item.price
                 days_since_purchase = (bag_item.created_on - stock_item.created_on).days
-                # print "Days since purchase: ", days_since_purchase
                 wavg_days_in_shelf += days_since_purchase
             bag_item.total_buy_price = total_buy_price
             bag_item.wavg_days_in_shelf = wavg_days_in_shelf / bag_item.quantity
@@ -315,6 +313,7 @@ def create():
     quantity = 0
     requires_serials = False
     for bag_item in bag_items:
+        #TODO check for existences before the sale
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
         stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
         # if theres no stock the user needs to modify the bag
@@ -502,7 +501,8 @@ def refund():
     invalid = returnable_items_qty <= 0
 
     form = SQLFORM.factory(
-        Field('returned_items')
+        Field('wallet_code', label=T('Wallet Code'))
+        , Field('returned_items')
         , submit_button=T("Refund")
     )
 
@@ -527,7 +527,7 @@ def refund():
         if returned_items_qty:
             id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True)
             # create wallet and add funds to it
-            wallet_code = None
+            wallet_code = form.vars.wallet_code
             if sale.id_client:
                 client = db.auth_user(sale.id_client)
                 wallet = client.id_wallet
@@ -539,21 +539,45 @@ def refund():
                     wallet.update_record()
                 response.info = T('Sale returned, funds added to wallet for client: ') + sale.id_client.first_name
             else:
-                wallet_code = uuid4()
-                id_wallet = db.wallet.insert(balance=total, wallet_code=wallet_code)
-                response.flash = DIV(FORM(INPUT(_type='submit')))
-                response.info = T('Sale returned, your wallet code is: ') + wallet_code
-                response.info_btn = {'text': T('Print'), 'ref': URL('wallet', 'print_wallet', args=id_wallet), 'target': 'blank'}
+                already_added = False
+                # user wallet specified
+                if wallet_code:
+                    wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+                    if wallet:
+                        wallet.balance += total
+                        wallet.update_record()
+                        already_added = True
+                if not already_added:
+                    wallet_code = request.vars.wallet_code or uuid4()
+                    id_wallet = db.wallet.insert(balance=total, wallet_code=wallet_code)
+                    response.flash = DIV(FORM(INPUT(_type='submit')))
+                    response.info = T('Sale returned, your wallet code is: ') + wallet_code
+                    response.info_btn = {'text': T('Print'), 'ref': URL('wallet', 'print_wallet', args=id_wallet), 'target': 'blank'}
 
             # add the credit note items
             for bag_item_id in credit_note_items.iterkeys():
+                returned_qty = credit_note_items[bag_item_id]
                 # add credit note item
-                db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=credit_note_items[bag_item_id], id_credit_note=id_new_credit_note)
+                db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=returned_qty, id_credit_note=id_new_credit_note)
                 # return items to stock
-                id_item = bag_items_data[bag_item_id].id_item.id
-                # buy_price = bag_items_data[bag_item_id].buy_price
-                #TODO:10 stock reintegration
+                bag_item = bag_items_data[bag_item_id]
+                id_item = bag_item.id_item.id
+                avg_buy_price = DQ(bag_item.total_buy_price) / DQ(bag_item.quantity)
 
+                stock_item = db((db.stock_item.id_credit_note == id_new_credit_note) & (db.stock_item.id_item == id_item)).select().first()
+                if stock_item:
+                    stock_item.purchase_qty += returned_qty
+                    stock_item.stock_qty += returned_qty
+                    stock_qty.update_record()
+                else:
+                    db.stock_item.insert(id_credit_note=id_new_credit_note,
+                                         id_item=id_item,
+                                         purchase_qty=returned_qty,
+                                         price=avg_buy_price,
+                                         stock_qty=returned_qty,
+                                         id_store=session.store,
+                                         taxes=0
+                                         )
     return locals()
 
 
