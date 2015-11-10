@@ -6,7 +6,9 @@
 <p>{{=T('Subtotal')}} {{=sale.subtotal}}</p>
 <p>{{=T('Taxes')}} {{=sale.taxes}}</p>
 <p>{{=T('Total')}} {{=sale.total}}</p>
-<p>{{=T('Client')}} {{=sale.id_client.email}}</p>
+{{if sale.id_client:}}
+  <p>{{=T('Client')}} {{=sale.id_client.email}}</p>
+{{pass}}
 
 {{if not invalid:}}
   <table class="table">
@@ -29,6 +31,8 @@
 
 
   <script>
+    $('#no_table_returned_items__row').hide();
+
     return_items_data = {}
 
     function refresh_return_items() {
