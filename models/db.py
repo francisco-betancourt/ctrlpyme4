@@ -379,11 +379,26 @@ db.define_table("credit_note_item",
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
 
 
+db.define_table("inventory",
+    Field("id_store", "reference store", label=T('Store')),
+    Field("is_partial", "boolean", default=None, label=T('Is partial')),
+    Field("is_done", "boolean", default=None, label=T('Is done')),
+    auth.signature)
+
+db.define_table("inventory_item",
+    Field("id_inventory", "reference inventory", label=T('Inventory')),
+    Field("id_item", "reference item", label=T('Item')),
+    Field("system_qty", "integer", default=None, label=T('System quantity')),
+    Field("physical_qty", "integer", default=None, label=T('Physical quantity')))
+
+
 db.define_table("stock_item",
     Field("id_purchase", "reference purchase", label=T('Purchase')),
     # When the item is returned we have to create a stock item with the
     # associated credit note
     Field("id_credit_note", "reference credit_note", label=T('Credit note')),
+    # When there are more items than those registered by the system, we have to add stock related to that inventory
+    Field("id_inventory", "reference inventory", label=T('Inventory')),
     # to simplify queries
     Field("id_store", "reference store", label=T('Store')),
     Field("id_item", "reference item", label=T('Item')),
@@ -399,18 +414,6 @@ db.define_table("stock_item",
     Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
     auth.signature)
 
-
-db.define_table("inventory",
-    Field("id_store", "reference store", label=T('Store')),
-    Field("is_partial", "boolean", default=None, label=T('Is partial')),
-    Field("is_done", "boolean", default=None, label=T('Is done')),
-    auth.signature)
-
-db.define_table("inventory_item",
-    Field("id_inventory", "reference inventory", label=T('Inventory')),
-    Field("id_item", "reference item", label=T('Item')),
-    Field("system_qty", "integer", default=None, label=T('System quantity')),
-    Field("physical_qty", "integer", default=None, label=T('Physical quantity')))
 
 db.define_table("payment",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),

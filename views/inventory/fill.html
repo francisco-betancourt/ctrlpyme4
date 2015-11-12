@@ -18,6 +18,9 @@
   </tbody>
 </table>
 
+<button class="btn btn-primary" onclick="window.location = '{{=URL('complete', args=inventory.id)}}'"> {{=T('Done')}}  </button>
+<button class="btn btn-default" onclick="window.location = '{{=URL('index')}}'"> {{=T('Save')}}  </button>
+
 
 <table hidden>
   <tr id="proto_inventory_item" hidden>
@@ -51,11 +54,10 @@
         url: "{{=URL('modify_item', extension='json')}}/" + inventory_item.id + '?physical_qty=' + new_qty
       })
       .done(function (res) {
-        console.log(res);
         physical_qty_input.val(res.inventory_item.physical_qty);
       })
       .fail(function (res) {
-        console.log(res);
+        alert("{{=T('Could not modify item')}}")
       })
     })
 
