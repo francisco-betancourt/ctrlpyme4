@@ -52,6 +52,7 @@
       })
       .done(function (res) {
         console.log(res);
+        physical_qty_input.val(res.inventory_item.physical_qty);
       })
       .fail(function (res) {
         console.log(res);

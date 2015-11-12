@@ -83,7 +83,7 @@ def modify_item():
     if not inventory_item:
         raise HTTP(404)
     try:
-        inventory_item.physical_qty = DQ(request.vars.physical_qty, True)
+        inventory_item.physical_qty = fix_item_quantity(inventory_item.id_item, DQ(request.vars.physical_qty, True))
         inventory_item.update_record()
         return locals()
     except:

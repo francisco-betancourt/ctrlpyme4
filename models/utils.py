@@ -82,3 +82,12 @@ def is_wallet(payment_opt):
 
 def get_wallet_payment_opt():
     return db(db.payment_opt.name == 'wallet').select().first()
+
+
+def fix_item_quantity(item, quantity):
+    """ given an item and a quantity, returns a fixed quantity based on the item allow_fraction parameter """
+
+    if item.allow_fractions:
+        return quantity
+    else:
+        return remove_fractions(quantity)
