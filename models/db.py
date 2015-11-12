@@ -402,11 +402,11 @@ db.define_table("stock_item",
 
 db.define_table("inventory",
     Field("id_store", "reference store", label=T('Store')),
-    Field("is_partital", "boolean", default=None, label=T('Is partial')),
+    Field("is_partial", "boolean", default=None, label=T('Is partial')),
     Field("is_done", "boolean", default=None, label=T('Is done')),
     auth.signature)
 
-db.define_table("inventory_items",
+db.define_table("inventory_item",
     Field("id_inventory", "reference inventory", label=T('Inventory')),
     Field("id_item", "reference item", label=T('Item')),
     Field("system_qty", "integer", default=None, label=T('System quantity')),
@@ -489,7 +489,7 @@ db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s
 db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
 db.credit_note_item.id_bag_item.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
 db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.inventory_items.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
+db.inventory_item.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
 db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
 db.payment.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
 db.promotion.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')

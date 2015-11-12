@@ -10,16 +10,28 @@
 
 
 <script>
-  function setup_scanner(success_callback, fail_callback, requirement, url) {
+  function setup_scanner(success_callback, fail_callback, requirement, url, id_suffix) {
     var items = false;
     if (!url) {
       url = '{{=URL("item", "find_by_code", extension="json")}}/';
       items = true
     }
-    $('#barcode_scanner_form').on('submit', function(event) {
+
+    var scanner_form_name = '#barcode_scanner_form';
+    var barcode_input_name = '#barcode';
+    if (id_suffix) {
+      var new_scanner_form_name = scanner_form_name + '__' + id_suffix;
+      var new_barcode_input_name = barcode_input_name + '__' + id_suffix;
+      $(scanner_form_name).attr('id', new_scanner_form_name.slice(1))
+      $(barcode_input_name).attr('id', new_barcode_input_name.slice(1))
+      scanner_form_name = new_scanner_form_name;
+      barcode_input_name = new_barcode_input_name;
+    }
+
+    $(scanner_form_name).on('submit', function(event) {
       event.preventDefault();
 
-      var barcode = $('#barcode').val();
+      var barcode = $(barcode_input_name).val();
 
       if ((requirement && requirement(barcode)) || !requirement) {
         $.ajax({
@@ -32,7 +44,7 @@
           else {
             success_callback(data, barcode);
           }
-          $('#barcode').val('');
+          $(barcode_input_name).val('');
         })
         .fail(function(data) {
           fail_callback(data, barcode);

@@ -1,0 +1,100 @@
+{{extend "layout.html"}}
+{{if is_partial:}}
+  <h1>{{=T('Working on partial Inventory')}} {{=inventory.id}}</h1>
+{{else:}}
+  <h1>{{=T('Working on full Inventory')}} {{=inventory.id}}</h1>
+{{pass}}
+
+{{include "barcode_scanner.html"}}
+
+<table class="table">
+  <thead>
+    <th> {{=T('Item name')}}</th>
+    <th> {{=T('System')}}</th>
+    <th> {{=T('Physical')}}</th>
+  </thead>
+  <tbody id="inventory_items_list">
+
+  </tbody>
+</table>
+
+
+<table hidden>
+  <tr id="proto_inventory_item" hidden>
+    <td class="item_name"></td>
+    <td class="system_qty"></td>
+    <td>
+      <input type="number" class="physical_qty form-control"/>
+    </td>
+  </tr>
+</table>
+
+
+
+{{=inventory_items_script}}
+
+
+<script>
+  function new_inventory_item_element(inventory_item, item) {
+    var el_new_inventory_item = $('#proto_inventory_item').clone().show();
+    console.log(el_new_inventory_item);
+
+    el_new_inventory_item.attr('id', 'inventory_item_' + inventory_item.id);
+    el_new_inventory_item.find('.item_name').text(item.name);
+    el_new_inventory_item.find('.system_qty').text(inventory_item.system_qty);
+    var physical_qty_input = el_new_inventory_item.find('.physical_qty').val(inventory_item.physical_qty);
+    physical_qty_input.change(function (event) {
+      var new_qty = event.target.value;
+      console.log(new_qty);
+
+      $.ajax({
+        url: "{{=URL('modify_item', extension='json')}}/" + inventory_item.id + '?physical_qty=' + new_qty
+      })
+      .done(function (res) {
+        console.log(res);
+      })
+      .fail(function (res) {
+        console.log(res);
+      })
+    })
+
+    $('#inventory_items_list').prepend(el_new_inventory_item);
+  }
+
+
+  // recreate inventory items
+  for (index in inventory_items) {
+    var inventory_item = inventory_items[index];
+    var item = inventory_item.id_item;
+    new_inventory_item_element(inventory_item, item)
+  }
+</script>
+
+
+
+<!-- Scanner setup -->
+<script type="text/javascript">
+  function success_callback(data, barcode) {
+    $.ajax({
+      url: "{{=URL('add_item', args=inventory.id, extension='json')}}/" + data.id
+    })
+    .done(function (res) {
+      var el_inventory_items = $('#inventory_item_' + res.inventory_item.id)
+      var el_inventory_item = el_inventory_items[0];
+      if (!el_inventory_items.length) {
+        new_inventory_item_element(res.inventory_item, res.item)
+      }
+      else {
+        $(el_inventory_item).find('.physical_qty').val(res.inventory_item.physical_qty)
+      }
+    })
+    .fail(function (res) {
+
+    })
+  }
+  function fail_callback(data, barcode) {
+    alert("{{=T('Barcode not found')}}");
+  }
+
+  setup_scanner(success_callback, fail_callback, null, null, 'inventory');
+</script>

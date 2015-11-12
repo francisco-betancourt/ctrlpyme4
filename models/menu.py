@@ -46,6 +46,7 @@ response.menu = [
         , (T('Suppliers'), False, URL('supplier', 'index'), None)
     ])
     , (T('Sales'), False, URL('sale', 'index'), [ ])
+    , (T('Inventory'), False, URL('inventory', 'index'), [ ])
 ]
 
 # response.menu += [

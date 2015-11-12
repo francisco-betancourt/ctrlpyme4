@@ -1,0 +1,21 @@
+{{extend "layout.html"}}
+<h1>{{=T('Inventories')}}</h1>
+
+{{if data:}}
+  {{delete_enabled = False}}
+  {{include 'selection_menu.html'}}
+
+  {{=data}}
+{{else:}}
+  {{=T('No Inventories found')}}
+  {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
+  {{=T('the plus button to create one.')}}
+{{pass}}
+
+
+{{
+  core_options=[
+    {'icon': 'list', 'tooltip': T('Full inventory'), 'url':URL('create', vars={'is_partial': False})}
+  ]
+}}
+{{include 'core_button.html'}}
