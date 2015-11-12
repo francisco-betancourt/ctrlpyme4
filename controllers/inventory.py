@@ -159,10 +159,29 @@ def partial_inventory_check(inventory):
                 , id_inventory=inventory_item.id_inventory.id
                 , id_store=session.store
             )
+    return inventory_items
 
 
 def full_inventory_check(inventory):
-    pass
+    missing_items = []
+
+    inventory_items = partial_inventory_check(inventory)
+    all_items_with_inventory = db(
+        (db.item.has_inventory == True)
+        & (db.item.is_active == True)
+    ).select()
+
+    #TODO this is ugly, check if theres is a better way to do it
+    for item in all_items_with_inventory:
+        inventory_item = db(
+            (db.inventory_item.id_item == item.id)
+            & (db.inventory_item.id_inventory == inventory.id)
+        ).select().first()
+        # if the item is not in the inventory, then we have to report it as a missing item
+        if not inventory_item:
+            missing_items.append(item)
+
+    return missing_items, inventory_items
 
 
 @auth.requires_membership('Inventories')
