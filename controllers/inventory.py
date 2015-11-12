@@ -155,7 +155,7 @@ def partial_inventory_check(inventory):
                 , purchase_qty=DQ(abs(diff))
                 , stock_qty=DQ(abs(diff))
                 , price=avg_item_price
-                , taxes=0
+                , taxes=0 # we do not consider taxes
                 , id_inventory=inventory_item.id_inventory.id
                 , id_store=session.store
             )
@@ -180,6 +180,26 @@ def full_inventory_check(inventory):
         # if the item is not in the inventory, then we have to report it as a missing item
         if not inventory_item:
             missing_items.append(item)
+    # we have to create an inventory item for every missing item, setting the total stock quantoty to 0
+    for missing_item in missing_items:
+        stock_items, quantity = item_stock(inventory_item.id_item, session.store).itervalues()
+        remainder = quantity
+        #TODO check the case when after iterating over all the stock items, we still have remainder, which will be very unlikely to happen
+        for stock_item in stock_items:
+            if remainder <= 0:
+                # exit once we have removed all the physical stock items
+                break
+            remaining_stock = stock_item.stock_qty
+            removed_from_stock = min(remaining_stock, remainder)
+            stock_item.stock_qty -= removed_from_stock
+            remainder -= removed_from_stock
+            stock_item.update_record()
+        db.inventory_item.insert(
+            id_inventory=inventory.id
+            , id_item=missing_item.id
+            , system_qty=quantity
+            , physical_qty=0
+        )
 
     return missing_items, inventory_items
 
