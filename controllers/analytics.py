@@ -26,49 +26,30 @@ def daily_interval(month, year):
     return start_date, end_date, timestep
 
 
-def analyze(tablename, field, timestep, start_date):
+def daily_analisis(query, tablename, field, month, year):
     """ """
 
+    start_date, end_date, timestep = daily_interval(month, year)
 
+    current_date = start_date
+    data_set = []
+    field_sum = db[tablename][field].sum()
+    while current_date + timestep < end_date:
+        partial_sum = db(query
+                        & (db[tablename].created_on >= current_date)
+                        & (db[tablename].created_on < current_date + timestep)
+                        ).select(field_sum).first()[field_sum]
+        data_set.append(partial_sum or DQ(0))
+        current_date += timestep
+    return data_set
 
 
 @auth.requires_membership("Analytics")
 def index():
     start_date, end_date, timestep = daily_interval(11, 2015)
-    print start_date, end_date, timestep
-    print session.store
 
-    purchases = db((db.purchase.id_store == session.store)
-                & (db.purchase.is_done == True)
-                & (db.purchase.created_on >= start_date)
-                & (db.purchase.created_on < end_date)
-                ).select()
-    sales = db((db.sale.id_store == session.store)
-                & (db.sale.created_on >= start_date)
-                & (db.sale.created_on < end_date)
-                ).select()
 
-    current_date = start_date
-    total = db.purchase.total.sum()
-    s_total = db.sale.total.sum()
-    day = 1
-    purchase_totals = []
-    sales_totals = []
-    while current_date + timestep < end_date:
-        purchases_total = db((db.purchase.id_store == session.store)
-                    & (db.purchase.is_done == True)
-                    & (db.purchase.created_on >= current_date)
-                    & (db.purchase.created_on < current_date + timestep)
-                    ).select(total).first()[total]
-        purchase_totals.append(purchases_total or DQ(0))
-        sales_total = db((db.sale.id_store == session.store)
-                    & (db.sale.created_on >= current_date)
-                    & (db.sale.created_on < current_date + timestep)
-                    ).select(s_total).first()[s_total]
-        sales_totals.append(sales_total or DQ(0))
-        current_date += timestep
-        day += 1
-    print len(purchase_totals)
-    print len(sales_totals)
+    query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
+    print daily_analisis(query, 'purchase', 'total', 11, 2015)
 
     return locals()
