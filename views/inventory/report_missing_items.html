@@ -1,0 +1,10 @@
+{{extend "layout.html"}}
+<h1>{{=T("Missing items")}}</h1>
+{{=T("Some items were not reported in the full inventory")}} {{=inventory.id}}
+
+{{for missing_item in missing_items:}}
+<p>{{=missing_item.id_item.name}}</p>
+{{pass}}
+
+
+<a href="{{=URL('index')}}" class="btn btn-primary">{{=T("Done")}}</a>

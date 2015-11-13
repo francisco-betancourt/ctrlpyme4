@@ -389,7 +389,9 @@ db.define_table("inventory_item",
     Field("id_inventory", "reference inventory", label=T('Inventory')),
     Field("id_item", "reference item", label=T('Item')),
     Field("system_qty", "integer", default=None, label=T('System quantity')),
-    Field("physical_qty", "integer", default=None, label=T('Physical quantity')))
+    Field("physical_qty", "integer", default=None, label=T('Physical quantity')),
+    Field("is_missing", "boolean", default=False, label=T('Is missing'))
+    )
 
 
 db.define_table("stock_item",

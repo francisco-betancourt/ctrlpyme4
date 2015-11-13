@@ -7,10 +7,8 @@ import json
 
 @auth.requires_membership('Inventories')
 def create():
-    is_partial = bool(request.vars.is_partial or True)
-    print is_partial
+    is_partial = bool(request.vars.is_partial == 'True')
     id_inventory = db.inventory.insert(id_store=session.store, is_partial=is_partial, is_done=False)
-    redirect(URL('fill', args=id_inventory, vars={'is_partial': is_partial}))
     redirect(URL('fill', args=id_inventory))
 
 
@@ -25,7 +23,10 @@ def fill():
     is_partial = inventory.is_partial
     if not inventory:
         raise HTTP(404)
+    if inventory.is_done:
+        raise HTTP(405, "Inventory is done")
 
+    # we use this list to send the inventory items in json format to the client, so it can rebuild the inventory items list
     json_inventory_items = []
     inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
     for inventory_item in inventory_items:
@@ -46,7 +47,7 @@ def fill():
 
 @auth.requires_membership('Inventories')
 def modify_item():
-    """
+    """ Allows the modification of the physical quantity
         args
             id_inventory_item
         vars:
@@ -56,6 +57,8 @@ def modify_item():
     inventory_item = db.inventory_item(request.args(0))
     if not inventory_item:
         raise HTTP(404)
+    if inventory_item.id_inventory.is_done:
+        raise HTTP(405, "Inventory is done")
     try:
         inventory_item.physical_qty = fix_item_quantity(inventory_item.id_item, DQ(request.vars.physical_qty, True))
         inventory_item.update_record()
@@ -74,6 +77,8 @@ def add_item():
     """
 
     inventory = db.inventory(request.args(0))
+    if inventory.is_done:
+        raise HTTP(405, "Inventory is done")
     item = db.item(request.args(1))
     if not inventory or not item:
         raise HTTP(404)
@@ -181,8 +186,13 @@ def full_inventory_check(inventory):
         if not inventory_item:
             missing_items.append(item)
     # we have to create an inventory item for every missing item, setting the total stock quantoty to 0
+    missing_items_count = 0
     for missing_item in missing_items:
-        stock_items, quantity = item_stock(inventory_item.id_item, session.store).itervalues()
+        print missing_item
+        stock_items, quantity = item_stock(missing_item, session.store).itervalues()
+        # when there are no stocks, never purhcased.
+        if not stock_items:
+            continue
         remainder = quantity
         #TODO check the case when after iterating over all the stock items, we still have remainder, which will be very unlikely to happen
         for stock_item in stock_items:
@@ -194,14 +204,17 @@ def full_inventory_check(inventory):
             stock_item.stock_qty -= removed_from_stock
             remainder -= removed_from_stock
             stock_item.update_record()
+        # create a missing inventory item
         db.inventory_item.insert(
             id_inventory=inventory.id
             , id_item=missing_item.id
             , system_qty=quantity
             , physical_qty=0
+            , is_missing=True
         )
+        missing_items_count += 1
 
-    return missing_items, inventory_items
+    return missing_items_count
 
 
 @auth.requires_membership('Inventories')
@@ -212,14 +225,17 @@ def complete():
     """
 
     inventory = db.inventory(request.args(0))
+    if inventory.is_done:
+        raise HTTP(405, "Inventory is done")
     if not inventory:
         raise HTTP(404)
 
+    missing_items = None
     try:
         if inventory.is_partial:
             partial_inventory_check(inventory)
         else:
-            full_inventory_check(inventory)
+            missing_items_count = full_inventory_check(inventory)
     except:
         import traceback
         traceback.print_exc()
@@ -227,8 +243,31 @@ def complete():
     inventory.is_done = True
     inventory.update_record()
 
-    redirect(URL('index'))
+    if inventory.is_partial:
+        redirect(URL('index'))
+    else:
+        if missing_items_count:
+            redirect(URL('report_missing_items', args=inventory.id))
+        else:
+            redirect(URL('index'))
 
+@auth.requires_membership('Inventories')
+def report_missing_items():
+    """
+        args:
+            id_inventory
+    """
+
+    inventory = db.inventory(request.args(0))
+    if not inventory:
+        raise HTTP(404)
+    if not inventory.is_done:
+        raise HTTP(405, T("Inventory has not been applied"))
+    missing_items = db(
+        (db.inventory_item.is_missing == True)
+        & (db.inventory_item.id_inventory == inventory.id)
+        ).select()
+    return locals()
 
 
 @auth.requires_membership('Inventories')
@@ -242,7 +281,7 @@ def undo():
     if not inventory:
         raise HTTP(404)
     if not inventory.is_done:
-        raise HTTP()
+        raise HTTP(405, T("Inventory has not been applied"))
 
 
 @auth.requires_membership('Inventories')

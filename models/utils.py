@@ -52,19 +52,16 @@ def item_taxes(item, price):
     return DQ(D(price) * D(taxes))
 
 
-def item_stock(item, id_store):
+def item_stock(item, id_store, include_empty=False):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
 
     stocks = None
+    query = (db.stock_item.id_item == item.id)
     if id_store > 0:
-        stocks = db((db.stock_item.id_item == item.id)
-                  & (db.stock_item.id_store == id_store)
-                  & (db.stock_item.stock_qty > 0)
-                  ).select(orderby=db.stock_item.created_on)
-    else:
-        stocks = db((db.stock_item.id_item == item.id)
-                  & (db.stock_item.stock_qty > 0)
-                   ).select(orderby=db.stock_item.created_on)
+        query &= (db.stock_item.id_store == id_store)
+    if not include_empty:
+        query &= (db.stock_item.stock_qty > 0)
+    stocks = db(query).select(orderby=db.stock_item.created_on)
     if stocks:
         quantity = 0
         for stock in stocks:
@@ -87,6 +84,7 @@ def get_wallet_payment_opt():
 def fix_item_quantity(item, quantity):
     """ given an item and a quantity, returns a fixed quantity based on the item allow_fraction parameter """
 
+    quantity = max(0, quantity)  # does not allow negative quantities
     if item.allow_fractions:
         return quantity
     else:
