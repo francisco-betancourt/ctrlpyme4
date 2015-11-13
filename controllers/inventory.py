@@ -284,8 +284,17 @@ def undo():
         raise HTTP(405, T("Inventory has not been applied"))
 
 
+def inventory_options(row):
+    td = TD()
+    # edit option
+    if not row.is_done:
+        td.append(option_btn('pencil', URL('fill', args=row.id)))
+    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
+    return td
+
+
 @auth.requires_membership('Inventories')
 def index():
-    rows = common_index('inventory')
-    data = super_table('inventory', ['is_partial', 'is_done'], rows)
+    rows = db(db.inventory.is_active == True).select(orderby=~db.inventory.id)
+    data = super_table('inventory', ['is_partial', 'is_done'], rows, options_function=inventory_options, show_id=True)
     return locals()
