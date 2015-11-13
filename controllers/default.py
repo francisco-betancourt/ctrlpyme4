@@ -109,6 +109,7 @@ def create_groups():
         , "Cashiers": "Sale creation"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"
         , "VIP seller": "Allows price2 and price3 selection"
+        , "Analytics": "Users in this group have acces to the analytic tools"
     }
 
 

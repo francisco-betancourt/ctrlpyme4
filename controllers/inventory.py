@@ -5,6 +5,7 @@
 import json
 
 
+#TODO avoid inventory if there are pending sales
 @auth.requires_membership('Inventories')
 def create():
     is_partial = bool(request.vars.is_partial == 'True')
@@ -270,9 +271,10 @@ def report_missing_items():
     return locals()
 
 
+#TODO implement this function
 @auth.requires_membership('Inventories')
 def undo():
-    """
+    """ Removes the last inventory, and restocks items according to the last system quantities.  WARNING  since inventories does not store stock inforation this method will add items to the oldest stock after the penultimum inventory,
         args
             id_inventory
     """
@@ -282,6 +284,8 @@ def undo():
         raise HTTP(404)
     if not inventory.is_done:
         raise HTTP(405, T("Inventory has not been applied"))
+
+    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
 
 
 def inventory_options(row):
