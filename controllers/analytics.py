@@ -5,10 +5,110 @@
 
 import calendar
 import datetime
+import random
+
+
+hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
+
+
+def time_interval_query(tablename, start_date, end_date):
+    return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
 
 
 def analize(queries):
     pass
+
+
+@auth.requires_membership("Analytics")
+def cash_out():
+    """ Returns the specified date, information
+
+        args: [year, month, day]
+        vars: [id_seller]
+    """
+
+    year, month, day = None, None, None
+    try:
+        year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
+    except:
+        raise HTTP(400)
+    if not year or not month or not day:
+        raise HTTP(400)
+    seller = db.auth_user(request.vars.id_seller)
+    if not seller:
+        raise HTTP(404)
+
+    date = datetime.date(year, month, day)
+    start_date = datetime.datetime(date.year, date.month, date.day, 0)
+    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+    sales_data = db((db.sale.id == db.sale_log.id_sale)
+                    & (db.sale_log.sale_event == 'paid')
+                    & (db.sale.id_store == session.store)
+                    & (db.sale.created_by == seller.id)
+                    & time_interval_query('sale', start_date, end_date)
+                    ).select()
+
+    payment_opts = db(db.payment_opt.is_active == True).select()
+
+    # will be used to create a pay chart
+    payment_opt_data = {}
+    for payment_opt in payment_opts:
+        rand_hex = "#"
+        for i in range(0, 4):
+            rand_hex += hex_chars[random.randint(0, len(hex_chars) - 1)]
+        rand_hex += "FF"
+        payment_opt_data[str(payment_opt.id)] = {
+            "color": rand_hex, "label": payment_opt.name, "value": 0
+        }
+
+    return locals()
+
+
+@auth.requires_membership("Analytics")
+def day_report():
+    """ Returns the specified date, information
+
+        args: [year, month, day]
+    """
+
+    year, month, day = None, None, None
+    try:
+        year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
+    except:
+        raise HTTP(400)
+    if not year or not month or not day:
+        raise HTTP(400)
+
+    date = datetime.date(year, month, day)
+
+    start_date = datetime.datetime(date.year, date.month, date.day, 0)
+    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+    # income
+    sales_total_sum = db.sale.total.sum()
+    income = db((db.sale.id_store == session.store)
+                & (db.sale.created_on >= start_date)
+                & (db.sale.created_on <= end_date)
+                ).select(sales_total_sum).first()[sales_total_sum] or DQ(0)
+    # expenses
+    purchases_total_sum =db.purchase.total.sum()
+    expenses = db((db.purchase.id_store == session.store)
+                & (db.purchase.is_done >= True)
+                & (db.purchase.created_on >= start_date)
+                & (db.purchase.created_on <= end_date)
+                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
+
+
+    return locals()
+
+
+@auth.requires_membership("Analytics")
+def daily_report():
+    """ """
+
+    today = datetime.date.today()
+    redirect(URL('day_report', args=[today.year, today.month, today.day]))
 
 
 #TODO check if the selected interval has already passed
@@ -26,7 +126,7 @@ def daily_interval(month, year):
     return start_date, end_date, timestep
 
 
-def daily_analisis(query, tablename, field, month, year):
+def monthly_analysis(query, tablename, field, month, year):
     """ """
 
     start_date, end_date, timestep = daily_interval(month, year)
@@ -50,6 +150,6 @@ def index():
 
 
     query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
-    print daily_analisis(query, 'purchase', 'total', 11, 2015)
+    print monthly_analysis(query, 'purchase', 'total', 11, 2015)
 
     return locals()
