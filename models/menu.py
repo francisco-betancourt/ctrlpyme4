@@ -26,29 +26,33 @@ response.google_analytics_id = None
 
 #TODO:30 customize menus based on the user group
 response.menu = [
-    (T('Home'), False, URL('default', 'index'), []),
-    (T('Configuration'),False,None, [
-         (T('Stores'), False, URL('store', 'index'), None)
-        , (T('Users'), False, URL('user', 'index'), None)
-        , (T('Addresses'), False, URL('address', 'index'), None)
-        , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
-        , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
-        , (T('Taxes'), False, URL('tax', 'index'), None)
-    ])
-    , (T('Items'), False, None, [
-         (T('Catalog'), False, URL('item', 'index'), None)
-        , (T('Brands'), False, URL('brand', 'index'), None)
-        , (T('Categories'), False, URL('category', 'index'), None)
-        , (T('Traits'), False, URL('trait_category', 'index'), None)
-    ])
-    , (T('Purchases'), False, None, [
-         (T('List'), False, URL('purchase', 'index'), None)
-        , (T('Suppliers'), False, URL('supplier', 'index'), None)
-    ])
-    , (T('Sales'), False, URL('sale', 'index'), [ ])
-    , (T('Inventory'), False, URL('inventory', 'index'), [ ])
-    , (T('Analytics'), False, URL('analytics', 'index'), [ ])
+    (T('Home'), False, URL('default', 'index'), [])
 ]
+
+if auth.has_membership("Employee"):
+    response_menu += [
+        (T('Configuration'),False,None, [
+             (T('Stores'), False, URL('store', 'index'), None)
+            , (T('Users'), False, URL('user', 'index'), None)
+            , (T('Addresses'), False, URL('address', 'index'), None)
+            , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
+            , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
+            , (T('Taxes'), False, URL('tax', 'index'), None)
+        ])
+        , (T('Items'), False, None, [
+             (T('Catalog'), False, URL('item', 'index'), None)
+            , (T('Brands'), False, URL('brand', 'index'), None)
+            , (T('Categories'), False, URL('category', 'index'), None)
+            , (T('Traits'), False, URL('trait_category', 'index'), None)
+        ])
+        , (T('Purchases'), False, None, [
+             (T('List'), False, URL('purchase', 'index'), None)
+            , (T('Suppliers'), False, URL('supplier', 'index'), None)
+        ])
+        , (T('Sales'), False, URL('sale', 'index'), [ ])
+        , (T('Inventory'), False, URL('inventory', 'index'), [ ])
+        , (T('Analytics'), False, URL('analytics', 'index'), [ ])
+    ]
 
 # response.menu += [
 #     (T('Admin'), False, None, [

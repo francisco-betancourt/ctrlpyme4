@@ -31,7 +31,8 @@ def cash_out():
     try:
         year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
     except:
-        raise HTTP(400)
+        today = datetime.date.today()
+        year, month, day = today.year, today.month, today.day
     if not year or not month or not day:
         raise HTTP(400)
     seller = db.auth_user(request.vars.id_seller)

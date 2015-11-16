@@ -49,6 +49,9 @@
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
   </head>
+
+  {{include "style.html"}}
+
   <body>
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     <div class="flash alert alert-dismissable">{{=response.flash or ''}}</div>
@@ -103,6 +106,9 @@
           {{if response.menu:}}
           {{=MENU(response.menu, _class='nav navbar-nav',li_class='dropdown',ul_class='dropdown-menu')}}
           {{pass}}
+
+          {{include "search_bar.html"}}
+
         </div>
       </div>
     </nav>
