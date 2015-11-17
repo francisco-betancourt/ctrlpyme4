@@ -7,7 +7,7 @@ import json
 from decimal import Decimal as D
 
 
-# #TODO:40 implement XML purchase
+# #TODO:50 implement XML purchase
 @auth.requires_membership('Purchases')
 def create():
     """
@@ -240,7 +240,7 @@ def commit():
     if not purchase:
         raise(HTTP, 404)
 
-    # #TODO:80 purchase total should match the amount stablished by the purchase items
+    # #TODO:90 purchase total should match the amount stablished by the purchase items
 
     # generate stocks for every purchase item
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()

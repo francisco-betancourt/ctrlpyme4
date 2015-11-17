@@ -106,7 +106,7 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # auth.enable_record_versioning(db)
 
 
-# #TODO:70 move validators to a module
+# #TODO:80 move validators to a module
 # validators
 class IS_BARCODE_AVAILABLE(object):
     def __init__(self, db, barcode='', error_message=T('Barcode already used')):

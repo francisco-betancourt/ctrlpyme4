@@ -7,6 +7,8 @@ def search_item():
         args: [search_term]
     """
 
+    prettify = request.vars.pretty == 'True'
+
     term = request.args(0)
 
     # search by item name
@@ -26,7 +28,8 @@ def search_item():
 
     # search by trait
     matched_traits = [str(i['id']) for i in db(db.trait.trait_option.contains(term)).select(db.trait.id).as_list()]
-    query |= (db.item.traits.contains(matched_traits, all=False))
+    if matched_traits:
+        query |= (db.item.traits.contains(matched_traits, all=False))
 
     query &= (db.item.is_active == True)
 

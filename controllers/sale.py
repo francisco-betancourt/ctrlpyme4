@@ -6,11 +6,11 @@ import json
 from uuid import uuid4
 
 
-# TODO cancel sale, (dont forget) to return the wallet payments
+# #TODO:20 cancel sale, (dont forget) to return the wallet payments
 
 def remove_stocks(bag_items):
     for bag_item in bag_items:
-        #TODO:60 implement stock removal for bag items with serial number
+        #TODO:70 implement stock removal for bag items with serial number
         if bag_item.id_item.has_serial_number:
             pass
         else:

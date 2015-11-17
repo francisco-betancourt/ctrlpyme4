@@ -60,7 +60,7 @@ update_categories_and_traits();
 console.log('script');
 
 
-// #TODO:20 add parent category selection, when selecting a child.
+// #TODO:30 add parent category selection, when selecting a child.
 $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
   var selected = $('#categories_tree').treeview('getChecked');
   var selected_categories = "";

@@ -151,6 +151,10 @@
 
 
   function base_add_bag_item(bag_item, res) {
+    if (res.status) {
+      alert(res.status);
+      return;
+    }
     var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
     if (item) {
       $(item).find('.item_qty').val(bag_item.quantity);

@@ -44,7 +44,7 @@
     mc1 = 'col-md-9'
     mc2 = 'col-md-6'
     left_sidebar_enabled = globals().get('left_sidebar_enabled', False)
-    right_sidebar_enabled = globals().get('right_sidebar_enabled', True)
+    right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
       middle_column = {0: mc0, 1: mc1, 2: mc2}[
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
@@ -98,7 +98,7 @@
         <div class="collapse navbar-collapse navbar-ex1-collapse">
           <ul class="nav navbar-nav navbar-right">
             <li>
-              <a><i class="fa fa-shopping-cart"></i></a>
+              <a onclick="$('#bag_container').toggle()"><i class="fa fa-shopping-cart"></i></a>
             </li>
             {{='auth' in globals() and auth.navbar('Welcome',mode='dropdown',referrer_actions=None) or ''}}
 
@@ -145,13 +145,40 @@
         {{end}}
       </div>
 
-      {{if right_sidebar_enabled and context_sidebar:}}
-        <div class="col-md-3">
+
+
+      <style>
+        #bag_container {
+          background-color: #F0F0F0;
+          width: 500px;
+          position: fixed;
+          right: 0px;
+          z-index: 1000;
+          height: 100vh;
+          top: 0px;
+          overflow-y: scroll;
+
+          box-shadow: 0px 0px 8px rgba(0,0,0,.3);
+        }
+
+        .bag-container {
+          padding: 8px;
+        }
+      </style>
+
+      <secction id="bag_container" hidden>
+        <div class="bag-container">
           {{if auth.user and request.controller != "appadmin" and session.store:}}
             {{include 'bag.html'}}
           {{pass}}
         </div>
-      {{pass}}
+      </secction>
+
+      <script>
+        $('#bag_container').css("padding-top", $('nav').height());
+        $('#bag_container').css("padding-bottom", $('nav').height());
+      </script>
+
 
     </div>
 

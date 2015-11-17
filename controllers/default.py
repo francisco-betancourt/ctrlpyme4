@@ -60,7 +60,7 @@ def call():
 
 
 
-# #TODO:90 remove from here
+# #TODO:100 remove from here
 def create_groups():
     groups = {
           "Admin": ""
@@ -109,6 +109,7 @@ def create_groups():
         , "Cashiers": "Sale creation"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"
         , "VIP seller": "Allows price2 and price3 selection"
+        , "Employee": "An Employee"
         , "Analytics": "Users in this group have acces to the analytic tools"
     }
 
