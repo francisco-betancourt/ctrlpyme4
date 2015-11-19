@@ -66,17 +66,20 @@ def modify_bag_item():
         raise HTTP(403)
     if not bag_item:
         raise HTTP(404)
-    if auth.user and bag_item.created_by != auth.user.id:
-        raise HTTP(500)
+
+    is_online_sale = False
+    if auth.has_membership('Clients'):
+        is_online_sale = True
 
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
     if not bag_item.id_item.allow_fractions:
         bag_item.quantity = remove_fractions(bag_item.quantity)
     bag_item.quantity = DQ(bag_item.quantity)
 
-    qty = item_stock(db.item(bag_item.id_item), session.store)['quantity']
-    if qty < bag_item.quantity:
-        bag_item.quantity = qty
+    if not is_online_sale:
+        qty = item_stock(db.item(bag_item.id_item), session.store)['quantity']
+        if qty < bag_item.quantity:
+            bag_item.quantity = qty
 
     bag_item.update_record()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
@@ -149,6 +152,10 @@ def add_bag_item():
             id_item
     """
 
+    is_online_sale = False
+    if auth.has_membership('Clients'):
+        is_online_sale = True
+
     try:
         item = db.item(request.args(0))
         bag = get_valid_bag(session.current_bag)
@@ -177,20 +184,18 @@ def add_bag_item():
                     return dict(status="out of stock")
         else:
             item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
-        print item_stock_qty
 
 
         # if theres no stock notify the user
-        item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
         if not bag_item:
-            base_qty = 1 if item_stock_qty >= 1 else item_stock_qty % 1
+            base_qty = 1 if item_stock_qty >= 1 or is_online_sale else item_stock_qty % 1
             if base_qty <= 0:
                 return dict(status="out of stock")
             id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:
-            base_qty = item_stock_qty - bag_item.quantity if item_stock_qty - bag_item.quantity < 1 else 1
+            base_qty = item_stock_qty - bag_item.quantity if item_stock_qty - bag_item.quantity < 1 and not is_online_sale else 1
             if base_qty <= 0:
                 return dict(status="out of stock")
             bag_item.quantity += base_qty
@@ -292,6 +297,8 @@ def complete():
     bag.completed = True
     bag.update_record()
 
+    if auth.has_membership('Sales checkout'):
+        redirect(URL('order', 'create', args=bag.id))
     if auth.has_membership('Sales checkout'):
         redirect(URL('sale', 'create', args=bag.id))
     else:
