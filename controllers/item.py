@@ -148,7 +148,7 @@ def item_form(item=None, is_bundle=False):
     form = SQLFORM(db.item, item, showid=False, fields=fields)
 
     # categories
-    categories = db((db.category.id > 0) &
+    categories = db(
                     (db.category.is_active==True)
                    ).select(orderby=~db.category.parent)
     if categories:
@@ -339,5 +339,31 @@ def index():
     data = None
     if rows:
         data = super_table('item', ['name'], rows, row_function=item_row, options_function=item_options)
+
+    return locals()
+
+
+
+def browse():
+    """ Item browser
+        vars: {category, sort}
+    """
+
+    category = db.category(request.vars.category)
+
+    query = (db.item.is_active == True)
+
+    if category:
+        query &= (db.item.categories.contains(category.id))
+
+    items = db(query).select()
+
+    selected_categories = [category.id] if category else []
+    categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))
+
+    filter_data = {
+        "tablename": "item",
+        "sortby": ['base_price', 'name']
+    }
 
     return locals()

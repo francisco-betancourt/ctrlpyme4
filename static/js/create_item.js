@@ -57,8 +57,6 @@ function update_categories_and_traits() {
 
 update_categories_and_traits();
 
-console.log('script');
-
 
 // #TODO:30 add parent category selection, when selecting a child.
 $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {

@@ -112,3 +112,30 @@ button.cp-fab:focus{
 .info-card .info-btn {
   margin-top: 15px;
 }
+
+
+
+.items-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.item-card {
+  flex: 0 0 auto;
+  min-width: 260px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+.item-card>.panel-heading {
+  height: 260px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+
+
+/* Fix firefox ugly dropdown arrow */
+select {
+  /*-moz-appearance: none;
+  text-indent: 0.01px;
+  text-overflow: '';*/
+}

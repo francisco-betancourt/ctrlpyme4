@@ -53,6 +53,8 @@ if auth.has_membership("Employee"):
         , (T('Inventory'), False, URL('inventory', 'index'), [ ])
         , (T('Analytics'), False, URL('analytics', 'index'), [ ])
     ]
+else:
+    response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
 
 # response.menu += [
 #     (T('Admin'), False, None, [

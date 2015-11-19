@@ -3,6 +3,41 @@
 # Author: Daniel J. Ramirez
 
 
+def item_card(item):
+    """ """
+
+    return DIV(
+        DIV(_class="panel-heading"),
+        DIV(
+            H4(item.name),
+            P(item.description),
+            DIV(
+                BUTTON(T("Add to Bag"), _class="btn btn-primary right", _onclick="add_bag_item(%s);" % item.id)
+            ),
+            _class="panel-body"
+        ),
+        _class="panel panel-default item-card"
+    )
+
+
+def filter_menu(filter_data):
+    """ """
+
+    tablename = filter_data['tablename']
+    sort_options = SELECT(_class="form-control")
+    for sort_option in filter_data['sortby']:
+        sort_options.append(OPTION(db[tablename][sort_option].label, _value=sort_option))
+
+    return DIV(
+        DIV(
+            H5(T("Order by")),
+            sort_options,
+            _class="panel-body"
+        ),
+        _class="panel panel-default"
+    )
+
+
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
     button = BUTTON(I(_class='fa fa-%s' % icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
@@ -91,15 +126,6 @@ def sqlform_field(id, label, content):
                 DIV(content, _class="col-sm-9", _id=id + '_contents' ),
                 _id=id, _class="form-group"
             )
-
-
-
-def item_card(item):
-    """ Returns a item card """
-
-    card = DIV()
-
-
 
 
 

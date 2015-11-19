@@ -89,3 +89,46 @@ def fix_item_quantity(item, quantity):
         return quantity
     else:
         return remove_fractions(quantity)
+
+
+def json_categories_tree(item=None, selected_categories=[]):
+    """ Creates a json representation of the categories tree, this representation is used with bootstrap treeview """
+
+    categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
+    current_category = categories.first().parent
+    categories_children = {}
+    current_tree = []
+    categories_selected_text = ""
+    for category in categories:
+        if category.parent != current_category:
+            categories_children[current_category] = current_tree
+            current_tree = []
+            current_category = category.parent
+        # current_tree.append({'text': category.name})
+        child = {'text': category.name, 'category_id': category.id}
+        if category.id in selected_categories:
+            if child.has_key('state'):
+                child['state']['selected'] = True
+            else:
+                child['state'] = {'selected': True};
+        if item:
+            if category.id in item.categories:
+                child['state'] = {'checked': True};
+                categories_selected_text += str(category.id) + ','
+        if categories_children.has_key(category.id):
+            child['nodes'] = categories_children[category.id]
+            current_tree.append(child)
+            if category.parent:
+                del categories_children[category.id]
+        else:
+            current_tree.append(child)
+    categories_children[current_category] = current_tree
+    current_tree = []
+    # the categories_children array contains the master categories.
+    categories_tree = []
+    for subtree in categories_children.itervalues():
+        categories_tree.append(subtree)
+    # json object from python dict
+    categories_tree = json.dumps(categories_tree[0])
+
+    return categories_tree

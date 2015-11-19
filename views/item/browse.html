@@ -1,0 +1,51 @@
+{{left_sidebar_enabled = True}}
+{{extend "layout.html"}}
+
+<h1>{{=T("Browse items")}}</h1>
+
+
+<div class="items-container">
+  {{for item in items:}}
+    {{=item_card(item)}}
+  {{pass}}
+</div>
+
+{{block left_sidebar}}
+<h3>{{=T('Categories')}}</h3>
+<div id="categories_tree"></div>
+
+{{if filter_data:}}
+  <h3>{{=T("Options")}}</h3>
+  {{=filter_menu(filter_data)}}
+{{pass}}
+
+{{end}}
+
+{{=categories_data_script}}
+
+
+<script>
+  $('#categories_tree').treeview({
+    data: categories_tree_data,
+    checkedIcon: 'fa fa-check-square-o',
+    uncheckedIcon: 'fa fa-square-o',
+    expandIcon: 'fa fa-plus',
+    collapseIcon: 'fa fa-minus',
+    highlightSelected: true,
+    levels: 1
+  });
+
+
+
+
+  $('#categories_tree').on('nodeSelected', function(event, data) {
+    window.location.href = "{{=URL('browse')}}?category=" + data.category_id
+  });
+
+
+  // when the category is not visible, we have
+  var selected_node = $('#categories_tree').treeview('getSelected')[0];
+  if (selected_node) {
+    $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true } ]);
+  }
+</script>
