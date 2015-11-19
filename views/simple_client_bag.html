@@ -1,0 +1,293 @@
+
+<!-- Bag -->
+<div class="panel panel-default" id="current_bag">
+  <div class="panel-heading">
+    <h3>{{=T('Bag')}} <span id="bag_id"></span> (<span class="bag_quantity"></span>)<i class="fa fa-compress right collapse_bag"></i></h3>
+  </div>
+  <div class="panel-body">
+    <div class="list-group" id="bag_items_list">
+    </div>
+  </div>
+
+  <div class="panel-footer">
+    <p> <span>{{=T('Subtotal')}}</span> <span class="right subtotal">00</span> </p>
+    <p> <span>{{=T('Taxes')}}</span> <span class="right taxes">00</span> </p>
+    <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
+    <hr>
+
+    <button class="btn btn-primary sell_bag" onclick="sell_bag();">
+      {{=T('Complete')}}
+    </button>
+
+  </div>
+</div>
+
+
+
+
+<div id="proto_bag_item" class="list-group-item" hidden="hidden">
+  <div>
+    <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
+    <p><span class="item_stock"></span></p>
+    <p><span class="item_price base_price"></span></p>
+
+    <div class="input-group">
+      <div class="input-group-addon">{{=T('Quantity')}}</div>
+      <input type="number" class="form-control item_qty">
+      <div class="input-group-addon munit"></div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" tabindex="-1" role="dialog" id="access_code_modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">{{=T('Manager access')}}</h4>
+      </div>
+      <div class="modal-body">
+        <input type="password" id="access_code" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary submit">
+          {{=T('Authenticate')}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+  function add_bag() {
+    $.ajax({
+      url: "{{=URL('bag', 'create', extension='json')}}"
+    })
+    .done(function (data) {
+      load_bag(data.bag);
+
+      // add the new bag to the active bags list
+      var bag_selector = document.createElement('a');
+      bag_selector.id = 'bag_selector_' + data.bag;
+      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+      bag_selector.href = '#';
+      bag_selector.className = 'list-group-item';
+      $('#active_bags').append(bag_selector);
+      $('#bag_selector_' + data.bag).click(function(event) {
+        load_bag(data.bag);
+      });
+    })
+  }
+</script>
+
+
+<!-- Scanner script -->
+<script>
+
+  function set_bag_data(data) {
+    $('#current_bag .subtotal').text(data.subtotal);
+    $('#current_bag .taxes').text(data.taxes);
+    $('#current_bag .total').text(data.total);
+
+    $('#current_bag .bag_quantity').text(data.quantity);
+  }
+
+
+  function set_sale_price(price_index, bag_item_id, target) {
+    $('#access_code_modal').find('.submit').click(function (event) {
+      $.ajax({
+        url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
+      })
+      .done(function (data) {
+        $('#access_code_modal').modal('hide');
+        $(target).parent().find('.btn-primary').removeClass('btn-primary');
+        $(target).addClass('btn-primary');
+
+        set_bag_data(data)
+      })
+      .fail(function (data) {
+        $('#access_code_modal').modal('hide');
+        alert('Invalid access');
+      })
+    })
+    $('#access_code_modal').modal();
+  }
+
+
+  function base_add_bag_item(bag_item, res) {
+    if (res.status) {
+      alert(res.status);
+      return;
+    }
+    var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
+    if (item) {
+      $(item).find('.item_qty').val(bag_item.quantity);
+    }
+    else {
+      $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+    }
+    set_bag_data(res)
+  }
+
+
+  function clone_proto_item(data, barcode) {
+    var new_item = $('#proto_bag_item').clone();
+    var new_item_id = 'bag_item_' + data.id;
+    new_item.attr('id', new_item_id);
+    new_item.attr('barcode', barcode);
+    new_item.attr('itemid', data.id_item);
+    new_item.find('.item_name').text(data.product_name);
+    new_item_stock = new_item.find('.item_stock');
+    if (data.stock <= 0) {
+      new_item_stock.text("{{=T('Out of stock')}}");
+      new_item_stock.addClass('text-danger');
+    }
+    else {
+      new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
+    }
+    new_item.find('.item_price').text(data.base_price);
+
+    new_item.find('.item_qty').val(data.quantity);
+    new_item.find('.munit').text(data.measure_unit);
+
+    new_item.find('.close').click(function(event) {
+      $.ajax({
+        url: "{{=URL('bag', 'delete_bag_item', extension='json')}}/" + data.id
+      })
+      .done(function(res) {
+        $('#' + new_item_id).remove();
+        set_bag_data(res)
+      })
+    })
+
+    new_item.find('.item_qty').change(function (event) {
+      $.ajax({
+        url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
+      })
+      .done(function (data) {
+        new_item.find('.item_qty').val(data.bag_item.quantity)
+        set_bag_data(data)
+      })
+    });
+
+    new_item.show();
+
+    return new_item;
+  }
+</script>
+
+
+<script>
+  function show_active_bags() {
+    $('#active_bags').toggle();
+  }
+
+  function load_bag(bag_id) {
+    // retrieve bag items
+    $.ajax({
+      url: "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id
+    })
+    .done(function (data) {
+      var bag = data.bag
+      $('#bag_items_list').children().remove();
+      $('#bag_id').text(bag.id);
+
+      for (var bag_item_id in data.bag_items) {
+        console.log(bag_item_id);
+        var bag_item = data.bag_items[bag_item_id]
+        $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+      }
+
+      set_bag_data(data);
+
+      $('#active_bags').hide();
+
+      $('#current_bag').show();
+    });
+  }
+
+
+  function add_bag_item(item_id) {
+    $.ajax({
+      url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + item_id
+    })
+    .done(function (res) {
+      bag_item = res.bag_item;
+      base_add_bag_item(bag_item, res);
+
+      set_bag_data(res)
+    })
+  }
+
+
+  $('#add_bag_btn').on('click', function(event) {
+    $.ajax({
+      url: "{{=URL('bag', 'create', extension='json')}}"
+    })
+    .done(function (data) {
+      load_bag(data.bag);
+
+      // add the new bag to the active bags list
+      var bag_selector = document.createElement('a');
+      bag_selector.id = 'bag_selector_' + data.bag;
+      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+      bag_selector.href = '#';
+      bag_selector.className = 'list-group-item';
+      $('#active_bags').append(bag_selector);
+      $('#bag_selector_' + data.bag).click(function(event) {
+        load_bag(data.bag);
+      });
+    })
+  });
+
+
+  function discard_bag() {
+    $.ajax({
+        url: "{{=URL('bag', 'discard_bag', extension='json')}}"
+      })
+      .done(function (res) {
+        var removed = res.removed;
+        $('#bag_selector_' + removed).remove();
+        if (res.other_bag) {
+          load_bag(res.other_bag.id)
+        }
+        else {
+          add_bag();
+        }
+        return false;
+      })
+  }
+
+
+  function sell_bag() {
+    window.location.href = "{{=URL('bag', 'complete')}}";
+  }
+
+
+  $('#proto_bag_item').hide();
+
+  function collapse_bag() {
+    console.log('collapse');
+  }
+
+
+  $('.panel').find('.collapse_bag').on('click', function(event) {
+    if ($(event.target).hasClass('fa-compress')) {
+      $(event.target).removeClass('fa-compress');
+      $(event.target).addClass('fa-expand');
+    }
+    else if ($(event.target).hasClass('fa-expand')) {
+      $(event.target).removeClass('fa-expand');
+      $(event.target).addClass('fa-compress');
+    }
+    $('#current_bag .panel-body').toggle();
+  });
+
+  {{if session.current_bag:}}
+    load_bag({{=session.current_bag}});
+  {{pass}}
+</script>

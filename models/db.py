@@ -65,7 +65,7 @@ db.define_table(
 )
 
 auth.settings.extra_fields['auth_user'] = [
-        Field('access_code', default="000000", label=T('Access code'))
+        Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
 ]
 
@@ -313,9 +313,9 @@ db.define_table("purchase",
     Field("id_supplier", "reference supplier", label=T('Supplier')),
     Field("id_store", "reference store", label=T('Store')),
     Field("invoice_number", "integer", default=None, label=T('Invoice number')),
-    Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
-    Field("total", "decimal(16,6)", default=None, label=T('Total')),
-    Field("shipping_cost", "decimal(16,6)", default=None, label=T('Shipping cost')),
+    Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal')),
+    Field("total", "decimal(16,6)", default=0, label=T('Total')),
+    Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
     Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
     Field("purchase_xml", "text", default=None, label=T('XML'), readable=False, writable=False),
@@ -324,17 +324,17 @@ db.define_table("purchase",
 
 db.define_table("bag",
     Field("id_store", "reference store", label=T('Store'))
-    , Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'))
-    , Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'))
-    , Field("total", "decimal(16,6)", default=None, label=T('Total'))
-    , Field("completed", "string", default=None, label=T('Completed'))
+    , Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal'))
+    , Field("taxes", "decimal(16,6)", default=0, label=T('Taxes'))
+    , Field("total", "decimal(16,6)", default=0, label=T('Total'))
+    , Field("completed", "string", default=False, label=T('Completed'))
     , auth.signature)
 
 
 db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
     Field("id_bag", "reference bag", label=T('Bag')),
-    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')),
+    Field("quantity", "decimal(16,6)", default=1, label=T('Quantity')),
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),

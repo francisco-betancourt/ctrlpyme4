@@ -6,11 +6,20 @@
 def item_card(item):
     """ """
 
+    available = "Not available"
+    available_class = "text-danger"
+    if not session.store:
+        stock_data = item_stock(item)
+        if stock_data['quantity'] > 0:
+            available_class = "text-success"
+            available = "Available"
+
     return DIV(
         DIV(_class="panel-heading"),
         DIV(
             H4(item.name),
             P(item.description),
+            P(T(available), _class=available_class),
             DIV(
                 BUTTON(T("Add to Bag"), _class="btn btn-primary right", _onclick="add_bag_item(%s);" % item.id)
             ),

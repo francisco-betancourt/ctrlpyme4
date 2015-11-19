@@ -53,7 +53,7 @@ def post_logout():
 def store_selection():
     """ Admin does not need to select a store """
 
-    if session.store:
+    if session.store or not auth.has_membership('Employee'):
         redirect(URL('default', 'index'))
 
     form = SQLFORM.factory(

@@ -172,7 +172,7 @@
           {{if auth.user and request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
             {{include 'bag.html'}}
           {{else:}}
-            {{include 'client_bag.html'}}
+            {{include 'simple_client_bag.html'}}
           {{pass}}
         </div>
       </secction>

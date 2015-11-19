@@ -50,7 +50,9 @@ def refresh_bag_data(id_bag):
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
-@auth.requires_membership('Sales bags')
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def modify_bag_item():
     """
         modifies the bag_item quantity.
@@ -64,6 +66,9 @@ def modify_bag_item():
         raise HTTP(403)
     if not bag_item:
         raise HTTP(404)
+    if auth.user and bag_item.created_by != auth.user.id:
+        raise HTTP(500)
+
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
     if not bag_item.id_item.allow_fractions:
         bag_item.quantity = remove_fractions(bag_item.quantity)
@@ -78,7 +83,6 @@ def modify_bag_item():
     return dict(status='ok', bag_item=bag_item, **bag_data)
 
 
-@auth.requires_membership('Sales bags')
 def set_bag_item(bag_item):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
     item = db.item(bag_item.id_item)
@@ -97,7 +101,9 @@ def set_bag_item(bag_item):
     return bag_item
 
 
-@auth.requires_membership('Sales bags')
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
@@ -134,7 +140,9 @@ def select_bag():
         traceback.print_exc();
 
 
-@auth.requires_membership('Sales bags')
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def add_bag_item():
     """
         args:
@@ -196,7 +204,10 @@ def add_bag_item():
         import traceback
         traceback.print_exc()
 
-@auth.requires_membership('Sales bags')
+
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def delete_bag_item():
     """
         args:
@@ -271,7 +282,9 @@ def change_bag_item_sale_price():
     return dict(status="ok", **bag_data)
 
 
-@auth.requires_membership('Sales bags')
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def complete():
     bag = get_valid_bag(session.current_bag)
     if not bag:

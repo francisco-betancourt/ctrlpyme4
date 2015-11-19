@@ -13,6 +13,10 @@ def search_item():
 
     # search by item name
     query = (db.item.name.contains(term))
+    query |= (db.item.sku.contains(term))
+    query |= (db.item.ean.contains(term))
+    query |= (db.item.upc.contains(term))
+
     matched_categories = db(db.category.name.contains(term)).select()
     if matched_categories:
         matched_categories_ids = []

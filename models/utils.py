@@ -52,7 +52,7 @@ def item_taxes(item, price):
     return DQ(D(price) * D(taxes))
 
 
-def item_stock(item, id_store, include_empty=False):
+def item_stock(item, id_store=None, include_empty=False):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
 
     stocks = None
