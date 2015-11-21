@@ -273,6 +273,42 @@ def get():
     return locals()
 
 
+def get_by_name():
+    """
+        args:
+            item_name: the item name that will be searched for
+    """
+    item_name = request.args(0)
+    items = db(db.item.name == request.args(0)).select()
+    if not items:
+        raise HTTP(404)
+
+    same_traits = True
+    base_trait_category_set = []
+    trait_options = {}
+    for trait in items.first().traits:
+        base_trait_category_set.append(trait.id_trait_category)
+        trait_options[str(trait.id_trait_category.id)] = {
+            'id': trait.id_trait_category.id,
+            'options': [{'name': trait.trait_option, 'id': trait.id}]
+        }
+    base_trait_category_set = set(base_trait_category_set)
+    for item in items[1:]:
+        other_trait_category_set = []
+        for trait in items.first().traits:
+            other_trait_category_set.append(trait.id_trait_category)
+            if not trait.id_trait_category in base_trait_category_set:
+                same_traits = False
+                break
+            trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
+    if same_traits:
+        for trait_c in base_trait_category_set:
+            print trait_c.name
+    print trait_options
+
+    return locals()
+
+
 def find_by_code():
     """ Returns the items whose one of its barcodes matches the specified one
 
@@ -356,7 +392,9 @@ def browse():
     if category:
         query &= (db.item.categories.contains(category.id))
 
-    items = db(query).select()
+    items = db(query).select(groupby=db.item.name)
+    for item in items:
+        print item.id
 
     selected_categories = [category.id] if category else []
     categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))

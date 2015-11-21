@@ -1,0 +1,22 @@
+{{left_sidebar_enabled = True}}
+{{extend "layout.html"}}
+
+{{if same_traits:}}
+  {{for trait_c in base_trait_category_set:}}
+    <h3>{{=trait_c.name}}</h3>
+    <select name="" id="">
+      {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
+        <option value="">{{=trait_option['name']}}</option>
+      {{pass}}
+    </select>
+  {{pass}}
+{{pass}}
+
+{{block left_sidebar}}
+<h1>{{=item_name}}</h1>
+<h4><a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a></h4>
+
+<img src="" alt="" width="100%">
+
+<button class="btn btn-primary btn-block">{{=T("Add to bag")}}</button>
+{{end}}

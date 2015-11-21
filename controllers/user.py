@@ -33,7 +33,7 @@ def index():
 @auth.requires_login()
 def post_login():
     # set the current bag, if theres is one
-    if not session.current_bag or db(session.current_bag).id_store != session.store:
+    if not session.current_bag or db.bag(session.current_bag).id_store != session.store:
         some_active_bag = db((db.bag.is_active == True)
                            & (db.bag.completed == False)
                            & (db.bag.created_by == auth.user.id)
@@ -46,6 +46,7 @@ def post_login():
 
 def post_logout():
     session.store = None
+    session.current_bag = None
     redirect(URL('default', 'index'))
 
 

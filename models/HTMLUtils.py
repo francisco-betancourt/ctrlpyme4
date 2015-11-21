@@ -32,7 +32,7 @@ def item_card(item):
     return DIV(
         DIV(_class="panel-heading"),
         DIV(
-            H4(item.name),
+            H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
             P(item.description),
             P(T(available), _class=available_class),
             item_options,
@@ -40,6 +40,9 @@ def item_card(item):
         ),
         _class="panel panel-default item-card"
     )
+
+
+# def
 
 
 def filter_menu(filter_data):

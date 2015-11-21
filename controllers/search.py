@@ -5,7 +5,10 @@
 def search_item():
     """
         args: [search_term]
+        vars: {id_category}
     """
+
+    category = db.category(request.vars.id_category)
 
     prettify = request.vars.pretty == 'True'
 
@@ -17,13 +20,19 @@ def search_item():
     query |= (db.item.ean.contains(term))
     query |= (db.item.upc.contains(term))
 
-    matched_categories = db(db.category.name.contains(term)).select()
-    if matched_categories:
-        matched_categories_ids = []
-        for matched_category in matched_categories:
-            matched_categories_ids.append(str(matched_category.id))
-        # search by category
-        query |= (db.item.categories.contains(matched_categories_ids, all=False))
+    categories_data_script = SCRIPT()
+    if not category:
+        matched_categories = db(db.category.name.contains(term)).select()
+        if matched_categories:
+            matched_categories_ids = []
+            for matched_category in matched_categories:
+                matched_categories_ids.append(str(matched_category.id))
+            # search by category
+            query |= (db.item.categories.contains(matched_categories_ids, all=False))
+    # else:
+    #     query &= (db.item.categories.contains(category.id))
+    #     categories_data_script = SCRIPT('var categories_tree_data = %s;' % json_categories_tree(None, visible_categories=[category.id]))
+
 
     # search by Brands
     matched_brands = db(db.brand.name.contains(term)).select()
@@ -39,4 +48,4 @@ def search_item():
 
     items = db(query).select()
 
-    return dict(items=items)
+    return dict(items=items, categories_data_script=categories_data_script)

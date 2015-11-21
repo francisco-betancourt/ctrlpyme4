@@ -388,10 +388,6 @@
     $('#current_bag .panel-body').toggle();
   });
 
-  {{if session.current_bag:}}
-    load_bag({{=session.current_bag}});
-  {{else:}}
-    add_bag();
-  {{pass}}
+  load_bag({{=session.current_bag}});
 
 </script>

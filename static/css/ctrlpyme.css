@@ -121,6 +121,7 @@ button.cp-fab:focus{
 }
 
 .item-card {
+  margin-right: 8px;
   flex: 0 0 auto;
   min-width: 260px;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);

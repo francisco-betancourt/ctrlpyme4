@@ -6,6 +6,7 @@ import urllib
 import re
 from decimal import Decimal as D
 import math
+import json
 
 
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
@@ -91,10 +92,10 @@ def fix_item_quantity(item, quantity):
         return remove_fractions(quantity)
 
 
-def json_categories_tree(item=None, selected_categories=[]):
+def json_categories_tree(item=None, selected_categories=[], visible_categories=[]):
     """ Creates a json representation of the categories tree, this representation is used with bootstrap treeview """
 
-    categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
+    categories = db((db.category.is_active == True)).select(orderby=~db.category.parent)
     current_category = categories.first().parent
     categories_children = {}
     current_tree = []
