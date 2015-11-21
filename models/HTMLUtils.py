@@ -8,11 +8,26 @@ def item_card(item):
 
     available = "Not available"
     available_class = "text-danger"
+    stock_qty = 0
     if not session.store:
         stock_data = item_stock(item)
-        if stock_data['quantity'] > 0:
-            available_class = "text-success"
-            available = "Available"
+        stock_qty = stock_data['quantity']
+    else:
+        stock_data = item_stock(item, session.store)
+        stock_qty = stock_data['quantity']
+    if stock_qty > 0:
+        available_class = "text-success"
+        available = "Available"
+
+    item_options = DIV()
+    if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+        item_options.append(
+            A(I(_class="fa fa-pencil"), _class="btn btn-primary", _href=URL('item', 'update', args=item.id))
+        )
+    if auth.is_logged_in():
+        item_options.append(
+            BUTTON(T("Add to bag"), _class="btn btn-primary", _onclick="add_bag_item(%s);" % item.id)
+        )
 
     return DIV(
         DIV(_class="panel-heading"),
@@ -20,9 +35,7 @@ def item_card(item):
             H4(item.name),
             P(item.description),
             P(T(available), _class=available_class),
-            DIV(
-                BUTTON(T("Add to Bag"), _class="btn btn-primary right", _onclick="add_bag_item(%s);" % item.id)
-            ),
+            item_options,
             _class="panel-body"
         ),
         _class="panel panel-default item-card"

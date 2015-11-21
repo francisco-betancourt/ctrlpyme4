@@ -1,38 +1,8 @@
 {{extend "layout.html"}}
 <h1>{{=T("Search results")}}</h1>
 
-{{include "proto_item_card.html"}}
-
-<style>
-  .items-container {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .item-card {
-    flex: 0 0 auto;
-    min-width: 260px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.2);
-  }
-  .item-card>.panel-heading {
-    height: 260px;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-</style>
-
 <div class="items-container">
   {{for item in items:}}
-    <div class="panel panel-default item-card">
-      <div class="panel-heading" style="">
-      </div>
-      <div class="panel-body">
-        <h4>{{=item.name}}</h4>
-        <p>{{=item.description}}</p>
-        <div>
-          <button class="btn btn-primary right" onclick="add_bag_item({{=item.id}});">Add to Bag</button>
-        </div>
-      </div>
-    </div>
+    {{=item_card(item)}}
   {{pass}}
 </div>

@@ -5,7 +5,7 @@
 {{if data:}}
   {{delete_enabled = True}}
   {{include 'selection_menu.html'}}
-  
+
   {{ =data }}
 {{else:}}
   {{=T('No taxes found')}}
@@ -13,5 +13,5 @@
   {{=T('the plus button to create one.')}}
 {{pass}}
 
-{{fab_action = URL('create', vars=request.vars)}}
-{{include "fab.html"}}
+{{core_action = URL('create', vars=request.vars)}}
+{{include "core_button.html"}}
