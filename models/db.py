@@ -113,16 +113,27 @@ class IS_BARCODE_AVAILABLE(object):
         self.db = db;
         self.barcode = barcode
         self.error_message = error_message
+        self.record_id = None
     def set_self_id(self, id):
         self.record_id = id
     def __call__(self, value):
         if not value:
             return (value, None)
-        barcodes = self.db((self.db.item.sku == self.barcode)
-                         | (self.db.item.ean == self.barcode)
-                         | (self.db.item.upc == self.barcode)
-                         & (self.db.item.id != self.record_id)
-                          ).select()
+
+        barcodes = None
+        if self.record_id:
+            barcodes = self.db((self.db.item.id != self.record_id)
+                               & ((self.db.item.sku == self.barcode)
+                                | (self.db.item.ean == self.barcode)
+                                | (self.db.item.upc == self.barcode))
+                             ).select()
+            # print barcodes.first().id
+        else:
+            barcodes = self.db((self.db.item.sku == self.barcode)
+                             | (self.db.item.ean == self.barcode)
+                             | (self.db.item.upc == self.barcode)
+                             ).select()
+
         if not barcodes:
             return (value, None)
         else:
@@ -186,7 +197,8 @@ db.define_table("tax",
     Field("name", "string", default=None, label=T('Name')),
     Field("percentage", "integer", default=None, label=T('Percentage')),
     Field("symbol", "string", default=None, label=T('Symbol')),
-    auth.signature)
+    auth.signature,
+    format='%(name)s')
 
 
 db.define_table(
@@ -264,6 +276,7 @@ db.define_table("item",
     auth.signature)
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
+# db.item.taxes.requires=IS_IN_DB( db, 'db.tax.id', ' %(name)s', multiple=True)
 
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)

@@ -17,8 +17,9 @@ def create():
 
     if parent:
         redirect_url = URL('get', args=parent.id)
-        form = SQLFORM(db.category, fields=['name', 'description', 'url_name', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
-        form.vars.parent = parent.id
+    form = SQLFORM(db.category, fields=['name', 'description', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
+
+    form.vars.parent = parent.id if parent else None
 
     if form.process().accepted:
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
@@ -28,7 +29,7 @@ def create():
     elif form.errors:
         response.flash = T('form has errors')
 
-    return dict(form=form)
+    return dict(form=form, parent=parent)
 
 
 @auth.requires_membership('Items management')
