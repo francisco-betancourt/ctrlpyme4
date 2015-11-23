@@ -330,6 +330,8 @@ def get_by_name():
 
     first_stock = stock_info(items.first())
 
+    images = db(db.item_image.id_item == items.first().id).select()
+
     return locals()
 
 

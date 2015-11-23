@@ -19,9 +19,15 @@
 
 {{block left_sidebar}}
 <h1>{{=item_name}}</h1>
-<h4><a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span></h4>
+<h4>
+  <a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span> | <span class="barcode">{{=item_barcode(items.first())}}</span>
+</h4>
 
-<img src="" alt="" width="100%">
+<div class="main-item-image">
+  {{if images:}}
+    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="">
+  {{pass}}
+</div>
 
 <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(items.first().base_price, True)}}</span></span></h3>
 

@@ -45,17 +45,14 @@ def item_card(item):
         available = "Available"
 
     item_options = DIV()
-    # if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
-    #     item_options.append(
-    #         A(I(_class="fa fa-pencil"), _class="btn btn-primary", _href=URL('item', 'update', args=item.id))
-    #     )
-    # if auth.is_logged_in():
-    #     item_options.append(
-    #         BUTTON(T("Add to bag"), _class="btn btn-primary", _onclick="add_bag_item(%s);" % item.id)
-    #     )
+
+    bg_style = ""
+    images = db(db.item_image.id_item == item.id).select()
+    if images:
+        bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().image)
 
     return DIV(
-        DIV(_class="panel-heading"),
+        DIV(_class="panel-heading", _style=bg_style),
         DIV(
             H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
             H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))),

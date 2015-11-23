@@ -441,9 +441,8 @@ db.define_table("payment",
     Field("wallet_code", default=None, label=T('Wallet code')),
     auth.signature)
 
-db.define_table("item_images",
+db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item')),
-    Field("id_trait", "reference trait", label=T('Trait')),
     Field("image", "upload", default=None, label=T('Image')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')))
 
