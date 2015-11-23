@@ -3,11 +3,36 @@
 # Author: Daniel J. Ramirez
 
 
+def stock_info(item):
+    available = True
+    stock = 0
+    if auth.has_membership('Employee'):
+        stock = item_stock(item, session.store)['quantity']
+        stock = fix_item_quantity(item, stock)
+        if stock <= 0:
+            stock = SPAN(T('Out of stock'), _class="text-danger")
+            available = False
+        else:
+            stock = str(stock) + " " + T('Available')
+    else:
+        stock = item_stock(item)['quantity']
+        if stock <= 0:
+            stock = SPAN(T('Out of stock'), _class="text-danger")
+            available = False
+        else:
+            stock = SPAN(T('Available'), _class="text-success")
+
+    return stock
+
+
 def item_card(item):
     """ """
 
     available = "Not available"
     available_class = "text-danger"
+
+    # stock, available = stock_info(item)
+
     stock_qty = 0
     if not session.store:
         stock_data = item_stock(item)
@@ -20,19 +45,21 @@ def item_card(item):
         available = "Available"
 
     item_options = DIV()
-    if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
-        item_options.append(
-            A(I(_class="fa fa-pencil"), _class="btn btn-primary", _href=URL('item', 'update', args=item.id))
-        )
-    if auth.is_logged_in():
-        item_options.append(
-            BUTTON(T("Add to bag"), _class="btn btn-primary", _onclick="add_bag_item(%s);" % item.id)
-        )
+    # if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+    #     item_options.append(
+    #         A(I(_class="fa fa-pencil"), _class="btn btn-primary", _href=URL('item', 'update', args=item.id))
+    #     )
+    # if auth.is_logged_in():
+    #     item_options.append(
+    #         BUTTON(T("Add to bag"), _class="btn btn-primary", _onclick="add_bag_item(%s);" % item.id)
+    #     )
 
     return DIV(
         DIV(_class="panel-heading"),
         DIV(
             H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
+            H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))),
+
             P(item.description),
             P(T(available), _class=available_class),
             item_options,

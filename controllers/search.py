@@ -46,6 +46,6 @@ def search_item():
 
     query &= (db.item.is_active == True)
 
-    items = db(query).select()
+    items = db(query).select(groupby=db.item.name)
 
     return dict(items=items, categories_data_script=categories_data_script)

@@ -4,19 +4,77 @@
 {{if same_traits:}}
   {{for trait_c in base_trait_category_set:}}
     <h3>{{=trait_c.name}}</h3>
-    <select name="" id="">
+    <select id="" class="form-control trait-selector">
       {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
-        <option value="">{{=trait_option['name']}}</option>
+        <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
       {{pass}}
     </select>
   {{pass}}
 {{pass}}
 
+
+<script>
+  var current_item_id = {{=items.first().id}};
+</script>
+
 {{block left_sidebar}}
 <h1>{{=item_name}}</h1>
-<h4><a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a></h4>
+<h4><a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span></h4>
 
 <img src="" alt="" width="100%">
 
-<button class="btn btn-primary btn-block">{{=T("Add to bag")}}</button>
+<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(items.first().base_price, True)}}</span></span></h3>
+
+<button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
+
+{{if auth.has_membership('Employee'):}}
+<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <i class="fa fa-pencil"></i></button>
+    </div>
+  {{pass}}
+  {{if auth.has_membership('Purchases'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <i class="fa fa-shopping-cart"></i></button>
+    </div>
+  {{pass}}
+  {{if auth.has_membership('Analytics'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <i class="fa fa-bar-chart"></i></button>
+    </div>
+  {{pass}}
+</div>
+{{pass}}
+
 {{end}}
+
+
+<script>
+  var selected_traits = "";
+
+  $('.trait-selector>option').click(function (event) {
+    selected_traits = '';
+    $('.trait-selector').each(function (index) {
+      if (index > 0) {
+        selected_traits += ','
+      }
+      selected_traits += $(this).val();
+    });
+    $.ajax({
+      url: "{{=URL('get_by_name_and_traits', args=item_name, extension='json')}}?traits="+selected_traits
+    })
+    .done(function (data) {
+      $('.item-price').text(data.item.base_price);
+      $('.stock').text(data.stock);
+      current_item_id = data.item.id;
+    })
+  });
+
+  function update_item(item_id) {
+    window.location.href = "{{=URL('update')}}/" + item_id;
+  }
+</script>

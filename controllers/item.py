@@ -273,19 +273,45 @@ def get():
     return locals()
 
 
+def get_by_name_and_traits():
+    """
+        args:
+            item_name: the item name that will be searched for
+        vars: {traits}
+    """
+    item_name = request.raw_args.split('/')[0]
+
+    traits = request.vars.traits.split(',')
+
+    item = db(
+        (db.item.name == item_name)
+      & (db.item.traits.contains(traits, all=True))
+    ).select().first()
+    if not item:
+        raise HTTP(404)
+    item.base_price = str(DQ(item.base_price, True))
+
+    stock = stock_info(item)
+
+    return locals()
+
+
 def get_by_name():
     """
         args:
             item_name: the item name that will be searched for
     """
     item_name = request.args(0)
-    items = db(db.item.name == request.args(0)).select()
+    # print item_name
+    item_name = request.raw_args.split('/')[0]
+    items = db(db.item.name == item_name).select()
     if not items:
         raise HTTP(404)
 
     same_traits = True
     base_trait_category_set = []
     trait_options = {}
+
     for trait in items.first().traits:
         base_trait_category_set.append(trait.id_trait_category)
         trait_options[str(trait.id_trait_category.id)] = {
@@ -295,16 +321,14 @@ def get_by_name():
     base_trait_category_set = set(base_trait_category_set)
     for item in items[1:]:
         other_trait_category_set = []
-        for trait in items.first().traits:
+        for trait in item.traits:
             other_trait_category_set.append(trait.id_trait_category)
             if not trait.id_trait_category in base_trait_category_set:
                 same_traits = False
                 break
             trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
-    if same_traits:
-        for trait_c in base_trait_category_set:
-            print trait_c.name
-    print trait_options
+
+    first_stock = stock_info(items.first())
 
     return locals()
 
