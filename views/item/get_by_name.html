@@ -20,7 +20,10 @@
 {{block left_sidebar}}
 <h1>{{=item_name}}</h1>
 <h4>
-  <a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span> | <span class="barcode">{{=item_barcode(items.first())}}</span>
+  <a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span>
+      {{if auth.has_membership('Employee'):}}
+   | <span class="barcode">{{=item_barcode(items.first())}}</span>
+   {{pass}}
 </h4>
 
 <div class="main-item-image">
@@ -28,6 +31,8 @@
     <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="">
   {{pass}}
 </div>
+{{include 'image_uploader.html'}}
+{{pass}}
 
 <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(items.first().base_price, True)}}</span></span></h3>
 
@@ -75,7 +80,7 @@
     })
     .done(function (data) {
       $('.item-price').text(data.item.base_price);
-      $('.stock').text(data.stock);
+      $('.stock').html(data.stock);
       current_item_id = data.item.id;
     })
   });

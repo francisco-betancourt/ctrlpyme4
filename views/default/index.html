@@ -3,36 +3,21 @@
 
 {{block header}}
     <header class="container-fluid background">
-      <div class="jumbotron text-center">
+      <div class="jumbotron">
         {{if response.title:}}
-          <h1>{{=T('Highlights')}}
+          <h1>{{=T('Deals')}}
         {{pass}}
       </div>
     </header>
 {{end}}
 
 
-<style>
-  .item-card {
-    width: 350px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.2);
-  }
-  .item-card>.panel-heading {
-    height: 350px;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-</style>
-
 <h2>{{=T('Popular items')}}</h2>
-  <div class="panel panel-default item-card">
-    <div class="panel-heading" style="background-image: url({{=URL('static', 'images/test_product.jpg')}})">
-    </div>
-    <div class="panel-body">
-      <h4>Product Name</h4>
-      <p>Brief description</p>
-      <div>
-        <button class="btn btn-primary right">Add to Bag</button>
-      </div>
-    </div>
-</div>
+
+
+<h2>{{=T('New items')}}</h2>
+  <div class="items-container">
+    {{for new_item in new_items:}}
+      {{=item_card(new_item)}}
+    {{pass}}
+  </div>

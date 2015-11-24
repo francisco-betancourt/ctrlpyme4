@@ -66,12 +66,45 @@ def cash_out():
     return locals()
 
 
+
+def day_report_data(year, month, day):
+    year = datetime.date.today().year if not year else year
+    month = datetime.date.today().month if not month else month
+    day = datetime.date.today().day if not day else day
+
+    date = datetime.date(year, month, day)
+
+
+    start_date = datetime.datetime(date.year, date.month, date.day, 0)
+    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+
+    # income
+    sales_total_sum = db.sale.total.sum()
+    income = db((db.sale.id_store == session.store)
+                & (db.sale.created_on >= start_date)
+                & (db.sale.created_on <= end_date)
+                ).select(sales_total_sum).first()[sales_total_sum] or DQ(0)
+    # expenses
+    purchases_total_sum =db.purchase.total.sum()
+    expenses = db((db.purchase.id_store == session.store)
+                & (db.purchase.is_done >= True)
+                & (db.purchase.created_on >= start_date)
+                & (db.purchase.created_on <= end_date)
+                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
+
+
+    return locals()
+
+
+
 @auth.requires_membership("Analytics")
 def day_report():
     """ Returns the specified date, information
 
         args: [year, month, day]
     """
+
+    return day_report_data(int(request.args(0)), int(request.args(1)), int(request.args(2)))
 
     year, month, day = None, None, None
     try:
@@ -153,4 +186,6 @@ def index():
     query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
     print monthly_analysis(query, 'purchase', 'total', 11, 2015)
 
-    return locals()
+    day_data = day_report_data(None, None, None)
+
+    return dict(**locals())

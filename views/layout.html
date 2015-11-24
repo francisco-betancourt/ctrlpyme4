@@ -169,10 +169,14 @@
 
       <secction id="bag_container" hidden>
         <div class="bag-container">
-          {{if auth.user and request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
+          {{if request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
             {{include 'bag.html'}}
-          {{else:}}
+          {{elif auth.has_membership('Clients'):}}
             {{include 'simple_client_bag.html'}}
+          {{else:}}
+            <h2>{{=T('Bag')}}</h2>
+            <a href="{{=URL('default', 'user/login')}}">Login</a> {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">Register</a> {{=T('to buy items')}}
+            <!-- {{=T('Login or register')}} -->
           {{pass}}
         </div>
       </secction>

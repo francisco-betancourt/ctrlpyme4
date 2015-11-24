@@ -273,6 +273,19 @@ def get():
     return locals()
 
 
+def get_by_brand():
+    """
+        args:
+            id_brand
+    """
+    brand = db.brand(request.args(0))
+    if not brand:
+        raise HTTP(404)
+    items = db((db.item.id_brand == brand.id)).select(orderby=db.item.name, groupby=db.item.name)
+
+    return locals();
+
+
 def get_by_name_and_traits():
     """
         args:
@@ -289,6 +302,7 @@ def get_by_name_and_traits():
     ).select().first()
     if not item:
         raise HTTP(404)
+    item.base_price += item_taxes(item, item.base_price)
     item.base_price = str(DQ(item.base_price, True))
 
     stock = stock_info(item)
@@ -311,6 +325,8 @@ def get_by_name():
     same_traits = True
     base_trait_category_set = []
     trait_options = {}
+
+    items.first().base_price += item_taxes(items.first(), items.first().base_price)
 
     for trait in items.first().traits:
         base_trait_category_set.append(trait.id_trait_category)

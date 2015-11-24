@@ -47,19 +47,22 @@ def item_card(item):
     item_options = DIV()
 
     bg_style = ""
-    images = db(db.item_image.id_item == item.id).select()
+    images = db((db.item_image.id_item == db.item.id) & (db.item.name == item.name)).select(db.item_image.image)
     if images:
         bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().image)
+
+    brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
+
+    item_price = item.base_price + item_taxes(item, item.base_price)
 
     return DIV(
         DIV(_class="panel-heading", _style=bg_style),
         DIV(
             H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
-            H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))),
-
-            P(item.description),
+            brand_link,
             P(T(available), _class=available_class),
-            item_options,
+            P(item.description, _class="description"),
+            H4('$ ', DQ(item_price, True), _class="item-price"),
             _class="panel-body"
         ),
         _class="panel panel-default item-card"

@@ -1,3 +1,13 @@
+{{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
-<h1>{{=T("Analytics")}}</h1>
+
+
+<!-- <h1>{{=T("Analytics")}}</h1> -->
+
+{{block left_sidebar}}
+  <h1>{{=T('Today')}}</h1>
+
+  <button class="btn btn-block btn-default">{{=T('Cash out')}}</button>
+
+{{end}}
