@@ -1,0 +1,75 @@
+<div id="proto_bag_item" class="list-group-item" hidden>
+  <div>
+    <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
+    <p><span class="item_stock"></span></p>
+    <p><span class="item_price base_price"></span></p>
+    <div class="input-group">
+      <div class="input-group-addon">{{=T('Quantity')}}</div>
+      <input type="number" class="form-control item_qty">
+      <div class="input-group-addon munit"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $('#proto_bag_item').hide();
+</script>
+
+
+{{include 'base_bag.html'}}
+
+
+
+<script>
+  function clone_proto_item_function(data, barcode) {
+    var new_item = $('#proto_bag_item').clone();
+    var new_item_id = 'bag_item_' + data.id;
+    new_item.attr('id', new_item_id);
+    new_item.attr('barcode', barcode);
+    new_item.attr('itemid', data.id_item);
+    new_item.find('.item_name').text(data.product_name);
+    new_item_stock = new_item.find('.item_stock');
+    if (data.stock <= 0) {
+      new_item_stock.text("{{=T('Out of stock')}}");
+      new_item_stock.addClass('text-danger');
+    }
+    else {
+      new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
+    }
+    new_item.find('.item_price').text(data.base_price);
+    new_item.find('.item_qty').val(data.quantity);
+    new_item.find('.munit').text(data.measure_unit);
+
+    new_item.find('.close').click(function(event) {
+      $.ajax({
+        url: "{{=URL('bag', 'delete_bag_item', extension='json')}}/" + data.id
+      })
+      .done(function(res) {
+        $('#' + new_item_id).remove();
+        set_bag_data(res)
+      })
+    })
+
+    new_item.find('.item_qty').change(function (event) {
+      $.ajax({
+        url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
+      })
+      .done(function (data) {
+        new_item.find('.item_qty').val(data.bag_item.quantity)
+        set_bag_data(data)
+      })
+    });
+
+    new_item.show();
+
+    return new_item;
+  }
+
+  setup_bag(clone_proto_item_function);
+
+
+  {{if not session.id_bag:}}
+    
+  {{else:}}
+  {{pass}}
+</script>

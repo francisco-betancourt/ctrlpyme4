@@ -53,7 +53,7 @@ def item_card(item):
 
     brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
 
-    item_price = item.base_price + item_taxes(item, item.base_price)
+    item_price = (item.base_price or 0) + item_taxes(item, item.base_price)
 
     return DIV(
         DIV(_class="panel-heading", _style=bg_style),

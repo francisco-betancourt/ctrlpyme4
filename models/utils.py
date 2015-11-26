@@ -50,7 +50,7 @@ def item_taxes(item, price):
     taxes = 1 if item.taxes else 0
     for tax in item.taxes:
         taxes *= tax.percentage / 100.0
-    return DQ(D(price) * D(taxes))
+    return DQ(D(price or 0) * D(taxes or 0))
 
 
 def item_stock(item, id_store=None, include_empty=False):

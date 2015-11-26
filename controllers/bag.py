@@ -297,15 +297,17 @@ def complete():
     bag.completed = True
     bag.update_record()
 
-    if auth.has_membership('Sales checkout'):
-        redirect(URL('order', 'create', args=bag.id))
+    if auth.has_membership('Clients'):
+        redirect(URL('sale_order', 'create', args=bag.id))
     if auth.has_membership('Sales checkout'):
         redirect(URL('sale', 'create', args=bag.id))
     else:
         redirect(URL('ticket', args=bag.id))
 
 
-@auth.requires_membership('Sales bags')
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
 def ticket():
     """
         args:
@@ -319,6 +321,8 @@ def ticket():
 
     # bag items
     bag_items = db(db.bag_item.id_bag == bag.id).select()
+
+    ticket_barcode = "%010d" % bag.id
 
     return locals()
 

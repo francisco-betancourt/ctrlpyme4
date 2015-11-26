@@ -1,45 +1,4 @@
-{{include 'web2py_ajax.html'}}
-
-
-<style>
-  .ticket {
-    font-size: 12px;
-    min-width: 2.25in;
-  }
-
-  .ticket p {
-    text-align: center;
-  }
-
-  .ticket #items_list {
-  }
-
-  #items_list .item>.qty {
-    width: 1cm;
-    max-width: 1cm;
-    min-width: 1cm;
-  }
-  #items_list .item>.name {
-    margin-left: 8px;
-  }
-  #items_list .item>.price {
-    float: right;
-  }
-
-  #total_data {
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
-
-  #total_data>div {
-    text-align: right;
-  }
-
-  #barcode {
-    margin: auto;
-  }
-</style>
-
+{{extend 'basic_layout.html'}}
 
 <div class="ticket" id="ticket">
   <div class="logo"></div>

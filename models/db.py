@@ -392,6 +392,15 @@ db.define_table("credit_note_item",
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity')))
 
 
+db.define_table(
+  'sale_order'
+  , Field('id_client', 'reference auth_user', label=T('Client'))
+  , Field('id_bag', 'reference bag', label=T('Bag'))
+  , Field('id_sale', 'reference sale', label=T('Sale'))
+  , auth.signature
+)
+
+
 db.define_table("inventory",
     Field("id_store", "reference store", label=T('Store')),
     Field("is_partial", "boolean", default=None, label=T('Is partial')),

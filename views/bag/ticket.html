@@ -1,32 +1,41 @@
-{{include 'web2py_ajax.html'}}
+{{extend 'basic_layout.html'}}
 
-<style>
-  body {
-    font-size: 11px;
-    font-family: monospace;
-  }
 
-  #ticket {
-    width: 100%;
-  }
-</style>
+<div id="ticket" class="ticket">
+  <div class="logo"></div>
 
-<div id="ticket">
-  {{for bag_item in bag_items:}}
-  <div>{{=bag_item.quantity}} {{=bag_item.product_name}} ${{=bag_item.sale_price}}</div>
+  {{if not bag.id_store:}}
+    <p>{{=T('Online order')}}</p>
+    <p>{{=T('Client')}}: {{=bag.created_by.first_name}} {{=bag.created_by.last_name}} {{=bag.created_by.email}}</p>
+  {{else:}}
+    <p>{{=T('Store')}}: {{=bag.id_store.name}}</p>
   {{pass}}
+  <p>{{=bag.created_on}}</p>
 
-  <p></p>
-  <div id="barcode"></div>
+
+  <div id="items_list">
+    {{for bag_item in bag_items:}}
+    <div class="item">
+      <span class="qty">{{=DQ(bag_item.quantity, True)}}</span>
+      <span class="name">{{=bag_item.product_name}}</span>
+      <span class="price">$ {{=DQ(bag_item.sale_price, True)}}</span>
+    </div>
+    {{pass}}
+  </div>
+
+  <div id="total_data">
+
+  </div>
+
+  <div id="barcode"> </div>
+
+  <p id="ticket_footer">
+    This is a ticket footer
+  </p>
 </div>
 
 
 <script type="text/javascript" src="{{=URL('static','js/jquery-barcode.min.js')}}"></script>
 <script>
-  var code = "{{=bag.id}}";
-  var code_length = code.length;
-  for (var i = 0; i < 13 - code_length; i++) {
-    code = '0' + code
-  }
-  $("#barcode").barcode({code: code, crc: false}, "ean13");
+  $("#barcode").barcode({code: "{{=ticket_barcode}}", crc: false}, "code39");
 </script>
