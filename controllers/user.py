@@ -3,6 +3,12 @@
 # Author: Daniel J. Ramirez
 
 
+@auth.requires_membership('Clients')
+def client_profile():
+    user = auth.user
+    return locals()
+
+
 @auth.requires_membership('Admin')
 def create():
     return common_create('auth_user')

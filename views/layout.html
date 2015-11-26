@@ -56,24 +56,28 @@
   <body>
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
     <div class="flash alert alert-dismissable">{{=response.flash or ''}}</div>
+    {{if response.flash and not session.info:}}
+      {{session.info = {'text': response.flash} }}
+    {{pass}}
 
-    {{if response.info:}}
+    {{if session.info:}}
       <div class="info-card panel panel-default" id="info_card">
         <div class="panel-body">
           <div><i class="fa fa-times close" id="info_close"></i></div>
-          {{=response.info or ''}}
-          {{if response.info_btn:}}
+          {{=session.info['text'] or ''}}
+          {{if session.info['button']:}}
             <div>
               <p></p>
-              <a class="btn btn-block btn-default info-btn" href=" {{=response.info_btn['ref']}}"
-                target="{{=response.info_btn['target'] if response.info_btn.has_key('target') else ''}}">
-                {{=response.info_btn['text'] or ''}}
+              <a class="btn btn-block btn-default info-btn" href=" {{=session.info['button']['ref']}}"
+                target="{{=session.info['button']['target'] if session.info['button'].has_key('target') else ''}}">
+                {{=session.info['button']['text'] or ''}}
               </a>
             </div>
           {{pass}}
         </div>
       </div>
     {{pass}}
+    {{session.info = None}}
 
     <script>
       $('#info_close').click(function(event) {

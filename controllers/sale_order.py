@@ -17,7 +17,10 @@ def create():
 
     new_order = db.sale_order.insert(id_bag=bag.id, id_client=auth.user.id)
 
-    redirect(URL('bag', 'ticket', args=bag.id))
+    session.info = {'text': T("You're order has been created, we will notify you when it's ready"), 'button': {'text': 'View ticket', 'ref': URL('bag', 'ticket', args=bag.id), 'target': 'blank'}
+    }
+
+    redirect(URL('default', 'index'))
 
 
 def get():

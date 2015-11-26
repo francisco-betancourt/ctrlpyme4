@@ -16,9 +16,7 @@ def index():
     if you need a simple wiki simply replace the two lines below with:
     return auth.wiki()
     """
-    response.flash = T("Hello World")
-    response.info = T('Look here for relevant info')
-    response.info_btn = {'text': 'More', 'ref': URL('index')}
+    # response.flash = T("Hello World")
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 5), groupby=db.item.name)
 
