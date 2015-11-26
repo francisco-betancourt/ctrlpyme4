@@ -397,6 +397,7 @@ db.define_table(
   , Field('id_client', 'reference auth_user', label=T('Client'))
   , Field('id_bag', 'reference bag', label=T('Bag'))
   , Field('id_sale', 'reference sale', label=T('Sale'))
+  , Field('is_ready', 'boolean', default=False, label=T('Ready'))
   , auth.signature
 )
 

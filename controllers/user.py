@@ -3,9 +3,29 @@
 # Author: Daniel J. Ramirez
 
 
+# def client_order_row(row, fields):
+#     tr = TR()
+#     # sale status
+#     last_log = db(db.sale_log.id_sale == row.id).select().last()
+#     sale_event = last_log.sale_event if last_log else None
+#     tr.append(TD(T(sale_event or 'Unknown')))
+#     for field in fields:
+#         tr.append(TD(row[field]))
+#     return tr
+
+
+def client_order_options(row):
+    td = TD()
+
+    # view ticket
+    td.append(option_btn('', URL('bag', 'ticket', args=row.id_bag.id), action_name=T('View ticket')))
+    return td
+
+
 @auth.requires_membership('Clients')
 def client_profile():
-    user = auth.user
+    orders = db(db.sale_order.id_client == auth.user.id).select()
+    orders_data = super_table('sale_order', ['is_ready'], orders, options_function=client_order_options, show_id=True, selectable=False)
     return locals()
 
 

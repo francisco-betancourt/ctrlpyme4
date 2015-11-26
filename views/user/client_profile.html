@@ -1,0 +1,16 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+  <h1>{{=auth.user.first_name}} {{=auth.user.last_name}}</h1>
+  <h4>{{=auth.user.email}}</h4>
+
+  <h4>{{=T('Wallet')}}: <span class="right">$ {{=auth.user.id_wallet.balance if auth.user.id_wallet else DQ(0, True)}}</span></h4>
+{{end}}
+
+<h2>Orders</h2>
+{{if orders_data:}}
+  {{=orders_data}}
+{{else:}}
+  {{=T("You don't have orders")}}
+{{pass}}

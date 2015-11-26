@@ -157,7 +157,10 @@ def super_table(table, fields, rows, row_function=default_row_function,
         if selectable:
             tr.insert(0, INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
         if show_id:
-            tr.insert(1, TD(row.id))
+            if not selectable:
+                tr.insert(0, TD(row.id))
+            else:
+                tr.insert(1, TD(row.id))
         if options_enabled:
             options_td = options_function(row)
             if extra_options:
