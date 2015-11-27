@@ -71,6 +71,22 @@ def item_card(item):
 
 # def
 
+def item_images(id_item):
+    """ Item upload form """
+
+    images = db(db.item_image.id_item == id_item).select()
+
+    img_container = DIV(_class="images-container")
+    for image in images:
+        img_container.append(IMG(_src=URL('default', 'download', args=image.image), _class="item-image"))
+    form = SQLFORM(db.item_image)
+    if form.process().accepted:
+        print "success"
+        # img_container.append()
+    return img_container
+
+
+
 
 def filter_menu(filter_data):
     """ """

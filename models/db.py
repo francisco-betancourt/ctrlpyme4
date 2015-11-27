@@ -394,10 +394,11 @@ db.define_table("credit_note_item",
 
 db.define_table(
   'sale_order'
-  , Field('id_client', 'reference auth_user', label=T('Client'))
-  , Field('id_bag', 'reference bag', label=T('Bag'))
-  , Field('id_sale', 'reference sale', label=T('Sale'))
-  , Field('is_ready', 'boolean', default=False, label=T('Ready'))
+  , Field('id_client', 'reference auth_user', label=T('Client'), readable=True, writable=True)
+  , Field('id_bag', 'reference bag', label=T('Bag'), readable=True, writable=True)
+  , Field('id_sale', 'reference sale', label=T('Sale'), readable=True, writable=True)
+  , Field('id_store', 'reference store', label=T('Store'))
+  , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=True, writable=True)
   , auth.signature
 )
 
@@ -452,9 +453,10 @@ db.define_table("payment",
     auth.signature)
 
 db.define_table("item_image",
-    Field("id_item", "reference item", label=T('Item')),
+    Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
     Field("image", "upload", default=None, label=T('Image')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail')))
+    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False)
+)
 
 db.define_table("promotion",
     Field("id_store", "reference store", label=T('Store')),

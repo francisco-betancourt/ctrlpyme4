@@ -154,3 +154,9 @@ select {
   text-indent: 0.01px;
   text-overflow: '';*/
 }
+
+
+.main-container {
+  padding-left: 0px;
+  padding-right: 0px;
+}

@@ -2,6 +2,7 @@
 #
 # Author: Daniel J. Ramirez
 
+@auth.requires_membership('Client')
 def create():
     """
         args [id_bag]
@@ -27,14 +28,54 @@ def get():
     pass
 
 
-def update():
-    return common_update('name', request.args)
+def validate_ready(form):
+    ready == True
+    for bag_item in db(db.bag_item.id_bag == form.vars.id_bag).select():
+        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        ready &= (quantity >= bag_item.quantity)
+    # if not ready:
+    #     form.errors.
+
+
+def ready():
+    """
+        args [order_id]
+    """
+
+    order = db.sale_order(request.args(0))
+    if not order:
+        raise HTTP(404)
+    ready = True
+    # check if the order item are in stock
+    for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
+        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        ready &= (quantity >= bag_item.quantity)
+
+    form = SQLFORM.factory()
+    if form.process(onvalidation=validate_ready).accepted:
+        pass
+
+    return locals()
 
 
 def delete():
     return common_delete('name', request.args)
 
 
+def client_order_options(row):
+    td = TD()
+
+    # view ticket
+    td.append(option_btn('check', URL('sale_order', 'ready', args=row.id)))
+    return td
+
+
+@auth.requires(
+    auth.has_membership('Orders')
+    or auth.has_membership('Admin')
+    or auth.has_membership('Manager')
+)
 def index():
-    rows = common_index('name')
+    rows = common_index('sale_order')
+    data = super_table('sale_order', ['is_ready'], rows, options_function=client_order_options, show_id=True)
     return locals()

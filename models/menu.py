@@ -49,7 +49,11 @@ if auth.has_membership("Employee"):
              (T('List'), False, URL('purchase', 'index'), None)
             , (T('Suppliers'), False, URL('supplier', 'index'), None)
         ])
-        , (T('Sales'), False, URL('sale', 'index'), [ ])
+        , (T('Sales'), False, None, [
+             (T('List'), False, URL('sale', 'index'), None)
+            , (T('Orders'), False, URL('sale_order', 'index'), None)
+        ])
+        # , (T('Sales'), False, URL('sale', 'index'), [ ])
         , (T('Inventory'), False, URL('inventory', 'index'), [ ])
         , (T('Analytics'), False, URL('analytics', 'index'), [ ])
     ]

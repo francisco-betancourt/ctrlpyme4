@@ -55,7 +55,6 @@
 
   <body>
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
-    <div class="flash alert alert-dismissable">{{=response.flash or ''}}</div>
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
     {{pass}}
@@ -65,7 +64,7 @@
         <div class="panel-body">
           <div><i class="fa fa-times close" id="info_close"></i></div>
           {{=session.info['text'] or ''}}
-          {{if session.info['button']:}}
+          {{if session.info.has_key('button') and session.info['button'].has_key('href'):}}
             <div>
               <p></p>
               <a class="btn btn-block btn-default info-btn" href=" {{=session.info['button']['ref']}}"
