@@ -6,6 +6,7 @@
 import calendar
 import datetime
 import random
+import json
 
 
 hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
@@ -92,7 +93,24 @@ def day_report_data(year, month, day):
                 & (db.purchase.created_on <= end_date)
                 ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
 
+    sales_data = {
+        'labels': [],
+        'datasets': [{
+            'data': []
+        }]
+    }
 
+    for hour in range(23):
+        sales_data['labels'].append('%d:00' % hour)
+        start_hour = datetime.datetime(date.year, date.month, date.day, hour)
+        end_hour = start_hour + datetime.timedelta(hours=1)
+        hour_sales = db((db.sale.id_store == session.store)
+                      & (db.sale.created_on >= start_hour)
+                      & (db.sale.created_on < end_hour)
+                     ).select(sales_total_sum).first()[sales_total_sum] or 0
+        sales_data['datasets'][0]['data'].append(float(hour_sales))
+    sales_data = json.dumps(sales_data)
+    print sales_data    
     return locals()
 
 
@@ -124,16 +142,14 @@ def day_report():
     income = db((db.sale.id_store == session.store)
                 & (db.sale.created_on >= start_date)
                 & (db.sale.created_on <= end_date)
-                ).select(sales_total_sum).first()[sales_total_sum] or DQ(0)
+                ).select(sales_total_sum).first()[sales_total_sum] or 0
     # expenses
-    purchases_total_sum =db.purchase.total.sum()
+    purchases_total_sum = db.purchase.total.sum()
     expenses = db((db.purchase.id_store == session.store)
                 & (db.purchase.is_done >= True)
                 & (db.purchase.created_on >= start_date)
                 & (db.purchase.created_on <= end_date)
-                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
-
-
+                ).select(purchases_total_sum).first()[purchases_total_sum] or 0
     return locals()
 
 
@@ -187,5 +203,8 @@ def index():
     print monthly_analysis(query, 'purchase', 'total', 11, 2015)
 
     day_data = day_report_data(None, None, None)
+    income = day_data['income']
+    expenses = day_data['expenses']
+    today_sales_data_script=  SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    return dict(**locals())
+    return locals()

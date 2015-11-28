@@ -111,6 +111,16 @@ def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     button = BUTTON(I(_class='fa fa-%s' % icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
     return button
 
+def row_options(row, update=False, delete=False, get=False):
+    options = DIV()
+    if get:
+        options.append(option_btn(''))
+    if update:
+        options.append(option_btn('pencil', URL(request.controller, 'update', args=row.id)))
+    if delete:
+        options.append(option_btn('eye-slash', URL(request.controller, 'delete', args=row.id)))
+    return options
+
 
 
 def default_row_function(row, fields):

@@ -26,7 +26,7 @@ def remove_stocks(bag_items):
                 stock_item.update_record()
                 quantity = abs(stock_qty)
 
-                total_buy_price += bag_item.quantity * stock_item.price
+                total_buy_price += bag_item.quantity * stock_item.price or 0
                 days_since_purchase = (bag_item.created_on - stock_item.created_on).days
                 wavg_days_in_shelf += days_since_purchase
             bag_item.total_buy_price = total_buy_price

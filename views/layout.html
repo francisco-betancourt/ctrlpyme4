@@ -211,6 +211,7 @@
     {{if response.google_analytics_id:}}
     <!-- Analytics ==================================== -->
     <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+
     <script type="text/javascript">
       analytics.initialize({
       'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
@@ -219,55 +220,6 @@
     {{pass}}
 
     <script>
-      var countChecked = function() {
-        var n = $( ".row_checkbox:checked" ).length;
-        // in this case we have to show the selection options
-        if (n > 0) {
-          $('#selection_menu').show();
-        }
-        else {
-          $('#selection_menu').hide();
-        }
-      };
-
-      $('.row_checkbox').click(function(event) {
-        countChecked();
-      });
-
-      $('#master_checkbox').click(function(event) {
-        if (event.target.checked) {
-          checkboxes = $('.row_checkbox');
-          $.each(checkboxes, function(i, element) {
-            element.checked = true;
-          });
-        }
-        else {
-          checkboxes = $('.row_checkbox');
-          $.each(checkboxes, function(i, element) {
-            element.checked = false;
-          });
-        }
-        countChecked();
-      });
-
-      {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
-
-      function delete_rows(ids, controller, vars) {
-        if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
-          var delete_url = '{{=URL("delete")}}' + ids + '?' + vars;
-          window.location.href = delete_url;
-        }
-      };
-
-      $('#delete').click(function(event) {
-        var ids = '/';
-        $.each( $(".row_checkbox:checked"), function(i, item) {
-          ids += item.value + '/';
-        });
-        delete_rows(ids, "", "{{=vars_string}}");
-      });
-
-
       $('#tabs a').click(function (e) {
         e.preventDefault()
         $(this).tab('show')

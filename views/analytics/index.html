@@ -1,13 +1,27 @@
 {{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
+<script src="{{=URL('static','js/Chart.min.js')}}"></script>
 
 
+{{=today_sales_data_script}}
 <!-- <h1>{{=T("Analytics")}}</h1> -->
 
 {{block left_sidebar}}
   <h1>{{=T('Today')}}</h1>
 
-  <button class="btn btn-block btn-default">{{=T('Cash out')}}</button>
+  <canvas style="width: 100%" id="today_sales_chart"></canvas>
+
+  <h3>{{=T('Income')}}: <span class="right">$ {{=DQ(income, True)}}</span></h3>
+  <h3>{{=T('Expenses')}}: <span class="right">$ {{=DQ(expenses, True)}}</span> </h3>
+
+  <button class="btn btn-block btn-primary">{{=T('Cash out')}}</button>
 
 {{end}}
+
+
+<script>
+  var ctx = $('#today_sales_chart').get(0).getContext("2d");
+  var myLineChart = new Chart(ctx).Line(today_sales_data, {});
+
+</script>

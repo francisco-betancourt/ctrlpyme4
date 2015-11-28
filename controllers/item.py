@@ -382,7 +382,8 @@ def delete():
 
 
 def item_options(row):
-    td = TD()
+    print row
+    td = DIV()
     # edit button
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
         if row.is_bundle:
@@ -392,7 +393,7 @@ def item_options(row):
     # hide button
     if auth.has_membership('Items management'):
         td.append(hide_button(row))
-    td.append(option_btn('shopping-cart', onclick="add_bag_item(%s);"%row.id))
+    td.append(option_btn('shopping-cart', onclick="add_bag_item(%s);" % row.id))
 
 
     return td
@@ -413,10 +414,9 @@ def item_row(row, fields):
 
 
 def index():
-    rows = common_index('item')
-    data = None
-    if rows:
-        data = super_table('item', ['name'], rows, row_function=item_row, options_function=item_options)
+    data = SQLFORM.grid(
+        db.item, fields=[db.item.name, db.item.sku, db.item.ean, db.item.upc, db.item.base_price, db.item.is_bundle], links=[dict(header=T('Options'), body=lambda row: item_options(row))], csv=False, deletable=False, editable=False, create=False, details=False, ui='jquery-ui'
+    )
 
     return locals()
 
