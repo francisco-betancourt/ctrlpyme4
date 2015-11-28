@@ -125,6 +125,7 @@ button.cp-fab:focus{
   margin-right: 8px;
   flex: 0 0 auto;
   min-width: 260px;
+  max-width: 300px;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
 }
 .item-card>.panel-heading {
@@ -137,6 +138,7 @@ button.cp-fab:focus{
 
 .item-card .description {
   margin-bottom: 30px;
+  text-overflow: ellipsis;
 }
 
 .item-card .item-price {

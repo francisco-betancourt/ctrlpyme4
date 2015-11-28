@@ -61,7 +61,7 @@ def item_card(item):
             H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
             brand_link,
             P(T(available), _class=available_class),
-            P(item.description, _class="description"),
+            # P(item.description, _class="description"),
             H4('$ ', DQ(item_price, True), _class="item-price"),
             _class="panel-body"
         ),
