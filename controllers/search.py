@@ -5,14 +5,14 @@
 def search_item():
     """
         args: [search_term]
-        vars: {id_category}
+        vars: {id_category, id_brand}
     """
 
     category = db.category(request.vars.id_category)
 
     prettify = request.vars.pretty == 'True'
 
-    term = request.args(0)
+    term = request.args(0) or ''
 
     # search by item name
     query = (db.item.name.contains(term))
@@ -46,6 +46,9 @@ def search_item():
 
     query &= (db.item.is_active == True)
 
-    items = db(query).select(groupby=db.item.name)
+    if not term:
+        query = (db.item.is_active == True)
+    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    items = db(query).select(groupby=db.item.name, limitby=limits)
 
-    return dict(items=items, categories_data_script=categories_data_script)
+    return dict(items=items, categories_data_script=categories_data_script, pages=pages)
