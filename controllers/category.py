@@ -37,8 +37,8 @@ def get():
     category = db.category(request.args(0))
     if not category:
         redirect(URL('index'))
-    rows = db(db.category.parent == category.id).select()
-    data = super_table('category', ['name'], rows, extra_options=category_extra_options)
+    query = db.category.parent == category.id
+    data = super_table('category', ['name'], query, extra_options=category_extra_options)
     return locals()
 
 
@@ -74,6 +74,7 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
-    rows = db(db.category.parent == None).select()
-    data = super_table('category', ['name'], rows, extra_options=category_extra_options)
+    query = db.category.parent == None
+    request.vars.orderby = 'name'
+    data = super_table('category', ['name'], query, extra_options=category_extra_options)
     return locals()

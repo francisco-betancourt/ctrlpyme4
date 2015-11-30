@@ -23,7 +23,6 @@ def delete():
 
 @auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
 def index():
-    taxes = common_index('tax')
-    data = data = super_table('tax', ['name', 'percentage', 'symbol'], taxes)
+    data = common_index('tax', ['name', 'percentage', 'symbol'])
 
     return locals()

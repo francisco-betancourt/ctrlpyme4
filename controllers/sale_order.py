@@ -76,6 +76,5 @@ def client_order_options(row):
     or auth.has_membership('Manager')
 )
 def index():
-    rows = common_index('sale_order')
-    data = super_table('sale_order', ['is_ready'], rows, options_function=client_order_options, show_id=True)
+    data = common_index('sale_order', ['is_ready'], dict(options_function=client_order_options, show_id=True))
     return locals()

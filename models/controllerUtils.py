@@ -42,8 +42,9 @@ def common_delete(table_name, args, _vars=None):
     redirect(URL('index'))
 
 
-def common_index(table_name):
+def common_index(table_name, fields=[], super_table_vars={}):
     """
     """
 
-    return db(db[table_name].is_active == True).select()
+    query = db[table_name].is_active == True
+    return super_table(table_name, fields, query, **super_table_vars)

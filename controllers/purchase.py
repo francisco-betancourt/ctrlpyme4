@@ -324,6 +324,5 @@ def purchase_options(row):
 
 @auth.requires_membership('Purchases')
 def index():
-    rows = common_index('purchase')
-    data = super_table('purchase', ['invoice_number', 'subtotal', 'total'], rows, options_function=purchase_options)
+    data = common_index('purchase', ['invoice_number', 'subtotal', 'total'], dict(options_function=purchase_options))
     return locals()

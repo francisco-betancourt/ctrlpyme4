@@ -20,8 +20,11 @@
 {{end}}
 
 
+<h2>{{=T('Cash out')}}</h2>
+
+
 <script>
   var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  var myLineChart = new Chart(ctx).Line(today_sales_data, {});
+  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5});
 
 </script>

@@ -40,10 +40,7 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    stores = common_index('store')
-    if stores:
-        data = super_table('store', ['name'], stores, show_id=True, extra_options=lambda row : [
+    data = common_index('store', ['name'], dict(show_id=True, extra_options=lambda row : [
                 option_btn('', URL('get', args=row.id), action_name=T("View"))
-            ]
-        )
+            ]))
     return locals()

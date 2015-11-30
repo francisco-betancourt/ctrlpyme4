@@ -17,8 +17,5 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
-    rows = db(db.brand.is_active == True).select()
-    data = None
-    if rows:
-        data = super_table('brand', ['name'], rows)
+    data = common_index('brand', ['name'])
     return locals()

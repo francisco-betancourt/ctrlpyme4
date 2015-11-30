@@ -189,15 +189,23 @@ def default_options_function(row):
     return td
 
 
-def super_table(table, fields, rows, row_function=default_row_function,
+def super_table(table, fields, query, row_function=default_row_function,
                 options_function=default_options_function, options_enabled=True,
                 show_id=False, selectable=True, custom_headers=[],
                 extra_options=None):
-    """ Returns a data table with the specified rows, if a row function is supplied then rows will follow the format stablished by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id to True of you want the table to display the id for the specific row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers has items then, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
+    """ Returns a data table with the specified rows obtained from the specified query, if a row function is supplied then rows will follow the format stablished by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id to True of you want the table to display the id for the specific row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers has items then, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
 
         This function will use the database table field labels as table headers.
     """
 
+    orderby_field = request.vars.orderby
+    if not orderby_field:
+        orderby_field = 'id'
+
+    if not query:
+        return None
+    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    rows = db(query).select(limitby=limits, orderby=db[table][orderby_field])
     if not rows:
         return None
 
@@ -234,7 +242,7 @@ def super_table(table, fields, rows, row_function=default_row_function,
             tr.append(options_td)
 
         tbody.append(tr)
-    table = TABLE(thead, tbody, _class="table table-hover")
+    table = DIV(TABLE(thead, tbody, _class="table table-hover"), pages)
 
     return table
 

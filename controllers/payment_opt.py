@@ -25,6 +25,5 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    rows = db(db.payment_opt.is_active == True).select()
-    data = super_table('payment_opt', ['name', 'allow_change', 'credit_days'], rows)
+    data = common_index('payment_opt', ['name', 'allow_change', 'credit_days'])
     return locals()

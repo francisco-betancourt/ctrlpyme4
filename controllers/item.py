@@ -418,9 +418,11 @@ def item_row(row, fields):
 
 
 def index():
-    data = SQLFORM.grid(
-        db.item, fields=[db.item.name, db.item.sku, db.item.ean, db.item.upc, db.item.base_price, db.item.is_bundle], links=[dict(header=T('Options'), body=lambda row: item_options(row))], csv=False, deletable=False, editable=False, create=False, details=False, ui='jquery-ui'
-    )
+    # data = SQLFORM.grid(
+    #     db.item, fields=[db.item.name, db.item.sku, db.item.ean, db.item.upc, db.item.base_price, db.item.is_bundle], links=[dict(header=T('Options'), body=lambda row: item_options(row))], csv=False, deletable=False, editable=False, create=False, details=False, ui='jquery-ui'
+    # )
+
+    data = super_table('item', ['name', 'sku', 'ean', 'upc'], db.item.is_active == True)
 
     return locals()
 

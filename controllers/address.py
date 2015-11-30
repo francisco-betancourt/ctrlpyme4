@@ -32,8 +32,5 @@ def address_row(row, fields):
 def index():
     """ """
 
-    rows = db(db.address.is_active == True).select()
-    data = None
-    if rows:
-        data = super_table('address', ['street', 'exterior', 'interior'], rows, row_function=address_row, custom_headers=['Address'])
+    data = common_index('address', ['street', 'exterior', 'interior'], dict(row_function=address_row, custom_headers=['Address']))
     return locals()

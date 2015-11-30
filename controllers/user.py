@@ -51,8 +51,7 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    rows = db(db.auth_user.id > 0).select()
-    data = super_table('auth_user', ['email'], rows)
+    data = super_table('auth_user', ['email'], db.auth_user.id > 0)
     return locals()
 
 

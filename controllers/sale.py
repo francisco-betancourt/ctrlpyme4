@@ -595,6 +595,5 @@ def sale_row(row, fields):
             or auth.has_membership('Manager')
             )
 def index():
-    rows = common_index('sale')
-    data = super_table('sale', ['consecutive', 'subtotal', 'total'], rows, row_function=sale_row, custom_headers=['Status', 'Invoice number', 'Subtotal', 'Total'])
+    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Invoice number', 'Subtotal', 'Total']))
     return locals()

@@ -299,6 +299,6 @@ def inventory_options(row):
 
 @auth.requires_membership('Inventories')
 def index():
-    rows = db(db.inventory.is_active == True).select(orderby=~db.inventory.id)
-    data = super_table('inventory', ['is_partial', 'is_done'], rows, options_function=inventory_options, show_id=True)
+    request.vars.orderby = 'id'
+    data = common_index('inventory', ['is_partial', 'is_done'], dict(options_function=inventory_options, show_id=True))
     return locals()

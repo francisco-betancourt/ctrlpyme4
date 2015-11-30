@@ -44,6 +44,5 @@ def delete():
     or auth.has_membership('Manager')
 )
 def index():
-    rows = common_index('supplier')
-    data = data = super_table('supplier', ['business_name'], rows)
+    data = common_index('supplier', ['business_name'])
     return locals()

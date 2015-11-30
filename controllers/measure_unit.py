@@ -35,7 +35,6 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    rows = db(db.measure_unit.is_active == True).select()
-    data = super_table('measure_unit', ['name', 'symbol'], rows)
+    data = common_index('measure_unit', ['name', 'symbol'])
 
     return locals()
