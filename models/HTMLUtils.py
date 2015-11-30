@@ -2,6 +2,45 @@
 #
 # Author: Daniel J. Ramirez
 
+import math
+
+
+def pages_menu(query, page=0, ipp=10):
+    """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
+
+    try:
+        page = int(page or 0)
+        ipp = int(ipp or 10)
+    except:
+        page = 0
+        ipp = 10
+
+    start = page * ipp
+    end = start + ipp
+    total_rows_count = db(query).count()
+    pages_count = total_rows_count / ipp
+    page = int(min(page, pages_count))
+    page = int(max(0, page))
+
+    next_page_vars = dict(**request.vars)
+    next_page_vars['page'] = page + 1
+    next_page_vars['ipp'] = ipp
+    next_url = URL(request.controller, request.function, args=request.args, vars=next_page_vars)
+
+    prev_page_vars = dict(**request.vars)
+    prev_page_vars['page'] = page - 1
+    prev_page_vars['ipp'] = ipp
+    prev_url = URL(request.controller, request.function, args=request.args, vars=prev_page_vars)
+
+    prev_disabled = 'disabled' if page == 0 else ''
+    next_disabled = 'disabled' if page == pages_count else ''
+    prev_link = LI(A(T('Previous'), _href=prev_url), _class="previous %s" % prev_disabled)
+    next_link = LI(A(T('Next'), _href=next_url), _class="next %s" % next_disabled)
+
+    pages_menu = DIV(UL(prev_link, next_link, _class="pager") )
+
+    return pages_menu, (start, end)
+
 
 def stock_info(item):
     available = True

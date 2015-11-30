@@ -25,7 +25,7 @@
 {{block left_sidebar}}
 <h1>{{=item_name}}</h1>
 <h4>
-  <a href="{{=URL('item', 'browse_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span>
+  <a href="{{=URL('item', 'get_by_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span>
       {{if auth.has_membership('Employee'):}}
    | <span class="barcode">{{=item_barcode(items.first())}}</span>
    {{pass}}

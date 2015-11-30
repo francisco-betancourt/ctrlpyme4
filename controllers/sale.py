@@ -7,7 +7,6 @@ from uuid import uuid4
 
 
 # #TODO:20 cancel sale, (dont forget) to return the wallet payments
-
 def remove_stocks(bag_items):
     for bag_item in bag_items:
         #TODO:70 implement stock removal for bag items with serial number

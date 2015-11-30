@@ -277,11 +277,15 @@ def get_by_brand():
     """
         args:
             id_brand
+        vars: [page, ipp]
     """
+
     brand = db.brand(request.args(0))
     if not brand:
         raise HTTP(404)
-    items = db((db.item.id_brand == brand.id)).select(orderby=db.item.name, groupby=db.item.name)
+    query = (db.item.is_active == True)
+    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    items = db(query).select(orderby=db.item.name, groupby=db.item.name, limitby=limits)
 
     return locals();
 
@@ -420,6 +424,10 @@ def index():
 
     return locals()
 
+
+def items_list(query, page, ipp=10):
+    """ get the items with the specified query"""
+    db(query).select(limitby)
 
 
 def browse():
