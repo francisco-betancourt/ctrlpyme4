@@ -34,8 +34,8 @@ def pages_menu(query, page=0, ipp=10):
 
     prev_disabled = 'disabled' if page == 0 else ''
     next_disabled = 'disabled' if page == pages_count else ''
-    prev_link = LI(A(T('Previous'), _href=prev_url), _class="previous %s" % prev_disabled)
-    next_link = LI(A(T('Next'), _href=next_url), _class="next %s" % next_disabled)
+    prev_link = LI(A(T('Previous'), _href=prev_url), _class="%s" % prev_disabled)
+    next_link = LI(A(T('Next'), _href=next_url), _class="%s" % next_disabled)
 
     pages_menu = DIV(UL(prev_link, next_link, _class="pager") )
 
@@ -205,6 +205,7 @@ def super_table(table, fields, query, row_function=default_row_function,
     if not query:
         return None
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    
     rows = db(query).select(limitby=limits, orderby=db[table][orderby_field])
     if not rows:
         return None
@@ -213,13 +214,19 @@ def super_table(table, fields, query, row_function=default_row_function,
     if selectable:
         thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox')))
     if show_id:
-        thead.append(TH('#'))
+        new_vars = dict(**request.vars)
+        new_vars['orderby'] = 'id'
+        order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
+        thead.append(TH(A('#', _href=order_url)))
     if custom_headers:
         for header in custom_headers:
             thead.append(TH(T(header)))
     else:
         for field in fields:
-            thead.append(TH(db[table][field].label))
+            new_vars = dict(**request.vars)
+            new_vars['orderby'] = field
+            order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
+            thead.append(TH(A(db[table][field].label, _href=order_url)))
     if options_enabled:
         thead.append(TH(T('Options')))
     thead = THEAD(thead)
