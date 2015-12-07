@@ -205,8 +205,11 @@ def super_table(table, fields, query, row_function=default_row_function,
     if not query:
         return None
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
-    
-    rows = db(query).select(limitby=limits, orderby=db[table][orderby_field])
+
+    if request.vars.ascendent == 'True' or not request.vars.ascendent:
+        rows = db(query).select(limitby=limits, orderby=db[table][orderby_field])
+    else:
+        rows = db(query).select(limitby=limits, orderby=~db[table][orderby_field])
     if not rows:
         return None
 
@@ -225,8 +228,17 @@ def super_table(table, fields, query, row_function=default_row_function,
         for field in fields:
             new_vars = dict(**request.vars)
             new_vars['orderby'] = field
+            caret = ''
+            # second consecutive click on field name, produces reverse order
+            if request.vars.orderby == field:
+                if request.vars.ascendent == 'True':
+                    caret = 'up'
+                    new_vars['ascendent'] = False
+                else:
+                    caret = 'down'
+                    new_vars['ascendent'] = True
             order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-            thead.append(TH(A(db[table][field].label, _href=order_url)))
+            thead.append(TH(A(db[table][field].label, _href=order_url), " ", I(_class="fa fa-caret-%s" % caret)))
     if options_enabled:
         thead.append(TH(T('Options')))
     thead = THEAD(thead)
