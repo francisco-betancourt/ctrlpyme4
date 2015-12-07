@@ -13,6 +13,7 @@ def search_item():
     prettify = request.vars.pretty == 'True'
 
     term = request.args(0) or ''
+    term = term.split('_')
 
     # search by item name
     query = (db.item.name.contains(term))

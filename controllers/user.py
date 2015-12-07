@@ -25,7 +25,8 @@ def client_order_options(row):
 @auth.requires_membership('Clients')
 def client_profile():
     orders = db(db.sale_order.id_client == auth.user.id).select()
-    orders_data = super_table('sale_order', ['is_ready'], orders, options_function=client_order_options, show_id=True, selectable=False)
+    orders_data = None
+    orders_data = super_table('sale_order', ['is_ready'], (db.sale_order.id_client == auth.user.id), options_function=client_order_options, show_id=True, selectable=False)
     return locals()
 
 

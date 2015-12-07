@@ -106,7 +106,11 @@
             <li>
               <a onclick="$('#bag_container').toggle()"><i class="fa fa-shopping-cart"></i></a>
             </li>
-            {{='auth' in globals() and auth.navbar('Welcome',mode='dropdown',referrer_actions=None) or ''}}
+            {{auth_nav = auth.navbar('Welcome',mode='dropdown', referrer_actions=None) }}
+            {{if auth.has_membership('Clients'):}}
+              {{auth_nav[1][0] = LI(A(I(_class="fa fa-user"),' ', T('Profile'), _href=URL('user', 'client_profile')))}}
+            {{pass}}
+            {{='auth' in globals() and auth_nav or ''}}
 
           </ul>
           {{if response.menu:}}
