@@ -207,9 +207,9 @@ def super_table(table, fields, query, row_function=default_row_function,
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
 
     if request.vars.ascendent == 'True' or not request.vars.ascendent:
-        rows = db(query).select(limitby=limits, orderby=db[table][orderby_field])
+        rows = db(query).select(db[table].ALL, limitby=limits, orderby=db[table][orderby_field])
     else:
-        rows = db(query).select(limitby=limits, orderby=~db[table][orderby_field])
+        rows = db(query).select(db[table].ALL, limitby=limits, orderby=~db[table][orderby_field])
     if not rows:
         return None
 

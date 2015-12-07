@@ -13,11 +13,15 @@
 
 
 <h2>{{=T('Popular items')}}</h2>
-
+<div class="items-container">
+  {{for popular_item in popular_items:}}
+    {{=item_card(popular_item)}}
+  {{pass}}
+</div>
 
 <h2>{{=T('New items')}}</h2>
-  <div class="items-container">
-    {{for new_item in new_items:}}
-      {{=item_card(new_item)}}
-    {{pass}}
-  </div>
+<div class="items-container">
+  {{for new_item in new_items:}}
+    {{=item_card(new_item)}}
+  {{pass}}
+</div>

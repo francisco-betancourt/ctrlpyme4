@@ -18,6 +18,14 @@ def index():
     """
     # response.flash = T("Hello World")
 
+    popular_items_rows = db((db.sale.id_bag == db.bag.id)
+                          & (db.bag_item.id_bag == db.bag.id)
+                        #   & (db.)
+                          ).select(orderby=db.bag_item.quantity, groupby=db.bag_item.product_name, limitby=(0,5))
+    popular_items = []
+    for pitem in popular_items_rows:
+        popular_items.append(pitem.bag_item.id_item)
+
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 5), groupby=db.item.name)
 
     return locals()

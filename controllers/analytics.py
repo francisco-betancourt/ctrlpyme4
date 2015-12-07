@@ -199,13 +199,16 @@ def index():
     start_date, end_date, timestep = daily_interval(11, 2015)
 
     query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
-    print monthly_analysis(query, 'purchase', 'total', 11, 2015)
+    # print monthly_analysis(query, 'purchase', 'total', 11, 2015)
 
     day_data = day_report_data(None, None, None)
     income = day_data['income']
     expenses = day_data['expenses']
-    today_sales_data_script=  SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
+    today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    employees = db.auth_user.
+    employees_query = ((db.auth_membership.group_id == db.auth_group.id)
+                    & (db.auth_membership.user_id == db.auth_user.id)
+                    & (db.auth_group.role == 'Sales'))
+    employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', vars={'id_seller': row.id}), T('Cash out')))
 
     return locals()
