@@ -35,6 +35,11 @@ def validate_ready(form):
         ready &= (quantity >= bag_item.quantity)
 
 
+@auth.requires(
+    auth.has_membership('Orders')
+    or auth.has_membership('Admin')
+    or auth.has_membership('Manager')
+)
 def ready():
     """
         args [order_id]
@@ -53,6 +58,7 @@ def ready():
             (db.sale_order.id_bag == db.bag.id)
             & (db.bag_item.id_bag == db.bag.id)
             & (db.sale_order.id < order.id)
+            & (db.sale_order.is_active == True)
             & (db.sale_order.id_sale == None)
             & (db.bag_item.id_item == bag_item.id_item.id)
         ).select()
@@ -74,10 +80,20 @@ def ready():
     return locals()
 
 
+@auth.requires(
+    auth.has_membership('Orders')
+    or auth.has_membership('Admin')
+    or auth.has_membership('Manager')
+)
 def delete():
-    return common_delete('name', request.args)
+    return common_delete('sale_order', request.args)
 
 
+@auth.requires(
+    auth.has_membership('Orders')
+    or auth.has_membership('Admin')
+    or auth.has_membership('Manager')
+)
 def client_order_options(row):
     td = TD()
 
