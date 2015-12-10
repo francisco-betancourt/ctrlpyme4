@@ -211,8 +211,10 @@ def super_table(table, fields, query, row_function=default_row_function,
         limits = (0, -1)
 
     if request.vars.ascendent == 'True' or not request.vars.ascendent:
+        request.vars.ascendent = 'True'
         rows = db(query).select(db[table].ALL, limitby=limits, orderby=db[table][orderby_field])
     else:
+        request.vars.ascendent = 'False'
         rows = db(query).select(db[table].ALL, limitby=limits, orderby=~db[table][orderby_field])
     if not rows:
         return None

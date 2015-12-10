@@ -2,7 +2,7 @@
 #
 # Author: Daniel J. Ramirez
 
-@auth.requires_membership('Client')
+@auth.requires_membership('Clients')
 def create():
     """
         args [id_bag]
@@ -48,7 +48,20 @@ def ready():
     items = []
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
         stock, quantity = item_stock(bag_item.id_item).itervalues()
-        item_ready = (quantity >= bag_item.quantity)
+        # consider previous orders
+        order_items = db(
+            (db.sale_order.id_bag == db.bag.id)
+            & (db.bag_item.id_bag == db.bag.id)
+            & (db.sale_order.id < order.id)
+            & (db.sale_order.id_sale == None)
+            & (db.bag_item.id_item == bag_item.id_item.id)
+        ).select()
+
+        order_items_qty = 0
+        for order_item in order_items:
+            order_items_qty += order_item.bag_item.quantity
+
+        item_ready = (quantity >= bag_item.quantity + order_items_qty)
         ready &= item_ready
         items.append(dict(bag_item=bag_item, ready=item_ready))
 
