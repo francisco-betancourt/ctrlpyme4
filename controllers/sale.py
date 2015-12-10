@@ -97,6 +97,11 @@ def get_payments_data(id_bag):
 def fix_payment_data(payment, amount, change_amount, account, wallet_code):
     """ This function will adjust the specified payment parameters in order to satisfy the global constraints, meaning it will set the correct amount, the change, the wallet code, and account, so the payment is coherent with the rest of the payments, when the payment method modification produces an inconsistent change amount, this function will reset all the payments changes, and place the total change in the modified payment """
 
+    amount = amount or payment.amount if amount != 0 else 0
+    change_amount = change_amount or payment.change_amount
+    account = account or payment.account if payment.account != 'user' else 'user'
+    wallet_code = wallet_code or payment.wallet_code
+
     bag_total = payment.id_bag.total
     payments_total, total_change, payments = get_payments_data(payment.id_bag.id)
 
@@ -119,8 +124,9 @@ def fix_payment_data(payment, amount, change_amount, account, wallet_code):
             other_payment.update_record()
     else:
         change_amount = DQ(0, True)
-        if amount != payment.amount and amount > payment.amount:
-            amount = max(0, bag_total - (payments_total - payment.amount))
+
+    if new_payments_total > bag_total:
+        amount = bag_total - payments_total + payment.amount
 
     # wallet payment
     if wallet_code and is_wallet(payment.id_payment_opt):
@@ -128,10 +134,11 @@ def fix_payment_data(payment, amount, change_amount, account, wallet_code):
         wallet = db(db.wallet.wallet_code == wallet_code).select().first()
         if not wallet:
             raise HTTP(404, T('Wallet not found'))
-        amount = max(0, bag_total - (payments_total - payment.amount))
+        # the wallet payment modification needs to return wallet funds
+        wallet.balance = wallet.balance + payment.amount
         wallet.balance = wallet.balance - amount
         wallet.update_record()
-    if not payment.id_payment_opt.requires_account:
+    if (not payment.id_payment_opt.requires_account) and account != 'user':
         account = None
 
     return amount, change_amount, account, wallet_code
@@ -166,7 +173,8 @@ def modify_payment():
         payment.account = account
         payment.wallet_code = wallet_code
         payment.update_record()
-        return dict(payment=payment, payments=[])
+        wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+        return dict(payment=payment, payments=[], wallet=wallet)
     except:
         import traceback
         traceback.print_exc()
@@ -205,7 +213,7 @@ def add_user_wallet_payment():
     wallet_payment = db.payment.insert(id_payment_opt=wallet_payment_opt.id, id_bag=bag.id, wallet_code=wallet.wallet_code, account="user")
     wallet_payment = db.payment(wallet_payment)
 
-    amount, change_amount, account, wallet_code = fix_payment_data(wallet_payment, 0, 0, '', wallet.wallet_code)
+    amount, change_amount, account, wallet_code = fix_payment_data(wallet_payment, wallet.balance, 0, 'user', wallet.wallet_code)
 
     wallet_balance = DQ(db.wallet(wallet.id).balance, True)
 

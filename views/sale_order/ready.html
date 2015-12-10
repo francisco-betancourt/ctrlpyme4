@@ -1,4 +1,21 @@
 {{extend 'layout.html'}}
 <h1> {{=T('Order')}} {{=order.id}} </h1>
 
+<table class="table">
+  <thead>
+    <th>{{=T('Name')}}</th>
+    <th>{{=T('Quantity')}}</th>
+    <th>{{=T('Ready')}}</th>
+  </thead>
+  <tbody>
+    {{for item in items:}}
+      <tr>
+        <td>{{=item['bag_item'].product_name}}</td>
+        <td>{{=DQ(item['bag_item'].quantity, True)}}</td>
+        <td>{{=item['ready']}}</td>
+      </tr>
+    {{pass}}
+  </tbody>
+</table>
+
 {{=form}}

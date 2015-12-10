@@ -50,8 +50,10 @@
       el_payment.find('.change_amount').val(res.payment.change_amount);
       el_payment.find('.account').val(res.payment.account);
       el_payment.find('.wallet_code').val(res.payment.wallet_code);
+      if (res.wallet) {
+        $('#user_wallet').find('.balance').text(res.wallet.balance);
+      }
 
-      console.log(res.payments);
       for (var index in res.payments) {
         var other_payment_data = res.payments[index];
         var el_other_payment = $('#payment_' + other_payment_data.id + ' .change_amount')
@@ -59,7 +61,6 @@
       }
     })
     .fail(function (res) {
-      console.log(res);
       alert('{{=T("Unable to modify payment")}}')
     });
   }
@@ -104,6 +105,7 @@
           $('#payments_list_container_' + payment_opt.id).hide();
         }
 
+        console.log(res);
         if (res.wallet_balance) {
           $('#user_wallet').find('.balance').text(res.wallet_balance)
         }
@@ -143,6 +145,7 @@
       url: "{{=URL('wallet', 'get_user_wallet', extension='json')}}/" + user_id
     })
     .done(function (res) {
+      $('#user_wallet').remove();
       if (!res.wallet) { return false; }
       var el_wallet = $('#proto_wallet_data').clone().show();
       el_wallet.attr('id', 'user_wallet');

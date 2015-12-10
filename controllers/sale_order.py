@@ -33,8 +33,6 @@ def validate_ready(form):
     for bag_item in db(db.bag_item.id_bag == form.vars.id_bag).select():
         stock, quantity = item_stock(bag_item.id_item).itervalues()
         ready &= (quantity >= bag_item.quantity)
-    # if not ready:
-    #     form.errors.
 
 
 def ready():
@@ -46,13 +44,18 @@ def ready():
     if not order:
         raise HTTP(404)
     ready = True
-    # check if the order item are in stock
+    # check if the order items are in stock
+    items = []
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
         stock, quantity = item_stock(bag_item.id_item).itervalues()
-        ready &= (quantity >= bag_item.quantity)
+        item_ready = (quantity >= bag_item.quantity)
+        ready &= item_ready
+        items.append(dict(bag_item=bag_item, ready=item_ready))
 
-    form = SQLFORM.factory()
+    buttons = [] if ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
+    form = SQLFORM.factory(buttons=buttons)
     if form.process(onvalidation=validate_ready).accepted:
+        # notify the user
         pass
 
     return locals()

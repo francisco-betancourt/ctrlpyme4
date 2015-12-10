@@ -192,7 +192,7 @@ def default_options_function(row):
 def super_table(table, fields, query, row_function=default_row_function,
                 options_function=default_options_function, options_enabled=True,
                 show_id=False, selectable=True, custom_headers=[],
-                extra_options=None):
+                extra_options=None, paginate=True):
     """ Returns a data table with the specified rows obtained from the specified query, if a row function is supplied then rows will follow the format stablished by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id to True of you want the table to display the id for the specific row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers has items then, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
 
         This function will use the database table field labels as table headers.
@@ -204,7 +204,11 @@ def super_table(table, fields, query, row_function=default_row_function,
 
     if not query:
         return None
-    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    pages = None
+    if paginate:
+        pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    else:
+        limits = (0, -1)
 
     if request.vars.ascendent == 'True' or not request.vars.ascendent:
         rows = db(query).select(db[table].ALL, limitby=limits, orderby=db[table][orderby_field])
@@ -215,17 +219,23 @@ def super_table(table, fields, query, row_function=default_row_function,
 
     thead = TR()
     if selectable:
-        thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox')))
+        thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox'), _class="table-selector"))
     if show_id:
-        new_vars = dict(**request.vars)
-        new_vars['orderby'] = 'id'
-        order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-        thead.append(TH(A('#', _href=order_url)))
+        fields.insert(0, 'id')
+        # new_vars = dict(**request.vars)
+        # new_vars['orderby'] = 'id'
+        # order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
+        # thead.append(TH(A('#', _href=order_url)))
     if custom_headers:
         for header in custom_headers:
             thead.append(TH(T(header)))
     else:
         for field in fields:
+            header_class = ''
+            label = db[table][field].label
+            if field == 'id':
+                label = '#'
+                header_class = 'table_id'
             new_vars = dict(**request.vars)
             new_vars['orderby'] = field
             caret = ''
@@ -238,9 +248,9 @@ def super_table(table, fields, query, row_function=default_row_function,
                     caret = 'down'
                     new_vars['ascendent'] = True
             order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-            thead.append(TH(A(db[table][field].label, _href=order_url), " ", I(_class="fa fa-caret-%s" % caret)))
+            thead.append(TH(A(label, _href=order_url), " ", I(_class="fa fa-caret-%s" % caret), _class=header_class))
     if options_enabled:
-        thead.append(TH(T('Options')))
+        thead.append(TH(T('Options'), _class='table-options'))
     thead = THEAD(thead)
 
     tbody = TBODY()
@@ -248,11 +258,11 @@ def super_table(table, fields, query, row_function=default_row_function,
         tr = row_function(row, fields)
         if selectable:
             tr.insert(0, INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
-        if show_id:
-            if not selectable:
-                tr.insert(0, TD(row.id))
-            else:
-                tr.insert(1, TD(row.id))
+        # if show_id:
+        #     if not selectable:
+        #         tr.insert(0, TD(row.id))
+        #     else:
+        #         tr.insert(1, TD(row.id))
         if options_enabled:
             options_td = options_function(row)
             if extra_options:

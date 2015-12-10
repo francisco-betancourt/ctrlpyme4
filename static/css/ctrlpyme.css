@@ -162,3 +162,13 @@ select {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+
+
+.table_id, .table-selector {
+  width: 4%;
+}
+
+.table-options {
+  width: 10%;
+}
