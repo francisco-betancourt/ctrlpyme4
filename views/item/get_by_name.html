@@ -33,7 +33,13 @@
 
 <div class="main-item-image">
   {{if images:}}
-    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="">
+    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="" id="item_image">
+
+    <div id="thumbs">
+      {{for image in images:}}
+        <img src="{{=URL('default', 'download', args=image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
+      {{pass}}
+    </div>
   {{pass}}
 </div>
 <!-- {{include 'image_uploader.html'}} -->
@@ -74,7 +80,15 @@
 
 
 <script>
+  var download_url = "{{=URL('default', 'download')}}/"
   var selected_traits = "";
+
+
+  function show_image(file_name) {
+    var path = download_url + file_name;
+    $('#item_image').attr('src', path);
+  }
+
 
   $('.trait-selector>option').click(function (event) {
     selected_traits = '';
@@ -91,6 +105,18 @@
       $('.item-price').text(data.item.base_price);
       $('.stock').html(data.stock);
       current_item_id = data.item.id;
+
+      // load selected item images
+      $('#item_image').attr('src', download_url + data.images[0].lg);
+      $('.img-thumb').remove();
+      for (var index in data.images) {
+        var image = data.images[index];
+        var el_thumb = $(document.createElement('img'));
+        el_thumb.attr('src', download_url + image.thumb);
+        el_thumb.addClass('img-thumb');
+        el_thumb.attr('onclick', 'show_image("'+download_url + image.lg+'")');
+        $('#thumbs').append(el_thumb);
+      }
     })
   });
 

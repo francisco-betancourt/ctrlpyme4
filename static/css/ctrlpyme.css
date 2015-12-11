@@ -149,6 +149,11 @@ button.cp-fab:focus{
 }
 
 
+#thumbs {
+  margin: auto;
+}
+
+
 
 /* Fix firefox ugly dropdown arrow */
 select {

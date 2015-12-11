@@ -311,6 +311,8 @@ def get_by_name_and_traits():
 
     stock = stock_info(item)
 
+    images = db(db.item_image.id_item == item.id).select()
+
     return locals()
 
 

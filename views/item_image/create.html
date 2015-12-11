@@ -1,3 +1,6 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Load images for item')}} {{=item.id}}</h1>
+{{for image in images:}}
+  <img src="{{=URL('default', 'download', args=image.sm)}}" alt="">
+{{pass}}
 {{=form}}

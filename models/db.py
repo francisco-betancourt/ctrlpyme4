@@ -452,11 +452,21 @@ db.define_table("payment",
     Field("wallet_code", default=None, label=T('Wallet code')),
     auth.signature)
 
+
 db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
     Field("image", "upload", default=None, label=T('Image')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False)
+    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False),
+    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False),
+    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False),
+    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False),
 )
+db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
+# db.item_image.thumb.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
+# db.item_image.small.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
+# db.item_image.medium.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
+# db.item_image.large.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
+
 
 db.define_table("promotion",
     Field("id_store", "reference store", label=T('Store')),
