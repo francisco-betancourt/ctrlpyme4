@@ -133,3 +133,10 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
     categories_tree = json.dumps(categories_tree[0])
 
     return categories_tree
+
+
+def search_query(table_name, fields, terms):
+    query = (db[table_name].id < 0)
+    for field in fields:
+        print db[table_name][field]
+        # query |= (db[table_name][field].contains(terms))

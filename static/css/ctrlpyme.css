@@ -97,7 +97,7 @@ button.cp-fab:focus{
 
 
 .info-card {
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   left: 15px;
   width: 300px;

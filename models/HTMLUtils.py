@@ -224,10 +224,6 @@ def super_table(table, fields, query, row_function=default_row_function,
         thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox'), _class="table-selector"))
     if show_id:
         fields.insert(0, 'id')
-        # new_vars = dict(**request.vars)
-        # new_vars['orderby'] = 'id'
-        # order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-        # thead.append(TH(A('#', _href=order_url)))
     if custom_headers:
         for header in custom_headers:
             thead.append(TH(T(header)))
@@ -260,11 +256,6 @@ def super_table(table, fields, query, row_function=default_row_function,
         tr = row_function(row, fields)
         if selectable:
             tr.insert(0, INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
-        # if show_id:
-        #     if not selectable:
-        #         tr.insert(0, TD(row.id))
-        #     else:
-        #         tr.insert(1, TD(row.id))
         if options_enabled:
             options_td = options_function(row)
             if extra_options:
