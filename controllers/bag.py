@@ -171,19 +171,8 @@ def add_bag_item():
 
         # bundle: check if theres stock for every item in the bundle
         item_stock_qty = float('inf')
-        #TODO:60 implement item bundle sale
-        if item.is_bundle:
-            bundle_items = db(db.bundle_item.id_bundle == item.id).select()
-            # check for stock
-            for bundle_item in bundle_items:
-
-                stock_qty = item_stock(bundle_item.id_item, session.store)['quantity']
-                item_stock_qty = min(floor(stock_qty / bundle_item.quantity), item_stock_qty)
-
-                if stock_qty < bundle_item.quantity:
-                    return dict(status="out of stock")
-        else:
-            item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
+        item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
+        print item_stock_qty
 
 
         # if theres no stock notify the user
@@ -259,26 +248,27 @@ def change_bag_item_sale_price():
     bag_item = db.bag_item(request.args(1))
     access_code = request.args(2)
 
-    if not (price_index or bag_item or access_code):
+    access = False
+    if auth.has_membership('Admin') or auth.has_membership('Manager'):
+        access = True
+    if not (price_index or bag_item or access_code or access):
         raise HTTP(400)
     if not get_valid_bag(bag_item.id_bag):
         raise HTTP(401)
-    user = db((db.auth_user.access_code == access_code)).select().first()
-    if user:
-        if auth.has_membership(None, user.id, role='VIP seller'):
-            # change the item bag item sale price in db
-            sale_price = bag_item.sale_price
-            if price_index == '1':
-                sale_price = bag_item.id_item.base_price
-            elif price_index == '2':
-                sale_price = bag_item.id_item.price2
-            elif price_index == '3':
-                sale_price = bag_item.id_item.price3
-            bag_item.sale_price = sale_price
-            bag_item.sale_taxes = item_taxes(bag_item.id_item, bag_item.sale_price or 0)
-            bag_item.update_record()
-        else:
-            raise HTTP(401)
+    user = db((db.auth_user.access_code == access_code)).select().first() if access_code else None
+    is_vip_seller = auth.has_membership(None, user.id, role='VIP seller') or auth.has_membership(None, user.id, role='Admin') or auth.has_membership(None, user.id, role='Manager') if user else access
+    if is_vip_seller:
+        # change the item bag item sale price in db
+        sale_price = bag_item.sale_price
+        if price_index == '1':
+            sale_price = bag_item.id_item.base_price
+        elif price_index == '2':
+            sale_price = bag_item.id_item.price2
+        elif price_index == '3':
+            sale_price = bag_item.id_item.price3
+        bag_item.sale_price = sale_price
+        bag_item.sale_taxes = item_taxes(bag_item.id_item, bag_item.sale_price or 0)
+        bag_item.update_record()
     else:
         raise HTTP(401)
 

@@ -1,0 +1,38 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Employee')}}: {{=employee.email}}</h1>
+
+<h3>{{=T('Stores')}}</h3>
+{{for store in stores:}}
+  <span><input type="checkbox" value="{{='Store_%s' % store.id}}"> {{=store.name}}</span>
+{{pass}}
+
+<h3>{{=T('Permissions')}}</h3>
+{{for group in groups:}}
+  <div>
+    <input type="checkbox" {{if auth.has_membership(None, employee.id, group.role):}} checked{{pass}} value="{{=group.role}}"> {{=group.role}}
+  </div>
+{{pass}}
+
+
+<script>
+  $('input[type=checkbox]').click(function (event) {
+    var group_name = event.target.value;
+
+    url = "{{=URL('user', 'remove_employee_membership', args=employee.id, extension='json')}}/" + group_name
+
+    if (event.target.checked) {
+      url = "{{=URL('user', 'add_employee_membership', args=employee.id, extension='json')}}/" + group_name
+    }
+
+    $.ajax({
+      url: url
+    })
+    .done(function (res) {
+      console.log(res);
+    })
+    .fail(function (res) {
+      console.log(res);
+    });
+  });
+
+</script>

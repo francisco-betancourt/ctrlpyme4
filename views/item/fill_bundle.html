@@ -22,10 +22,7 @@
 
   $('#proto_item').hide();
 
-  function remove_item(key) {
-    delete bundle_items[key];
-    $('#' + key).remove();
-  }
+
 
 
   function create_bundle_items_list() {
@@ -38,6 +35,14 @@
     }
     $('#final_bundle_items_list').val(items_string)
     console.log(items_string);
+  }
+
+
+  function remove_item(key) {
+    delete bundle_items[key];
+    $('#' + key).remove();
+
+    create_bundle_items_list();
   }
 
 

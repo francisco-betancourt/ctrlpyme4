@@ -211,6 +211,9 @@ def create_or_update():
         redirect('index');
 
     is_bundle = request.vars.is_bundle
+    if item and item.is_bundle:
+        is_bundle = True
+        request.vars.is_bundle = True
     forms = item_form(item=item, is_bundle=is_bundle)
 
     return dict(item=item, is_bundle=is_bundle, form=forms['form'])
@@ -303,6 +306,7 @@ def get_by_name_and_traits():
     item = db(
         (db.item.name == item_name)
       & (db.item.traits.contains(traits, all=True))
+      & (db.item.is_active == True)
     ).select().first()
     if not item:
         raise HTTP(404)
@@ -324,7 +328,10 @@ def get_by_name():
     item_name = request.args(0)
     # print item_name
     item_name = request.raw_args.split('/')[0]
-    items = db(db.item.name == item_name).select()
+    items = db(
+        (db.item.name == item_name)
+      & (db.item.is_active == True)
+    ).select()
     if not items:
         raise HTTP(404)
 
@@ -414,17 +421,17 @@ def item_row(row, fields):
     td.append(row.name)
     tr.append(td)
 
+    tr.append(TD(row.sku))
+    tr.append(TD(row.ean))
+    tr.append(TD(row.upc))
+
     return tr
 
 
 
 
 def index():
-    # data = SQLFORM.grid(
-    #     db.item, fields=[db.item.name, db.item.sku, db.item.ean, db.item.upc, db.item.base_price, db.item.is_bundle], links=[dict(header=T('Options'), body=lambda row: item_options(row))], csv=False, deletable=False, editable=False, create=False, details=False, ui='jquery-ui'
-    # )
-
-    data = super_table('item', ['name', 'sku', 'ean', 'upc'], db.item.is_active == True)
+    data = super_table('item', ['name', 'sku', 'ean', 'upc'], db.item.is_active == True, options_function=item_options, row_function=item_row)
 
     return locals()
 

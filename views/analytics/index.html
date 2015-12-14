@@ -25,6 +25,6 @@
 
 <script>
   var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5});
+  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5, bezierCurve: false});
 
 </script>

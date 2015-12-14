@@ -72,25 +72,20 @@
 </div>
 
 
-
-<div class="modal fade" tabindex="-1" role="dialog" id="access_code_modal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">{{=T('Manager access')}}</h4>
-      </div>
-      <div class="modal-body">
-        <input type="password" id="access_code" class="form-control">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary submit">
-          {{=T('Authenticate')}}
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- modal data -->
+<div id="access_code_modal_body">
+  <input type="password" id="access_code" class="form-control">
 </div>
+<div id="access_code_modal_footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">{{=T("Close")}}</button>
+  <button type="button" class="btn btn-primary submit">
+    {{=T('Authenticate')}}
+  </button>
+</div>
+
+<script>
+  set_modal("{{=T('Manager access')}}", $('#access_code_modal_body').detach(), $('#access_code_modal_footer').detach());
+</script>
 
 
 <script>
@@ -129,24 +124,47 @@
   }
 
 
-  function set_sale_price(price_index, bag_item_id, target) {
-    $('#access_code_modal').find('.submit').click(function (event) {
-      $.ajax({
-        url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
-      })
-      .done(function (data) {
-        $('#access_code_modal').modal('hide');
-        $(target).parent().find('.btn-primary').removeClass('btn-primary');
-        $(target).addClass('btn-primary');
+  var price_index = null;
+  var bag_item_id = null;
+  var target = null;
 
-        set_bag_data(data)
-      })
-      .fail(function (data) {
-        $('#access_code_modal').modal('hide');
-        alert('Invalid access');
-      })
+
+  function validate_access_code() {
+    $.ajax({
+      url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
     })
-    $('#access_code_modal').modal();
+    .done(function (data) {
+      $('#modal').modal('hide');
+      $(target).parent().find('.btn-primary').removeClass('btn-primary');
+      $(target).addClass('btn-primary');
+
+      set_bag_data(data)
+
+      $('#common_modal').modal('hide');
+      $('#access_code').val('');
+    })
+    .fail(function (data) {
+      $('#common_modal').modal('hide');
+      alert('{{=T("Invalid access")}}');
+    });
+  }
+
+
+  $('#common_modal').find('.submit').click(function (event) {
+    validate_access_code();
+  });
+
+
+  function set_sale_price(_price_index, _bag_item_id, _target) {
+    price_index = _price_index;
+    bag_item_id = _bag_item_id;
+    target = _target;
+
+    {{if auth.has_membership('Admin') or auth.has_membership('Manager'):}}
+      validate_access_code();
+    {{else:}}
+      $('#common_modal').modal();
+    {{pass}}
   }
 
 

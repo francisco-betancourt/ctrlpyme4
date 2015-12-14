@@ -41,6 +41,59 @@ def get():
 
 
 @auth.requires_membership('Admin')
+def get_employee():
+    """
+        args: [id_user]
+    """
+    employee = db.auth_user(request.args(0))
+    if not employee:
+        raise HTTP(404)
+
+    stores = db(db.store.is_active == True).select()
+    groups = db(db.auth_group.id > 0).select()
+    # memberships = db(db.auth_membership.user_id == employee.id).select()
+
+    return locals()
+
+
+@auth.requires_membership('Admin')
+def remove_employee_membership():
+    """
+        args: [id_user, group_name]
+    """
+
+    employee = db.auth_user(request.args(0))
+    group = db(db.auth_group.role == request.args(1).replace('_', ' ')).select().first()
+
+    if not employee or not group:
+        raise HTTP(404)
+
+    db((db.auth_membership.group_id == group.id)
+     & (db.auth_membership.user_id == employee.id)
+    ).delete()
+    # db.auth_membership.insert(user_id=employee.id, group_id=group.id)
+
+    return locals()
+
+
+@auth.requires_membership('Admin')
+def add_employee_membership():
+    """
+        args: [id_user, group_name]
+    """
+
+    employee = db.auth_user(request.args(0))
+    group = db(db.auth_group.role == request.args(1).replace('_', ' ')).select().first()
+
+    if not employee or not group:
+        raise HTTP(404)
+
+    db.auth_membership.insert(user_id=employee.id, group_id=group.id)
+
+    return locals()
+
+
+@auth.requires_membership('Admin')
 def update():
     return common_update('auth_user', request.args)
 
@@ -52,7 +105,12 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    data = super_table('auth_user', ['email'], db.auth_user.id > 0)
+    """ List of employees """
+
+    employee_group = db(db.auth_group.role == 'Employee').select().first()
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
+    data = super_table('auth_user', ['email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)))
+    )
     return locals()
 
 
@@ -78,7 +136,7 @@ def post_logout():
 
 @auth.requires_login()
 def store_selection():
-    """ Admin does not need to select a store """
+    """ """
 
     if session.store or not auth.has_membership('Employee'):
         redirect(URL('default', 'index'))

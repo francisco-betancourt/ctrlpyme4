@@ -57,6 +57,16 @@ def item_stock(item, id_store=None, include_empty=False):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
 
     stocks = None
+
+    if item.is_bundle:
+        bundle_items = db(db.bundle_item.id_bundle == item.id).select()
+        min_bundle = float('inf')
+        for bundle_item in bundle_items:
+            stocks, qty = item_stock(bundle_item.id_item, id_store, include_empty).itervalues()
+            min_bundle = min(min_bundle, qty / bundle_item.quantity)
+        return dict(stocks=None, quantity=min_bundle)
+
+
     query = (db.stock_item.id_item == item.id)
     if id_store > 0:
         query &= (db.stock_item.id_store == id_store)
@@ -140,3 +150,12 @@ def search_query(table_name, fields, terms):
     for field in fields:
         print db[table_name][field]
         # query |= (db[table_name][field].contains(terms))
+
+
+
+def redirection(url=None):
+    if url:
+        redirect(url)
+    else:
+        if request.vars._next:
+            redirect(request.vars._next)

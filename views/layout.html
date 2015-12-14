@@ -125,6 +125,30 @@
     <!-- Main ========================================= -->
     <!-- Begin page content -->
     <div class="container-fluid main-container">
+
+      <div class="modal fade" tabindex="-1" role="dialog" id="common_modal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="modal_title">{{=T('Modal')}}</h4>
+            </div>
+            <div class="modal-body" id="modal_body">
+            </div>
+            <div class="modal-footer" id="modal_footer">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function set_modal(title, body, footer) {
+          $('#modal_title').text(title);
+          $('#modal_body').append(body);
+          $('#modal_footer').append(footer);
+        }
+      </script>
+
+
       {{if left_sidebar_enabled:}}
         <div class="col-md-3 left-sidebar">
             {{block left_sidebar}}
@@ -227,6 +251,56 @@
         e.preventDefault()
         $(this).tab('show')
       });
+
+
+      var countChecked = function() {
+       var n = $( ".row_checkbox:checked" ).length;
+       // in this case we have to show the selection options
+       if (n > 0) {
+         $('#selection_menu').show();
+       }
+       else {
+         $('#selection_menu').hide();
+       }
+     };
+
+     $('.row_checkbox').click(function(event) {
+       countChecked();
+     });
+
+     $('#master_checkbox').click(function(event) {
+       if (event.target.checked) {
+         checkboxes = $('.row_checkbox');
+         $.each(checkboxes, function(i, element) {
+           element.checked = true;
+         });
+       }
+       else {
+         checkboxes = $('.row_checkbox');
+         $.each(checkboxes, function(i, element) {
+           element.checked = false;
+         });
+       }
+       countChecked();
+     });
+
+     {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
+
+     function delete_rows(ids, controller, vars) {
+       if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
+         var delete_url = '{{=URL("delete")}}' + ids + '?' + vars;
+         window.location.href = delete_url;
+       }
+     };
+
+     $('#delete').click(function(event) {
+       var ids = '/';
+       $.each( $(".row_checkbox:checked"), function(i, item) {
+         ids += item.value + '/';
+       });
+       delete_rows(ids, "", "{{=vars_string}}");
+     });
+
     </script>
 
   </body>

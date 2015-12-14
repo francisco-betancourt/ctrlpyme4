@@ -24,7 +24,7 @@ response.google_analytics_id = None
 ## this is the main application menu add/remove items as required
 #########################################################################
 
-#TODO:40 customize menus based on the user group
+#TODO:30 customize menus based on the user group
 response.menu = [
     (T('Home'), False, URL('default', 'index'), [])
 ]
@@ -33,7 +33,8 @@ if auth.has_membership("Employee"):
     response.menu += [
         (T('Configuration'),False,None, [
              (T('Stores'), False, URL('store', 'index'), None)
-            , (T('Users'), False, URL('user', 'index'), None)
+            , (T('Employees'), False, URL('user', 'index'), None)
+            , (T('Clients'), False, URL('user', 'clients'), None)
             , (T('Addresses'), False, URL('address', 'index'), None)
             , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
             , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
