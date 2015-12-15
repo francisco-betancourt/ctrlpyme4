@@ -1,17 +1,49 @@
+{{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
-<h1>{{=T('Employee')}}: {{=employee.email}}</h1>
 
-<h3>{{=T('Stores')}}</h3>
-{{for store in stores:}}
-  <span><input type="checkbox" value="{{='Store_%s' % store.id}}"> {{=store.name}}</span>
-{{pass}}
+{{block left_sidebar}}
+  <h1>{{=T('Employee')}} </h1>
+  <h4>
+    {{=employee.first_name}} {{=employee.last_name}} | {{=employee.email}}
+  </h4>
 
-<h3>{{=T('Permissions')}}</h3>
-{{for group in groups:}}
-  <div>
-    <input type="checkbox" {{if auth.has_membership(None, employee.id, group.role):}} checked{{pass}} value="{{=group.role}}"> {{=group.role}}
-  </div>
-{{pass}}
+  <h3>{{=T('Stores')}}</h3>
+  <ul class="list-group">
+    {{for store in stores:}}
+      {{store_group = 'Store %s' % store.id}}
+      <li class="list-group-item">
+         <span class="right">
+          <input type="checkbox" value="{{=store_group}}" {{if auth.has_membership(None, employee.id, store_group):}} checked {{pass}}>
+        </span>
+        {{=store.name}}
+      </li>
+    {{pass}}
+  </ul>
+
+
+{{end}}
+
+
+<h2>{{=T('Permissions')}}</h2>
+
+<div class="row">
+  {{ col_class = 'col-md-%s' % (12 / len(perm_groups)) }}
+  {{ for perm_group in perm_groups: }}
+    <div class="{{=col_class}}">
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3>{{=perm_group['name']}}</h3></div>
+        <div class="panel-body">
+          {{ for group in perm_group['groups']: }}
+            <div>
+              <input type="checkbox" {{if auth.has_membership(None, employee.id, group.role):}} checked{{pass}} value="{{=group.role}}"> {{=group.description}}
+            </div>
+          {{ pass }}
+        </div>
+      </div>
+    </div>
+  {{ pass }}
+</div>
+
 
 
 <script>
@@ -24,14 +56,16 @@
       url = "{{=URL('user', 'add_employee_membership', args=employee.id, extension='json')}}/" + group_name
     }
 
+    info_card('Saving...');
+
     $.ajax({
       url: url
     })
     .done(function (res) {
-      console.log(res);
+      info_card('Saved', null, "success");
     })
     .fail(function (res) {
-      console.log(res);
+      info_card('Failed', null, "error");
     });
   });
 

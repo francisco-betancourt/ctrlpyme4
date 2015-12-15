@@ -32,7 +32,17 @@ def client_profile():
 
 @auth.requires_membership('Admin')
 def create():
-    return common_create('auth_user')
+    form = SQLFORM(db.auth_user)
+    if form.process().accepted:
+        employee_group = db(db.auth_group.role == 'Employee').select().first()
+        if employee_group:
+            db.auth_membership.insert(user_id=form.vars.id, group_id=employee_group.id)
+        response.flash = T('Employee created')
+        redirect(URL('user'))
+        # redirection()
+    elif form.errors:
+        response.flash = T('Error in form')
+    return dict(form=form)
 
 
 @auth.requires_membership('Admin')
@@ -50,8 +60,25 @@ def get_employee():
         raise HTTP(404)
 
     stores = db(db.store.is_active == True).select()
-    groups = db(db.auth_group.id > 0).select()
-    # memberships = db(db.auth_membership.user_id == employee.id).select()
+
+    sale_groups = db(db.auth_group.role.contains(['Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns'])).select()
+    item_groups = db(db.auth_group.role.contains(['Items info', 'Items management', 'Items prices'])).select()
+    access_groups = db(db.auth_group.role.contains(['Purchases', 'Inventories', 'Manager'])).select()
+
+    perm_groups = [
+        {
+            'name': T('Sales'),
+            'groups': sale_groups
+        },
+        {
+            'name': T('Items'),
+            'groups': item_groups
+        },
+        {
+            'name': T('Access'),
+            'groups': access_groups
+        }
+    ]
 
     return locals()
 
@@ -109,7 +136,7 @@ def index():
 
     employee_group = db(db.auth_group.role == 'Employee').select().first()
     query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
-    data = super_table('auth_user', ['email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)))
+    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)))
     )
     return locals()
 

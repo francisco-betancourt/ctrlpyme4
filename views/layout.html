@@ -59,29 +59,56 @@
       {{session.info = {'text': response.flash} }}
     {{pass}}
 
-    {{if session.info:}}
-      <div class="info-card panel panel-default" id="info_card">
-        <div class="panel-body">
-          <div><i class="fa fa-times close" id="info_close"></i></div>
-          {{=session.info['text'] or ''}}
-          {{if session.info.has_key('button') and session.info['button'].has_key('href'):}}
-            <div>
+
+
+     {{if session.info:}}
+       <div class="info-card panel panel-default" id="info_card">
+         <div class="panel-body">
+           <div><i class="fa fa-times close" id="info_close"></i></div>
+           <div id="info_card__text">{{=session.info['text'] or ''}}</div>
+             {{if session.info.has_key('button') and session.info['button'].has_key('href'):}}
+             <div id="info_card__btn_container">
+             <p></p>
+               <a id="info_card__btn" class="btn btn-block btn-default info-btn" href=" {{=session.info['button']['ref']}}"
+                   target="{{=session.info['button']['target'] if session.info['button'].has_key('target') else ''}}">
+               {{=session.info['button']['text'] or ''}}
+             </a>
+           </div>
+           {{pass}}
+         </div>
+       </div>
+      {{else:}}
+        <div class="info-card panel panel-default" id="info_card" hidden>
+          <div class="panel-body">
+            <div><i class="fa fa-times close" id="info_close"></i></div>
+            <div id="info_card__text"></div>
+            <div id="info_card__btn_container">
               <p></p>
-              <a class="btn btn-block btn-default info-btn" href=" {{=session.info['button']['ref']}}"
-                target="{{=session.info['button']['target'] if session.info['button'].has_key('target') else ''}}">
-                {{=session.info['button']['text'] or ''}}
-              </a>
+              <a id="info_card__btn" class="btn btn-block btn-default info-btn" href=""></a>
             </div>
-          {{pass}}
+          </div>
         </div>
-      </div>
-    {{pass}}
+     {{pass}}
     {{session.info = None}}
 
     <script>
       $('#info_close').click(function(event) {
         $('#info_card').slideToggle();
       })
+
+      function info_card(msg, button, context) {
+        $('#info_card__text').text(msg);
+        if (! button) {
+          $('#info_card__btn_container').hide();
+        }
+        else {
+          $('#info_card__btn_container').show();
+        }
+        if (context) {
+          $('#info_card').addClass(context);
+        }
+        $('#info_card').show();
+      }
     </script>
 
     <!-- Navbar ======================================= -->
