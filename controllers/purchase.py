@@ -332,7 +332,8 @@ def update():
         redirect(URL('fill', args=purchase.id))
     elif form.errors:
         response.flash = 'form has errors'
-    return dict(form=form)
+    return locals()
+    # return dict(form=form, pur)
 
 
 @auth.requires_membership('Purchases')
