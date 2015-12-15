@@ -294,11 +294,14 @@ db.define_table(
 
 
 db.define_table("store",
-    Field("id_company", "reference company", label=T('Company')),
     Field("id_address", "reference address", label=T('Address')),
     Field("name", "string", default=None, label=T('Name')),
     Field("consecutive", "integer", default=1),
     auth.signature)
+# db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
+db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+
+
 
 db.define_table(
     'store_role'
@@ -314,6 +317,8 @@ db.define_table("store_config",
     Field("param_type", "string", default=None, label=T('Parameter type'), writable=False),
     Field("is_public", "boolean", default=False, label=T('Is Public')),
     auth.signature)
+db.store_config.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_address)s %(name)s')
+
 
 db.define_table("supplier",
     Field("business_name", "string", default=None, label=T('Business Name')),
@@ -511,9 +516,6 @@ db.define_table("invoice",
 
 
 db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
-db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
-db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
-db.store_config.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
 db.purchase.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
 db.purchase.id_supplier.requires=IS_IN_DB( db, 'supplier.id', ' %(business_name)s %(tax_id)s %(id_address)s')
 db.purchase.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')

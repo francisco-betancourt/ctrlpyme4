@@ -168,8 +168,23 @@ def store_selection():
     if session.store or not auth.has_membership('Employee'):
         redirect(URL('default', 'index'))
 
+    user_stores_query = (db.store.id < 0)
+    if auth.has_membership('Admin'):
+        user_stores_query = (db.store.is_active == True)
+    else:
+        user_stores_query = (db.store.is_active == True)
+        user_store_groups = db((db.auth_membership.group_id == db.auth_group.id)
+                             & (db.auth_group.role.contains('Store '))
+                             & (db.auth_membership.user_id == auth.user.id)
+                             ).select(db.auth_group.role)
+        extra_query = (db.store.id < 0)
+        for user_store_group in user_store_groups:
+            store_id = int(user_store_group.role.split(' ')[1])
+            extra_query |= (db.store.id == store_id)
+        user_stores_query = (user_stores_query & (extra_query))
+
     form = SQLFORM.factory(
-        Field('store', "reference store", label=T('Store'), requires=IS_IN_DB(db, 'store.id', '%(name)s'))
+        Field('store', "reference store", label=T('Store'), requires=IS_IN_DB(db(user_stores_query), 'store.id', '%(name)s'))
     )
 
     if form.process().accepted:

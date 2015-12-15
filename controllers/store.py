@@ -10,7 +10,7 @@ def create():
     form = SQLFORM(db.store)
     if form.process().accepted:
         # insert store group
-        db.auth_group.insert(role='Store_%s' % form.vars.id)
+        db.auth_group.insert(role='Store %s' % form.vars.id)
         response.flash = T('form accepted')
     elif form.errors:
         response.flash = T('form has errors')
