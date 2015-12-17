@@ -620,20 +620,6 @@ def refund():
                         reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, id_new_credit_note)
                 else:
                     reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, id_new_credit_note)
-                # stock_item = db((db.stock_item.id_credit_note == id_new_credit_note) & (db.stock_item.id_item == id_item)).select().first()
-                # if stock_item:
-                #     stock_item.purchase_qty += returned_qty
-                #     stock_item.stock_qty += returned_qty
-                #     stock_qty.update_record()
-                # else:
-                #     db.stock_item.insert(id_credit_note=id_new_credit_note,
-                #                          id_item=id_item,
-                #                          purchase_qty=returned_qty,
-                #                          price=avg_buy_price,
-                #                          stock_qty=returned_qty,
-                #                          id_store=session.store,
-                #                          taxes=0
-                #                          )
     return locals()
 
 
