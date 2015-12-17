@@ -16,7 +16,7 @@ def _remove_stocks(item, quantity, sale_date):
     wavg_days_in_shelf = 0
     for stock_item in stock_items:
         if not quantity:
-            return
+            return 0, 0
         stock_qty = DQ(stock_item.stock_qty) - DQ(original_qty)
         stock_item.stock_qty = max(0, stock_qty)
         stock_item.update_record()
@@ -37,6 +37,7 @@ def remove_stocks(bag_items):
         if bag_item.id_item.has_serial_number:
             pass
         else:
+            bag_item_total_buy_price = 0
             # when we have a bundle, we have to remove stocks for every item in the bundle. Since bundles cannot be purchased, we have to consider its average days in shelf, as the average of its bundle items weighted average days in shelf
             if bag_item.id_item.is_bundle:
                 total_wavg_days_in_shelf = 0
@@ -46,9 +47,10 @@ def remove_stocks(bag_items):
                     bundle_items_qty += 1
                     total_buy_price, wavg_days_in_shelf = _remove_stocks(bundle_item.id_item, bundle_item.quantity, bag_item.created_on)
                     total_wavg_days_in_shelf += wavg_days_in_shelf
+                    bag_item_total_buy_price += total_buy_price
                 total_wavg_days_in_shelf /= bundle_items_qty
 
-                bag_item.total_buy_price = total_buy_price
+                bag_item.total_buy_price = bag_item_total_buy_price
                 bag_item.wavg_days_in_shelf = total_wavg_days_in_shelf
 
                 bag_item.update_record()
@@ -582,7 +584,6 @@ def refund():
                 if not already_added:
                     wallet_code = request.vars.wallet_code or uuid4()
                     id_wallet = db.wallet.insert(balance=total, wallet_code=wallet_code)
-                    response.flash = DIV(FORM(INPUT(_type='submit')))
                     response.info = T('Sale returned, your wallet code is: ') + wallet_code
                     response.info_btn = {'text': T('Print'), 'ref': URL('wallet', 'print_wallet', args=id_wallet), 'target': 'blank'}
 
@@ -596,20 +597,43 @@ def refund():
                 id_item = bag_item.id_item.id
                 avg_buy_price = DQ(bag_item.total_buy_price) / DQ(bag_item.quantity)
 
-                stock_item = db((db.stock_item.id_credit_note == id_new_credit_note) & (db.stock_item.id_item == id_item)).select().first()
-                if stock_item:
-                    stock_item.purchase_qty += returned_qty
-                    stock_item.stock_qty += returned_qty
-                    stock_qty.update_record()
+                def reintegrate_stock(item, returned_qty, avg_buy_price, id_credit_note):
+                    stock_item = db((db.stock_item.id_credit_note == id_credit_note) & (db.stock_item.id_item == item.id)).select().first()
+                    if stock_item:
+                        stock_item.purchase_qty += returned_qty
+                        stock_item.stock_qty += returned_qty
+                        stock_qty.update_record()
+                    else:
+                        db.stock_item.insert(id_credit_note=id_credit_note,
+                                             id_item=item.id,
+                                             purchase_qty=returned_qty,
+                                             price=avg_buy_price,
+                                             stock_qty=returned_qty,
+                                             id_store=session.store,
+                                             taxes=0
+                                             )
+                # stock reintegration
+                if bag_item.id_item.is_bundle:
+                    bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item).select()
+                    avg_buy_price = DQ(bag_item.total_buy_price) / DQ(returned_items) / DQ(len(bundle_items)) if bag_item.total_buy_price else 0
+                    for bundle_item in bundle_items:
+                        reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, id_new_credit_note)
                 else:
-                    db.stock_item.insert(id_credit_note=id_new_credit_note,
-                                         id_item=id_item,
-                                         purchase_qty=returned_qty,
-                                         price=avg_buy_price,
-                                         stock_qty=returned_qty,
-                                         id_store=session.store,
-                                         taxes=0
-                                         )
+                    reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, id_new_credit_note)
+                # stock_item = db((db.stock_item.id_credit_note == id_new_credit_note) & (db.stock_item.id_item == id_item)).select().first()
+                # if stock_item:
+                #     stock_item.purchase_qty += returned_qty
+                #     stock_item.stock_qty += returned_qty
+                #     stock_qty.update_record()
+                # else:
+                #     db.stock_item.insert(id_credit_note=id_new_credit_note,
+                #                          id_item=id_item,
+                #                          purchase_qty=returned_qty,
+                #                          price=avg_buy_price,
+                #                          stock_qty=returned_qty,
+                #                          id_store=session.store,
+                #                          taxes=0
+                #                          )
     return locals()
 
 
