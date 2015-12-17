@@ -194,6 +194,55 @@ def monthly_analysis(query, tablename, field, month, year):
     return data_set
 
 
+def stocks_table(item):
+    def stock_row(row, fields):
+        tr = TR()
+        # the stock is from purchase
+        if row.id_purchase:
+            tr.append(TD(A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id))))
+        # stock is from inventory
+        elif row.id_inventory:
+            tr.append(TD(A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id))))
+        # stock is from credit note
+        elif row.id_credit_note:
+            tr.append(TD(A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))))
+
+        for field in fields:
+            tr.append(TD(row[field]))
+        tr.append(TD(row['created_on'].strftime('%d %b %Y, %H:%M')))
+
+        #TODO  add link to employee analysis
+        tr.append(TD(row.created_by.first_name + ' ' + row.created_by.last_name))
+
+        return tr
+
+    return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on)
+
+
+@auth.requires_membership("Analytics")
+def item_analysis():
+    """
+        args: [id_item]
+    """
+
+    item = db.item(request.args(0))
+    main_image = db(db.item_image.id_item == item.id).select().first()
+
+    existence = item_stock(item, id_store=session.store)['quantity']
+
+    # purchases = None
+    stocks = stocks_table(item)
+
+    sales = db(
+        (db.bag_item.id_bag == db.bag.id)
+        & (db.sale.id_bag == db.bag.id)
+        & (db.sale.id_store == session.store)
+        & (db.bag_item.id_item == item.id)
+    ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
+
+    return locals()
+
+
 @auth.requires_membership("Analytics")
 def index():
     start_date, end_date, timestep = daily_interval(11, 2015)

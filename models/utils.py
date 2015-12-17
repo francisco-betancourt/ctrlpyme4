@@ -157,5 +157,9 @@ def redirection(url=None):
     if url:
         redirect(url)
     else:
-        if request.vars._next:
-            redirect(request.vars._next)
+        if session._next:
+            _next = session._next
+            session._next = None
+            redirect(_next)
+        else:
+            redirect(URL('default', 'index'))

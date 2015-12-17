@@ -216,6 +216,8 @@ def create_or_update():
         request.vars.is_bundle = True
     forms = item_form(item=item, is_bundle=is_bundle)
 
+    session._next = request.env.http_referer
+
     return dict(item=item, is_bundle=is_bundle, form=forms['form'])
 
 
@@ -237,6 +239,8 @@ def fill_bundle():
     )
     bundle_form[0].insert(0, bundle_items_html())
     bundle_items = db(db.bundle_item.id_bundle == bundle.id).select()
+    if bundle_items:
+        redirection()
     bundle_items_data = {}
     for b_item in bundle_items:
         barcode = b_item.id_item.sku or b_item.id_item.ean or b_item.id_item.upc

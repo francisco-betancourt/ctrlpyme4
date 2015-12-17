@@ -196,7 +196,7 @@ def default_options_function(row):
 def super_table(table, fields, query, row_function=default_row_function,
                 options_function=default_options_function, options_enabled=True,
                 show_id=False, selectable=False, custom_headers=[],
-                extra_options=None, paginate=True):
+                extra_options=None, paginate=True, orderby=None):
     """ Returns a data table with the specified rows obtained from the specified query, if a row function is supplied then rows will follow the format established by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id True if you want the table to display the id for every row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers is not empty, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
 
         This function will use the database table field labels as table headers.
@@ -208,18 +208,20 @@ def super_table(table, fields, query, row_function=default_row_function,
 
     if not query:
         return None
-    pages = None
+    pages = ''
     if paginate:
         pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
     else:
         limits = (0, -1)
 
+    orderby = db[table][orderby_field] if not orderby else orderby
+
     if request.vars.ascendent == 'True' or not request.vars.ascendent:
         request.vars.ascendent = 'True'
-        rows = db(query).select(db[table].ALL, limitby=limits, orderby=db[table][orderby_field])
+        rows = db(query).select(db[table].ALL, limitby=limits, orderby=orderby)
     else:
         request.vars.ascendent = 'False'
-        rows = db(query).select(db[table].ALL, limitby=limits, orderby=~db[table][orderby_field])
+        rows = db(query).select(db[table].ALL, limitby=limits, orderby=~orderby)
     if not rows:
         return None
 

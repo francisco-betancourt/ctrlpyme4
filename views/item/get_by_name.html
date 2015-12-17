@@ -66,13 +66,13 @@
       <button class="btn btn-default" onclick="update_item(current_item_id)">
       <i class="fa fa-shopping-cart"></i></button>
     </div>
-  {{pass}}
+  {{pass}} -->
   {{if auth.has_membership('Analytics'): }}
     <div class="btn-group">
-      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <button class="btn btn-default" onclick="item_analysis(current_item_id)">
       <i class="fa fa-bar-chart"></i></button>
     </div>
-  {{pass}} -->
+  {{pass}}
 </div>
 {{pass}}
 
@@ -126,5 +126,9 @@
 
   function add_item_images(item_id) {
     window.location.href = "{{=URL('item_image', 'create')}}/" + item_id;
+  }
+
+  function item_analysis(item_id) {
+    window.location.href = "{{=URL('analytics', 'item_analysis')}}/" + item_id;
   }
 </script>
