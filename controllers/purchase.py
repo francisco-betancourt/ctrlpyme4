@@ -101,6 +101,8 @@ def add_stock_item():
     try:
         purchase = db.purchase(request.args(0))
         item = db.item(request.args(1))
+        if item.is_bundle or not item.has_inventory:
+            raise HTTP(403)
         if not purchase or not item:
             raise HTTP(404)
         stock_item = db((db.stock_item.id_item == item.id) &

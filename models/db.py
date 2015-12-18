@@ -338,6 +338,7 @@ db.define_table("purchase",
     Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
     Field("purchase_xml", "text", default=None, label=T('XML'), readable=False, writable=False),
     auth.signature)
+db.purchase.id_store.requires = IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s')
 
 
 db.define_table("bag",

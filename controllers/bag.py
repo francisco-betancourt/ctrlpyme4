@@ -71,15 +71,17 @@ def modify_bag_item():
     if auth.has_membership('Clients'):
         is_online_sale = True
 
+    old_qty = bag_item.quantity
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
     if not bag_item.id_item.allow_fractions:
         bag_item.quantity = remove_fractions(bag_item.quantity)
     bag_item.quantity = DQ(bag_item.quantity)
 
     if not is_online_sale:
-        qty = item_stock(db.item(bag_item.id_item), session.store)['quantity']
-        if qty < bag_item.quantity:
-            bag_item.quantity = qty
+        qty = item_stock(db.item(bag_item.id_item), session.store, id_bag=session.current_bag)['quantity']
+        diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
+        if qty + diff < bag_item.quantity - old_qty:
+            bag_item.quantity = max(old_qty, qty + old_qty)
 
     bag_item.update_record()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
@@ -169,11 +171,7 @@ def add_bag_item():
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
 
-        # bundle: check if theres stock for every item in the bundle
-        item_stock_qty = float('inf')
-        item_stock_qty = DQ(item_stock(item, session.store)['quantity'])
-        print item_stock_qty
-
+        item_stock_qty = DQ(item_stock(item, session.store, id_bag=session.current_bag)['quantity'])
 
         # if theres no stock notify the user
         if not bag_item:
@@ -184,7 +182,7 @@ def add_bag_item():
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:
-            base_qty = item_stock_qty - bag_item.quantity if item_stock_qty - bag_item.quantity < 1 and not is_online_sale else 1
+            base_qty = item_stock_qty if item_stock_qty < 1 and not is_online_sale else 1
             if base_qty <= 0:
                 return dict(status="out of stock")
             bag_item.quantity += base_qty
@@ -282,8 +280,23 @@ def change_bag_item_sale_price():
             )
 def complete():
     bag = get_valid_bag(session.current_bag)
+
     if not bag:
         raise HTTP(404)
+
+    # check if all the bag items are consistent
+    if auth.has_membership('Employee') or auth.has_membership('Admin'):
+        bag_items = db(db.bag_item.id_bag == bag.id).select()
+        out_of_stock_items = []
+        for bag_item in bag_items:
+            qty = item_stock(bag_item.id_item, session.store)['quantity']
+            if bag_item.quantity > qty:
+                out_of_stock_items.append(bag_item)
+        print out_of_stock_items
+        if out_of_stock_items:
+            response.flash = T('Some items are out of stock or are inconsistent')
+            redirection()
+
     bag.completed = True
     bag.update_record()
 

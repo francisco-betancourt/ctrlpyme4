@@ -13,7 +13,8 @@ if auth.is_logged_in():
         redirect(URL('user', 'store_selection'))
 
     # create a bag in case the user does not have one
-    if not session.current_bag:
+    not_bag = ((not session.current_bag) or db.bag(session.current_bag).completed) == 'True'
+    if not_bag:
         if auth.has_membership('Clients'):
             bag = db(
                 (db.bag.created_by == auth.user.id)
@@ -24,7 +25,7 @@ if auth.is_logged_in():
                 session.current_bag = new_bag_id
             else:
                 session.current_bag = bag.id
-        elif auth.has_membership('Employee'):
+        elif auth.has_membership('Employee') or auth.has_membership('Admin'):
             bag = db(
                 (db.bag.created_by == auth.user.id)
                 & (db.bag.id_store == session.store)

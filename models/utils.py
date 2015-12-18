@@ -53,7 +53,7 @@ def item_taxes(item, price):
     return DQ(D(price or 0) * D(taxes or 0))
 
 
-def item_stock(item, id_store=None, include_empty=False):
+def item_stock(item, id_store=None, include_empty=False, id_bag=None):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
 
     stocks = None
@@ -62,21 +62,36 @@ def item_stock(item, id_store=None, include_empty=False):
         bundle_items = db(db.bundle_item.id_bundle == item.id).select()
         min_bundle = float('inf')
         for bundle_item in bundle_items:
-            stocks, qty = item_stock(bundle_item.id_item, id_store, include_empty).itervalues()
+            stocks, qty = item_stock(bundle_item.id_item, id_store, include_empty, id_bag).itervalues()
             min_bundle = min(min_bundle, qty / bundle_item.quantity)
         return dict(stocks=None, quantity=min_bundle)
-
 
     query = (db.stock_item.id_item == item.id)
     if id_store > 0:
         query &= (db.stock_item.id_store == id_store)
     if not include_empty:
         query &= (db.stock_item.stock_qty > 0)
+    bag_item_count = 0
+    if id_bag:
+        # check bundle items containing the specified item
+        bundles = db((db.bundle_item.id_bundle == db.bag_item.id_item)
+                   & (db.bag_item.id_item == db.item.id)
+                   & (db.item.is_bundle == True)
+                   & (db.bag_item.id_bag == id_bag)
+        ).select(db.bag_item.ALL, groupby=db.bag_item.id)
+        for bundle in bundles:
+            bundle_item = db((db.bundle_item.id_bundle == bundle.id_item.id) & (db.bundle_item.id_item == item.id)).select().first()
+            if bundle_item:
+                bag_item_count += bundle_item.quantity * bundle.quantity
+        # this is the same item in bag
+        bag_item = db((db.bag_item.id_item == item.id) & (db.bag_item.id_bag == id_bag) & (db.bag_item.quantity > 0)).select().first()
+        bag_item_count += bag_item.quantity if bag_item else 0
     stocks = db(query).select(orderby=db.stock_item.created_on)
     if stocks:
         quantity = 0
         for stock in stocks:
             quantity += stock.stock_qty
+        quantity -= bag_item_count
         return dict(stocks=stocks, quantity=quantity)
     else:
         return dict(stocks=None, quantity=0)
