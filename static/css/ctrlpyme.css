@@ -106,11 +106,16 @@ button.cp-fab:focus{
   left: 15px;
   width: 300px;
   z-index: 100;
-  background-color: grey;
+  background-color: #2F2F2F;
   color: white;
   border-color: black;
 
   box-shadow: 0px 4px 4px rgba(0,0,0,.4);
+}
+
+.info-card .close {
+  color: rgb(210,210,210);
+  opacity: .4;
 }
 
 .info-card .info-btn {
@@ -180,4 +185,17 @@ select {
 
 .table-options {
   width: 10%;
+}
+
+
+#search {
+  /*background-color: rgba(0,0,0,.4);*/
+  color: white;
+}
+
+#search_form .search-icon {
+  background-color: rgba(0,0,0,.4);
+  border: none;
+  color: rgba(255,255,255,.7);
+
 }
