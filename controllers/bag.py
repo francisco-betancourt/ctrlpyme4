@@ -285,17 +285,22 @@ def complete():
         raise HTTP(404)
 
     # check if all the bag items are consistent
-    if auth.has_membership('Employee') or auth.has_membership('Admin'):
-        bag_items = db(db.bag_item.id_bag == bag.id).select()
-        out_of_stock_items = []
-        for bag_item in bag_items:
-            qty = item_stock(bag_item.id_item, session.store)['quantity']
-            if bag_item.quantity > qty:
-                out_of_stock_items.append(bag_item)
-        print out_of_stock_items
-        if out_of_stock_items:
-            response.flash = T('Some items are out of stock or are inconsistent')
-            redirection()
+    bag_items = db(db.bag_item.id_bag == bag.id).select()
+    out_of_stock_items = []
+    for bag_item in bag_items:
+        # when the item has 0 quantity
+        if bag_item.quantity <= 0:
+            db(db.bag_item.id == bag_item.id).delete()
+        qty = item_stock(bag_item.id_item, session.store)['quantity']
+        if bag_item.quantity > qty:
+            out_of_stock_items.append(bag_item)
+    if out_of_stock_items and (auth.has_membership('Employee') or auth.has_membership('Admin')):
+        response.flash = T('Some items are out of stock or are inconsistent')
+        redirection()
+
+    if not db(db.bag_item.id_bag == bag.id).select():
+        db(db.bag.id == bag.id).delete()
+        redirection()
 
     bag.completed = True
     bag.update_record()

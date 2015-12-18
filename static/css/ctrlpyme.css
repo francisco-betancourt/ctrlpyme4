@@ -69,13 +69,16 @@ button.cp-fab:focus{
 
 
 #core_button {
+  /*width: 48px;*/
 }
 
 #core_button button {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
   margin: 0px;
-  box-shadow: 0px 2px 4px rgba(0,0,0,.5);
+  /*box-shadow: 0px 2px 4px rgba(0,0,0,.5);*/
+  height: 64px;
+  width: 64px;
 }
 
 #core_button button:focus {
@@ -85,7 +88,6 @@ button.cp-fab:focus{
 
 
 .extra-option {
-  background-color: #1F1F1F;
 }
 
 #expand_core {
@@ -93,6 +95,8 @@ button.cp-fab:focus{
   border-bottom-right-radius: 0px;
   padding-left: 15px;
   padding-right: 15px;
+  max-width: 38px;
+  min-width: 38px;
 }
 
 

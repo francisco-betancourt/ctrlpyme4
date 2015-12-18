@@ -1,18 +1,18 @@
 <div class="cp-fab-container">
   <div id="core_button" class="btn-group btn-group-lg" role="group" aria-label="...">
-    <button id="core_action" type="button" class="btn btn-default" aria-label="">
+    <button id="core_action" type="button" class="btn btn-primary" aria-label="">
       <i class="fa fa-{{=core_action_icon}}" aria-hidden="true"></i>
     </button>
     {{if core_options:}}
       {{for core_option in core_options:}}
-        <button type="button" class="btn btn-default extra-option" onclick="window.location.href = '{{=core_option['url']}}';"
+        <button type="button" class="btn btn-primary extra-option" onclick="window.location.href = '{{=core_option['url']}}';"
             data-toggle="tooltip" data-placement="top"
             title="{{=core_option['tooltip']}}">
           <i class="fa fa-{{=core_option['icon']}}" aria-hidden="true"></i>
         </button>
       {{pass}}
 
-      <button id="expand_core" type="button" class="btn btn-default cp-multi-more" aria-label="">
+      <button id="expand_core" type="button" class="btn btn-primary cp-multi-more" aria-label="">
         <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
       </button>
     {{pass}}

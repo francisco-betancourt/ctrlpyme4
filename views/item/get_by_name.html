@@ -13,6 +13,19 @@
   {{pass}}
 {{pass}}
 
+<h3>{{=T('Description')}}</h3>
+<div id="description">
+  {{=items.first().description}}
+  {{if items.first().is_bundle:}}
+  <h4>{{=T('This bundle contains')}}</h4>
+  <ul>
+    {{for bundle_item in db(db.bundle_item.id_bundle == items.first().id).select(): }}
+      <li><a href=""> {{=bundle_item.id_item.name}}</a> x {{= fix_item_quantity(bundle_item.id_item, bundle_item.quantity)}} </li>
+    {{pass}}
+  </ul>
+  {{pass}}
+</div>
+
 
 <script>
   {{if request.vars.current_id:}}
