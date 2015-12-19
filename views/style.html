@@ -1,3 +1,31 @@
-<style>
+{{
+  primary_color = '#368DB6'
+  primary_color_dim = '#2D7EA4';
+  primary_color_text = 'white'
+}}
 
+<style>
+  nav {
+    background-color: {{=primary_color}};
+  }
+
+  .btn-primary {
+    background-color: {{=primary_color}};
+    color: {{=primary_color_text}};
+    border-color: {{=primary_color_dim}};
+  }
+
+  .btn-primary:hover {
+    background-color: {{=primary_color_dim}};
+  }
+
+  .primary-color {
+    background-color: {{=primary_color}};
+    color: {{=primary_color_text}};
+  }
+
+  .primary-color-dim {
+    background-color: {{=primary_color_dim}};
+    color: {{=primary_color_text}};
+  }
 </style>

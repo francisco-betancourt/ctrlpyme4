@@ -31,6 +31,14 @@
   color: white;
 }
 
+.navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
+  color: white;
+}
+
 .navbar-default .navbar-brand {
   color: rgba(255,255,255,.5);
+}
+
+.navbar-default i.icon {
+  color: #505050;
 }

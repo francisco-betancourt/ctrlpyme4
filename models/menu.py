@@ -6,7 +6,7 @@
 #########################################################################
 
 response.logo = A(B('Ctrl',SPAN('PyME')),XML('&trade;&nbsp;'),
-                  _class="navbar-brand",_href=URL('default', 'index'),
+                  _class="",_href=URL('default', 'index'),
                   _id="web2py-logo")
 response.title = request.application.replace('_',' ').title()
 response.subtitle = ''

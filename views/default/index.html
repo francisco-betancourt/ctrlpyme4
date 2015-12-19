@@ -1,15 +1,7 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
 
-{{block header}}
-    <header class="container-fluid background">
-      <div class="jumbotron">
-        {{if response.title:}}
-          <h1>{{=T('Deals')}}
-        {{pass}}
-      </div>
-    </header>
-{{end}}
+
 
 
 <h2>{{=T('Popular items')}}</h2>
