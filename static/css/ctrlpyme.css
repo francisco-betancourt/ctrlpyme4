@@ -70,13 +70,16 @@ button.cp-fab:focus{
 
 #core_button {
   /*width: 48px;*/
+  box-shadow: 0px 2px 4px rgba(0,0,0,.5);
+  border-radius: 6px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 #core_button button {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
   margin: 0px;
-  /*box-shadow: 0px 2px 4px rgba(0,0,0,.5);*/
   height: 64px;
   width: 64px;
 }
