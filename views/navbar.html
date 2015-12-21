@@ -203,6 +203,8 @@
     <!-- auth menu -->
     <span class="menu-element" onclick="toggle_submenu('auth');">
       <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
+      <i class="fa fa-angle-right"></i>
+      
       <span class="submenu submenu-right primary-color-dim" id="submenu_auth">
         <span class="menu-element">
           {{if auth.is_logged_in():}}

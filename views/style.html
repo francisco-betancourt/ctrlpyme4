@@ -29,14 +29,25 @@
     border-color: {{=primary_color_dim}};
   }
 
-  .btn-primary:hover {
+  .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
     background-color: {{=primary_color_dim}};
   }
 
+  .list-group-item {
+    background-color: {{=base_color_bright}} !important;
+  }
+
+  .list-group-item:hover:not(.node-disabled) {
+    background-color: {{=base_color_dim}} !important;
+  }
 
   /* treeview node */
-  .node-categories_tree:hover:not(.node-disabled) {
-    background-color: {{=base_color_dim}};
+  .node-selected {
+    background-color: {{=primary_color}} !important;
+  }
+
+  .node-selected:hover:not(.node-disabled) {
+    background-color: {{=primary_color_dim}} !important;
   }
 
 
