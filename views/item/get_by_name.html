@@ -36,6 +36,8 @@
 </script>
 
 {{block left_sidebar}}
+<div class="panel panel-default">
+  <div class="panel-body">
 <h1>{{=item_name}}</h1>
 <h4>
   <a href="{{=URL('item', 'get_by_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span>
@@ -61,6 +63,7 @@
 <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(items.first().base_price, True)}}</span></span></h3>
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
+<p></p>
 
 {{if auth.has_membership('Employee'):}}
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
@@ -88,6 +91,9 @@
   {{pass}}
 </div>
 {{pass}}
+
+</div>
+</div>
 
 {{end}}
 

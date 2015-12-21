@@ -2,9 +2,23 @@
   primary_color = '#368DB6'
   primary_color_dim = '#2D7EA4';
   primary_color_text = 'white'
+
+  base_color = "#F3F3F3"
+  base_color_text = "#333"
+  base_color_dim = "#EEEEEE"
+  base_color_bright = "white"
 }}
 
 <style>
+  body {
+    background-color: {{=base_color}};
+    color: {{=base_color_text}};
+  }
+
+  /*.panel-default > .panel-heading {
+    background-color: {{=base_color_dim}};
+  }*/
+
   nav {
     background-color: {{=primary_color}};
   }
@@ -19,6 +33,19 @@
     background-color: {{=primary_color_dim}};
   }
 
+
+  /* treeview node */
+  .node-categories_tree:hover:not(.node-disabled) {
+    background-color: {{=base_color_dim}};
+  }
+
+
+  /* table */
+  .table-hover > tbody > tr:hover {
+    background-color: {{=base_color_dim}};
+  }
+
+
   .primary-color {
     background-color: {{=primary_color}};
     color: {{=primary_color_text}};
@@ -27,5 +54,9 @@
   .primary-color-dim {
     background-color: {{=primary_color_dim}};
     color: {{=primary_color_text}};
+  }
+
+  .base-color-text {
+    color: {{=base_color_text}};
   }
 </style>

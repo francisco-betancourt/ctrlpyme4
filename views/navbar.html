@@ -47,6 +47,19 @@
     padding-right: 8px;
   }
 
+  nav * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  #hamburger {
+    display: none;
+  }
+
   .submenu {
     position: fixed;
     margin-top: -1px;
@@ -55,7 +68,10 @@
     padding-left: 8px;
     padding-right: 8px;
     box-shadow: 0px 4px 4px rgba(0,0,0,.2);
+  }
 
+  .submenu-right {
+    right: 0px;
   }
 
 
@@ -71,15 +87,88 @@
     margin-bottom: 0px;
     margin-top: 9.5px;
   }
+
+
+  #menu_options {
+    display: inline;
+    background-color: inherit;
+    top: 0px;
+
+    overflow-y: hidden;
+  }
+
+  @media screen and (max-height: 500px) {
+    #menu_options {
+      overflow-y: scroll;
+    }
+  }
+
+
+  /* mobile */
+  @media screen and (max-width: 1200px) {
+    #menu_options {
+      /*top: 54px;*/
+      display: none;
+      position: fixed;
+      left: 0px;
+      width: 320px;
+      min-width: 320px;
+      height: 100%;
+      background-color: white;
+      box-shadow: 4px 0px 4px rgba(0,0,0,.1);
+      z-index: 10;
+      padding-left: 8px;
+    }
+
+    #menu_options .menu-element {
+      display: block;
+    }
+
+    #menu_options .menu-element a {
+      color: {{=base_color_text}};
+    }
+
+    #menu_options .submenu {
+      display: block;
+      position: relative;
+      height: auto;
+      background-color: {{=base_color_bright}};
+      box-shadow: none;
+    }
+
+    #hamburger, .hamburger {
+      display: inline-block;
+    }
+
+    .auth-label {
+      display: none;
+    }
+  }
+  @media screen and (min-width: 1200px) {
+    #menu_options {
+      display:inline !important;
+    }
+
+    .extra-logo {
+      display: none;
+    }
+  }
 </style>
 
 <nav>
   <span class="main-menu">
+    <i id="hamburger" class="fa fa-bars"></i>
     <span class="menu-element nav-logo">
       {{=response.logo}}
     </span>
 
     <span id="menu_options">
+      <div class="menu-element extra-logo">
+        <i class="fa fa-bars hamburger base-color-text"></i>
+        <span class="nav-logo" style="margin-left: 8px;">
+          {{=response.logo}}
+        </span>
+      </div>
       {{if response.menu:}}
         {{i = 0}}
         {{for menu in response.menu:}}
@@ -111,11 +200,32 @@
   <span class="right-menu right">
     <span class="menu-element">{{include "search_bar.html"}}</span>
     <span class="menu-element" onclick="$('#bag_container').toggle();"><i class="fa fa-shopping-cart"></i></span>
+    <!-- auth menu -->
+    <span class="menu-element" onclick="toggle_submenu('auth');">
+      <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
+      <span class="submenu submenu-right primary-color-dim" id="submenu_auth">
+        <span class="menu-element">
+          {{if auth.is_logged_in():}}
+            <a href="#"> {{=T("Profile")}} </a>
+            <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
+          {{else:}}
+            <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
+            <a href="{{=URL('default', 'user/login')}}"> {{=T("Login")}} </a>
+          {{pass}}
+        </span>
+      </span>
+    </span>
   </span>
 </nav>
 
 
 <script>
+  // $('#menu_options').hide();
+
+  $('#hamburger,.hamburger').click(function (event) {
+    $('#menu_options').toggle();
+  });
+
   $('.submenu').hide();
 
   function toggle_submenu(index) {

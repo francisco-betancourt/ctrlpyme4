@@ -61,6 +61,7 @@ if auth.has_membership("Employee"):
 else:
     response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
 
+
 # response.menu += [
 #     (T('Admin'), False, None, [
 #         (T('Users'), False, URL('users', 'index'), None)
