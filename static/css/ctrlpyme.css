@@ -196,6 +196,10 @@ select {
   /*color: #505050;*/
 }
 
+#search_form {
+  display: inline-block;
+}
+
 #search_form .search-icon {
   /*background-color: rgba(0,0,0,.4);*/
   border: none;

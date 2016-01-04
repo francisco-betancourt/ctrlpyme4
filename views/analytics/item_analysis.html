@@ -1,0 +1,39 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <h1>{{=item.name}}</h1>
+
+    {{if main_image:}}
+    <img src="{{=URL('default', 'download', args=main_image.md)}}" alt="" width="100%">
+    {{pass}}
+    <h3>Existences <span class="right">{{=DQ(existence, True)}}</span></h3>
+  </div>
+</div>
+{{end}}
+
+
+<h3>{{=T('Input')}}</h3>
+{{=stocks}}
+
+<h3>{{=T('Output')}}</h3>
+<table class="table">
+  <thead>
+    <th>{{=T('Sale')}}</th>
+    <th>{{=T('Quantity')}}</th>
+    <th>{{=T('Created on')}}</th>
+    <th>{{=T('Created by')}}</th>
+  </thead>
+  <tbody>
+    {{for sale in sales:}}
+      <tr>
+        <td><a href="{{=URL('sale', 'ticket', args=sale.sale.id)}}">{{=T('Sale')}} {{=sale.sale.consecutive}}</a></td>
+        <td>{{=sale.bag_item.quantity}}</td>
+        <td>{{=sale.sale.created_on.strftime('%d %b %Y, %H:%M')}}</td>
+        <td>{{=sale.sale.created_by.first_name + ' ' + sale.sale.created_by.last_name}}</td>
+      </tr>
+    {{pass}}
+  </tbody>
+</table>

@@ -12,6 +12,8 @@
     padding-right: 16px;
     width: 100%;
 
+    min-width: 300px;
+
     box-shadow: 0px 4px 4px rgba(0,0,0,.2);
 
     z-index: 100000;
@@ -140,6 +142,16 @@
       display: inline-block;
     }
 
+    #search_btn {
+      display: inline;
+    }
+
+    .search-element {
+      display: none;
+      left: 0px;
+      padding-right: 0px;
+    }
+
     .auth-label {
       display: none;
     }
@@ -152,11 +164,24 @@
     .extra-logo {
       display: none;
     }
+
+    #search_btn {
+      display: none;
+    }
+
+    .search-element {
+      display: inline !important;
+    }
+
+    #close_search {
+      display: none;
+    }
   }
 </style>
 
 <nav>
   <span class="main-menu">
+    <i class="fa fa-times" id="close_search"></i>
     <i id="hamburger" class="fa fa-bars"></i>
     <span class="menu-element nav-logo">
       {{=response.logo}}
@@ -198,13 +223,18 @@
   </span>
 
   <span class="right-menu right">
-    <span class="menu-element">{{include "search_bar.html"}}</span>
+    <span class="menu-element search-element">
+      {{include "search_bar.html"}}
+    </span>
+    <span class="menu-element" id="search_btn">
+      <i class="fa fa-search"></i>
+    </span>
     <span class="menu-element" onclick="$('#bag_container').toggle();"><i class="fa fa-shopping-cart"></i></span>
     <!-- auth menu -->
     <span class="menu-element" onclick="toggle_submenu('auth');">
       <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
       <i class="fa fa-angle-right"></i>
-      
+
       <span class="submenu submenu-right primary-color-dim" id="submenu_auth">
         <span class="menu-element">
           {{if auth.is_logged_in():}}
@@ -229,6 +259,23 @@
   });
 
   $('.submenu').hide();
+  $('#close_search').hide();
+
+  $('#search_btn').click(function (event) {
+    $('#hamburger').hide();
+    $('.nav-logo').hide();
+    $('.menu-element').hide();
+    $('.search-element').show();
+    $('#close_search').show();
+  });
+
+  $('#close_search').click(function (event) {
+    $('#hamburger').show();
+    $('.nav-logo').show();
+    $('.menu-element').show();
+    $('#close_search').hide();
+    $('.search-element').hide();
+  })
 
   function toggle_submenu(index) {
     var display = $('#submenu_' + index).css('display');
