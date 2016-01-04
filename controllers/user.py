@@ -31,6 +31,21 @@ def client_profile():
 
 
 @auth.requires_membership('Admin')
+def create_client():
+    form = SQLFORM(db.auth_user)
+    if form.process().accepted:
+        clients_group = db(db.auth_group.role == 'Clients').select().first()
+        if clients_group:
+            db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)
+        response.flash = T('Client created')
+        redirect(URL('user', 'clients'))
+        # redirection()
+    elif form.errors:
+        response.flash = T('Error in form')
+    return dict(form=form)
+
+
+@auth.requires_membership('Admin')
 def create():
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
@@ -128,6 +143,17 @@ def update():
 @auth.requires_membership('Admin')
 def delete():
     return common_delete('auth_user', request.args)
+
+
+@auth.requires(auth.has_membership('Admin'))
+def clients():
+    """ List of clients """
+
+    client_group = db(db.auth_group.role == 'Clients').select().first()
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == client_group.id) & (db.auth_membership.user_id != auth.user.id)
+    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_client', args=row.id)))
+    )
+    return locals()
 
 
 @auth.requires_membership('Admin')

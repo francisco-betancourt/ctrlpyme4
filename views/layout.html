@@ -141,8 +141,14 @@
       <script>
         function set_modal(title, body, footer) {
           $('#modal_title').text(title);
-          $('#modal_body').append(body);
-          $('#modal_footer').append(footer);
+          $('#modal_body').text(body);
+          if (footer) {
+            $('#modal_footer').text(footer);
+          }
+        }
+
+        function show_modal() {
+          $('#common_modal').modal();
         }
       </script>
 

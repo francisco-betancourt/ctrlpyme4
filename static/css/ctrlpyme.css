@@ -206,3 +206,9 @@ select {
   /*color: rgba(255,255,255,.7);*/
 
 }
+
+
+#common_modal {
+  padding-right: 0px;
+  z-index: 10000000;
+}

@@ -47,6 +47,12 @@ def refresh_bag_data(id_bag):
     taxes = money_format(DQ(taxes, True))
     total = money_format(DQ(total, True))
     quantity = DQ(quantity, True, True)
+
+    # update bag data
+    # bag.substotal = subtotal
+    # bag.total = total
+    # ba
+
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
