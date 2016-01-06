@@ -27,17 +27,18 @@
 <h2>{{=T('Permissions')}}</h2>
 
 <div class="row">
-  {{ col_class = 'col-md-%s' % (12 / len(perm_groups)) }}
-  {{ for perm_group in perm_groups: }}
+  {{ col_class = 'col-md-%s' % (12 / len(permission_cards)) }}
+  {{ for permission_card in permission_cards: }}
     <div class="{{=col_class}}">
       <div class="panel panel-default">
-        <div class="panel-heading"><h3>{{=perm_group['name']}}</h3></div>
+        <div class="panel-heading"><h3>{{=permission_card['name']}}
+          <span class="right"><input type="checkbox"></span>
+        </h3></div>
         <div class="panel-body">
-          {{ for group in perm_group['groups']: }}
-            <div>
-              <input type="checkbox" {{if auth.has_membership(None, employee.id, group.role):}} checked{{pass}} value="{{=group.role}}"> {{=group.description}}
-            </div>
-          {{ pass }}
+          <p>
+            {{=permission_card['description']}}
+          </p>
+
         </div>
       </div>
     </div>

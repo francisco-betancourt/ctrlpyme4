@@ -226,27 +226,30 @@
     <span class="menu-element search-element">
       {{include "search_bar.html"}}
     </span>
-    <span class="menu-element" id="search_btn">
-      <i class="fa fa-search"></i>
-    </span>
-    <span class="menu-element" onclick="$('#bag_container').toggle();"><i class="fa fa-shopping-cart"></i></span>
-    <!-- auth menu -->
-    <span class="menu-element" onclick="toggle_submenu('auth');">
-      <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
-      <i class="fa fa-angle-right"></i>
+    <span id="right_menu_buttons">
+      <span class="menu-element" id="search_btn">
+        <i class="fa fa-search"></i>
+      </span>
+      <span class="menu-element" onclick="$('#bag_container').toggle();"><i class="fa fa-shopping-cart"></i></span>
+      <!-- auth menu -->
+      <span class="menu-element" onclick="toggle_submenu('auth');">
+        <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
+        <i class="fa fa-angle-right"></i>
 
-      <span class="submenu submenu-right primary-color-dim" id="submenu_auth">
-        <span class="menu-element">
-          {{if auth.is_logged_in():}}
-            <a href="#"> {{=T("Profile")}} </a>
-            <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
-          {{else:}}
-            <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
-            <a href="{{=URL('default', 'user/login')}}"> {{=T("Login")}} </a>
-          {{pass}}
+        <span class="submenu submenu-right primary-color-dim" id="submenu_auth">
+          <span class="menu-element">
+            {{if auth.is_logged_in():}}
+              <a href="{{=URL('user', 'profile')}}"> {{=T("Profile")}} </a>
+              <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
+            {{else:}}
+              <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
+              <a href="{{=URL('default', 'user/login')}}"> {{=T("Login")}} </a>
+            {{pass}}
+          </span>
         </span>
       </span>
     </span>
+
   </span>
 </nav>
 
@@ -261,10 +264,11 @@
   $('.submenu').hide();
   $('#close_search').hide();
 
-  $('#search_btn').click(function (event) {
+  $('#search_btn, #close_search').click(function (event) {
     $('#hamburger').hide();
     $('.nav-logo').hide();
-    $('.menu-element').hide();
+    $('#menu_options').hide();
+    $('#right_menu_buttons').hide();
     $('.search-element').show();
     $('#close_search').show();
   });
@@ -273,6 +277,7 @@
     $('#hamburger').show();
     $('.nav-logo').show();
     $('.menu-element').show();
+    $('#right_menu_buttons').show();
     $('#close_search').hide();
     $('.search-element').hide();
   })

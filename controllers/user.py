@@ -22,6 +22,13 @@ def client_order_options(row):
     return td
 
 
+def profile():
+    if auth.has_membership('Clients'):
+        redirect(URL('client_profile'))
+    elif auth.has_membership('Employee'):
+        redirect(URL('default', 'index'))
+
+
 @auth.requires_membership('Clients')
 def client_profile():
     orders = db(db.sale_order.id_client == auth.user.id).select()
@@ -76,24 +83,7 @@ def get_employee():
 
     stores = db(db.store.is_active == True).select()
 
-    sale_groups = db(db.auth_group.role.contains(['Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns'])).select()
-    item_groups = db(db.auth_group.role.contains(['Items info', 'Items management', 'Items prices'])).select()
-    access_groups = db(db.auth_group.role.contains(['Purchases', 'Inventories', 'Manager'])).select()
-
-    perm_groups = [
-        {
-            'name': T('Sales'),
-            'groups': sale_groups
-        },
-        {
-            'name': T('Items'),
-            'groups': item_groups
-        },
-        {
-            'name': T('Access'),
-            'groups': access_groups
-        }
-    ]
+    permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW]
 
     return locals()
 
