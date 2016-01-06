@@ -62,3 +62,6 @@ databases/
 private/
 sessions/
 errors/
+
+uploads/
+.imdone/

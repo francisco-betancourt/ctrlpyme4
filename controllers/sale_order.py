@@ -11,17 +11,34 @@ def create():
     bag = db.bag(request.args(0))
     if not bag:
         raise HTTP(404)
-    if not bag.completed or db(db.sale_order.id_bag == bag.id).select().first():
+    if not bag.is_on_hold or db(db.sale_order.id_bag == bag.id).select().first():
         raise HTTP(405)
     if bag.created_by != auth.user.id:
         raise HTTP(401)
 
-    new_order = db.sale_order.insert(id_bag=bag.id, id_client=auth.user.id)
+    stores = db(db.store.is_active == True).select()
 
-    session.info = {'text': T("You're order has been created, we will notify you when it's ready"), 'button': {'text': 'View ticket', 'ref': URL('bag', 'ticket', args=bag.id), 'target': 'blank'}
-    }
+    form = SQLFORM(db.sale_order, submit_button=T('Order'), formstyle="bootstrap")
+    if form.process().accepted:
+        response.flash = 'form accepted'
+        sale_order = db.sale_order(form.vars.id)
+        sale_order.id_client = auth.user.id
+        sale_order.id_bag = bag.id
+        sale_order.update_record()
+        session.info = {'text': T("You're order has been created, we will notify you when it's ready"), 'button': {'text': 'View ticket', 'ref': URL('bag', 'ticket', args=bag.id), 'target': 'blank'}
+        }
+        bag.completed = True
+        bag.update_record()
+        redirect(URL('default', 'index'))
+    elif form.errors:
+        response.flash = 'form has errors'
 
-    redirect(URL('default', 'index'))
+    # new_order = db.sale_order.insert(id_bag=bag.id, id_client=auth.user.id)
+    #
+
+    return locals()
+
+    # redirect(URL('default', 'index'))
 
 
 def get():

@@ -13,11 +13,13 @@
     <p> <span>{{=T('Subtotal')}}</span> <span class="right subtotal">00</span> </p>
     <p> <span>{{=T('Taxes')}}</span> <span class="right taxes">00</span> </p>
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
-    <hr>
 
-    <button class="btn btn-primary sell_bag" onclick="sell_bag();">
-      {{=T('Complete')}}
-    </button>
+    <div id="bag_buttons">
+      <hr>
+      <button class="btn btn-primary sell_bag" onclick="sell_bag();">
+        {{=T('Complete')}}
+      </button>
+    </div>
 
   </div>
 </div>

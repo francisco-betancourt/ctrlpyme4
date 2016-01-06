@@ -308,14 +308,20 @@ def complete():
         db(db.bag.id == bag.id).delete()
         redirection()
 
-    bag.completed = True
-    bag.update_record()
+    # bag.completed = True
+    # bag.update_record()
 
     if auth.has_membership('Clients'):
+        bag.is_on_hold = True
+        bag.update_record()
         redirect(URL('sale_order', 'create', args=bag.id))
     if auth.has_membership('Sales checkout'):
+        bag.completed = True
+        bag.update_record()
         redirect(URL('sale', 'create', args=bag.id))
     else:
+        bag.completed = True
+        bag.update_record()
         redirect(URL('ticket', args=bag.id))
 
 

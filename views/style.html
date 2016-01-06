@@ -3,6 +3,10 @@
   primary_color_dim = PRIMARY_COLOR_DIM;
   primary_color_text = PRIMARY_COLOR_TEXT
 
+  accent_color = ACCENT_COLOR
+  accent_color_dim = ACCENT_COLOR_DIM
+  accent_color_text = ACCENT_COLOR_TEXT
+
   base_color = BASE_COLOR
   base_color_text = BASE_COLOR_TEXT
   base_color_dim = BASE_COLOR_DIM
@@ -24,13 +28,13 @@
   }
 
   .btn-primary {
-    background-color: {{=primary_color}};
-    color: {{=primary_color_text}};
-    border-color: {{=primary_color_dim}};
+    background-color: {{=accent_color}};
+    color: {{=accent_color_text}};
+    border-color: {{=accent_color_dim}};
   }
 
   .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
-    background-color: {{=primary_color_dim}};
+    background-color: {{=accent_color_dim}};
   }
 
   .list-group-item {

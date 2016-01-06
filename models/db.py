@@ -224,7 +224,9 @@ db.define_table("address",
     Field("state_province", "string", default=None, label=T('State or Province')),
     Field("country", "string", default=None, label=T('Country')),
     Field("reference", "string", default=None, label=T('Address Reference')),
-    auth.signature)
+    auth.signature,
+    format='%(street)s %(exterior)s %(interior)s %(neighborhood)s'
+    )
 
 
 db.define_table("category",
@@ -346,7 +348,9 @@ db.define_table("bag",
     , Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal'))
     , Field("taxes", "decimal(16,6)", default=0, label=T('Taxes'))
     , Field("total", "decimal(16,6)", default=0, label=T('Total'))
-    , Field("completed", "string", default=False, label=T('Completed'))
+    , Field("completed", "boolean", default=False, label=T('Completed'))
+    # this state is used to specify that the bag is being processed by the system
+    , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
     , auth.signature)
 
 
@@ -400,13 +404,14 @@ db.define_table("credit_note_item",
 
 db.define_table(
   'sale_order'
-  , Field('id_client', 'reference auth_user', label=T('Client'), readable=True, writable=True)
-  , Field('id_bag', 'reference bag', label=T('Bag'), readable=True, writable=True)
-  , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=True, writable=True)
+  , Field('id_client', 'reference auth_user', label=T('Client'), readable=False, writable=False)
+  , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
+  , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=False, writable=False)
   , Field('id_store', 'reference store', label=T('Store'))
-  , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=True, writable=True)
+  , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=False, writable=False)
   , auth.signature
 )
+db.sale_order.id_store.requires = IS_IN_DB(db, 'store.id')
 
 
 db.define_table("inventory",

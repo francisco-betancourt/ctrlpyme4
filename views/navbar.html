@@ -198,14 +198,14 @@
         {{i = 0}}
         {{for menu in response.menu:}}
           <span class="menu-element" id="menu_{{=i}}">
-            {{menu_link = menu[2] if menu[2] else "#"}}
+            {{menu_link = menu[2] if len(menu) > 2 and menu[2] else "#"}}
             <a href="{{=menu_link}}" onclick="toggle_submenu({{=i}});">
               {{=menu[0]}}
-              {{if menu[3]:}}
+              {{if len(menu) > 3 and menu[3]:}}
                 <i class="fa fa-angle-right"></i>
               {{pass}}
             </a>
-            {{if menu[3]:}}
+            {{if len(menu) > 3 and menu[3]:}}
               <span class="submenu primary-color-dim" id="submenu_{{=i}}">
                 {{for submenu in menu[3]:}}
                   <span class="menu-element">

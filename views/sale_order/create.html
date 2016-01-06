@@ -1,0 +1,47 @@
+{{include_bag = False}}
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+  <h1>{{=T('Review your order')}}</h1>
+  {{include "simple_client_bag.html"}}
+{{end}}
+
+<h2>Order information</h2>
+
+<!-- store selection -->
+<h4>{{=T('Select the store where you will pick up your order')}}</h4>
+<form action="">
+  <ul class="list-group">
+    {{for store in stores:}}
+      <li class="list-group-item" id="store_{{=store.id}}">
+        {{=store.id_address.street}}
+        {{=store.id_address.exterior}}
+        {{=store.id_address.interior}}
+        {{=store.id_address.neighborhood}}
+        {{=store.id_address.city}}
+        {{=store.id_address.municipality}}
+        {{=store.id_address.state_province}}
+
+        <span class="right">
+          <input type="radio" name="store" class="store-radio-btn" onclick="set_store({{=store.id}});">
+        </span>
+      </li>
+    {{pass}}
+  </ul>
+</form>
+
+
+{{=form}}
+
+<script>
+  $('#bag_container').show();
+
+  $('#bag_buttons').hide();
+
+  $('#sale_order_id_store__row').hide();
+
+  function set_store(store_id) {
+    $('#sale_order_id_store').val(store_id)
+  }
+</script>

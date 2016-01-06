@@ -202,24 +202,34 @@
         }
       </style>
 
-      <secction id="bag_container" hidden>
-        <div class="bag-container">
-          {{if request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
-            {{include 'bag.html'}}
-          {{elif auth.has_membership('Clients'):}}
-            {{include 'simple_client_bag.html'}}
-          {{else:}}
-            <h2>{{=T('Bag')}}</h2>
-            <a href="{{=URL('default', 'user/login')}}">Login</a> {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">Register</a> {{=T('to buy items')}}
-            <!-- {{=T('Login or register')}} -->
-          {{pass}}
-        </div>
-      </secction>
+      {{
+        try:
+          include_bag
+        except NameError:
+          include_bag = True
+        pass
+      }}
 
-      <script>
-        $('#bag_container').css("padding-top", $('nav').height());
-        $('#bag_container').css("padding-bottom", $('nav').height());
-      </script>
+      {{if include_bag:}}
+        <secction id="bag_container" hidden>
+          <div class="bag-container">
+            {{if request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
+              {{include 'bag.html'}}
+            {{elif auth.has_membership('Clients'):}}
+              {{include 'simple_client_bag.html'}}
+            {{else:}}
+              <h2>{{=T('Bag')}}</h2>
+              <a href="{{=URL('default', 'user/login')}}">Login</a> {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">Register</a> {{=T('to buy items')}}
+              <!-- {{=T('Login or register')}} -->
+            {{pass}}
+          </div>
+        </secction>
+
+        <script>
+          $('#bag_container').css("padding-top", $('nav').height());
+          $('#bag_container').css("padding-bottom", $('nav').height());
+        </script>
+      {{pass}}
 
 
     </div>
