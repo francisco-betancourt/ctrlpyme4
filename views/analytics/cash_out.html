@@ -1,3 +1,4 @@
+{{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
 {{import random}}
@@ -5,23 +6,20 @@
 {{from gluon.serializers import json}}
 
 
-<h1>{{=T("Cash out")}}</h1>
-
-<h3>{{=T("Seller")}}: {{=seller.first_name}}</h3>
-
-<h3>{{=T("Sales")}}</h3>
-
 {{if not sales_data:}}
   <p>{{=T("No sales reported")}} </p>
 {{else:}}
 
-  <div>
-    <canvas id="payment_opt_distrib"></canvas>
-  </div>
-  <canvas id="sales_distrib"></canvas>
+  {{block left_sidebar}}
+    <h1>{{=T("Cash out")}}</h1>
+    <h4>{{=T("Seller")}}: {{=seller.first_name}}</h4>
+    <div>
+      <canvas id="payment_opt_distrib" style="width: 100%;"></canvas>
+    </div>
+    <canvas id="sales_distrib"></canvas>
 
-
-  {{total = 0}}
+    <h3>{{=T('Total')}}: <span class="right">$ <span id="total_q"></span></span></h3>
+  {{end}}
 
 
   {{
@@ -36,31 +34,65 @@
   }}
 
 
-  {{for sale_data in sales_data:}}
-    {{total += sale_data.sale.total}}
-  <div>
-    <div class="row">
-      <div class="col-md-3"><b>#</b> {{=sale_data.sale.id}}</div>
-      <div class="col-md-3">{{=sale_data.sale.created_on}}</div>
-      <div class="col-md-3">{{=sale_data.sale.total}}</div>
-      <div class="col-md-3"></div>
-    </div>
-    <div class="row">
-      {{payments = db(db.payment.id_sale == sale_data.sale.id).select(orderby=db.payment.id_payment_opt)}}
-      <div class="progress">
-        {{for payment in payments:}}
-          {{ hex = payment_opt_data[str(payment.id_payment_opt.id)]["color"] }}
 
-          {{p = (payment.amount - payment.change_amount) / sale_data.sale.total * DQ(100, True)}}
-          <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}};">
-            <span>{{=payment.id_payment_opt.name}}: {{=DQ(payment.amount - payment.change_amount, True)}}</span>
-            {{ payment_opt_data[str(payment.id_payment_opt.id)]['value'] += DQ(payment.amount - payment.change_amount, True) }}
+    {{total = 0}}
+
+    <h2>{{=T("Sales")}}</h2>
+
+    {{sale_index = -1}}
+    {{for sale_data in sales_data:}}
+      {{sale_index += 1}}
+      {{total += sale_data.sale.total}}
+    <div>
+      <div class="media">
+        <div class="media-left media-top">
+          <a href="#">
+            <h3>#{{=sale_data.sale.id}}</h3>
+          </a>
+        </div>
+        <div class="media-body" style="padding-left: 16px;">
+          <div>
+            <h4>
+              {{=sale_data.sale.created_on}}
+              <span class="right">
+                $ {{=DQ(sale_data.sale.total, True)}} | <span id="change_{{=sale_index}}"></span> {{=T('change')}}
+              </span>
+            </h4>
           </div>
-        {{pass}}
-      </div>
+          <div>
+            {{total_change = 0}}
+            {{payments = db(db.payment.id_sale == sale_data.sale.id).select(orderby=db.payment.id_payment_opt)}}
+            <div class="progress sale-progress" style="margin-bottom:0px;">
+              {{for payment in payments:}}
+                {{ hex = payment_opt_data[str(payment.id_payment_opt.id)]["color"] }}
 
+                {{p = (payment.amount - payment.change_amount) / sale_data.sale.total * DQ(100, True)}}
+                <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
+                  <span>{{=payment.id_payment_opt.name}}: {{=DQ(payment.amount - payment.change_amount, True)}}</span>
+                  {{ payment_opt_data[str(payment.id_payment_opt.id)]['value'] += DQ(payment.amount - payment.change_amount, True) }}
+                </div>
+                {{total_change += payment.change_amount}}
+              {{pass}}
+              {{change = total_change / sale_data.sale.total * DQ(100, True)}}
+              <div class="progress-bar" style="width: {{=change}}%; background-color: {{=change_color}};"> </div>
+              {{total_change = DQ(total_change, True)}}
+              <script>
+                $('#change_{{=sale_index}}').text("{{=total_change}}");
+              </script>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+
+
+    <script>
+      $('#total_q').text('{{=DQ(total, True)}}');
+    </script>
+
+
+
   {{pass}}
 
 
@@ -74,9 +106,5 @@
     var myDoughnutChart = new Chart(ctx).Pie(payment_opt_distrib, null);
     console.log(payment_opt_distrib);
   </script>
-
-
-  <div class="right"> <span>{{=T("Total")}}</span> $ {{=total}}</div>
-
 
 {{pass}}

@@ -25,6 +25,9 @@
 
 <script>
   var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5, bezierCurve: false});
+  today_sales_data.datasets[0].fillColor = "{{=primary_color}}";
+  today_sales_data.datasets[0].pointColor = "{{=primary_color_dim}}";
+  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5
+  });
 
 </script>

@@ -46,10 +46,14 @@ def get():
 
 
 def validate_ready(form):
+    """ Validates if all the items in the order are available """
     ready == True
     for bag_item in db(db.bag_item.id_bag == form.vars.id_bag).select():
-        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
         ready &= (quantity >= bag_item.quantity)
+
+    if not ready:
+        form.errors.default = T('Some items are not available')
 
 
 @auth.requires(
@@ -69,7 +73,7 @@ def ready():
     # check if the order items are in stock
     items = []
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
-        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
         # consider previous orders
         order_items = db(
             (db.sale_order.id_bag == db.bag.id)
@@ -77,6 +81,7 @@ def ready():
             & (db.sale_order.id < order.id)
             & (db.sale_order.is_active == True)
             & (db.sale_order.id_sale == None)
+            & (db.sale_order.id_store == session.store)
             & (db.bag_item.id_item == bag_item.id_item.id)
         ).select()
 
@@ -89,10 +94,15 @@ def ready():
         items.append(dict(bag_item=bag_item, ready=item_ready))
 
     buttons = [] if ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
-    form = SQLFORM.factory(buttons=buttons)
+    if not buttons:
+        form = SQLFORM.factory(submit_button=T('Notify buyer'), formstyle='bootstrap')
+    else:
+        form = SQLFORM.factory(buttons=buttons)
     if form.process(onvalidation=validate_ready).accepted:
         # notify the user
-        pass
+        mail.send(to=[order.id_client.email], subject='[%s] %s' % (COMPANY_NAME, T('Your order is ready')), message=T('Your order is ready and can be retrieved at the following store %s, be sure to bring your <a href="%s">order ticket</a> with you, since it will be required to verify the order') % (order.id_store.name, URL('bag', 'ticket', args=order.id_bag.id, scheme=True, host=True)) )
+    elif form.errors:
+        response.flash = form.errors.default
 
     return locals()
 
@@ -125,5 +135,6 @@ def client_order_options(row):
     or auth.has_membership('Manager')
 )
 def index():
-    data = common_index('sale_order', ['is_ready'], dict(options_function=client_order_options, show_id=True))
+    data = super_table('sale_order', ['is_ready'], (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False), options_function=client_order_options, show_id=True)
+    # data = common_index('sale_order', ['is_ready'], dict(options_function=client_order_options, show_id=True))
     return locals()

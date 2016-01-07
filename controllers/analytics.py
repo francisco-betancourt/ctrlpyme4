@@ -56,13 +56,10 @@ def cash_out():
     # will be used to create a pay chart
     payment_opt_data = {}
     for payment_opt in payment_opts:
-        rand_hex = "#"
-        for i in range(0, 4):
-            rand_hex += hex_chars[random.randint(0, len(hex_chars) - 1)]
-        rand_hex += "FF"
         payment_opt_data[str(payment_opt.id)] = {
-            "color": rand_hex, "label": payment_opt.name, "value": 0
+            "color": random_color_mix(PRIMARY_COLOR), "label": payment_opt.name, "value": 0
         }
+    change_color = "#333"
 
     return locals()
 

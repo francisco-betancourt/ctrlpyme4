@@ -212,3 +212,22 @@ select {
   padding-right: 0px;
   z-index: 10000000;
 }
+
+
+#current_bag>.panel-body {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+#current_bag>.panel-body .list-group-item {
+  border-radius: 0px;
+}
+
+
+#current_bag>.panel-body .list-group-item:hover {
+  background-color: white;
+}
+
+#current_bag>.panel-body .list-group-item:hover:not(.node-disabled) {
+  background-color: white;
+}

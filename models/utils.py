@@ -178,3 +178,39 @@ def redirection(url=None):
             redirect(_next)
         else:
             redirect(URL('default', 'index'))
+
+
+
+def hex_to_rgb(hexv):
+    nhexv = hexv
+    if hexv[0] == '#':
+        nhexv = hexv[1:]
+    r = int(nhexv[0] + nhexv[1], 16)
+    g = int(nhexv[2] + nhexv[3], 16)
+    b = int(nhexv[4] + nhexv[5], 16)
+
+    return r, g, b
+
+
+def rgb_to_hex(r,g,b):
+    return '#%02X%02X%02X' % (r, g, b)
+
+def dim_hex(hexv):
+    r,g,b = hex_to_rgb(hexv)
+    return rgb_to_hex(max(0, r - 20), max(0, g - 20), max(0, b - 20))
+
+def bright_hex(hexv):
+    r,g,b = hex_to_rgb(hexv)
+    return rgb_to_hex(min(255, r + 20), min(255, g + 20), min(255, b + 20))
+
+def random_color_mix(hexv):
+    r,g,b = hex_to_rgb(hexv);
+
+    r = r + int(random.randint(0, 255) / 2)
+    g = g + int(random.randint(0, 255) / 2)
+    b = b + int(random.randint(0, 255) / 2)
+
+    return rgb_to_hex(r, g, b)
+
+    # mean = (r + g + b) / 3
+    # sd = int(math.sqrt((r - mean) ** 2 + (g - mean) ** 2 + (b - mean) ** 2))

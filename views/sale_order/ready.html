@@ -18,4 +18,12 @@
   </tbody>
 </table>
 
+<p>
+  {{if ready:}}
+    {{=T('All the items are ready to be delivered in this store, press the notify buyer button to notify the buyer about its order')}}
+  {{else:}}
+    {{=T('Some items in the order are not available, press the purchase order button to create a purchase that contains the order items')}}
+  {{pass}}
+</p>
+
 {{=form}}
