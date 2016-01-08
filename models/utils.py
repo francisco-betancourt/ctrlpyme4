@@ -176,6 +176,8 @@ def redirection(url=None):
             _next = session._next
             session._next = None
             redirect(_next)
+        elif request.vars._next:
+            redirect(request.vars._next)
         else:
             redirect(URL('default', 'index'))
 
@@ -206,11 +208,22 @@ def bright_hex(hexv):
 def random_color_mix(hexv):
     r,g,b = hex_to_rgb(hexv);
 
-    r = r + int(random.randint(0, 255) / 2)
-    g = g + int(random.randint(0, 255) / 2)
-    b = b + int(random.randint(0, 255) / 2)
+    r = int((r + random.randint(0, 255)) / 2)
+    g = int((g + random.randint(0, 255)) / 2)
+    b = int((b + random.randint(0, 255)) / 2)
 
     return rgb_to_hex(r, g, b)
 
     # mean = (r + g + b) / 3
     # sd = int(math.sqrt((r - mean) ** 2 + (g - mean) ** 2 + (b - mean) ** 2))
+
+
+def color_mix(hex1, hex2):
+    r1,g1,b1 = hex_to_rgb(hex1);
+    r2,g2,b2 = hex_to_rgb(hex2);
+
+    r = int((r1 + r2) / 2)
+    g = int((g1 + g2) / 2)
+    b = int((b1 + b2) / 2)
+
+    return rgb_to_hex(r, g, b)

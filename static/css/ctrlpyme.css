@@ -161,6 +161,19 @@ button.cp-fab:focus{
 }
 
 
+.item-card .item-available {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  margin-left: 15px;
+  margin-bottom: 10px;
+}
+
+.item-card .item-card-bottom {
+  margin-top: 30px;
+}
+
+
 #thumbs {
   margin: auto;
 }

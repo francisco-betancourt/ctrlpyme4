@@ -634,9 +634,14 @@ def sale_row(row, fields):
     return tr
 
 
+def sale_extra_options(row):
+    return [option_btn('', URL('invoice', 'create'), action_name=T('Invoice'))]
+
+
+
 @auth.requires(auth.has_membership('Admin')
             or auth.has_membership('Manager')
             )
 def index():
-    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Invoice number', 'Subtotal', 'Total']))
+    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], extra_options=sale_extra_options))
     return locals()

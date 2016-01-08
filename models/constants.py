@@ -23,3 +23,9 @@ WORKFLOW_DATA = [
     [],
     []
 ]
+
+
+EMAIL_SENDER = ''
+EMAIL_TLS = True
+EMAIL_SERVER = 'smtp.mandrillapp.com:587'
+EMAIL_LOGIN = ''

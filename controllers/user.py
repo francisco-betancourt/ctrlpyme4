@@ -132,7 +132,41 @@ def update():
 
 @auth.requires_membership('Admin')
 def delete():
-    return common_delete('auth_user', request.args)
+    user = db.auth_user(request.args(0))
+    if not user:
+        raise HTTP(404)
+
+    user.is_active = False
+    user.registration_key = 'blocked'
+    user.update_record()
+
+    redirection()
+
+
+@auth.requires_membership('Admin')
+def ban():
+    user = db.auth_user(request.args(0))
+    if not user:
+        raise HTTP(404)
+
+    # ban client
+    if auth.has_membership(user_id=user.id, role='Clients'):
+        user.registration_key = 'blocked' if not user.registration_key else ''
+
+    user.update_record()
+
+    redirection()
+
+
+def client_options_function(row):
+    td = TD()
+    td.append(option_btn('pencil', URL('get_client', args=row.id)))
+    ban_text = T('Ban')
+    if row.registration_key == 'blocked':
+        ban_text = T('Unaban')
+    td.append(option_btn('ban', URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), ' ' + ban_text))
+
+    return td
 
 
 @auth.requires(auth.has_membership('Admin'))
@@ -141,7 +175,7 @@ def clients():
 
     client_group = db(db.auth_group.role == 'Clients').select().first()
     query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == client_group.id) & (db.auth_membership.user_id != auth.user.id)
-    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_client', args=row.id)))
+    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=client_options_function
     )
     return locals()
 
@@ -151,8 +185,8 @@ def index():
     """ List of employees """
 
     employee_group = db(db.auth_group.role == 'Employee').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
-    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)))
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id) & (db.auth_user.registration_key == '')
+    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)), option_btn('eye-slash', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index')))) )
     )
     return locals()
 

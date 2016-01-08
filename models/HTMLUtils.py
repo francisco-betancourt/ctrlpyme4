@@ -34,10 +34,10 @@ def pages_menu(query, page=0, ipp=10):
 
     prev_disabled = 'disabled' if page == 0 else ''
     next_disabled = 'disabled' if page == pages_count else ''
-    prev_link = LI(A(T('Previous'), _href=prev_url), _class="%s" % prev_disabled)
-    next_link = LI(A(T('Next'), _href=next_url), _class="%s" % next_disabled)
+    prev_link = LI(A(I(_class="fa fa-arrow-left"), _href=prev_url), _class="%s" % prev_disabled)
+    next_link = LI(A(I(_class="fa fa-arrow-right"), _href=next_url), _class="%s" % next_disabled)
 
-    pages_menu = DIV(UL(prev_link, next_link, _class="pager") )
+    pages_menu = DIV(UL(prev_link, LI(ipp), next_link, _class="pager") )
 
     return pages_menu, (start, end)
 
@@ -84,7 +84,7 @@ def item_card(item):
     """ """
 
     available = "Not available"
-    available_class = "text-danger"
+    available_class = "label label-danger"
 
     # stock, available = stock_info(item)
 
@@ -96,7 +96,7 @@ def item_card(item):
         stock_data = item_stock(item, session.store)
         stock_qty = stock_data['quantity']
     if stock_qty > 0:
-        available_class = "text-success"
+        available_class = "label label-success"
         available = "Available"
 
     item_options = DIV()
@@ -119,9 +119,12 @@ def item_card(item):
         DIV(
             H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
             brand_link,
-            P(T(available), _class=available_class),
             # P(item.description, _class="description"),
-            H4('$ ', DQ(item_price, True), _class="item-price"),
+            DIV(
+                SPAN(T(available), _class=available_class + ' item-available'),
+                H4('$ ', DQ(item_price, True), _class="item-price"),
+                _class="item-card-bottom"
+            ),
             _class="panel-body"
         ),
         _class="panel panel-default item-card"
