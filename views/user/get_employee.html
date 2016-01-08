@@ -26,38 +26,63 @@
 
 <h2>{{=T('Permissions')}}</h2>
 
-<div class="row">
-  {{ col_class = 'col-md-%s' % (12 / len(permission_cards)) }}
-  {{ for permission_card in permission_cards: }}
-    <div class="{{=col_class}}">
-      <div class="panel panel-default">
-        <div class="panel-heading"><h3>{{=permission_card['name']}}
-          <span class="right"><input type="checkbox"></span>
-        </h3></div>
-        <div class="panel-body">
-          <p>
-            {{=permission_card['description']}}
-          </p>
+<form action="">
+  <div class="row">
+    {{ col_class = 'col-md-%s' % min(3, (12 / len(permission_cards))) }}
+    {{ i = -1 }}
+    {{ for permission_card in permission_cards: }}
+      {{ i += 1 }}
+      <div class="{{=col_class}}">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3>{{=permission_card['name']}}
+            <span class="right">
+              <input type="radio" name="access_card" value="{{=i}}" {{='checked' if i == employee.access_card_index else ''}}>
+            </span>
+          </h3></div>
+          <div class="panel-body">
+            <p>
+              {{=permission_card['description']}}
+            </p>
 
+          </div>
         </div>
       </div>
-    </div>
-  {{ pass }}
-</div>
+    {{ pass }}
+  </div>
+</form>
+
 
 
 
 <script>
+  $('input[type=radio]').click(function (event) {
+    var group_name = event.target.value;
+
+    url = "{{=URL('user', 'set_access_card', args=employee.id, extension='json')}}/" + group_name
+
+    info_card('Saving...');
+
+    $.ajax({
+      url: url
+    })
+    .done(function (res) {
+      info_card('Saved', null, "success");
+    })
+    .fail(function (res) {
+      info_card('Failed', null, "error");
+    });
+  });
+
+
   $('input[type=checkbox]').click(function (event) {
     var group_name = event.target.value;
+    alert(event);
 
     url = "{{=URL('user', 'remove_employee_membership', args=employee.id, extension='json')}}/" + group_name
 
     if (event.target.checked) {
       url = "{{=URL('user', 'add_employee_membership', args=employee.id, extension='json')}}/" + group_name
     }
-
-    info_card('Saving...');
 
     $.ajax({
       url: url

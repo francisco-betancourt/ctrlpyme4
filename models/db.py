@@ -67,6 +67,7 @@ db.define_table(
 auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
+      , Field('access_card_index', 'integer', readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables

@@ -25,6 +25,7 @@ WORKFLOW_DATA = [
 ]
 
 
+#TODO move this to config
 EMAIL_SENDER = ''
 EMAIL_TLS = True
 EMAIL_SERVER = 'smtp.mandrillapp.com:587'

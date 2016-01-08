@@ -60,7 +60,7 @@ def create():
         if employee_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=employee_group.id)
         response.flash = T('Employee created')
-        redirect(URL('user'))
+        redirect(URL('user', 'index'))
         # redirection()
     elif form.errors:
         response.flash = T('Error in form')
@@ -123,6 +123,41 @@ def add_employee_membership():
     db.auth_membership.insert(user_id=employee.id, group_id=group.id)
 
     return locals()
+
+
+@auth.requires_membership('Admin')
+def set_access_card():
+    user = db.auth_user(request.args(0))
+    if not user:
+        raise HTTP(404)
+    if not auth.has_membership(None, user.id, 'Employee'):
+        raise HTTP(401)
+    card_index = int(request.args(1))
+
+    try:
+        card_data = WORKFLOW_DATA[COMPANY_WORKFLOW][card_index]
+        # remove all memberships
+        memberships_query = (db.auth_membership.user_id == user.id)
+        for store_group in db(db.auth_group.role.like('Store %')).select():
+            memberships_query &= (db.auth_membership.group_id != store_group.id)
+        employee_group = db(db.auth_group.role == 'Employee').select().first()
+        if employee_group:
+            memberships_query &= (db.auth_membership.group_id != employee_group.id)
+        db(memberships_query).delete()
+
+        # add access card memberships
+        for role in card_data['groups']:
+            group = db(db.auth_group.role == role).select().first()
+            if group:
+                auth.add_membership(group_id=group.id, user_id=user.id)
+        user.access_card_index = card_index
+        user.update_record()
+    except:
+        import traceback as tb
+        tb.print_exc()
+        raise HTTP(500)
+
+    return dict()
 
 
 @auth.requires_membership('Admin')

@@ -253,6 +253,8 @@ def index():
     today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
     employees_query = ((db.auth_membership.group_id == db.auth_group.id)
+                    & (db.auth_user.id == db.auth_membership.user_id)
+                    & (db.auth_user.registration_key == '')
                     & (db.auth_membership.user_id == db.auth_user.id)
                     & (db.auth_group.role == 'Sales'))
     employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', vars={'id_seller': row.id}), T('Cash out')))
