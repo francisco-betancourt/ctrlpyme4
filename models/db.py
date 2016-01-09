@@ -299,7 +299,7 @@ db.define_table(
 db.define_table("store",
     Field("id_address", "reference address", label=T('Address')),
     Field("name", "string", default=None, label=T('Name')),
-    Field("consecutive", "integer", default=1),
+    Field("consecutive", "integer", default=1, readable=False, writable=False),
     auth.signature)
 # db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')

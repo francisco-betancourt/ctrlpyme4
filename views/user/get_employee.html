@@ -76,7 +76,6 @@
 
   $('input[type=checkbox]').click(function (event) {
     var group_name = event.target.value;
-    alert(event);
 
     url = "{{=URL('user', 'remove_employee_membership', args=employee.id, extension='json')}}/" + group_name
 

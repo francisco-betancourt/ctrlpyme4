@@ -32,6 +32,7 @@ def pages_menu(query, page=0, ipp=10):
     prev_page_vars['ipp'] = ipp
     prev_url = URL(request.controller, request.function, args=request.args, vars=prev_page_vars)
 
+    prev_disabled, next_disabled = '', ''
     if page == 0:
         prev_disabled = 'disabled'
         prev_url = '#'
