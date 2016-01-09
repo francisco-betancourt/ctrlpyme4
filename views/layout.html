@@ -213,12 +213,12 @@
       {{if include_bag:}}
         <secction id="bag_container" hidden>
           <div class="bag-container">
-            {{if auth.is_logged_in:}}
+            {{if auth.is_logged_in():}}
               {{if auth.has_membership('Employee'):}}
                 {{if not session.store:}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T('You need to')}} <a href="{{=URL('user', 'store_selection')}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
-                {{elif not auth.has_membership('Sales') or not auth.has_membership('Admin'):}}
+                {{elif not auth.has_membership('Sales bags') or not auth.has_membership('Admin'):}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
                 {{else:}}

@@ -228,16 +228,11 @@ def index():
 
 @auth.requires_login()
 def post_login():
-    # set the current bag, if theres is one
-    if not session.current_bag or db.bag(session.current_bag).id_store != session.store:
-        some_active_bag = db((db.bag.is_active == True)
-                           & (db.bag.completed == False)
-                           & (db.bag.created_by == auth.user.id)
-                           & (db.bag.id_store == session.store)
-                           ).select().first()
-        if some_active_bag:
-            session.current_bag = some_active_bag.id
-    redirect(URL('default', 'index'))
+    # select bag if the user is a client
+    if auth.has_membership('Clients'):
+        auto_bag_selection()
+
+    redirection()
 
 
 def post_logout():
@@ -274,8 +269,11 @@ def store_selection():
 
     if form.process().accepted:
         session.store = form.vars.store
-        redirect(URL('user', 'post_login'))
-        response.flash = "You are in store %s" % db(form.vars.store).name
+        response.flash = T("You are in store") + " %s" % db.store(form.vars.store).name
+
+        auto_bag_selection()
+
+        redirection()
     elif form.errors:
-        response.flash = 'form has errors'
+        response.flash = T('form has errors')
     return dict(form=form)
