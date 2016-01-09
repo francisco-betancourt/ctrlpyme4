@@ -299,14 +299,67 @@ def super_table(table, fields, query, row_function=default_row_function,
     return table
 
 
-def ticket(title, store, seller, items, barcode, footer):
+def create_ticket(title, store, seller, items, barcode, footer):
+    store_data = P()
+    if store:
+        store_data.append(T('Store') + ': %s' % store.name)
+        store_data.append(BR())
+        store_data.append("%s %s %s %s %s %s %s %s" % (
+            store.id_address.street
+            , store.id_address.exterior
+            , store.id_address.interior
+            , store.id_address.neighborhood
+            , store.id_address.city
+            , store.id_address.municipality
+            , store.id_address.state_province
+            , store.id_address.country
+        ))
+    items_list = DIV(_id="items_list")
+    subtotal = D(0)
+    taxes = {}
+    total = D(0)
+    if items:
+        for item in items:
+            try:
+                item_name = item.product_name
+                item_price = item.sale_price
+                for tax in item.id_item.taxes:
+                    if not taxes.has_key(str(tax.name)):
+                        taxes[str(tax.name)] = D(0)
+                    taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100))
+                subtotal += item_price
+                total += item_price + item.sale_taxes
+            except:
+                item_name = item.id_bag_item.product_name
+                item_price = item.id_bag_item.sale_price
+            items_list.append(DIV(
+                SPAN(DQ(item.quantity, True), _class="qty"),
+                SPAN(item_name, _class="name"),
+                SPAN('$ %s' % DQ(item_price, True), _class="price"),
+                _class="item"
+            ))
+
+    total_data = DIV(_id="total_data")
+    total_data.append(DIV(T('Subtotal') + ': %s' % DQ(subtotal, True)))
+    for key in taxes.iterkeys():
+        total_data.append(DIV(key + ': %s' % DQ(taxes[key], True)))
+    total_data.append(DIV(T('Total') + ': %s' % DQ(total, True)))
+
     ticket = DIV(
         DIV(_class="logo"),
         P(title),
+        P(COMPANY_NAME),
+        store_data,
+        items_list,
+        total_data,
+        DIV(_id="barcode"),
+        P(TICKET_FOOTER, _id="ticket_footer"),
+        SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
+        SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"
     )
 
-
+    return ticket
 
 
 def sqlform_field(id, label, content):

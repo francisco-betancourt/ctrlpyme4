@@ -272,7 +272,6 @@ def store_selection():
 
         auto_bag_selection()
 
-        print request.vars
         redirection()
     elif form.errors:
         response.flash = T('form has errors')
