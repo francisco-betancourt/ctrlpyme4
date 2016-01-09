@@ -228,7 +228,6 @@ def index():
 
 @auth.requires_login()
 def post_login():
-    # select bag if the user is a client
     if auth.has_membership('Clients'):
         auto_bag_selection()
 
@@ -273,6 +272,7 @@ def store_selection():
 
         auto_bag_selection()
 
+        print request.vars
         redirection()
     elif form.errors:
         response.flash = T('form has errors')

@@ -157,7 +157,11 @@
     }
   }
   @media screen and (min-width: 1200px) {
-    #menu_options {
+    .nav-logo, #right_menu_buttons {
+      display: inline-block !important;
+    }
+
+    #menu_options  {
       display:inline !important;
     }
 
@@ -175,6 +179,14 @@
 
     #close_search {
       display: none;
+    }
+
+    #hamburger, .hamburger {
+      display: none !important;
+    }
+
+    #close_search {
+      display: none !important;
     }
   }
 </style>
@@ -230,9 +242,9 @@
       <span class="menu-element" id="search_btn">
         <i class="fa fa-search"></i>
       </span>
-      <span class="menu-element" onclick="$('#bag_container').toggle();"><i class="fa fa-shopping-cart"></i></span>
+      <span class="menu-element" onclick="$('#bag_container').toggle();" id="bag_btn"><i class="fa fa-shopping-cart"></i></span>
       <!-- auth menu -->
-      <span class="menu-element" onclick="toggle_submenu('auth');">
+      <span class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
         <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>
         <i class="fa fa-angle-right"></i>
 

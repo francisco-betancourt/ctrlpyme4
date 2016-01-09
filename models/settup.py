@@ -9,8 +9,8 @@ if auth.is_logged_in():
                 session.store = stores.first().id
         else:
             if not auth.has_membership('Store %s' % session.store) and not auth.has_membership('Admin'):
-                redirect(URL('user', 'store_selection'))
+                redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function))))
 
         # redirect to store selection, when the user is a employee
         if not session.store and (request.controller != 'user' or request.function != 'store_selection') and auth.has_membership('Employee'):
-            redirect(URL('user', 'store_selection'))
+            redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function))))

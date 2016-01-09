@@ -50,6 +50,13 @@
     border-color: {{=primary_color_dim}};
   }
 
+  .btn-primary[disabled="disabled"] {
+    background-color: {{=accent_color}};
+    color: {{=accent_color_text}};
+    border-color: {{=accent_color_dim}};
+    opacity: .5;
+  }
+
   #core_button .btn-primary {
     background-color: {{=accent_color}};
     color: {{=accent_color_text}};
@@ -115,5 +122,13 @@
 
   .label-danger {
     background-color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
+  }
+
+  .form-control:focus {
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px {{=hex_to_css_rgba(primary_color, .6)}};
+  }
+
+  option:checked {
+    background-color: {{=primary_color}} !important;
   }
 </style>

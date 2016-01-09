@@ -194,6 +194,11 @@ def hex_to_rgb(hexv):
     return r, g, b
 
 
+def hex_to_css_rgba(hexv, alpha):
+    r, g, b = hex_to_rgb(hexv)
+    return "rgba(%d, %d, %d, %f)" % (r, g, b, float(alpha))
+
+
 def rgb_to_hex(r,g,b):
     return '#%02X%02X%02X' % (r, g, b)
 
