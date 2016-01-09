@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme_base.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/main_theme.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ticket.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
@@ -213,14 +212,23 @@
       {{if include_bag:}}
         <secction id="bag_container" hidden>
           <div class="bag-container">
-            {{if request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
-              {{include 'bag.html'}}
-            {{elif auth.has_membership('Clients'):}}
-              {{include 'simple_client_bag.html'}}
+            {{if auth.is_logged_in():}}
+              {{if auth.has_membership('Employee'):}}
+                {{if not session.store:}}
+                  <h2>{{=T('Bag')}}</h2>
+                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function)))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
+                {{elif not auth.has_membership('Sales bags') or not auth.has_membership('Admin'):}}
+                  <h2>{{=T('Bag')}}</h2>
+                  {{=T("Sorry you can't sell")}}
+                {{else:}}
+                  {{include 'bag.html'}}
+                {{pass}}
+              {{elif auth.has_membership('Clients'):}}
+                {{include 'simple_client_bag.html'}}
+              {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
-              <a href="{{=URL('default', 'user/login')}}">Login</a> {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">Register</a> {{=T('to buy items')}}
-              <!-- {{=T('Login or register')}} -->
+              <a href="{{=URL('default', 'user/login')}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
             {{pass}}
           </div>
         </secction>

@@ -196,6 +196,11 @@ def hex_to_rgb(hexv):
     return r, g, b
 
 
+def hex_to_css_rgba(hexv, alpha):
+    r, g, b = hex_to_rgb(hexv)
+    return "rgba(%d, %d, %d, %f)" % (r, g, b, float(alpha))
+
+
 def rgb_to_hex(r,g,b):
     return '#%02X%02X%02X' % (r, g, b)
 
@@ -229,3 +234,22 @@ def color_mix(hex1, hex2):
     b = int((b1 + b2) / 2)
 
     return rgb_to_hex(r, g, b)
+
+
+
+def auto_bag_selection():
+    # Automatic bag creation
+    # check if theres a current bag
+    bag_query = (db.bag.created_by == auth.user.id) & (db.bag.completed == False)
+    # if session.current_bag:
+    #     bag_query &= (db.bag.id == session.current_bag)
+    if auth.has_membership('Employee') or auth.has_membership('Admin') or auth.has_membership('Sales bags'):
+        bag_query &= (db.bag.id_store == session.store)
+    current_bag = db(bag_query).select().first()
+
+    # create a new bag if the user does not have one
+    if not current_bag:
+        new_bag_id = db.bag.insert(created_by=auth.user.id, completed=False, id_store=session.store)
+        current_bag = db.bag(new_bag_id)
+
+    session.current_bag = current_bag.id
