@@ -213,14 +213,23 @@
       {{if include_bag:}}
         <secction id="bag_container" hidden>
           <div class="bag-container">
-            {{if request.controller != "appadmin" and session.store and auth.has_membership('Sales'):}}
-              {{include 'bag.html'}}
-            {{elif auth.has_membership('Clients'):}}
-              {{include 'simple_client_bag.html'}}
+            {{if auth.is_logged_in:}}
+              {{if auth.has_membership('Employee'):}}
+                {{if not session.store:}}
+                  <h2>{{=T('Bag')}}</h2>
+                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection')}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
+                {{elif not auth.has_membership('Sales') or not auth.has_membership('Admin'):}}
+                  <h2>{{=T('Bag')}}</h2>
+                  {{=T("Sorry you can't sell")}}
+                {{else:}}
+                  {{include 'bag.html'}}
+                {{pass}}
+              {{elif auth.has_membership('Clients'):}}
+                {{include 'simple_client_bag.html'}}
+              {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
-              <a href="{{=URL('default', 'user/login')}}">Login</a> {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">Register</a> {{=T('to buy items')}}
-              <!-- {{=T('Login or register')}} -->
+              <a href="{{=URL('default', 'user/login')}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
             {{pass}}
           </div>
         </secction>
