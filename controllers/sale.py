@@ -105,6 +105,8 @@ def ticket():
     # get bag items data
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
+    ticket = create_ticket('Sale', sale.id_store, sale.created_by, bag_items, ticket_barcode, '')
+
     return locals()
 
 
