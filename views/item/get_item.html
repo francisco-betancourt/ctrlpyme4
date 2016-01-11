@@ -1,0 +1,159 @@
+{{left_sidebar_enabled = True}}
+{{extend "layout.html"}}
+
+
+{{try:}}
+  {{if same_traits:}}
+    {{for trait_c in base_trait_category_set:}}
+      <h3>{{=trait_c.name}}</h3>
+      <select id="" class="form-control trait-selector">
+        {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
+          <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
+        {{pass}}
+      </select>
+    {{pass}}
+  {{pass}}
+{{except:}}
+{{pass}}
+
+<h3>{{=T('Description')}}</h3>
+<div id="description">
+  {{=item.description}}
+  {{if item.is_bundle:}}
+  <h4>{{=T('This bundle contains')}}</h4>
+  <ul>
+    {{for bundle_item in db(db.bundle_item.id_bundle == item.id).select(): }}
+      <li><a href="{{=URL('get_item', args=bundle_item.id_item.id)}}"> {{=bundle_item.id_item.name}}</a> x {{= fix_item_quantity(bundle_item.id_item, bundle_item.quantity)}} </li>
+    {{pass}}
+  </ul>
+  {{pass}}
+</div>
+
+
+<script>
+  {{if request.vars.current_id:}}
+    var current_item_id = {{=request.vars.current_id}};
+  {{else:}}
+    var current_item_id = {{=item.id}};
+  {{pass}}
+</script>
+
+{{block left_sidebar}}
+<div class="panel panel-default">
+  <div class="panel-body">
+<h1>{{=item.name}}</h1>
+<h4>
+  <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a> | <span class="stock">{{=stock}}</span>
+      {{if auth.has_membership('Employee'):}}
+   | <span class="barcode">{{=item_barcode(item)}}</span>
+   {{pass}}
+</h4>
+
+<div class="main-item-image">
+  {{if images:}}
+    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="" id="item_image">
+
+    <div id="thumbs">
+      {{for image in images:}}
+        <img src="{{=URL('default', 'download', args=image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
+      {{pass}}
+    </div>
+  {{pass}}
+</div>
+<!-- {{include 'image_uploader.html'}} -->
+{{pass}}
+
+<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(item.base_price, True)}}</span></span></h3>
+
+<button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
+<p></p>
+
+{{if auth.has_membership('Employee'):}}
+<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <i class="fa fa-pencil"></i></button>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="add_item_images(current_item_id)">
+      <i class="fa fa-picture-o"></i></button>
+    </div>
+  {{pass}}
+  <!-- {{if auth.has_membership('Purchases'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="update_item(current_item_id)">
+      <i class="fa fa-shopping-cart"></i></button>
+    </div>
+  {{pass}} -->
+  {{if auth.has_membership('Analytics'): }}
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="item_analysis(current_item_id)">
+      <i class="fa fa-bar-chart"></i></button>
+    </div>
+  {{pass}}
+</div>
+{{pass}}
+
+</div>
+</div>
+
+{{end}}
+
+
+<script>
+  var download_url = "{{=URL('default', 'download')}}/"
+  var selected_traits = "";
+
+
+  function show_image(file_name) {
+    var path = download_url + file_name;
+    $('#item_image').attr('src', path);
+  }
+
+
+  $('.trait-selector>option').click(function (event) {
+    selected_traits = '';
+    $('.trait-selector').each(function (index) {
+      if (index > 0) {
+        selected_traits += ','
+      }
+      selected_traits += $(this).val();
+    });
+    $.ajax({
+      url: "{{=URL('get_item', vars=dict(name=item.name), extension='json')}}&traits="+selected_traits
+    })
+    .done(function (data) {
+      $('.item-price').text(data.item.base_price);
+      $('.stock').html(data.stock);
+      current_item_id = data.item.id;
+
+      // load selected item images
+      $('#item_image').attr('src', download_url + data.images[0].lg);
+      $('.img-thumb').remove();
+      for (var index in data.images) {
+        var image = data.images[index];
+        var el_thumb = $(document.createElement('img'));
+        el_thumb.attr('src', download_url + image.thumb);
+        el_thumb.addClass('img-thumb');
+        el_thumb.attr('onclick', 'show_image("'+download_url + image.lg+'")');
+        $('#thumbs').append(el_thumb);
+      }
+    })
+    .fail(function (res) {
+      console.log(res);
+    })
+  });
+
+  function update_item(item_id) {
+    window.location.href = "{{=URL('update')}}/" + item_id;
+  }
+
+  function add_item_images(item_id) {
+    window.location.href = "{{=URL('item_image', 'create')}}/" + item_id;
+  }
+
+  function item_analysis(item_id) {
+    window.location.href = "{{=URL('analytics', 'item_analysis')}}/" + item_id;
+  }
+</script>

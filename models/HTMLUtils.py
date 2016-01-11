@@ -122,7 +122,10 @@ def item_card(item):
     return DIV(
         DIV(_class="panel-heading", _style=bg_style),
         DIV(
-            H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
+            H4(
+                A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))
+                )
+            ),
             brand_link,
             # P(item.description, _class="description"),
             DIV(

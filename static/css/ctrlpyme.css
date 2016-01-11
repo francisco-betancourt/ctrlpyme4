@@ -203,6 +203,10 @@ select {
   width: 10%;
 }
 
+.table > tbody > tr > td {
+  vertical-align: middle;
+}
+
 
 #search {
   /*background-color: rgba(0,0,0,.4);*/

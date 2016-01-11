@@ -297,6 +297,68 @@ def get_by_brand():
     return locals();
 
 
+def get_item():
+    """
+        get the item specified by its id or name and traits
+        args [item_id]
+        vars {name, traits}
+    """
+
+    item = db.item(request.args(0))
+    if not item:
+        item_name = request.vars.name
+
+        # when traits are specified, only one item with the specified name and traits should match
+        if request.vars.traits:
+            traits = request.vars.traits.split(',')
+            item = db(
+                (db.item.name == item_name)
+              & (db.item.traits.contains(traits, all=True))
+              & (db.item.is_active == True)
+            ).select().first()
+        # multiple items could have the same name, we have to return those items and its traits, for future selection
+        else:
+            items = db(
+                (db.item.name == item_name)
+              & (db.item.is_active == True)
+            ).select()
+            if not items:
+                raise HTTP(404)
+
+            same_traits = True
+            base_trait_category_set = []
+            trait_options = {}
+
+            # this is the first item
+            item = items.first()
+
+            for trait in items.first().traits:
+                base_trait_category_set.append(trait.id_trait_category)
+                trait_options[str(trait.id_trait_category.id)] = {
+                    'id': trait.id_trait_category.id,
+                    'options': [{'name': trait.trait_option, 'id': trait.id}]
+                }
+            base_trait_category_set = set(base_trait_category_set)
+            # check if all the items have the same traits
+            for other_item in items[1:]:
+                other_trait_category_set = []
+                for trait in other_item.traits:
+                    other_trait_category_set.append(trait.id_trait_category)
+                    if not trait.id_trait_category in base_trait_category_set:
+                        same_traits = False
+                        break
+                    trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
+    if not item:
+        raise HTTP(404)
+
+    item.base_price += item_taxes(item, item.base_price)
+    item.base_price = str(DQ(item.base_price, True))
+    stock = stock_info(item)
+    images = db(db.item_image.id_item == item.id).select()
+
+    return locals()
+
+
 def get_by_name_and_traits():
     """
         args:
