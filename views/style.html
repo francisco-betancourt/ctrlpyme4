@@ -109,21 +109,21 @@
 
 
   .text-success {
-    color: {{=color_mix(PRIMARY_COLOR, '#00FF00')}};
+    color: {{=color_mix(primary_color, '#00FF00')}};
   }
 
   .text-danger {
-    color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
+    color: {{=color_mix(primary_color, '#FF0000')}};
   }
 
   .label-success {
-    color: {{=color_mix(PRIMARY_COLOR, '#00FF00')}};
-    border-color: {{=color_mix(PRIMARY_COLOR, '#00FF00')}};
+    color: {{=color_mix(primary_color, '#00CC00')}};
+    border-color: {{=color_mix(primary_color, '#00CC00')}};
   }
 
   .label-danger {
-    color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
-    border-color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
+    color: {{=color_mix(primary_color, '#FF0000')}};
+    border-color: {{=color_mix(primary_color, '#FF0000')}};
   }
 
   .form-control:focus {
@@ -132,5 +132,11 @@
 
   option:checked {
     background-color: {{=primary_color}} !important;
+  }
+
+
+  .panel-default > .panel-heading, .panel-default > .panel-footer {
+    background-color: {{=base_color_bright}};
+    color: {{=base_color_text}};
   }
 </style>
