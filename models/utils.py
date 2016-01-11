@@ -121,6 +121,8 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
     """ Creates a json representation of the categories tree, this representation is used with bootstrap treeview """
 
     categories = db((db.category.is_active == True)).select(orderby=~db.category.parent)
+    if len(categories)==0:
+        return []
     current_category = categories.first().parent
     categories_children = {}
     current_tree = []

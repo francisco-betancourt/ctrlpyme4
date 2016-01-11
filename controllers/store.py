@@ -38,9 +38,30 @@ def update():
 def delete():
     return common_delete('store', request.args)
 
+def stores_options_function(row):
+    """ Returns a column with an edit, delete and csd options"""
+    td = TD()
+    td.append(option_btn('pencil', URL('update', args=row.id)))
+    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
+    td.append(option_btn('key', URL('seals',args=row.id)))
+    return td
 
 @auth.requires_membership('Admin')
 def index():
-    data = common_index('store', ['name'], dict(show_id=True, )
+    data = common_index('store', ['name'], dict(show_id=True,options_function=stores_options_function)
     )
+    return locals()
+
+@auth.requires_membership('Admin')
+def seal(s): 
+    store = db.store(request.args(0))
+    if not store:
+        raise HTTP(404,T('Store NOT FOUND'))
+    db.store.id.readable=False
+    form=SQLFORM(db.store,store,fields=['certificate','private_key'])
+    print form[0],len(form[0])
+    form[0].insert(2,DIV(
+        LABEL(T('CSD password'),_class="control-label col-sm-3",_for="csdpass",_id="store_csdpass_label"),
+        DIV(INPUT(_name="csdpass",_class="form-control string",_type="text"),_class="col-sm-9"),_class="form-group hidden",_id="store_csdpass__row"))
+
     return locals()

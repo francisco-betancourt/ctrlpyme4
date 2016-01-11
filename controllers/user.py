@@ -13,7 +13,6 @@
 #         tr.append(TD(row[field]))
 #     return tr
 
-
 def client_order_options(row):
     td = TD()
 
