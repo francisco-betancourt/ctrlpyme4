@@ -210,6 +210,7 @@
       }}
 
       {{if include_bag:}}
+        {{auto_bag_selection()}}
         <secction id="bag_container" hidden>
           <div class="bag-container">
             {{if auth.is_logged_in():}}

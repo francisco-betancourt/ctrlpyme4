@@ -232,15 +232,9 @@ def discard_bag():
         db(db.bag_item.id_bag == bag.id).delete()
         db(db.bag.id == bag.id).delete()
 
-        other_bag = db((db.bag.is_active == True)
-                     & (db.bag.created_by == auth.user.id)
-                     & (db.bag.id_store == session.store)
-                     & (db.bag.completed == False)
-                     ).select().first()
-        if other_bag:
-            session.current_bag = other_bag.id
+        auto_bag_selection()
 
-        return dict(other_bag=other_bag, removed=removed_bag)
+        return dict(other_bag=db.bag(session.current_bag), removed=removed_bag)
     except:
         import traceback
         traceback.print_exc()
@@ -290,8 +284,16 @@ def complete():
     if not bag:
         raise HTTP(404)
 
+
+
     # check if all the bag items are consistent
     bag_items = db(db.bag_item.id_bag == bag.id).select()
+    # delete the bag if there are no items
+    if not bag_items:
+        db(db.bag.id == bag.id).delete()
+        auto_bag_selection()
+        redirection()
+
     out_of_stock_items = []
     for bag_item in bag_items:
         # when the item has 0 quantity
@@ -302,14 +304,8 @@ def complete():
             out_of_stock_items.append(bag_item)
     if out_of_stock_items and (auth.has_membership('Employee') or auth.has_membership('Admin')):
         response.flash = T('Some items are out of stock or are inconsistent')
+        auto_bag_selection()
         redirection()
-
-    if not db(db.bag_item.id_bag == bag.id).select():
-        db(db.bag.id == bag.id).delete()
-        redirection()
-
-    # bag.completed = True
-    # bag.update_record()
 
     if auth.has_membership('Clients'):
         bag.is_on_hold = True
@@ -318,10 +314,12 @@ def complete():
     if auth.has_membership('Sales checkout'):
         bag.completed = True
         bag.update_record()
+        auto_bag_selection()
         redirect(URL('sale', 'create', args=bag.id))
     else:
         bag.completed = True
         bag.update_record()
+        auto_bag_selection()
         redirect(URL('ticket', args=bag.id))
 
 
