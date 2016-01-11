@@ -19,7 +19,12 @@ def create():
 
     images = db(db.item_image.id_item == item.id).select()
 
-    form = SQLFORM(db.item_image)
+    form = SQLFORM(db.item_image,
+        buttons=[
+            TAG.button(T('Add'), _type='submit', _class="btn btn-primary"),
+            A(T('Finish'), _class='btn btn-default', _href=URL('item', 'get_item', args=item.id))
+        ], formstyle='bootstrap'
+    )
     form.id_item = item.id
 
     if form.process().accepted:
@@ -45,5 +50,6 @@ def create():
                 import traceback as tb
                 tb.print_exc()
         item_image.update_record()
+        redirect(URL(request.function, args=request.args))
 
     return locals()

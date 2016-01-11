@@ -248,3 +248,14 @@ select {
 #current_bag>.panel-body .list-group-item:hover:not(.node-disabled) {
   background-color: white;
 }
+
+.left-sidebar {
+  /*min-width: 430px;*/
+}
+
+
+@media(min-width: 992px) {
+  .col-md-9 {
+    /*width: 50%;*/
+  }
+}

@@ -26,7 +26,9 @@
     <h3>{{=T('Bag')}} <span id="bag_id"></span> (<span class="bag_quantity"></span> {{=T('items')}})<i class="fa fa-compress right collapse_bag"></i></h3>
   </div>
   <div class="panel-body bag-items-panel">
-    {{include 'barcode_scanner.html'}}
+    <div id='barcode_scanner_container' style="padding-left: 15px; padding-right: 15px;">
+      {{include 'barcode_scanner.html'}}
+    </div>
 
     <div class="list-group" id="bag_items_list">
     </div>
@@ -38,7 +40,7 @@
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
     <hr>
 
-    <button class="btn btn-danger discard_bag" onclick="discard_bag();">
+    <button class="btn btn-default discard_bag" onclick="discard_bag();">
       {{=T('Discard')}}
     </button>
     <button class="btn btn-primary right sell_bag" onclick="sell_bag();">
