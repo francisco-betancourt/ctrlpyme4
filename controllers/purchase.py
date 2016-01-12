@@ -40,18 +40,31 @@ def create_from_order():
     if not order:
         raise HTTP(404)
     missing_items = []
+
     # check if the order items are in stock
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
-        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
         item_ready = (quantity >= bag_item.quantity)
         if not item_ready:
-            missing_items.append(dict(item=bag_item, qty=bag_item.quantity - quantity))
+            # if the item is a bundle add the contained items to the purchase
+            if bag_item.id_item.is_bundle:
+                for bundle_item in db((db.bundle_item.id_bundle == bag_item.id_item.id)).select():
+                    stock, qty = item_stock(bundle_item.id_item, session.store).itervalues()
+                item_ready = (quantity >= bag_item.quantity * bundle_item.quantity)
+                if not item_ready:
+                    missing_items.append(
+                        dict(
+                            qty=(bag_item.quantity * bundle_item.quantity) - qty
+                            , item=bundle_item.id_item
+                        )
+                    )
+            else:
+                missing_items.append(dict(item=bag_item.id_item, qty=bag_item.quantity - quantity))
 
     if missing_items:
         new_purchase = db.purchase.insert(id_store=session.store)
         for missing_item in missing_items:
-            print missing_item
-            db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id_item.id, base_price=missing_item['item'].id_item.base_price, price2=missing_item['item'].id_item.price2, price3=missing_item['item'].id_item.price3)
+            db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id, base_price=missing_item['item'].base_price, price2=missing_item['item'].price2, price3=missing_item['item'].price3)
 
     redirect(URL('update', args=new_purchase, vars=dict(is_xml=False)))
 
