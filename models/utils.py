@@ -112,7 +112,7 @@ def fix_item_quantity(item, quantity):
 
     quantity = max(0, quantity)  # does not allow negative quantities
     if item.allow_fractions:
-        return quantity
+        return DQ(quantity, True)
     else:
         return remove_fractions(quantity)
 

@@ -14,6 +14,8 @@ from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
 myconf = AppConfig(reload=True)
 
+import os
+
 
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
@@ -477,11 +479,11 @@ db.define_table("payment",
 
 db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
-    Field("image", "upload", default=None, label=T('Image')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False),
-    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False),
-    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False),
-    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False),
+    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
 )
 db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
 # db.item_image.thumb.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))

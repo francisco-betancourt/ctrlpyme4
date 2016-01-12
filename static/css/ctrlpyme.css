@@ -135,6 +135,7 @@ button.cp-fab:focus{
 .item-card {
   position: relative;
   margin-right: 8px;
+  padding-top: 10px;
   flex: 0 0 auto;
   min-width: 260px;
   max-width: 300px;
@@ -146,6 +147,8 @@ button.cp-fab:focus{
   background-repeat: no-repeat;
   background-position: center;
   background-color: white;
+
+  border: none;
 }
 
 .item-card .description {
@@ -215,6 +218,7 @@ select {
 
 #search_form {
   display: inline-block;
+  width: 300px;
 }
 
 #search_form .search-icon {
@@ -230,14 +234,26 @@ select {
   z-index: 10000000;
 }
 
+#current_bag>.panel-heading, #current_bag>.panel-footer {
+  border: none;
+}
+
 
 #current_bag>.panel-body {
   padding-left: 0px;
   padding-right: 0px;
 }
 
+#current_bag>.panel-body>#barcode_scanner_container {
+  margin-bottom: 30px;
+}
+
 #current_bag>.panel-body .list-group-item {
   border-radius: 0px;
+  border: 1px solid #eee;
+}
+#current_bag>.panel-body .list-group-item:hover {
+  background-color: transparent !important;
 }
 
 

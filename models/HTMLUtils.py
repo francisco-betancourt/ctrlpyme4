@@ -57,7 +57,7 @@ def stock_info(item):
             stock = SPAN(T('Out of stock'), _class="text-danger")
             available = False
         else:
-            stock = str(stock) + " " + T('Available')
+            stock = str(stock) + " %s %s " % (item.id_measure_unit.symbol, T('Available'))
     else:
         stock = item_stock(item)['quantity']
         if stock <= 0:
@@ -114,6 +114,8 @@ def item_card(item):
     ).select(db.item_image.ALL)
     if images:
         bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().md)
+    else:
+        bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 
     brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
 

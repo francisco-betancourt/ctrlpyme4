@@ -38,6 +38,8 @@
   {{pass}}
 </script>
 
+
+
 {{block left_sidebar}}
 <div class="panel panel-default">
   <div class="panel-body">
@@ -51,13 +53,15 @@
 
 <div class="main-item-image">
   {{if images:}}
-    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="" id="item_image">
+    <img width="100%" src="{{=URL('static', 'uploads/'+images.first().lg)}}" alt="" id="item_image">
 
     <div id="thumbs">
       {{for image in images:}}
-        <img src="{{=URL('default', 'download', args=image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
+        <img src="{{=URL('static', 'uploads/' + image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
       {{pass}}
     </div>
+  {{else:}}
+    <img width="100%" src="{{=URL('static', 'images/no_image.svg')}}" alt="" id="item_image">
   {{pass}}
 </div>
 <!-- {{include 'image_uploader.html'}} -->

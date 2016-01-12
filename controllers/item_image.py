@@ -30,7 +30,7 @@ def create():
     if form.process().accepted:
         item_image = db.item_image(form.vars.id)
         item_image.id_item = item.id
-        img_path = os.path.join(request.folder, 'uploads', item_image.image)
+        img_path = os.path.join(request.folder, 'static/uploads/', item_image.image)
         img = Image.open(img_path)
         outfile = os.path.splitext(img_path)[0]
         img_width, img_height = img.size

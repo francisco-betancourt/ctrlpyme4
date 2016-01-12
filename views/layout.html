@@ -209,12 +209,12 @@
         pass
       }}
 
-      {{if include_bag:}}
+      {{if include_bag and request.controller != 'appadmin':}}
         <secction id="bag_container" hidden>
           <div class="bag-container">
             {{if auth.is_logged_in():}}
               {{auto_bag_selection()}}
-            
+
               {{if auth.has_membership('Employee'):}}
                 {{if not session.store:}}
                   <h2>{{=T('Bag')}}</h2>
