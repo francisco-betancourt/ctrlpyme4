@@ -44,10 +44,10 @@
 <div class="panel panel-default">
   <div class="panel-body">
 <h1>{{=item.name}}</h1>
-<h4>
-  <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a> | <span class="stock">{{=stock}}</span>
-      {{if auth.has_membership('Employee'):}}
-   | <span class="barcode">{{=item_barcode(item)}}</span>
+<h4 id="item_info">
+  <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
+      {{if auth.has_membership('Employee') and item_barcode(item):}}
+    <span class="barcode">{{=item_barcode(item)}}</span>
    {{pass}}
 </h4>
 

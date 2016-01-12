@@ -270,6 +270,11 @@ select {
 }
 
 
+#item_info>span {
+  margin-left: 10px;
+}
+
+
 @media(min-width: 992px) {
   .col-md-9 {
     /*width: 50%;*/

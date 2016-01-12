@@ -50,7 +50,8 @@ def pages_menu(query, page=0, ipp=10):
 def stock_info(item):
     available = True
     stock = 0
-    if auth.has_membership('Employee'):
+
+    if auth.has_membership('Employee') and item.has_inventory:
         stock = item_stock(item, session.store)['quantity']
         stock = fix_item_quantity(item, stock)
         if stock <= 0:

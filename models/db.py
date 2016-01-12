@@ -70,6 +70,7 @@ auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
       , Field('access_card_index', 'integer', readable=False, writable=False)
+      , Field('is_client', 'boolean', default=False, readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -392,7 +393,7 @@ db.define_table("sale",
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
     auth.signature)
-db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db, 'auth_user.id', '%(email)s'))
+db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 
 
 db.define_table("sale_log",

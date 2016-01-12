@@ -107,6 +107,7 @@ def set_bag_item(bag_item):
 
     bag_item.barcode = item_barcode(item)
     stocks = item_stock(item, session.store)
+    bag_item.has_inventory = item.has_inventory
     bag_item.stock = stocks['quantity'] if stocks else 0
 
     return bag_item
