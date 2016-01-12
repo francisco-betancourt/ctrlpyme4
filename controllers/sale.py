@@ -7,6 +7,8 @@ from uuid import uuid4
 
 
 def _remove_stocks(item, quantity, sale_date):
+    if not item.has_inventory:
+        return 0, 0
     if not quantity:
         return 0, 0
     original_qty = quantity

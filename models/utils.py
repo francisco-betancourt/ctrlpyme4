@@ -58,6 +58,10 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
 
     stocks = None
 
+    # this is somthing like a service, it does not have existences, so its always available
+    if not item.has_inventory:
+        return dict(stocks=None, quantity=1)
+
     if item.is_bundle:
         bundle_items = db(db.bundle_item.id_bundle == item.id).select()
         min_bundle = float('inf')

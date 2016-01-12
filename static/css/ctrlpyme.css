@@ -234,7 +234,7 @@ select {
   z-index: 10000000;
 }
 
-#current_bag>.panel-heading, #current_bag>.panel-footer {
+.panel-heading, .panel-footer {
   border: none;
 }
 
