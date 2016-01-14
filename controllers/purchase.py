@@ -114,10 +114,10 @@ def add_stock_item():
     try:
         purchase = db.purchase(request.args(0))
         item = db.item(request.args(1))
-        if item.is_bundle or not item.has_inventory:
-            raise HTTP(403)
         if not purchase or not item:
             raise HTTP(404)
+        if item.is_bundle or not item.has_inventory:
+            raise HTTP(403)
         stock_item = db((db.stock_item.id_item == item.id) &
                            (db.stock_item.id_purchase == purchase.id)
                           ).select().first()
@@ -125,6 +125,9 @@ def add_stock_item():
             stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
             stock_item = db.stock_item(stock_item)
             stock_item = response_stock_item(stock_item)
+        # else:
+        #     stock_item.purchase_qty += 1
+        #     stock_item.update_record()
         return locals()
     except:
         import traceback
@@ -242,6 +245,25 @@ def add_item_and_stock_item():
 
 
 @auth.requires_membership('Purchases')
+def update_value():
+    print "update"
+    purchase = db.purchase(request.args(0))
+    field_name = request.vars.keys()[0]
+    valid_fields = []
+    for field in db.purchase:
+        if field.name == 'id':
+            continue
+        if field.writable:
+            valid_fields.append(field.name)
+    if field_name in valid_fields:
+        params = {field_name: request.vars[field_name]}
+        r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
+        # if r.errors:
+
+    return locals()
+
+
+@auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
     args:
@@ -253,10 +275,7 @@ def fill():
     if not purchase:
         raise HTTP(404)
 
-    form = SQLFORM.factory(
-        Field('barcode', type="string")
-        , _id="scan_form", buttons=[]
-    )
+    form = SQLFORM(db.purchase, purchase.id, buttons=[], formstyle="bootstrap3_stacked", showid=False, _id="purchase_form")
 
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()
     stock_items_json = []
@@ -265,7 +284,7 @@ def fill():
 
         stock_items_json.append(response_stock_item(stock_item))
     stock_items_json = json.dumps(stock_items_json)
-    form[0].append(SCRIPT('stock_items = %s;' % stock_items_json))
+    stock_items_script = SCRIPT('stock_items = %s;' % stock_items_json)
 
     return locals()
 

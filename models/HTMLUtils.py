@@ -131,6 +131,7 @@ def item_card(item):
             ),
             brand_link,
             # P(item.description, _class="description"),
+            DIV(_class='filler'),
             DIV(
                 SPAN(T(available), _class=available_class + ' item-available'),
                 H4('$ ', DQ(item_price, True), _class="item-price"),
