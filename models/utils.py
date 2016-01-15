@@ -245,8 +245,6 @@ def auto_bag_selection():
     # Automatic bag creation
     # check if theres a current bag
     bag_query = (db.bag.created_by == auth.user.id) & (db.bag.completed == False)
-    # if session.current_bag:
-    #     bag_query &= (db.bag.id == session.current_bag)
     if auth.has_membership('Employee') or auth.has_membership('Admin') or auth.has_membership('Sales bags'):
         bag_query &= (db.bag.id_store == session.store)
     current_bag = db(bag_query).select().first()

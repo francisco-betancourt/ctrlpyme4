@@ -15,18 +15,10 @@ def create():
             is_xml: if true, then the form will accept an xml file
     """
 
-    is_xml = request.vars.is_xml
-
-    form = SQLFORM(db.purchase)
-
-    if form.process().accepted:
-        response.flash = 'form accepted'
-        redirect(URL('fill', args=form.vars.id))
-    elif form.errors:
-        response.flash = 'form has errors'
-    return dict(form=form)
-
-    return common_create('purchase')
+    is_xml = request.vars.is_xml == 'True'
+    new_purchase_id = db.purchase.insert(id_store=session.store)
+    if not is_xml:
+        redirect(URL('fill', args=new_purchase_id))
 
 
 @auth.requires_membership('Purchases')
@@ -66,7 +58,7 @@ def create_from_order():
         for missing_item in missing_items:
             db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id, base_price=missing_item['item'].base_price, price2=missing_item['item'].price2, price3=missing_item['item'].price3)
 
-    redirect(URL('update', args=new_purchase, vars=dict(is_xml=False)))
+    redirect(URL('fill', args=new_purchase, vars=dict(is_xml=False)))
 
 
 
@@ -246,7 +238,6 @@ def add_item_and_stock_item():
 
 @auth.requires_membership('Purchases')
 def update_value():
-    print "update"
     purchase = db.purchase(request.args(0))
     field_name = request.vars.keys()[0]
     valid_fields = []
@@ -258,8 +249,8 @@ def update_value():
     if field_name in valid_fields:
         params = {field_name: request.vars[field_name]}
         r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
-        # if r.errors:
-
+        purchase = db.purchase(request.args(0))
+        return {field_name: purchase[field_name]}
     return locals()
 
 
@@ -275,7 +266,12 @@ def fill():
     if not purchase:
         raise HTTP(404)
 
-    form = SQLFORM(db.purchase, purchase.id, buttons=[], formstyle="bootstrap3_stacked", showid=False, _id="purchase_form")
+    buttons = [
+          A(T('Commit'), _class="btn btn-primary", _href=URL('commit', args=purchase.id))
+        , A(T('Complete later'), _class="btn btn-default", _href=URL('save', args=purchase.id))
+        , A(T('Cancel'), _class="btn btn-default", _href=URL('cancel', args=purchase.id))
+    ]
+    form = SQLFORM(db.purchase, purchase.id, buttons=buttons, formstyle="bootstrap3_stacked", showid=False, _id="purchase_form")
 
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()
     stock_items_json = []
@@ -287,6 +283,18 @@ def fill():
     stock_items_script = SCRIPT('stock_items = %s;' % stock_items_json)
 
     return locals()
+
+
+@auth.requires_membership('Purchases')
+def cancel():
+    """ Cancel the purchase, deleting the purchase record and all its stock items
+        args [purchase_id]
+    """
+
+    db(db.stock_item.id_purchase == request.args(0)).delete()
+    db(db.purchase.id == request.args(0)).delete()
+
+    redirect(URL('index'))
 
 
 @auth.requires_membership('Purchases')
@@ -325,15 +333,6 @@ def commit():
 
 @auth.requires_membership('Purchases')
 def save():
-    """ Saves the specified purchase for later use
-
-        args:
-            purchase_id
-    """
-
-    purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise(HTTP, 404)
     redirect(URL('index'))
 
 
@@ -351,23 +350,7 @@ def update():
             is_xml: if true, then the form will accept an xml file
     """
 
-    purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(412)
-
-    is_xml = request.vars.is_xml
-
-    form = SQLFORM(db.purchase, purchase)
-
-    if form.process().accepted:
-        response.flash = 'form accepted'
-        redirect(URL('fill', args=purchase.id))
-    elif form.errors:
-        response.flash = 'form has errors'
-    return locals()
-    # return dict(form=form, pur)
+    redirect(URL('fill', args=request.args))
 
 
 @auth.requires_membership('Purchases')

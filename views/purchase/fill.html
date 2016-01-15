@@ -37,15 +37,6 @@
 <div>
   <!-- Items list -->
   <div id="items_list"></div>
-  <!-- buttons -->
-    <div>
-      <button class="btn btn-primary" id="commit_btn">
-        {{=T('Commit')}}
-      </button>
-      <button class="btn btn-default" id="save_btn">
-        {{=T('Save')}}
-      </button>
-    </div>
 </div>
 
 
@@ -100,25 +91,21 @@
   $('#proto_item').hide();
 
 
-  $('#purchase_form input').change(function (event) {
+  $('#purchase_form input, #purchase_form select').change(function (event) {
+    info_card("{{=T('Saving')}}");
+
     $.ajax({
-      url: "{{=URL('update_value', args=purchase.id)}}?" + event.target.name + '=' + event.target.value
+      url: "{{=URL('update_value', args=purchase.id, extension='json')}}?" + event.target.name + '=' + event.target.value
     })
     .done(function (res) {
-      
+      for (k in res) {
+        $('#purchase_' + k).val(res[k]);
+      }
+      info_card("{{=T('Saved')}}");
     })
     .fail(function (res) {
-
-    })
-  });
-
-
-  $('#save_btn').on('click', function() {
-    window.location.href = '{{=URL("save", args=purchase.id)}}';
-  });
-
-  $('#commit_btn').on('click', function() {
-    window.location.href = '{{=URL("commit", args=purchase.id)}}';
+      info_card("{{=T('Could not save changes')}}");
+    });
   });
 
 
