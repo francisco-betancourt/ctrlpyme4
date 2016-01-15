@@ -85,7 +85,7 @@ def get_employee():
 
     stores = db(db.store.is_active == True).select()
 
-    permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW]
+    permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW].cards()
 
     return locals()
 
@@ -137,7 +137,7 @@ def set_access_card():
     card_index = int(request.args(1))
 
     try:
-        card_data = WORKFLOW_DATA[COMPANY_WORKFLOW][card_index]
+        card_data = WORKFLOW_DATA[COMPANY_WORKFLOW].card(card_index)
         # remove all memberships
         memberships_query = (db.auth_membership.user_id == user.id)
         for store_group in db(db.auth_group.role.like('Store %')).select():
@@ -148,7 +148,7 @@ def set_access_card():
         db(memberships_query).delete()
 
         # add access card memberships
-        for role in card_data['groups']:
+        for role in card_data.groups():
             group = db(db.auth_group.role == role).select().first()
             if group:
                 auth.add_membership(group_id=group.id, user_id=user.id)

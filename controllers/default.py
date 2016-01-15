@@ -114,8 +114,7 @@ def create_groups():
         , "Sales invoices": "Invoice creation and cancellation, folios management"
         , "Sales returns": "Items returns"
 
-        , "Clients": "Create clients"
-        , "Cashiers": "Sale creation"
+        , "Clients": "Member of this group are clients"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"
         , "VIP seller": "Allows price2 and price3 selection"
         , "Employee": "An Employee"

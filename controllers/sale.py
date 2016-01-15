@@ -356,7 +356,7 @@ def create():
         stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
         # if theres no stock the user needs to modify the bag
         if stock_qty <= quantity:
-            print "not stock"
+            redirect('default', 'index')
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity

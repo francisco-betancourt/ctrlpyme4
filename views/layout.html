@@ -106,7 +106,7 @@
 
     <script>
       $('#info_close').click(function(event) {
-        $('#info_card').slideToggle();
+        $('#info_card').fadeToggle();
       })
 
       function info_card(msg, button, context) {
@@ -120,7 +120,7 @@
         if (context) {
           // $('#info_card').addClass(context);
         }
-        $('#info_card').show();
+        $('#info_card').fadeIn();
       }
     </script>
 

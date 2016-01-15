@@ -107,7 +107,6 @@ def day_report_data(year, month, day):
                      ).select(sales_total_sum).first()[sales_total_sum] or 0
         sales_data['datasets'][0]['data'].append(float(hour_sales))
     sales_data = json.dumps(sales_data)
-    print sales_data
     return locals()
 
 
@@ -245,7 +244,6 @@ def index():
     start_date, end_date, timestep = daily_interval(11, 2015)
 
     query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
-    # print monthly_analysis(query, 'purchase', 'total', 11, 2015)
 
     day_data = day_report_data(None, None, None)
     income = day_data['income']

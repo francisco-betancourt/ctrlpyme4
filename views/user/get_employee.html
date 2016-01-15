@@ -34,14 +34,14 @@
       {{ i += 1 }}
       <div class="{{=col_class}}">
         <div class="panel panel-default">
-          <div class="panel-heading"><h3>{{=permission_card['name']}}
+          <div class="panel-heading"><h3>{{=permission_card.name()}}
             <span class="right">
               <input type="radio" name="access_card" value="{{=i}}" {{='checked' if i == employee.access_card_index else ''}}>
             </span>
           </h3></div>
           <div class="panel-body">
             <p>
-              {{=permission_card['description']}}
+              {{=permission_card.description()}}
             </p>
 
           </div>

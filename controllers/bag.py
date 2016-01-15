@@ -312,6 +312,8 @@ def complete():
         bag.is_on_hold = True
         bag.update_record()
         redirect(URL('sale_order', 'create', args=bag.id))
+    # _next = WORKFLOW_DATA[COMPANY_WORKFLOW].next(request.controller, request.function, auth.user)
+    # redirect(URL(_next, args=bag.id))
     if auth.has_membership('Sales checkout'):
         bag.completed = True
         bag.update_record()

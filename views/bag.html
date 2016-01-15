@@ -183,6 +183,7 @@
       $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
     }
     set_bag_data(res)
+    info_card("{{=T('Added item to bag')}}");
   }
 
 
@@ -345,8 +346,6 @@
     .done(function (res) {
       bag_item = res.bag_item;
       base_add_bag_item(bag_item, res);
-
-      set_bag_data(res)
     })
   }
 
