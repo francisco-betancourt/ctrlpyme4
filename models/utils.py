@@ -47,11 +47,11 @@ def remove_fractions(value):
 
 
 def item_taxes(item, price):
-    taxes = 1 if item.taxes else 0
+    total = 0
     for tax in item.taxes:
-        taxes *= tax.percentage / 100.0
-    return DQ(D(price or 0) * D(taxes or 0))
-
+        total += price * D(tax.percentage / 100.0)
+    return DQ(total)
+    
 
 def item_stock(item, id_store=None, include_empty=False, id_bag=None):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
@@ -175,18 +175,14 @@ def search_query(table_name, fields, terms):
 
 
 def redirection(url=None):
-    if url:
+    _next = session._next or request.vars._next
+    if _next:
+        session._next = None
+        redirect(_next)
+    elif url:
         redirect(url)
     else:
-        if session._next:
-            _next = session._next
-            session._next = None
-            redirect(_next)
-        elif request.vars._next:
-            redirect(request.vars._next)
-        else:
-            redirect(URL('default', 'index'))
-
+        redirect('default', 'index')
 
 
 def hex_to_rgb(hexv):

@@ -12,6 +12,21 @@
         {{pass}}
       </select>
     {{pass}}
+    {{else:}}
+      <h3>{{=T('Options')}}</h3>
+      <select id="" class="form-control trait-selector">
+        {{for item in items:}}
+          <option value="{{=item.id}}">
+            {{if not item.traits:}}
+              {{=T('Options not specified')}}
+            {{else:}}
+              {{for trait in item.traits:}}
+                {{=trait.trait_option}}
+              {{pass}}
+            {{pass}}
+          </option>
+        {{pass}}
+      </select>
   {{pass}}
 {{except:}}
 {{pass}}
@@ -117,15 +132,21 @@
 
 
   $('.trait-selector>option').click(function (event) {
-    selected_traits = '';
-    $('.trait-selector').each(function (index) {
-      if (index > 0) {
-        selected_traits += ','
-      }
-      selected_traits += $(this).val();
-    });
+    var url = "{{=URL('get_item', extension='json')}}";
+    {{if same_traits:}}
+      selected_traits = '';
+      $('.trait-selector').each(function (index) {
+        if (index > 0) {
+          selected_traits += ','
+        }
+        selected_traits += $(this).val();
+      });
+      url += '?name={{=item.name}}&traits=' + selected_traits;
+    {{else:}}
+      url += '/' + $(event.target).val();
+    {{pass}}
     $.ajax({
-      url: "{{=URL('get_item', vars=dict(name=item.name), extension='json')}}&traits="+selected_traits
+      url: url
     })
     .done(function (data) {
       $('.item-price').text(data.item.base_price);

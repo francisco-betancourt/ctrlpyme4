@@ -282,7 +282,7 @@ db.define_table("item",
     auth.signature)
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
-# db.item.taxes.requires=IS_IN_DB( db, 'db.tax.id', ' %(name)s', multiple=True)
+db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
 
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
@@ -375,6 +375,7 @@ db.define_table("bag_item",
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
+    Field("item_taxes", "list:reference tax", default=None, label=T('Item taxes'), readable=False, writable=False),
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
     Field("sale_code", "string", default=None, label=T('Sale code')),

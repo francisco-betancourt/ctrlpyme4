@@ -2,8 +2,6 @@
 #
 # Author: Daniel J. Ramirez
 
-store_extra_fields = ['extra1', 'extra2', 'extra3']
-
 
 @auth.requires_membership('Admin')
 def create():
@@ -53,7 +51,7 @@ def index():
     return locals()
 
 @auth.requires_membership('Admin')
-def seal(s): 
+def seal(s):
     store = db.store(request.args(0))
     if not store:
         raise HTTP(404,T('Store NOT FOUND'))

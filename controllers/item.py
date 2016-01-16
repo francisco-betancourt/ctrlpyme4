@@ -340,14 +340,21 @@ def get_item():
                 }
             base_trait_category_set = set(base_trait_category_set)
             # check if all the items have the same traits
+            broken = False
             for other_item in items[1:]:
                 other_trait_category_set = []
+                if not other_item.traits and item.traits:
+                    same_traits = False
+                    break
                 for trait in other_item.traits:
                     other_trait_category_set.append(trait.id_trait_category)
                     if not trait.id_trait_category in base_trait_category_set:
                         same_traits = False
+                        broken = True
                         break
                     trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
+                if broken:
+                    break
     if not item:
         raise HTTP(404)
 

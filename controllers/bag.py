@@ -48,11 +48,6 @@ def refresh_bag_data(id_bag):
     total = money_format(DQ(total, True))
     quantity = DQ(quantity, True, True)
 
-    # update bag data
-    # bag.substotal = subtotal
-    # bag.total = total
-    # ba
-
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
@@ -284,8 +279,6 @@ def complete():
 
     if not bag:
         raise HTTP(404)
-
-
 
     # check if all the bag items are consistent
     bag_items = db(db.bag_item.id_bag == bag.id).select()

@@ -7,7 +7,11 @@ COMPANY_LOGO_URL = ''
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC
 
-# if set true, only those user those users who have been created by the admin will have access to the online store.
+EXTRA_FIELD_1_NAME = ""
+EXTRA_FIELD_2_NAME = ""
+EXTRA_FIELD_3_NAME = ""
+
+# if set true, only those users who have been created by the admin will have access to the online store.
 USE_CLIENTS_WHITELIST = True
 
 TICKET_FOOTER = T('This will be a ticket footer... soon')

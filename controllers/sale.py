@@ -369,6 +369,11 @@ def create():
     quantity = DQ(quantity, True)
     reward_points = DQ(reward_points, True)
 
+    # set bag item taxes list
+    for bag_item in bag_items:
+        bag_item.item_taxes = bag_item.id_item.taxes
+        bag_item.update_record()
+
     # set the form data to the previously calculated values
     form = SQLFORM(db.sale)
     form.vars.id_bag = bag.id

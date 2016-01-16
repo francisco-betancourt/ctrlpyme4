@@ -330,10 +330,10 @@ def create_ticket(title, store, seller, items, barcode, footer):
             try:
                 item_name = item.product_name
                 item_price = item.sale_price
-                for tax in item.id_item.taxes:
+                for tax in item.item_taxes:
                     if not taxes.has_key(str(tax.name)):
                         taxes[str(tax.name)] = D(0)
-                    taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100))
+                    taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100.0))
                 subtotal += item_price
                 total += item_price + item.sale_taxes
             except:
