@@ -53,7 +53,7 @@ def index():
     return locals()
 
 @auth.requires_membership('Admin')
-def seal(s): 
+def seals():
     store = db.store(request.args(0))
     if not store:
         raise HTTP(404,T('Store NOT FOUND'))
@@ -62,6 +62,6 @@ def seal(s):
     print form[0],len(form[0])
     form[0].insert(2,DIV(
         LABEL(T('CSD password'),_class="control-label col-sm-3",_for="csdpass",_id="store_csdpass_label"),
-        DIV(INPUT(_name="csdpass",_class="form-control string",_type="text"),_class="col-sm-9"),_class="form-group hidden",_id="store_csdpass__row"))
+        DIV(INPUT(_type="password", _name="csdpass",_id="store_csdpass",_class="form-control string"),_class="col-sm-9"),_class="form-group",_id="store_csdpass__row", _style="display:none;"))
 
     return locals()
