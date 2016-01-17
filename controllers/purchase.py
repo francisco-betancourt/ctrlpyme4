@@ -15,18 +15,10 @@ def create():
             is_xml: if true, then the form will accept an xml file
     """
 
-    is_xml = request.vars.is_xml
-
-    form = SQLFORM(db.purchase)
-
-    if form.process().accepted:
-        response.flash = 'form accepted'
-        redirect(URL('fill', args=form.vars.id))
-    elif form.errors:
-        response.flash = 'form has errors'
-    return dict(form=form)
-
-    return common_create('purchase')
+    is_xml = request.vars.is_xml == 'True'
+    new_purchase_id = db.purchase.insert(id_store=session.store)
+    if not is_xml:
+        redirect(URL('fill', args=new_purchase_id))
 
 
 @auth.requires_membership('Purchases')
@@ -40,20 +32,33 @@ def create_from_order():
     if not order:
         raise HTTP(404)
     missing_items = []
+
     # check if the order items are in stock
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
-        stock, quantity = item_stock(bag_item.id_item).itervalues()
+        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
         item_ready = (quantity >= bag_item.quantity)
         if not item_ready:
-            missing_items.append(dict(item=bag_item, qty=bag_item.quantity - quantity))
+            # if the item is a bundle add the contained items to the purchase
+            if bag_item.id_item.is_bundle:
+                for bundle_item in db((db.bundle_item.id_bundle == bag_item.id_item.id)).select():
+                    stock, qty = item_stock(bundle_item.id_item, session.store).itervalues()
+                item_ready = (quantity >= bag_item.quantity * bundle_item.quantity)
+                if not item_ready:
+                    missing_items.append(
+                        dict(
+                            qty=(bag_item.quantity * bundle_item.quantity) - qty
+                            , item=bundle_item.id_item
+                        )
+                    )
+            else:
+                missing_items.append(dict(item=bag_item.id_item, qty=bag_item.quantity - quantity))
 
     if missing_items:
         new_purchase = db.purchase.insert(id_store=session.store)
         for missing_item in missing_items:
-            print missing_item
-            db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id_item.id, base_price=missing_item['item'].id_item.base_price, price2=missing_item['item'].id_item.price2, price3=missing_item['item'].id_item.price3)
+            db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id, base_price=missing_item['item'].base_price, price2=missing_item['item'].price2, price3=missing_item['item'].price3)
 
-    redirect(URL('update', args=new_purchase, vars=dict(is_xml=False)))
+    redirect(URL('fill', args=new_purchase, vars=dict(is_xml=False)))
 
 
 
@@ -101,10 +106,10 @@ def add_stock_item():
     try:
         purchase = db.purchase(request.args(0))
         item = db.item(request.args(1))
-        if item.is_bundle or not item.has_inventory:
-            raise HTTP(403)
         if not purchase or not item:
             raise HTTP(404)
+        if item.is_bundle or not item.has_inventory:
+            raise HTTP(403)
         stock_item = db((db.stock_item.id_item == item.id) &
                            (db.stock_item.id_purchase == purchase.id)
                           ).select().first()
@@ -112,6 +117,9 @@ def add_stock_item():
             stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
             stock_item = db.stock_item(stock_item)
             stock_item = response_stock_item(stock_item)
+        # else:
+        #     stock_item.purchase_qty += 1
+        #     stock_item.update_record()
         return locals()
     except:
         import traceback
@@ -229,6 +237,24 @@ def add_item_and_stock_item():
 
 
 @auth.requires_membership('Purchases')
+def update_value():
+    purchase = db.purchase(request.args(0))
+    field_name = request.vars.keys()[0]
+    valid_fields = []
+    for field in db.purchase:
+        if field.name == 'id':
+            continue
+        if field.writable:
+            valid_fields.append(field.name)
+    if field_name in valid_fields:
+        params = {field_name: request.vars[field_name]}
+        r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
+        purchase = db.purchase(request.args(0))
+        return {field_name: purchase[field_name]}
+    return locals()
+
+
+@auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
     args:
@@ -240,10 +266,12 @@ def fill():
     if not purchase:
         raise HTTP(404)
 
-    form = SQLFORM.factory(
-        Field('barcode', type="string")
-        , _id="scan_form", buttons=[]
-    )
+    buttons = [
+          A(T('Commit'), _class="btn btn-primary", _href=URL('commit', args=purchase.id))
+        , A(T('Complete later'), _class="btn btn-default", _href=URL('save', args=purchase.id))
+        , A(T('Cancel'), _class="btn btn-default", _href=URL('cancel', args=purchase.id))
+    ]
+    form = SQLFORM(db.purchase, purchase.id, buttons=buttons, formstyle="bootstrap3_stacked", showid=False, _id="purchase_form")
 
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()
     stock_items_json = []
@@ -252,9 +280,21 @@ def fill():
 
         stock_items_json.append(response_stock_item(stock_item))
     stock_items_json = json.dumps(stock_items_json)
-    form[0].append(SCRIPT('stock_items = %s;' % stock_items_json))
+    stock_items_script = SCRIPT('stock_items = %s;' % stock_items_json)
 
     return locals()
+
+
+@auth.requires_membership('Purchases')
+def cancel():
+    """ Cancel the purchase, deleting the purchase record and all its stock items
+        args [purchase_id]
+    """
+
+    db(db.stock_item.id_purchase == request.args(0)).delete()
+    db(db.purchase.id == request.args(0)).delete()
+
+    redirect(URL('index'))
 
 
 @auth.requires_membership('Purchases')
@@ -293,15 +333,6 @@ def commit():
 
 @auth.requires_membership('Purchases')
 def save():
-    """ Saves the specified purchase for later use
-
-        args:
-            purchase_id
-    """
-
-    purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise(HTTP, 404)
     redirect(URL('index'))
 
 
@@ -319,23 +350,7 @@ def update():
             is_xml: if true, then the form will accept an xml file
     """
 
-    purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(412)
-
-    is_xml = request.vars.is_xml
-
-    form = SQLFORM(db.purchase, purchase)
-
-    if form.process().accepted:
-        response.flash = 'form accepted'
-        redirect(URL('fill', args=purchase.id))
-    elif form.errors:
-        response.flash = 'form has errors'
-    return locals()
-    # return dict(form=form, pur)
+    redirect(URL('fill', args=request.args))
 
 
 @auth.requires_membership('Purchases')

@@ -1,7 +1,6 @@
+{{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
-<h1>{{=T('Add')}} Items</h1>
-{{=form}}
-{{new_item_js_url = URL('static', 'js/create_item.js')}}
+
 
 <style>
   #items_list {
@@ -10,12 +9,22 @@
 </style>
 
 
+{{block left_sidebar}}
+<h1>{{=T('Purchase')}} {{=purchase.id}}</h1>
+  {{=form}}
+{{end}}
+
+
+<h1>{{=T('Add')}} Items</h1>
+{{=stock_items_script}}
+{{include "barcode_scanner.html"}}
+{{new_item_js_url = URL('static', 'js/create_item.js')}}
+
 <div>
-  <div class="col-sm-3"></div>
-  <div class="col-sm-9">
+  <div>
     <div class="panel panel-primary" hidden="hidden" id="new_item_panel">
       <div class="panel-heading">{{=T('New Item')}}
-        <button class="btn btn-danger" id="cancel_new_item">{{=T('Cancel')}}</button>
+        <button class="btn btn-default" id="cancel_new_item">{{=T('Cancel')}}</button>
       </div>
       <div class="panel-body" id="new_item_form_container">
       </div>
@@ -27,20 +36,7 @@
 
 <div>
   <!-- Items list -->
-  <div class="row">
-    <div class="col-sm-9 col-sm-offset-3" id="items_list"></div>
-  </div>
-  <!-- buttons -->
-  <div class="row">
-    <div class="col-sm-9 col-sm-offset-3">
-      <button class="btn btn-primary" id="commit_btn">
-        {{=T('Commit')}}
-      </button>
-      <button class="btn btn-default" id="save_btn">
-        {{=T('Save')}}
-      </button>
-    </div>
-  </div>
+  <div id="items_list"></div>
 </div>
 
 
@@ -95,18 +91,28 @@
   $('#proto_item').hide();
 
 
-  $('#save_btn').on('click', function() {
-    window.location.href = '{{=URL("save", args=purchase.id)}}';
-  });
+  $('#purchase_form input, #purchase_form select').change(function (event) {
+    info_card("{{=T('Saving')}}");
 
-  $('#commit_btn').on('click', function() {
-    window.location.href = '{{=URL("commit", args=purchase.id)}}';
+    $.ajax({
+      url: "{{=URL('update_value', args=purchase.id, extension='json')}}?" + event.target.name + '=' + event.target.value
+    })
+    .done(function (res) {
+      for (k in res) {
+        $('#purchase_' + k).val(res[k]);
+      }
+      info_card("{{=T('Saved')}}");
+    })
+    .fail(function (res) {
+      info_card("{{=T('Could not save changes')}}");
+    });
   });
 
 
   $('#cancel_new_item').on('click', function() {
     $('#new_item_form').remove();
     $('#new_item_panel').hide();
+    $('#barcode__purchases').val("");
   });
 
   function remove_item(key, stock_item_id) {
@@ -209,104 +215,104 @@
 
 
   // replaces default form submission, in order to send an ajax request to fetch the barcode and create the purchase item
-  $("#scan_form").on('submit', function(event) {
-    event.preventDefault();
 
-    $('#bundle_items_form_group').show();
-
-    var code = $('#no_table_barcode').val();
-    if ($.find("#item_" + code).length) {
-      return false;
-    }
+  function success_callback(data, barcode) {
+    var item = data;
     $.ajax({
-      url: "{{=URL('item', 'find_by_code', extension='json')}}/" + code
+      url: "{{=URL('add_stock_item', args=purchase.id, extension='json')}}/" + item.id
     })
     .done(function(data) {
-      var item = data.item;
-      $.ajax({
-        url: "{{=URL('add_stock_item', args=purchase.id, extension='json')}}/" + item.id
-      })
-      .done(function(data) {
-        create_html_item(item, code, data.stock_item);
-      })
-      .fail(function(data) {
-        alert("{{=T('Could not add item!')}}")
-      });
+      create_html_item(item, barcode, data.stock_item);
     })
     .fail(function(data) {
-      // this happens when the item wasn't found, so we need to display the item
-      // creation form.
-      $('#new_item_form_container > *').remove();
-      $.ajax({
-        url: "{{=URL('item', 'create_or_update', extension='json')}}"
-      })
-      .done(function (data) {
-        $('#new_item_form_container').append(data.form);
-        var new_item_form = $('#new_item_form_container').find('form');
-        new_item_form.attr('id', 'new_item_form');
-        new_item_form.find('#item_sku').val(code);
-        // avoids default submit
-        new_item_form.on('submit', function(event) {
-          event.preventDefault();
+      alert("{{=T('Could not add item!')}}")
+    });
+  }
 
-          // remove all errors
-          $(this).find('.error_wrapper').remove();
+  function fail_callback(data, barcode) {
+    // this happens when the item wasn't found, so we need to display the item
+    // creation form.
+    $('#new_item_form_container > *').remove();
+    $.ajax({
+      url: "{{=URL('item', 'create_or_update', extension='json')}}"
+    })
+    .done(function (data) {
+      $('#new_item_form_container').append(data.form);
+      var new_item_form = $('#new_item_form_container').find('form');
+      new_item_form.attr('id', 'new_item_form');
+      new_item_form.find('#item_sku').val(barcode);
+      // avoids default submit
+      new_item_form.on('submit', function(event) {
+        event.preventDefault();
 
-          var item_data = {
-              name: $('#item_name').val()
-            , sku: $('#item_sku').val()
-            , ean: $('#item_ean').val()
-            , upc: $('#item_upc').val()
-            , description: $('#item_description').val()
-            , id_brand: $('#item_id_brand').val()
-            , categories: $('#categories_selected').val()
-            , traits: $('#traits_selected').val()
-            , has_inventory: $('#item_has_inventory').prop('checked')
-            , base_price: $('#item_base_price').val()
-            , price2: $('#item_price2').val()
-            , price3: $('#item_price3').val()
-            , id_measure_unit: $('#item_id_measure_unit').val()
-            , taxes: $('#item_taxes').val()
-            , allow_fractions: $('#item_allow_fractions').prop('checked')
-            , reward_points: $('#item_reward_points').val()
-          };
-          url = "{{=URL('add_item_and_stock_item', args=purchase.id, extension='json')}}?"
-          for (var prop in item_data) {
-            if (item_data.hasOwnProperty(prop)) {
-              url += prop + '=' + item_data[prop] + '&'
+        // remove all errors
+        $(this).find('.error_wrapper').remove();
+
+        var item_data = {
+            name: $('#item_name').val()
+          , sku: $('#item_sku').val()
+          , ean: $('#item_ean').val()
+          , upc: $('#item_upc').val()
+          , description: $('#item_description').val()
+          , id_brand: $('#item_id_brand').val()
+          , categories: $('#categories_selected').val()
+          , traits: $('#traits_selected').val()
+          , has_inventory: $('#item_has_inventory').prop('checked')
+          , base_price: $('#item_base_price').val()
+          , price2: $('#item_price2').val()
+          , price3: $('#item_price3').val()
+          , id_measure_unit: $('#item_id_measure_unit').val()
+          , taxes: $('#item_taxes').val()
+          , allow_fractions: $('#item_allow_fractions').prop('checked')
+          , reward_points: $('#item_reward_points').val()
+        };
+        url = "{{=URL('add_item_and_stock_item', args=purchase.id, extension='json')}}?"
+        for (var prop in item_data) {
+          if (item_data.hasOwnProperty(prop)) {
+            url += prop + '=' + item_data[prop] + '&'
+          }
+        }
+        $.ajax({
+          url: url
+        })
+        .done(function (data) {
+          // display the errors returned by the server
+          if (data.errors) {
+            for (var prop in data.errors) {
+              $('#item_' + prop + '__row').find('.help-block').before('<div class="error_wrapper"><div class="error">' + data.errors[prop] + '</div></div>')
             }
           }
-          $.ajax({
-            url: url
-          })
-          .done(function (data) {
-            // display the errors returned by the server
-            if (data.errors) {
-              for (var prop in data.errors) {
-                $('#item_' + prop + '__row').find('.help-block').before('<div class="error_wrapper"><div class="error">' + data.errors[prop] + '</div></div>')
-              }
-            }
-            else {
-              // add the new purchase item to the list
-              create_html_item(data.item, code, data.stock_item);
-              $('#new_item_form').remove();
-              $('#new_item_panel').hide();
-            }
-          })
-          .fail(function (data) {
-            console.log('error: ' + data);
-          })
+          else {
+            // add the new purchase item to the list
+            create_html_item(data.item, barcode, data.stock_item);
+            $('#new_item_form').remove();
+            $('#new_item_panel').hide();
+          }
+        })
+        .fail(function (data) {
+          console.log('error: ' + data);
+        })
 
-          return false;
-        });
-        item_id = "";
-        $.getScript('{{=new_item_js_url}}');
-        $('#new_item_panel').show();
+        return false;
       });
+      item_id = "";
+      $.getScript('{{=new_item_js_url}}');
+      $('#new_item_panel').show();
     });
+  }
 
-    return false;
-  });
+  function requirement(barcode) {
+    var el_item = $('#items_list').find('#item_' + barcode);
+    console.log(el_item);
+    if (el_item.length) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  setup_scanner(success_callback, fail_callback, requirement, null, 'purchases');
 
 
   // purchase_items is a javascript variable sended by the server. in the purchase_items_form

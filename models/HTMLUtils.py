@@ -50,14 +50,15 @@ def pages_menu(query, page=0, ipp=10):
 def stock_info(item):
     available = True
     stock = 0
-    if auth.has_membership('Employee'):
+
+    if auth.has_membership('Employee') and item.has_inventory:
         stock = item_stock(item, session.store)['quantity']
         stock = fix_item_quantity(item, stock)
         if stock <= 0:
             stock = SPAN(T('Out of stock'), _class="text-danger")
             available = False
         else:
-            stock = str(stock) + " " + T('Available')
+            stock = str(stock) + " %s %s " % (item.id_measure_unit.symbol, T('Available'))
     else:
         stock = item_stock(item)['quantity']
         if stock <= 0:
@@ -114,6 +115,8 @@ def item_card(item):
     ).select(db.item_image.ALL)
     if images:
         bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().md)
+    else:
+        bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 
     brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
 
@@ -122,9 +125,13 @@ def item_card(item):
     return DIV(
         DIV(_class="panel-heading", _style=bg_style),
         DIV(
-            H4(A(item.name, _href=URL('item', 'get_by_name', args=item.name))),
+            H4(
+                A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))
+                )
+            ),
             brand_link,
             # P(item.description, _class="description"),
+            DIV(_class='filler'),
             DIV(
                 SPAN(T(available), _class=available_class + ' item-available'),
                 H4('$ ', DQ(item_price, True), _class="item-price"),
@@ -323,13 +330,16 @@ def create_ticket(title, store, seller, items, barcode, footer):
             try:
                 item_name = item.product_name
                 item_price = item.sale_price
-                for tax in item.id_item.taxes:
-                    if not taxes.has_key(str(tax.name)):
-                        taxes[str(tax.name)] = D(0)
-                    taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100))
+                if item.item_taxes:
+                    for tax in item.item_taxes:
+                        if not taxes.has_key(str(tax.name)):
+                            taxes[str(tax.name)] = D(0)
+                        taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100.0))
                 subtotal += item_price
                 total += item_price + item.sale_taxes
             except:
+                import traceback as tb
+                tb.print_exc()
                 item_name = item.id_bag_item.product_name
                 item_price = item.id_bag_item.sale_price
             items_list.append(DIV(

@@ -46,7 +46,7 @@
     <div>
       <div class="media">
         <div class="media-left media-top">
-          <a href="{{=URL('sale', 'ticket', args=sale_data.sale.id)}}">
+          <a href="{{=URL('sale', 'ticket', args=sale_data.sale.id)}}" target="_blank">
             <h3>#{{=sale_data.sale.id}}</h3>
           </a>
         </div>
@@ -68,8 +68,8 @@
 
                 {{p = (payment.amount - payment.change_amount) / sale_data.sale.total * DQ(100, True)}}
                 <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
-                  <span>{{=payment.id_payment_opt.name}}: {{=DQ(payment.amount - payment.change_amount, True)}}</span>
-                  {{ payment_opt_data[str(payment.id_payment_opt.id)]['value'] += DQ(payment.amount - payment.change_amount, True) }}
+                  <span>{{=payment.id_payment_opt.name}}: {{=DQ(payment.amount, True)}}</span>
+                  {{ payment_opt_data[str(payment.id_payment_opt.id)]['value'] += DQ(payment.amount, True) }}
                 </div>
                 {{total_change += payment.change_amount}}
               {{pass}}

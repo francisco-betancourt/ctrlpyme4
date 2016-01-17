@@ -26,7 +26,9 @@
     <h3>{{=T('Bag')}} <span id="bag_id"></span> (<span class="bag_quantity"></span> {{=T('items')}})<i class="fa fa-compress right collapse_bag"></i></h3>
   </div>
   <div class="panel-body bag-items-panel">
-    {{include 'barcode_scanner.html'}}
+    <div id='barcode_scanner_container' style="padding-left: 15px; padding-right: 15px;">
+      {{include 'barcode_scanner.html'}}
+    </div>
 
     <div class="list-group" id="bag_items_list">
     </div>
@@ -38,7 +40,7 @@
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
     <hr>
 
-    <button class="btn btn-danger discard_bag" onclick="discard_bag();">
+    <button class="btn btn-default discard_bag" onclick="discard_bag();">
       {{=T('Discard')}}
     </button>
     <button class="btn btn-primary right sell_bag" onclick="sell_bag();">
@@ -181,6 +183,7 @@
       $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
     }
     set_bag_data(res)
+    info_card("{{=T('Added item to bag')}}");
   }
 
 
@@ -192,13 +195,20 @@
     new_item.attr('itemid', data.id_item);
     new_item.find('.item_name').text(data.product_name);
     new_item_stock = new_item.find('.item_stock');
-    if (data.stock <= 0) {
-      new_item_stock.text("{{=T('Out of stock')}}");
-      new_item_stock.addClass('text-danger');
+    if (!data.has_inventory) {
+      new_item_stock.text("{{=T('Available')}}");
+      new_item_stock.addClass('text-success');
     }
     else {
-      new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
+      if (data.stock <= 0) {
+        new_item_stock.text("{{=T('Out of stock')}}");
+        new_item_stock.addClass('text-danger');
+      }
+      else {
+        new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
+      }
     }
+
     new_item.find('.item_price').text(data.base_price);
 
     if (data.price2 || data.price3) {
@@ -316,7 +326,6 @@
       $('#bag_id').text(bag.id);
 
       for (var bag_item_id in data.bag_items) {
-        console.log(bag_item_id);
         var bag_item = data.bag_items[bag_item_id]
         $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
       }
@@ -337,8 +346,6 @@
     .done(function (res) {
       bag_item = res.bag_item;
       base_add_bag_item(bag_item, res);
-
-      set_bag_data(res)
     })
   }
 

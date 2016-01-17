@@ -2,25 +2,43 @@
 {{extend "layout.html"}}
 
 
-{{if same_traits:}}
-  {{for trait_c in base_trait_category_set:}}
-    <h3>{{=trait_c.name}}</h3>
-    <select id="" class="form-control trait-selector">
-      {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
-        <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
-      {{pass}}
-    </select>
+{{try:}}
+  {{if same_traits:}}
+    {{for trait_c in base_trait_category_set:}}
+      <h3>{{=trait_c.name}}</h3>
+      <select id="" class="form-control trait-selector">
+        {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
+          <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
+        {{pass}}
+      </select>
+    {{pass}}
+    {{else:}}
+      <h3>{{=T('Options')}}</h3>
+      <select id="" class="form-control trait-selector">
+        {{for item in items:}}
+          <option value="{{=item.id}}">
+            {{if not item.traits:}}
+              {{=T('Options not specified')}}
+            {{else:}}
+              {{for trait in item.traits:}}
+                {{=trait.trait_option}}
+              {{pass}}
+            {{pass}}
+          </option>
+        {{pass}}
+      </select>
   {{pass}}
+{{except:}}
 {{pass}}
 
 <h3>{{=T('Description')}}</h3>
 <div id="description">
-  {{=items.first().description}}
-  {{if items.first().is_bundle:}}
+  {{=item.description}}
+  {{if item.is_bundle:}}
   <h4>{{=T('This bundle contains')}}</h4>
   <ul>
-    {{for bundle_item in db(db.bundle_item.id_bundle == items.first().id).select(): }}
-      <li><a href=""> {{=bundle_item.id_item.name}}</a> x {{= fix_item_quantity(bundle_item.id_item, bundle_item.quantity)}} </li>
+    {{for bundle_item in db(db.bundle_item.id_bundle == item.id).select(): }}
+      <li><a href="{{=URL('get_item', args=bundle_item.id_item.id)}}"> {{=bundle_item.id_item.name}}</a> x {{= fix_item_quantity(bundle_item.id_item, bundle_item.quantity)}} </li>
     {{pass}}
   </ul>
   {{pass}}
@@ -31,36 +49,40 @@
   {{if request.vars.current_id:}}
     var current_item_id = {{=request.vars.current_id}};
   {{else:}}
-    var current_item_id = {{=items.first().id}};
+    var current_item_id = {{=item.id}};
   {{pass}}
 </script>
+
+
 
 {{block left_sidebar}}
 <div class="panel panel-default">
   <div class="panel-body">
-<h1>{{=item_name}}</h1>
-<h4>
-  <a href="{{=URL('item', 'get_by_brand', args=items.first().id_brand.id)}}">{{=items.first().id_brand.name}}</a> | <span class="stock">{{=first_stock}}</span>
-      {{if auth.has_membership('Employee'):}}
-   | <span class="barcode">{{=item_barcode(items.first())}}</span>
+<h1>{{=item.name}}</h1>
+<h4 id="item_info">
+  <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
+      {{if auth.has_membership('Employee') and item_barcode(item):}}
+    <span class="barcode">{{=item_barcode(item)}}</span>
    {{pass}}
 </h4>
 
 <div class="main-item-image">
   {{if images:}}
-    <img width="100%" src="{{=URL('default', 'download', args=images.first().image)}}" alt="" id="item_image">
+    <img width="100%" src="{{=URL('static', 'uploads/'+images.first().lg)}}" alt="" id="item_image">
 
     <div id="thumbs">
       {{for image in images:}}
-        <img src="{{=URL('default', 'download', args=image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
+        <img src="{{=URL('static', 'uploads/' + image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
       {{pass}}
     </div>
+  {{else:}}
+    <img width="100%" src="{{=URL('static', 'images/no_image.svg')}}" alt="" id="item_image">
   {{pass}}
 </div>
 <!-- {{include 'image_uploader.html'}} -->
 {{pass}}
 
-<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(items.first().base_price, True)}}</span></span></h3>
+<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(item.base_price, True)}}</span></span></h3>
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
 <p></p>
@@ -110,15 +132,21 @@
 
 
   $('.trait-selector>option').click(function (event) {
-    selected_traits = '';
-    $('.trait-selector').each(function (index) {
-      if (index > 0) {
-        selected_traits += ','
-      }
-      selected_traits += $(this).val();
-    });
+    var url = "{{=URL('get_item', extension='json')}}";
+    {{if same_traits:}}
+      selected_traits = '';
+      $('.trait-selector').each(function (index) {
+        if (index > 0) {
+          selected_traits += ','
+        }
+        selected_traits += $(this).val();
+      });
+      url += '?name={{=item.name}}&traits=' + selected_traits;
+    {{else:}}
+      url += '/' + $(event.target).val();
+    {{pass}}
     $.ajax({
-      url: "{{=URL('get_by_name_and_traits', args=item_name, extension='json')}}?traits="+selected_traits
+      url: url
     })
     .done(function (data) {
       $('.item-price').text(data.item.base_price);
@@ -136,6 +164,9 @@
         el_thumb.attr('onclick', 'show_image("'+download_url + image.lg+'")');
         $('#thumbs').append(el_thumb);
       }
+    })
+    .fail(function (res) {
+      console.log(res);
     })
   });
 

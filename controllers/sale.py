@@ -7,6 +7,8 @@ from uuid import uuid4
 
 
 def _remove_stocks(item, quantity, sale_date):
+    if not item.has_inventory:
+        return 0, 0
     if not quantity:
         return 0, 0
     original_qty = quantity
@@ -354,7 +356,7 @@ def create():
         stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
         # if theres no stock the user needs to modify the bag
         if stock_qty <= quantity:
-            print "not stock"
+            redirect('default', 'index')
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
@@ -366,6 +368,11 @@ def create():
     total = DQ(total, True)
     quantity = DQ(quantity, True)
     reward_points = DQ(reward_points, True)
+
+    # set bag item taxes list
+    for bag_item in bag_items:
+        bag_item.item_taxes = bag_item.id_item.taxes
+        bag_item.update_record()
 
     # set the form data to the previously calculated values
     form = SQLFORM(db.sale)

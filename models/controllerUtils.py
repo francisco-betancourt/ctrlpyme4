@@ -2,7 +2,7 @@ def common_create(table_name, success_msg='', _vars=None):
     form = SQLFORM(db[table_name])
     if form.process().accepted:
         response.flash = T(success_msg)
-        redirect(URL('index'))
+        redirection(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
 

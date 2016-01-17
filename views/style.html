@@ -109,26 +109,58 @@
 
 
   .text-success {
-    color: {{=color_mix(PRIMARY_COLOR, '#00FF00')}};
+    color: {{=color_mix(primary_color, '#00BB00')}};
   }
 
   .text-danger {
-    color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
+    color: {{=color_mix(primary_color, '#FF0000')}};
   }
 
   .label-success {
-    background-color: {{=color_mix(PRIMARY_COLOR, '#00FF00')}};
+    color: {{=color_mix(primary_color, '#00BB00')}};
+    border-color: {{=color_mix(primary_color, '#00CC00')}};
   }
 
   .label-danger {
-    background-color: {{=color_mix(PRIMARY_COLOR, '#FF0000')}};
+    color: {{=color_mix(primary_color, '#FF0000')}};
+    border-color: {{=color_mix(primary_color, '#FF0000')}};
   }
 
   .form-control:focus {
-    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px {{=hex_to_css_rgba(primary_color, .6)}};
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px {{=hex_to_css_rgba(primary_color, .4)}};
+    border-color: {{=primary_color_bright}};
   }
 
   option:checked {
     background-color: {{=primary_color}} !important;
   }
+
+
+  .panel-default > .panel-heading, .panel-default > .panel-footer {
+    background-color: {{=base_color_bright}};
+    color: {{=base_color_text}};
+  }
+
+  .panel-primary > .panel-body {
+    background-color: {{=base_color}};
+  }
+  .panel-primary > .panel-heading, .panel-primary > .panel-footer {
+    background-color: {{=primary_color}};
+    color: {{=primary_color_text}};
+  }
+  .panel-primary {
+    border-color: {{=primary_color}};
+  }
+
+
+  .header {
+    background-color: {{=primary_color}};
+    color: {{=primary_color_text}};
+  }
+
 </style>
+
+<meta name="theme-color" content="{{=primary_color}}">
+
+<!-- Tile color for Win8 -->
+<meta name="msapplication-TileColor" content="{{=primary_color}}">

@@ -2,8 +2,6 @@
 #
 # Author: Daniel J. Ramirez
 
-store_extra_fields = ['extra1', 'extra2', 'extra3']
-
 
 @auth.requires_membership('Admin')
 def create():

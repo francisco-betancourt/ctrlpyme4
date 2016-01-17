@@ -14,6 +14,8 @@ from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
 myconf = AppConfig(reload=True)
 
+import os
+
 
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
@@ -68,6 +70,7 @@ auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
       , Field('access_card_index', 'integer', readable=False, writable=False)
+      , Field('is_client', 'boolean', default=False, readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -279,7 +282,7 @@ db.define_table("item",
     auth.signature)
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
-# db.item.taxes.requires=IS_IN_DB( db, 'db.tax.id', ' %(name)s', multiple=True)
+db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
 
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
@@ -372,6 +375,7 @@ db.define_table("bag_item",
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
+    Field("item_taxes", "list:reference tax", default=None, label=T('Item taxes'), readable=False, writable=False),
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
     Field("sale_code", "string", default=None, label=T('Sale code')),
@@ -390,7 +394,7 @@ db.define_table("sale",
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
     auth.signature)
-db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db, 'auth_user.id', '%(email)s'))
+db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 
 
 db.define_table("sale_log",
@@ -477,11 +481,11 @@ db.define_table("payment",
 
 db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
-    Field("image", "upload", default=None, label=T('Image')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False),
-    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False),
-    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False),
-    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False),
+    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
 )
 db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
 # db.item_image.thumb.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))

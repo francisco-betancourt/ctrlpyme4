@@ -41,6 +41,9 @@ def create_client():
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         clients_group = db(db.auth_group.role == 'Clients').select().first()
+        new_client = db.auth_user(form.vars.id)
+        new_client.is_client = True
+        new_client.update_record()
         if clients_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)
         response.flash = T('Client created')
@@ -82,7 +85,7 @@ def get_employee():
 
     stores = db(db.store.is_active == True).select()
 
-    permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW]
+    permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW].cards()
 
     return locals()
 
@@ -134,7 +137,7 @@ def set_access_card():
     card_index = int(request.args(1))
 
     try:
-        card_data = WORKFLOW_DATA[COMPANY_WORKFLOW][card_index]
+        card_data = WORKFLOW_DATA[COMPANY_WORKFLOW].card(card_index)
         # remove all memberships
         memberships_query = (db.auth_membership.user_id == user.id)
         for store_group in db(db.auth_group.role.like('Store %')).select():
@@ -145,7 +148,7 @@ def set_access_card():
         db(memberships_query).delete()
 
         # add access card memberships
-        for role in card_data['groups']:
+        for role in card_data.groups():
             group = db(db.auth_group.role == role).select().first()
             if group:
                 auth.add_membership(group_id=group.id, user_id=user.id)

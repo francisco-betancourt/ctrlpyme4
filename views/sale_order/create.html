@@ -15,6 +15,7 @@
   <ul class="list-group">
     {{for store in stores:}}
       <li class="list-group-item" id="store_{{=store.id}}">
+        <b>{{=store.name}}</b>
         {{=store.id_address.street}}
         {{=store.id_address.exterior}}
         {{=store.id_address.interior}}

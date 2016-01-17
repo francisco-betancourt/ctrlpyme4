@@ -17,6 +17,7 @@ function update_categories_and_traits() {
     url: "/ctrlpyme4/item/trait_selector_data.json/" + item_id + "?categories=" + selected_categories
   })
   .done(function(data) {
+    // create the traits tree.
     if (data.status == "no traits") {
       $('#traits_tree *').remove();
       return;
@@ -56,6 +57,11 @@ function update_categories_and_traits() {
 
 
 update_categories_and_traits();
+$('#traits_selected').prop('value', initial_selected_traits);
+
+// set initial traits
+
+
 
 
 $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {

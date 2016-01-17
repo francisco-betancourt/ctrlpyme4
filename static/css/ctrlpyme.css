@@ -130,22 +130,26 @@ button.cp-fab:focus{
 .items-container {
   display: flex;
   flex-wrap: wrap;
+  flex-justify: space-around;
 }
 
 .item-card {
   position: relative;
   margin-right: 8px;
-  flex: 0 0 auto;
+  padding-top: 10px;
+  flex: auto;
   min-width: 260px;
-  max-width: 300px;
+  max-width: 260px;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
 }
 .item-card>.panel-heading {
   height: 260px;
-  background-size: contain;
+  background-size: 85%;
   background-repeat: no-repeat;
   background-position: center;
   background-color: white;
+
+  border: none;
 }
 
 .item-card .description {
@@ -169,8 +173,57 @@ button.cp-fab:focus{
   margin-bottom: 10px;
 }
 
-.item-card .item-card-bottom {
-  margin-top: 30px;
+.item-card .filler {
+  height: 30px;
+  min-height: 30px;
+  /*margin-top: 30px;*/
+}
+
+
+@media(max-width: 700px) {
+  .items-container {
+    flex-flow: column;
+  }
+
+  .item-card {
+    flex: auto;
+    min-width: 100%;
+    max-width: 100%;
+    /*max-height: 130px;*/
+    /*display: flex;*/
+     vertical-align: top;
+  }
+
+  .item-card>.panel-heading, .item-card>.panel-body {
+    /*flex: auto;*/
+    display: inline-block;
+  }
+
+  .item-card>.panel-heading {
+    /*flex: 1 0 auto;*/
+    height: 100%;
+    width: 20%;
+    min-width: 130px;
+    float: left;
+  }
+  .item-card>.panel-body {
+    /*flex: 2 0 auto;*/
+    /*height: 100%;*/
+    /*width: 80%;*/
+    /*top: 0px;*/
+    height: 100%;
+  }
+
+  /*.item-card>.panel-body * {
+    word-wrap: break-word;
+  }*/
+
+  .item-card .item-available {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    margin: 0px;
+  }
 }
 
 
@@ -203,6 +256,10 @@ select {
   width: 10%;
 }
 
+.table > tbody > tr > td {
+  vertical-align: middle;
+}
+
 
 #search {
   /*background-color: rgba(0,0,0,.4);*/
@@ -211,6 +268,7 @@ select {
 
 #search_form {
   display: inline-block;
+  width: 300px;
 }
 
 #search_form .search-icon {
@@ -226,14 +284,26 @@ select {
   z-index: 10000000;
 }
 
+.panel-heading, .panel-footer {
+  border: none;
+}
+
 
 #current_bag>.panel-body {
   padding-left: 0px;
   padding-right: 0px;
 }
 
+#current_bag>.panel-body>#barcode_scanner_container {
+  margin-bottom: 30px;
+}
+
 #current_bag>.panel-body .list-group-item {
   border-radius: 0px;
+  border: 1px solid #eee;
+}
+#current_bag>.panel-body .list-group-item:hover {
+  background-color: transparent !important;
 }
 
 
@@ -243,4 +313,16 @@ select {
 
 #current_bag>.panel-body .list-group-item:hover:not(.node-disabled) {
   background-color: white;
+}
+
+
+#item_info>span {
+  margin-left: 10px;
+}
+
+
+@media(min-width: 992px) {
+  .col-md-9 {
+    /*width: 50%;*/
+  }
 }
