@@ -309,7 +309,7 @@ def super_table(table, fields, query, row_function=default_row_function,
     return table
 
 
-def create_ticket(title, store, seller, items, barcode, footer):
+def create_ticket(title, store, seller, items, barcode, footer=""):
     store_data = P()
     if store:
         store_data.append(T('Store') + ': %s' % store.name)

@@ -184,7 +184,7 @@ def add_bag_item():
             base_qty = 1 if item_stock_qty >= 1 or is_online_sale else item_stock_qty % 1
             if base_qty <= 0:
                 return dict(status="out of stock")
-            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name,
+            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name, item_taxes=item.taxes,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:
@@ -341,6 +341,10 @@ def ticket():
     bag_items = db(db.bag_item.id_bag == bag.id).select()
 
     ticket_barcode = "%010d" % bag.id
+    if bag.created_by.is_client:
+        ticket = create_ticket(T('Order'), None, None, bag_items, ticket_barcode)
+    else:
+        ticket = create_ticket(T('Order'), bag.id_store, bag.created_by, bag_items, ticket_barcode)
 
     return locals()
 
