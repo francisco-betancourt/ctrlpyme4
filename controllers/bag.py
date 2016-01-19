@@ -20,6 +20,8 @@ def get_valid_bag(id_bag, completed=False):
                ).select().first()
         return bag
     except:
+        import traceback as tb
+        tb.print_exc()
         return None
 
 
@@ -111,6 +113,8 @@ def set_bag_item(bag_item):
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
+@service.jsonrpc
+@service.jsonrpc2
 def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 

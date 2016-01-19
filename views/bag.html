@@ -335,6 +335,9 @@
       $('#active_bags').hide();
 
       $('#current_bag').show();
+    })
+    .fail(function (res) {
+      console.log(res);
     });
   }
 
