@@ -448,12 +448,38 @@ def deliver():
             )
 def get():
     """
-        args:
-            sale_id
+        args: [sale_id]
     """
 
     sale = db.sale(request.args(0))
     return dict(sale=sale)
+
+
+@auth.requires(auth.has_membership('Sales returns')
+            or auth.has_membership('Sales checkout')
+            or auth.has_membership('Sales invoices')
+            )
+def get_by_barcode():
+    """
+        args: [barcode]
+    """
+
+    try:
+        barcode = int(request.args(0))
+
+        sale = db.sale(barcode)
+        if not sale:
+            raise HTTP(404)
+        if sale.is_invoiced:
+            raise HTTP(404)
+        return dict(sale=sale)
+    except:
+        raise HTTP(404)
+
+
+@auth.requires_membership('Sales invoices')
+def scan_for_invoice():
+    return dict()
 
 
 @auth.requires_membership('Sales returns')
@@ -611,5 +637,5 @@ def sale_extra_options(row):
 
 @auth.requires_membership("Sales invoices")
 def index():
-    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], extra_options=sale_extra_options))
+    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], options_function=lambda row: [], extra_options=sale_extra_options))
     return locals()

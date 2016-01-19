@@ -1,0 +1,57 @@
+{{extend "layout.html"}}
+<h1>{{=T("Scan tickets for invoice")}}</h1>
+<h4>{{=T("Scan sale tickets to create an invoice")}}</h4>
+
+{{include "barcode_scanner.html"}}
+
+<div id="sales_list"></div>
+
+<button class="btn btn-primary" id="create_btn">
+  {{=T('Create')}}
+</button>
+
+
+
+
+<div hidden="hidden" id="proto_sale">
+  <p class='consecutive'></p>
+</div>
+
+
+<script>
+  var sales_list = ""
+
+  function success_callback(data, barcode) {
+    sale = data.sale;
+    var el_p = $('#proto_sale').clone();
+    el_p.attr('id', 'sale_' + barcode);
+    el_p.find('.consecutive').text(sale.consecutive);
+    el_p.show();
+    $('#sales_list').prepend(el_p);
+
+    if (sales_list != "") {
+      sales_list += ','
+    }
+
+    sales_list += sale.id
+  }
+
+  function fail_callback(data, barcode) {
+    alert("{{=T('Sale not found')}}");
+  }
+
+  function requirement(barcode) {
+    if ($('#sale_' + barcode).length) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  setup_scanner(success_callback, fail_callback, requirement, "{{=URL('sale', 'get_by_barcode', extension='json')}}/", 'sales')
+
+  $('#create_btn').click(function (event) {
+    window.location.href = "{{=URL('invoice', 'create')}}?sales=" + sales_list;
+  });
+</script>
