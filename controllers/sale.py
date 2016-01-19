@@ -64,11 +64,7 @@ def remove_stocks(bag_items):
                 bag_item.update_record()
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def scan_ticket():
     return dict()
 
@@ -86,11 +82,7 @@ def validate_sale_form(form):
         form.errors.payments_data = T('Payments amount is lower than the total')
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def ticket():
     """
         args:
@@ -175,11 +167,7 @@ def fix_payment_data(payment, amount, change_amount, account, wallet_code):
     return amount, change_amount, account, wallet_code
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def modify_payment():
     """ Modifies the specified payment
         args:
@@ -211,11 +199,7 @@ def modify_payment():
         traceback.print_exc()
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def add_user_wallet_payment():
     """ Adds a payment related to a bag, with the specified payment option
         args:
@@ -254,11 +238,7 @@ def add_user_wallet_payment():
     return dict(payment_opt=wallet_payment_opt, payment=wallet_payment, wallet_balance=wallet_balance)
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def add_payment():
     """ Adds a payment related to a bag, with the specified payment option
         args:
@@ -284,11 +264,7 @@ def add_payment():
     return dict(payment_opt=payment_opt, payment=new_payment)
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def remove_payment():
     """ removes a payment related to a bag, with the specified payment option
         args:
@@ -325,11 +301,7 @@ def remove_payment():
         traceback.print_exc()
 
 
-@auth.requires(auth.has_membership('Sales checkout')
-            or auth.has_membership('Cashier')
-            or auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership('Sales checkout')
 def create():
     """
         args:
@@ -443,10 +415,7 @@ def create():
     return dict(form=form, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, bag=bag, payments=payments, selected_payment_opt=payment_options.first().id)
 
 
-@auth.requires(auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            or auth.has_membership('Sales delivery')
-            )
+@auth.requires_membership('Sales delivery')
 def deliver():
     """
         args:
@@ -474,9 +443,7 @@ def deliver():
     return locals()
 
 
-@auth.requires(auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            or auth.has_membership('Sales returns')
+@auth.requires(auth.has_membership('Sales returns')
             or auth.has_membership('Sales checkout')
             )
 def get():
@@ -489,18 +456,12 @@ def get():
     return dict(sale=sale)
 
 
-@auth.requires(auth.has_membership('Sales returns')
-            or auth.has_membership('Manager')
-            or auth.has_membership('Admin')
-            )
+@auth.requires_membership('Sales returns')
 def scan_for_refund():
     return dict()
 
 
-@auth.requires(auth.has_membership('Sales returns')
-            or auth.has_membership('Manager')
-            or auth.has_membership('Admin')
-            )
+@auth.requires_membership('Sales returns')
 def refund():
     """ Performs the logic to refund a sale
 
@@ -648,9 +609,7 @@ def sale_extra_options(row):
 
 
 
-@auth.requires(auth.has_membership('Admin')
-            or auth.has_membership('Manager')
-            )
+@auth.requires_membership("Sales invoices")
 def index():
     data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], extra_options=sale_extra_options))
     return locals()

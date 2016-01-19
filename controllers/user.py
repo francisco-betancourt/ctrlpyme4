@@ -62,8 +62,7 @@ def create():
         if employee_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=employee_group.id)
         response.flash = T('Employee created')
-        redirect(URL('user', 'index'))
-        # redirection()
+        redirect(URL('get_employee', args=form.vars.id))
     elif form.errors:
         response.flash = T('Error in form')
     return dict(form=form)

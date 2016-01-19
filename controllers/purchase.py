@@ -179,7 +179,7 @@ def modify_stock_item():
     stock_item = db.stock_item(request.args(0))
     if not stock_item:
         raise HTTP(404)
-    if purchase.is_done:
+    if stock_item.id_purchase.is_done:
         raise HTTP(405)
     try:
         param_name = request.args(1)

@@ -235,3 +235,11 @@ select {
     /*width: 50%;*/
   }
 }
+
+.sale-data {
+  display: flex;
+}
+
+.sale-data h4 {
+  flex: auto;
+}

@@ -16,7 +16,6 @@
     <div>
       <canvas id="payment_opt_distrib" style="width: 100%;"></canvas>
     </div>
-    <canvas id="sales_distrib"></canvas>
 
     <h3>{{=T('Total')}}: <span class="right">$ <span id="total_q"></span></span></h3>
   {{end}}
@@ -51,12 +50,12 @@
           </a>
         </div>
         <div class="media-body" style="padding-left: 16px;">
-          <div>
+          <div class="sale-data">
             <h4>
               {{=sale_data.sale.created_on}}
-              <span class="right">
-                $ {{=DQ(sale_data.sale.total, True)}} | <span id="change_{{=sale_index}}"></span> {{=T('change')}}
-              </span>
+            </h4>
+            <h4 class="right">
+              $ {{=DQ(sale_data.sale.total, True)}} | <span id="change_{{=sale_index}}"></span> {{=T('change')}}
             </h4>
           </div>
           <div>

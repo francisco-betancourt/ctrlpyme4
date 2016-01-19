@@ -470,6 +470,7 @@ def browse():
         "tablename": "item",
         "sortby": ['base_price', 'name']
     }
+    filter_data = None
 
     return locals()
 

@@ -56,11 +56,7 @@ def validate_ready(form):
         form.errors.default = T('Some items are not available')
 
 
-@auth.requires(
-    auth.has_membership('Orders')
-    or auth.has_membership('Admin')
-    or auth.has_membership('Manager')
-)
+@auth.requires_membership('Sale Orders')
 def ready():
     """
         args [order_id]
@@ -107,20 +103,12 @@ def ready():
     return locals()
 
 
-@auth.requires(
-    auth.has_membership('Orders')
-    or auth.has_membership('Admin')
-    or auth.has_membership('Manager')
-)
+@auth.requires_membership('Sale Orders')
 def delete():
     return common_delete('sale_order', request.args)
 
 
-@auth.requires(
-    auth.has_membership('Orders')
-    or auth.has_membership('Admin')
-    or auth.has_membership('Manager')
-)
+@auth.requires_membership('Sale Orders')
 def client_order_options(row):
     td = TD()
 
@@ -129,11 +117,7 @@ def client_order_options(row):
     return td
 
 
-@auth.requires(
-    auth.has_membership('Orders')
-    or auth.has_membership('Admin')
-    or auth.has_membership('Manager')
-)
+@auth.requires_membership('Sale Orders')
 def index():
     data = super_table('sale_order', ['is_ready'], (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False), options_function=client_order_options, show_id=True)
     # data = common_index('sale_order', ['is_ready'], dict(options_function=client_order_options, show_id=True))

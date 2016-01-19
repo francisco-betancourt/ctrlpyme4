@@ -100,7 +100,7 @@ def create_groups():
     }
 
     new_groups = {
-          "Admin": "All included"
+          "Admin": "Allows company configuration, by itself it can not sell or perform any POS operations"
         , "Manager": "Accounts (Payable | Receivable), Analytics, Suppliers, Taxes"
         , "Inventories": "Create and apply inventories"
         , "Purchases": "Make Purchases"
@@ -119,6 +119,7 @@ def create_groups():
         , "VIP seller": "Allows price2 and price3 selection"
         , "Employee": "An Employee"
         , "Analytics": "Users in this group have acces to the analytic tools"
+        , "Sale orders": "Solve client orders and notify clients about their orders"
     }
 
 

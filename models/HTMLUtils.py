@@ -168,7 +168,10 @@ def filter_menu(filter_data):
     tablename = filter_data['tablename']
     sort_options = SELECT(_class="form-control")
     for sort_option in filter_data['sortby']:
-        sort_options.append(OPTION(db[tablename][sort_option].label, _value=sort_option))
+        sort_options.append(
+            OPTION(db[tablename][sort_option].label, _value=sort_option, _onclick="window.location.href = '%s';" % URL('default', request.function, args=request.args, vars=dict(sorting=sort_option))
+            )
+        )
 
     return DIV(
         DIV(
