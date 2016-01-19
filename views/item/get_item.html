@@ -1,7 +1,6 @@
 {{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
-
 {{try:}}
   {{if multiple_items:}}
     {{if same_traits:}}
@@ -36,7 +35,7 @@
 
 <h3>{{=T('Description')}}</h3>
 <div id="description">
-  {{=item.description}}
+  {{=MARKMIN(item.description)}}
   {{if item.is_bundle:}}
   <h4>{{=T('This bundle contains')}}</h4>
   <ul>
@@ -173,7 +172,8 @@
   });
 
   function update_item(item_id) {
-    window.location.href = "{{=URL('update')}}/" + item_id;
+    var _next = "{{=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})}}"
+    window.location.href = "{{=URL('update')}}/" + item_id + '?_next=' + _next;
   }
 
   function add_item_images(item_id) {

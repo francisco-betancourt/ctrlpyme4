@@ -175,7 +175,8 @@ def item_form(item=None, is_bundle=False):
         if is_bundle and auth.has_membership('Items management'):
             redirect(URL('fill_bundle', args=form.vars.id))
         else:
-            redirect(URL('index'))
+            redirection()
+            # redirect(URL('index'))
     elif form.errors:
         response.flash = 'form has errors'
     return dict(form=form)
@@ -215,8 +216,6 @@ def create_or_update():
         is_bundle = True
         request.vars.is_bundle = True
     forms = item_form(item=item, is_bundle=is_bundle)
-
-    session._next = request.env.http_referer
 
     return dict(item=item, is_bundle=is_bundle, form=forms['form'])
 

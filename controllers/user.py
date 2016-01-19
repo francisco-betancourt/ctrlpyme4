@@ -191,7 +191,8 @@ def ban():
 
     user.update_record()
 
-    redirection()
+    redirect(URL('clients'))
+    # redirection()
 
 
 def client_options_function(row):
@@ -199,7 +200,7 @@ def client_options_function(row):
     td.append(option_btn('pencil', URL('get_client', args=row.id)))
     ban_text = T('Ban')
     if row.registration_key == 'blocked':
-        ban_text = T('Unaban')
+        ban_text = T('Unban')
     td.append(option_btn('ban', URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), ' ' + ban_text))
 
     return td

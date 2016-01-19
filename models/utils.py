@@ -175,16 +175,13 @@ def search_query(table_name, fields, terms):
 
 
 def redirection(url=None):
-    try:
-        _next = session._next or request.vars._next
-        if _next:
-            session._next = None
-            redirect(_next)
-        elif url:
-            redirect(url)
-        else:
-            redirect(URL('default', 'index'))
-    except:
+    _next = session._next or request.vars._next
+    if _next:
+        session._next = None
+        redirect(_next)
+    elif url:
+        redirect(url)
+    else:
         redirect(URL('default', 'index'))
 
 

@@ -327,6 +327,7 @@ def create_ticket(title, store, seller, items, barcode, footer):
     items_list = DIV(_id="items_list")
     subtotal = D(0)
     taxes = {}
+    taxes_percentages = {}
     total = D(0)
     if items:
         for item in items:
@@ -337,6 +338,7 @@ def create_ticket(title, store, seller, items, barcode, footer):
                     for tax in item.item_taxes:
                         if not taxes.has_key(str(tax.name)):
                             taxes[str(tax.name)] = D(0)
+                            taxes_percentages[str(tax.name)] = tax.percentage
                         taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100.0))
                 subtotal += item_price
                 total += item_price + item.sale_taxes
@@ -353,10 +355,12 @@ def create_ticket(title, store, seller, items, barcode, footer):
             ))
 
     total_data = DIV(_id="total_data")
-    total_data.append(DIV(T('Subtotal') + ': %s' % DQ(subtotal, True)))
+    total_data.append(DIV(T('Subtotal') + ': $ %s' % DQ(subtotal, True)))
+    # taxes
     for key in taxes.iterkeys():
-        total_data.append(DIV(key + ': %s' % DQ(taxes[key], True)))
-    total_data.append(DIV(T('Total') + ': %s' % DQ(total, True)))
+        text = '%s %s %%: $ %s' % (key, taxes_percentages[key], DQ(taxes[key], True))
+        total_data.append(DIV(text))
+    total_data.append(DIV(T('Total') + ': $ %s' % DQ(total, True)))
 
     ticket = DIV(
         DIV(_class="logo"),
