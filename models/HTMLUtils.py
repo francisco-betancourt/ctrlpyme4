@@ -123,7 +123,7 @@ def item_card(item):
     item_price = (item.base_price or 0) + item_taxes(item, item.base_price)
 
     return DIV(
-        DIV(_class="panel-heading", _style=bg_style),
+        DIV(_class="panel-heading", _style=bg_style, _onclick="window.location.href = '%s';" % URL('item', 'get_item', vars=dict(name=item.name))),
         DIV(
             H4(
                 A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))

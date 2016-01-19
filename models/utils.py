@@ -51,7 +51,7 @@ def item_taxes(item, price):
     for tax in item.taxes:
         total += price * D(tax.percentage / 100.0)
     return DQ(total)
-    
+
 
 def item_stock(item, id_store=None, include_empty=False, id_bag=None):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
@@ -175,14 +175,17 @@ def search_query(table_name, fields, terms):
 
 
 def redirection(url=None):
-    _next = session._next or request.vars._next
-    if _next:
-        session._next = None
-        redirect(_next)
-    elif url:
-        redirect(url)
-    else:
-        redirect('default', 'index')
+    try:
+        _next = session._next or request.vars._next
+        if _next:
+            session._next = None
+            redirect(_next)
+        elif url:
+            redirect(url)
+        else:
+            redirect(URL('default', 'index'))
+    except:
+        redirect(URL('default', 'index'))
 
 
 def hex_to_rgb(hexv):

@@ -304,6 +304,8 @@ def get_item():
         vars {name, traits}
     """
 
+    same_traits = False
+    multiple_items = False
     item = db.item(request.args(0))
     if not item:
         item_name = request.vars.name
@@ -324,6 +326,7 @@ def get_item():
             ).select()
             if not items:
                 raise HTTP(404)
+            multiple_items = True
 
             same_traits = True
             base_trait_category_set = []

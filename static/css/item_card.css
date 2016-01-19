@@ -1,0 +1,104 @@
+.item-card {
+  position: relative;
+  margin-right: 8px;
+  padding-top: 10px;
+  flex: auto;
+  min-width: 260px;
+  max-width: 260px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+.item-card>.panel-heading {
+  height: 260px;
+  background-size: 85%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: white;
+
+  border: none;
+}
+
+.item-card .description {
+  margin-bottom: 30px;
+  text-overflow: ellipsis;
+}
+
+.item-card .item-price {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  margin-right: 15px;
+}
+
+
+.item-card .item-available {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  margin-left: 15px;
+  margin-bottom: 10px;
+
+  background-color: white;
+}
+
+.item-card .filler {
+  height: 30px;
+  min-height: 30px;
+  /*margin-top: 30px;*/
+}
+
+
+@media(max-width: 700px) {
+  .items-container {
+    flex-flow: column;
+  }
+
+  .item-card {
+    flex: auto;
+    min-width: 100%;
+    max-width: 100%;
+    margin-right: 0px;
+    vertical-align: top;
+    display: table;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+
+  .item-card>.panel-heading, .item-card>.panel-body {
+    display: table-cell;
+  }
+
+  .item-card>.panel-heading {
+    height: 100%;
+    width: 20%;
+    min-width: 140px;
+    background-size: 90%;
+  }
+  .item-card>.panel-body {
+    height: 100%;
+  }
+
+  .item-card .item-available {
+    position: relative;
+    margin: 0px;
+  }
+}
+
+@media(max-width: 500px) {
+  .item-card .item-available {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    left: auto;
+    bottom: auto;
+
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+    overflow: hidden;
+    color: transparent;
+    margin: 0px;
+    margin-top: 8px;
+    margin-right: 8px;
+  }
+}

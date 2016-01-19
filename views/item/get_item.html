@@ -3,15 +3,16 @@
 
 
 {{try:}}
-  {{if same_traits:}}
-    {{for trait_c in base_trait_category_set:}}
-      <h3>{{=trait_c.name}}</h3>
-      <select id="" class="form-control trait-selector">
-        {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
-          <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
-        {{pass}}
-      </select>
-    {{pass}}
+  {{if multiple_items:}}
+    {{if same_traits:}}
+      {{for trait_c in base_trait_category_set:}}
+        <h3>{{=trait_c.name}}</h3>
+        <select id="" class="form-control trait-selector">
+          {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
+            <option value="{{=trait_option['id']}}">{{=trait_option['name']}}</option>
+          {{pass}}
+        </select>
+      {{pass}}
     {{else:}}
       <h3>{{=T('Options')}}</h3>
       <select id="" class="form-control trait-selector">
@@ -27,8 +28,10 @@
           </option>
         {{pass}}
       </select>
+    {{pass}}
   {{pass}}
 {{except:}}
+  {{pass}}
 {{pass}}
 
 <h3>{{=T('Description')}}</h3>
@@ -79,7 +82,6 @@
     <img width="100%" src="{{=URL('static', 'images/no_image.svg')}}" alt="" id="item_image">
   {{pass}}
 </div>
-<!-- {{include 'image_uploader.html'}} -->
 {{pass}}
 
 <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(item.base_price, True)}}</span></span></h3>

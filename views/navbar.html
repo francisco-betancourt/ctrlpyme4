@@ -204,7 +204,7 @@
     <span id="menu_options">
       <div class="menu-element extra-logo">
         <i class="fa fa-bars hamburger base-color-text"></i>
-        <span class="nav-logo" style="margin-left: 8px;">
+        <span class="nav-logo">
           {{=response.logo}}
         </span>
       </div>
@@ -222,7 +222,7 @@
             {{if len(menu) > 3 and menu[3]:}}
               <span class="submenu primary-color-dim" id="submenu_{{=i}}">
                 {{for submenu in menu[3]:}}
-                  <span class="menu-element">
+                  <span class="menu-element" onclick="window.location = '{{=submenu[2]}}';">
                     <a href="{{=submenu[2]}}"> {{=submenu[0]}}</a>
                   </span>
                 {{pass}}

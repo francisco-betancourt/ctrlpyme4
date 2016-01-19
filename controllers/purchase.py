@@ -207,16 +207,43 @@ def add_item_and_stock_item():
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise HTTP(404)
-    item_data = dict(request.vars)
-    # change string booleans to python booleans
-    item_data['has_inventory'] = True if item_data['has_inventory'] == 'true' else False
-    item_data['allow_fractions'] = True if item_data['allow_fractions'] == 'true' else False
-            # categories
-    item_data['categories'] = [int(c) for c in item_data['categories'].split(',')] if item_data['categories'] else None
-    # add the traits
-    item_data['traits'] = [int(trait) for trait in item_data['traits'].split(',')] if item_data['traits'] else None
-    item_data['taxes'] = [int(trait) for trait in item_data['taxes'].split(',')] if (item_data['taxes'] and item_data['taxes'] != 'null') else None
 
+    item_data = dict(request.vars)
+
+    # change string booleans to python booleans
+    item_data['has_inventory'] = True if request.vars.has_inventory == 'true' else False
+    item_data['allow_fractions'] = True if request.vars.allow_fractions == 'true' else False
+            # categories
+    if request.vars.categories and request.vars.categories != 'undefined':
+        item_data['categories'] = []
+        for c in request.vars.categories.split(','):
+            try:
+                item_data['categories'].append(int(c))
+            except:
+                pass
+    else:
+        item_data['categories'] = None
+
+    # add the traits
+    if request.vars.traits and request.vars.traits != 'undefined':
+        item_data['traits'] = []
+        for c in request.vars.traits.split(','):
+            try:
+                item_data['traits'].append(int(c))
+            except:
+                pass
+    else:
+        item_data['traits'] = None
+    if request.vars.taxes and request.vars.taxes != 'undefined':
+        item_data['taxes'] = []
+        for c in request.vars.taxes.split(','):
+            try:
+                item_data['taxes'].append(int(c))
+            except:
+                pass
+    else:
+        item_data['taxes'] = None
+    print item_data
     try:
         item_data['created_by'] = auth.user.id
 

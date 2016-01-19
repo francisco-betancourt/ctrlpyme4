@@ -12,6 +12,9 @@
   base_color_text = BASE_COLOR_TEXT
   base_color_dim = dim_hex(BASE_COLOR)
   base_color_bright = bright_hex(BASE_COLOR)
+
+  danger_color = color_mix(primary_color, '#FF0000')
+  success_color = color_mix(primary_color, '#00BB00')
 }}
 
 <style>
@@ -109,21 +112,21 @@
 
 
   .text-success {
-    color: {{=color_mix(primary_color, '#00BB00')}};
+    color: {{=success_color}};
   }
 
   .text-danger {
-    color: {{=color_mix(primary_color, '#FF0000')}};
+    color: {{=danger_color}};
   }
 
   .label-success {
-    color: {{=color_mix(primary_color, '#00BB00')}};
-    border-color: {{=color_mix(primary_color, '#00CC00')}};
+    color: {{=success_color}};
+    border-color: {{=success_color}};
   }
 
   .label-danger {
-    color: {{=color_mix(primary_color, '#FF0000')}};
-    border-color: {{=color_mix(primary_color, '#FF0000')}};
+    color: {{=danger_color}};
+    border-color: {{=danger_color}};
   }
 
   .form-control:focus {
