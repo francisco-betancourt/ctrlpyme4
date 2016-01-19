@@ -63,15 +63,17 @@ if auth.has_membership('Purchases'):
 
 # sales
 if auth.has_membership('Sales invoices'):
+    url = URL('sale', 'index')
+    submenu = []
     if auth.has_membership('Sale orders'):
-        response.menu += [
-            (T('Sales'), False, None, [
-             (T('List'), False, URL('sale', 'index'), None)
-            , (T('Orders'), False, URL('sale_order', 'index'), None)
-            ])
-        ]
-    else:
-        response.menu += [(T('Sales'), False, URL('sale', 'index'), [ ])]
+        url = None
+        submenu += [(T('Orders'), False, URL('sale_order', 'index'), None)]
+    if auth.has_membership('Sales returns'):
+        url = None
+        submenu += [(T('Credit notes'), False, URL('credit_note', 'index'), None)]
+    if not url:
+        submenu.insert(0, (T('List'), False, URL('sale', 'index'), None))
+    response.menu += [(T('Sales'), False, url, submenu)]
 
 if auth.has_membership('Inventories'):
     response.menu += [(T('Inventory'), False, URL('inventory', 'index'), [ ])]

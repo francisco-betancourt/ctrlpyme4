@@ -331,22 +331,25 @@ def create_ticket(title, store, seller, items, barcode, footer):
     total = D(0)
     if items:
         for item in items:
+            bag_item = item
             try:
-                item_name = item.product_name
-                item_price = item.sale_price
-                if item.item_taxes:
-                    for tax in item.item_taxes:
+                item.product_name
+            except:
+                bag_item = item.id_bag_item
+            try:
+                item_name = bag_item.product_name
+                item_price = bag_item.sale_price
+                if bag_item.item_taxes:
+                    for tax in bag_item.item_taxes:
                         if not taxes.has_key(str(tax.name)):
                             taxes[str(tax.name)] = D(0)
                             taxes_percentages[str(tax.name)] = tax.percentage
                         taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100.0))
                 subtotal += item_price
-                total += item_price + item.sale_taxes
+                total += item_price + bag_item.sale_taxes
             except:
                 import traceback as tb
                 tb.print_exc()
-                item_name = item.id_bag_item.product_name
-                item_price = item.id_bag_item.sale_price
             items_list.append(DIV(
                 SPAN(DQ(item.quantity, True), _class="qty"),
                 SPAN(item_name, _class="name"),

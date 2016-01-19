@@ -325,7 +325,8 @@ def get_item():
             ).select()
             if not items:
                 raise HTTP(404)
-            multiple_items = True
+            if len(items) > 1:
+                multiple_items = True
 
             same_traits = True
             base_trait_category_set = []
