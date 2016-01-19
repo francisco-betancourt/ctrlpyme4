@@ -499,6 +499,7 @@
 'to  previous version.': 'a la versión previa.',
 'to add items to your bag': 'to add items to your bag',
 'to buy items': 'to buy items',
+'To complete the process please type the private key password': 'To complete the process please type the private key password',
 'To emulate a breakpoint programatically, write:': 'Emular un punto de ruptura programáticamente, escribir:',
 'to use the debugger!': '¡usar el depurador!',
 'toggle breakpoint': 'alternar punto de ruptura',
