@@ -108,6 +108,8 @@ def add_stock_item():
         item = db.item(request.args(1))
         if not purchase or not item:
             raise HTTP(404)
+        if purchase.is_done:
+            raise HTTP(405)
         if item.is_bundle or not item.has_inventory:
             raise HTTP(403)
         stock_item = db((db.stock_item.id_item == item.id) &
@@ -177,6 +179,8 @@ def modify_stock_item():
     stock_item = db.stock_item(request.args(0))
     if not stock_item:
         raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
     try:
         param_name = request.args(1)
         param_value = request.args(2)
@@ -207,6 +211,8 @@ def add_item_and_stock_item():
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
 
     item_data = dict(request.vars)
 
@@ -266,6 +272,10 @@ def add_item_and_stock_item():
 @auth.requires_membership('Purchases')
 def update_value():
     purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
     field_name = request.vars.keys()[0]
     valid_fields = []
     for field in db.purchase:
@@ -292,6 +302,8 @@ def fill():
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
 
     buttons = [
           A(T('Commit'), _class="btn btn-primary", _href=URL('commit', args=purchase.id))
@@ -318,6 +330,12 @@ def cancel():
         args [purchase_id]
     """
 
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
+
     db(db.stock_item.id_purchase == request.args(0)).delete()
     db(db.purchase.id == request.args(0)).delete()
 
@@ -335,6 +353,8 @@ def commit():
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise(HTTP, 404)
+    if purchase.is_done:
+        raise HTTP(405)
 
     # #TODO:70 purchase total should match the amount stablished by the purchase items
 
@@ -365,7 +385,27 @@ def save():
 
 @auth.requires_membership('Purchases')
 def get():
-    pass
+    """
+        args: [purchase_id]
+    """
+    purchase = db.purchase(request.args(0))
+    if not purchase:
+        raise HTTP(404)
+    if not purchase.is_done:
+        raise HTTP(405)
+
+    def stock_item_row(row, fields):
+        tr = TR()
+        tr.append(row.id_item.name)
+        for field in fields[1:]:
+            tr.append(row[field])
+        return tr
+
+
+    purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
+    purchase_items_table = super_table('stock_item', ['id_item', 'purchase_qty', 'price', 'taxes'], db.stock_item.id_purchase == purchase.id, options_enabled=False, row_function=stock_item_row)
+
+    return locals()
 
 
 @auth.requires_membership('Purchases')
