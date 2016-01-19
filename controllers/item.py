@@ -386,7 +386,10 @@ def find_by_code():
     return locals()
 
 
-@auth.requires_membership('Items management')
+@auth.requires(auth.has_membership('Items management')
+    or auth.has_membership('Items info')
+    or auth.has_membership('Items prices')
+)
 def update():
     """
         vars:

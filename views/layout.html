@@ -232,7 +232,7 @@
               {{if auth.has_membership('Employee'):}}
                 {{if not session.store:}}
                   <h2>{{=T('Bag')}}</h2>
-                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function)))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
+                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
                 {{elif not auth.has_membership('Sales bags'):}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
