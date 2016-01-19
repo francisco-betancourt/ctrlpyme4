@@ -1,0 +1,16 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+  <h1>{{=T('Purchase')}} {{=purchase.id}}</h1>
+
+  <h4>{{=T('Payment opt')}}: <span class="right">{{=purchase.id_payment_opt.name}}</span></h4>
+  <h4>{{=T('Supplier')}}: <span class="right">{{=purchase.id_supplier.business_name}}</span></h4>
+  <h4>{{=T('Store')}}: <span class="right">{{=purchase.id_store.name}}</span></h4>
+  <h4>{{=T('Invoice number')}}: <span class="right">{{=purchase.invoice_number}}</span></h4>
+  <h4>{{=T('Subtotal')}}: <span class="right">$ {{=DQ(purchase.subtotal, True)}}</span></h4>
+  <h4>{{=T('Total')}}: <span class="right">$ {{=DQ(purchase.total, True)}}</span></h4>
+{{end}}
+
+<h1>{{=T("Items")}}</h1>
+{{=purchase_items_table}}
