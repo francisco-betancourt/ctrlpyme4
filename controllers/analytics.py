@@ -97,7 +97,7 @@ def day_report_data(year, month, day):
         }]
     }
 
-    for hour in range(23):
+    for hour in range(24):
         sales_data['labels'].append('%d:00' % hour)
         start_hour = datetime.datetime(date.year, date.month, date.day, hour)
         end_hour = start_hour + datetime.timedelta(hours=1)
@@ -254,7 +254,7 @@ def index():
                     & (db.auth_user.id == db.auth_membership.user_id)
                     & (db.auth_user.registration_key == '')
                     & (db.auth_membership.user_id == db.auth_user.id)
-                    & (db.auth_group.role == 'Sales'))
+                    & (db.auth_group.role == 'Sales checkout'))
     employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', vars={'id_seller': row.id}), T('Cash out')))
 
     return locals()

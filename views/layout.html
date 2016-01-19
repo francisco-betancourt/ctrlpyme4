@@ -233,7 +233,7 @@
                 {{if not session.store:}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function)))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
-                {{elif not auth.has_membership('Sales bags') or not auth.has_membership('Admin'):}}
+                {{elif not auth.has_membership('Sales bags'):}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
                 {{else:}}

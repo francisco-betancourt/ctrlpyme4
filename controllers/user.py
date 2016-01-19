@@ -246,7 +246,7 @@ def post_logout():
 def store_selection():
     """ """
 
-    if session.store or not auth.has_membership('Employee'):
+    if not auth.has_membership('Employee') or session.store:
         redirect(URL('default', 'index'))
 
     user_stores_query = (db.store.id < 0)
