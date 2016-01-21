@@ -17,6 +17,8 @@ def create():
     if not item:
         raise HTTP(404)
 
+    session._next = URL('create', args=request.args)
+
     images = db(db.item_image.id_item == item.id).select()
 
     form = SQLFORM(db.item_image,
@@ -50,6 +52,22 @@ def create():
                 import traceback as tb
                 tb.print_exc()
         item_image.update_record()
+        i = 0
+        for size in sizes:
+            new_file_name = outfile
+            new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
+            os.remove(new_file_name)
+            i += 1
         redirect(URL(request.function, args=request.args))
 
     return locals()
+
+
+def delete():
+    """
+        args: [item_image_id]
+    """
+
+    db(db.item_image.id == request.args(0)).delete()
+
+    redirection()

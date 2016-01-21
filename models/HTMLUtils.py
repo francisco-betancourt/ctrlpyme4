@@ -70,19 +70,25 @@ def stock_info(item):
     return stock
 
 
-def item_options(item):
+def create_item_options(item):
     options_container = DIV(_class="btn-group btn-group-justified", _role="group")
     if auth.has_membership('Employee'):
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
             options_container.append(
                 DIV(
-                    BUTTON(I(_class="fa fa-pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"
-                    ),
-                    BUTTON(I(_class="fa fa-picture-o"), _class="btn btn-default", _onclick="add_item_images(current_item_id)"
-                    ),
-                    _class="btn-group"
+                    BUTTON(I(_class="fa fa-pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"),
+                    _class="btn-group", _role="group"
                 )
             )
+            options_container.append(
+                DIV(
+                    BUTTON(I(_class="fa fa-pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"
+                    ),
+                    _class="btn-group", _role="group"
+                )
+            )
+        return options_container
+    return None
 
 
 
@@ -130,6 +136,7 @@ def item_card(item):
                 )
             ),
             brand_link,
+            # create_item_options(item),
             # P(item.description, _class="description"),
             DIV(_class='filler'),
             DIV(

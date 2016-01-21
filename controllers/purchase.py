@@ -5,11 +5,34 @@
 
 import json
 from decimal import Decimal as D
+# from cfdi import *
 
 
 # #TODO:40 implement XML purchase
 @auth.requires_membership('Purchases')
 def create():
+    """
+        vars:
+            is_xml: if true, then the form will accept an xml file
+    """
+
+    is_xml = request.vars.is_xml == 'True'
+    new_purchase_id = db.purchase.insert(id_store=session.store)
+    if not is_xml:
+        redirect(URL('fill', args=new_purchase_id))
+    else:
+        c=Comprobante('MIIEaDCCA1CgAwIBAgIUMDAw8g==...', '00001000000301608037', 'Pago en una sola exhibición', datetime(2015,9,7,16,20,50), 'Efectivo', 'Cuernavaca, Morelos',
+            Emisor('PAE981007MS6','REGIMEN GENERAL DE LEY PERSONAS MORALES','PROYECCION Y ADMINISTRACION EMPRESARIAL DE MEXICO SA DE CV',
+                domicilioFiscal=DomicilioFiscal('AV. JUAREZ','PUEBLA','PUEBLA','72160',noExterior="2915",colonia="LA PAZ", localidad="PUEBLA")),
+            Receptor('NOPO870528FH5','NORIEGA PLANAS OCTAVIO'))
+        print c
+        form = SQLFORM(db.purchase, fields=['purchase_xml'])
+
+        return dict(form=form)
+
+
+@auth.requires_membership('Purchases')
+def create_from_xml():
     """
         vars:
             is_xml: if true, then the form will accept an xml file

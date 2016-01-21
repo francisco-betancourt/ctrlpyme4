@@ -1,0 +1,13 @@
+{{extend "tutorial_layout.html"}}
+{{block header}}
+  <h1>{{=T('Welcome to')}} CtrlPyME</h1>
+{{end}}
+<h4>
+  This tutorial will guide you in the process of configuring your new system.
+</h4>
+
+<div style="text-align: center; margin-top: 80px;">
+  <a class="btn btn-primary btn-lg" href="{{=URL('tutorial', 'step', args=[1,1])}}">
+    Start
+  </a>
+</div>

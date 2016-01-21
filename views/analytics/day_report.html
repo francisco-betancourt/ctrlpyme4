@@ -1,0 +1,24 @@
+{{extend "layout.html"}}
+
+<h1>{{=T("Daily report")}}</h1>
+
+
+<canvas id="expense_income_canvas"></canvas>
+
+
+<script src="{{=URL('static', 'js/Chart.min.js')}}" charset="utf-8"></script>
+
+
+<script type="text/javascript">
+  // income / expenses data
+  var data = [
+    {
+      value: parseFloat("{{=expenses}}")
+      , label: "{{=T('Expenses')}}"
+    },
+    {
+      value: parseFloat("{{=income}}")
+      , label: "{{=T('Income')}}"
+    }
+  ];
+</script>

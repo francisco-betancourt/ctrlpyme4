@@ -352,7 +352,7 @@ db.define_table("purchase",
     Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
     Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
-    Field("purchase_xml", "text", default=None, label=T('XML'), readable=False, writable=False),
+    Field("purchase_xml", "upload", default=None, label=T('XML'), readable=False, writable=False),
     auth.signature)
 db.purchase.id_store.requires = IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s')
 
@@ -481,11 +481,11 @@ db.define_table("payment",
 
 db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
-    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
-    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
-    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
-    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
+    Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
+    Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
+    Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
+    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
 )
 db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
 # db.item_image.thumb.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
