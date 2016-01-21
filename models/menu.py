@@ -42,15 +42,22 @@ if auth.has_membership('Admin'):
     ])]
 
 # items menu
-if auth.has_membership("Items management"):
-    response.menu += [
-         (T('Items'), False, None, [
-          (T('Catalog'), False, URL('item', 'index'), None)
-        , (T('Brands'), False, URL('brand', 'index'), None)
-        , (T('Categories'), False, URL('category', 'index'), None)
-        , (T('Traits'), False, URL('trait_category', 'index'), None)
-        ])
-    ]
+if auth.has_membership("Items info"):
+    if auth.has_membership("Items management"):
+        submenu = [
+              (T('Catalog'), False, URL('item', 'index'), None)
+            , (T('Brands'), False, URL('brand', 'index'), None)
+            , (T('Categories'), False, URL('category', 'index'), None)
+            , (T('Traits'), False, URL('trait_category', 'index'), None)
+        ]
+        response.menu += [
+             (T('Items'), False, None, submenu)
+        ]
+    else:
+        response.menu += [
+             (T('Items'), False, URL('item', 'index'), [])
+        ]
+
 
 # purchases
 if auth.has_membership('Purchases'):

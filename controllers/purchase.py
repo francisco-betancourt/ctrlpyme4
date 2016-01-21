@@ -374,7 +374,9 @@ def commit():
         item.update_record()
     purchase.is_done = True
     purchase.update_record()
-    redirect(URL('index'))
+
+    redirection(URL('index'))
+    # redirect()
 
 
 
