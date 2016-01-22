@@ -96,6 +96,10 @@
       <i class="fa fa-pencil"></i></button>
     </div>
     <div class="btn-group">
+      <button class="btn btn-default" onclick="create_labels(current_item_id)">
+      <i class="fa fa-tags"></i></button>
+    </div>
+    <div class="btn-group">
       <button class="btn btn-default" onclick="add_item_images(current_item_id)">
       <i class="fa fa-picture-o"></i></button>
     </div>
@@ -182,5 +186,9 @@
 
   function item_analysis(item_id) {
     window.location.href = "{{=URL('analytics', 'item_analysis')}}/" + item_id;
+  }
+
+  function create_labels(item_id) {
+    window.location.href = "{{=URL('labels')}}/" + item_id;
   }
 </script>

@@ -480,6 +480,22 @@ def browse():
     return locals()
 
 
+@auth.requires_membership('Items info')
+def labels():
+    """
+        args: [items]
+    """
+
+    items_ids = request.args(0).split(',')
+    query = (db.item.is_active == True)
+    for item_id in items_ids:
+        query &= (db.item.id == item_id)
+    items = db(query).select()
+
+    return dict(items=items)
+
+
+
 def search():
     """
         args: [search_term]
