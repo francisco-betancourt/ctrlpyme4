@@ -21,124 +21,97 @@
 
 <div id="out"></div>
 
-<canvas id="canvas" style="background-color: white;">
-
-</canvas>
-
+<div>
+  <canvas id="canvas" style="background-color: white; margin: auto;"></canvas>
+</div>
 
 <script>
+function pdf_page(content, pdf_doc, newpage, callback) {
+  if (!pdf_doc) {
+    return;
+  }
+  if (newpage) {
+    pdf_doc.addPage();
+  }
+  var canvas = document.getElementById('canvas');
+  var sheet = $(content);
+  var pageW = sheet.innerWidth();
+  var pageH = sheet.innerHeight();
+  canvas.width = pageW;
+  canvas.height = pageH;
+
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'black';
+
+  var data = '<svg xmlns="http://www.w3.org/2000/svg" width="22cm" height="28cm">' +
+             '<foreignObject width="100%" height="100%">' +
+             '<div xmlns="http://www.w3.org/1999/xhtml">' +
+               sheet.prop('outerHTML') +
+             '</div>' +
+             '</foreignObject>' +
+             '</svg>';
+  console.log(data);
+
+  var DOMURL = window.URL || window.webkitURL || window;
+
+  var img = new Image();
+  var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+  var url = DOMURL.createObjectURL(svg);
+
+  img.onload = function () {
+    ctx.drawImage(img, 0, 0);
+    DOMURL.revokeObjectURL(url);
+
+    var dataURL = canvas.toDataURL('image/jpeg', .9);
+    pdf_doc.addImage(dataURL, 'JPEG', 0, 0);
+    if (callback) { callback(); }
+  }
+  img.src = url;
+}
+
+
 $(document).ready(function () {
   $('#create_file').click(function (event) {
-    // var doc = new jsPDF();
 
-
-    var canvas = document.getElementById('canvas');
-    var sheet = $($('#sheet_29').children()[0]);
-    var pageW = sheet.innerWidth();
-    var pageH = sheet.innerHeight();
-    canvas.width = pageW;
-    canvas.height = pageH;
-
-    var ctx = canvas.getContext('2d');
-
-    var data = '<svg xmlns="http://www.w3.org/2000/svg" width="22cm" height="28cm">' +
-               '<foreignObject width="100%" height="100%">' +
-               '<div xmlns="http://www.w3.org/1999/xhtml">' +
-                 sheet.html() +
-               '</div>' +
-               '</foreignObject>' +
-               '</svg>';
-
-    var DOMURL = window.URL || window.webkitURL || window;
-
-    var img = new Image();
-    var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-    var url = DOMURL.createObjectURL(svg);
-
-    img.onload = function () {
-      ctx.drawImage(img, 0, 0);
-      DOMURL.revokeObjectURL(url);
-    }
-
-    img.src = url;
-
-    // var doc = document.implementation.createHTMLDocument("");
-    // console.log(doc);
-    // html = $('#sheet_29').html();
-    // doc.write(html);
-    // console.log(doc);
-    //
-    // doc.documentElement.setAttribute("xmlns", doc.documentElement.namespaceURI);
-    // html = (new XMLSerializer).serializeToString(doc);
-    // console.log(html);
+    var doc = new jsPDF('p', 'mm', 'letter');
+    var sheet = $('#sheet_29').children()[0];
+    pdf_page(sheet, doc, false, function () { doc.save('labels.pdf') });
   });
 });
 </script>
 
-
-<style>
-  table {
-    width: 100%;
-  }
-  .item-label {
-    padding: .5cm;
-    text-align: center;
-  }
-
-  .barcode {
-    margin: auto;
-  }
-
-  .sheet {
-    margin-top: 16px;
-  }
-
-
-  @media print {
-    .left-sidebar, nav, footer, .col-md-9>h1 {
-      display: none;
-    }
-
-    body {
-      padding:0px;
-      margin:0px;
-    }
-
-    .col-md-9 {
-      padding: 0px;
-      margin: 0px;
-      width: auto;
-    }
-
-    .sheet {
-      display: block;
-      box-shadow: none;
-      padding: 0px;
-    }
-  }
-</style>
+{{cols = 2}}
+{{rows = 8}}
 
 <section>
   {{for item in items:}}
   <div id="sheet_{{=item.id}}">
-    <section class="sheet" style="padding: {{=PAPER_MARGIN_TOP}}cm {{=PAPER_MARGIN_RIGHT}}cm {{=PAPER_MARGIN_BOTTOM}}cm {{=PAPER_MARGIN_LEFT}}cm;">
-      <table style="font-size: 12px; font-family: monospace; margin: auto; padding-top: {{=PAPER_MARGIN_TOP}}cm; ">
-        {{for i in range(7):}}
-          <tr>
-            {{for j in range(3):}}
-              <td class="item-label" style="padding: .5cm; text-align: center">
-                <div>{{=item.name}}</div>
-                {{taxes = item_taxes(item, item.base_price)}}
-                <div>$ {{=DQ(item.base_price + taxes, True)}}</div>
-                <div id="barcode_{{=item.id}}_{{=i}}_{{=j}}" class="barcode" style="margin: auto"> </div>
-                <script>
-                  $("#barcode_{{=item.id}}_{{=i}}_{{=j}}").barcode({code: "{{=item.sku}}", crc: false}, "code39", {barHeight: 20})
-                </script>
-              </td>
+    <section class="sheet" style="padding: {{=PAPER_MARGIN_TOP}}cm {{=PAPER_MARGIN_RIGHT}}cm {{=PAPER_MARGIN_BOTTOM}}cm {{=PAPER_MARGIN_LEFT}}cm; width: {{=PAPER_WIDTH}}cm; height: {{=PAPER_HEIGHT}}cm; background-color: white; overflow: hidden;">
+      <div style="font-size: 12px; font-family: monospace; width: {{=PAPER_WIDTH - PAPER_MARGIN_LEFT - PAPER_MARGIN_RIGHT}}cm; height: {{=PAPER_HEIGHT - PAPER_MARGIN_TOP - PAPER_MARGIN_BOTTOM}}cm; line-height: 1.3; display: flex; flex-direction: column;">
+        {{for i in range(rows):}}
+          {{space_y = LABEL_SPACE_Y if i != rows - 1 else 0}}
+          <div style="display: flex; flex: 1 1 auto;">
+            {{for j in range(cols):}}
+              {{space_x = LABEL_SPACE_X if j != cols - 1 else 0}}
+              <div style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto;">
+                <div style="margin: 0px;">
+                  <div style="overflow: ellipsis">{{=item.name}}</div>
+                  {{taxes = item_taxes(item, item.base_price)}}
+                  <div>$ {{=DQ(item.base_price + taxes, True)}}</div>
+                  <div id="barcode_{{=item.id}}_{{=i}}_{{=j}}" class="barcode" style="margin: auto"> </div>
+                  <script>
+                    $("#barcode_{{=item.id}}_{{=i}}_{{=j}}").barcode({code: "{{=item.sku}}", crc: false}, "code39", {barHeight: 20})
+                  </script>
+                </div>
+
+              </div>
             {{pass}}
-          </tr>
+          </div>
         {{pass}}
-      </table>
+      </div>
     </section>
   </div>
 
