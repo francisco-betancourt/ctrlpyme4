@@ -486,11 +486,11 @@ def labels():
         args: [items]
     """
 
-    items_ids = request.args(0).split(',')
-    query = (db.item.is_active == True)
+    items_ids = request.args(0).split('_')
+    query = (db.item.id < 0)
     for item_id in items_ids:
-        query &= (db.item.id == item_id)
-    items = db(query).select()
+        query |= (db.item.id == int(item_id))
+    items = db((query) & (db.item.is_active == True)).select()
 
     return dict(items=items)
 
