@@ -15,14 +15,13 @@
 
 
 <script src="{{=URL('static','js/jquery-barcode.min.js')}}" charset="utf-8"></script>
-<script src="{{=URL('static', 'js/html2canvas.js')}}" charset="utf-8"></script>
 <script src="{{=URL('static', 'js/jspdf.min.js')}}" charset="utf-8"></script>
 
 
 <div id="out"></div>
 
 <div>
-  <canvas id="canvas" style="background-color: white; margin: auto;"></canvas>
+  <canvas id="canvas" style="background-color: white; margin: auto;" hidden="hidden"></canvas>
 </div>
 
 <script>
@@ -53,21 +52,27 @@ function pdf_page(content, pdf_doc, newpage, callback) {
              '</div>' +
              '</foreignObject>' +
              '</svg>';
-  console.log(data);
 
   var DOMURL = window.URL || window.webkitURL || window;
 
   var img = new Image();
+  img.crossOrigin = "Anonymous";
   var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
   var url = DOMURL.createObjectURL(svg);
+  console.log(url);
 
   img.onload = function () {
     ctx.drawImage(img, 0, 0);
     DOMURL.revokeObjectURL(url);
 
-    var dataURL = canvas.toDataURL('image/jpeg', .9);
-    pdf_doc.addImage(dataURL, 'JPEG', 0, 0);
-    if (callback) { callback(); }
+    try {
+      var dataURL = canvas.toDataURL('image/jpeg', 1);
+      pdf_doc.addImage(dataURL, 'JPEG', 0, 0);
+      if (callback) { callback(); }
+    }
+    catch (e) {
+      window.print();
+    }
   }
   img.src = url;
 }
@@ -77,34 +82,60 @@ $(document).ready(function () {
   $('#create_file').click(function (event) {
 
     var doc = new jsPDF('p', 'mm', 'letter');
-    var sheet = $('#sheet_29').children()[0];
+    var sheet = $('#sheet_{{=items[0].id}}').children()[0];
     pdf_page(sheet, doc, false, function () { doc.save('labels.pdf') });
   });
 });
 </script>
 
-{{cols = 2}}
+
+<style>
+  @page {
+     size: portrait;
+     margin: 0;
+  }
+
+  @media print {
+    nav, .left-sidebar, footer, h1 {
+      display: none;
+    }
+    body, .col-md-9, .sheet {
+      margin: 0px;
+      padding: 0px;
+      box-shadow: none;
+    }
+  }
+</style>
+
+
+{{cols = 4}}
 {{rows = 8}}
 
-<section>
+<section id="sheets">
   {{for item in items:}}
+  {{start_col = 0}}
+  {{start_row = 0}}
   <div id="sheet_{{=item.id}}">
     <section class="sheet" style="padding: {{=PAPER_MARGIN_TOP}}cm {{=PAPER_MARGIN_RIGHT}}cm {{=PAPER_MARGIN_BOTTOM}}cm {{=PAPER_MARGIN_LEFT}}cm; width: {{=PAPER_WIDTH}}cm; height: {{=PAPER_HEIGHT}}cm; background-color: white; overflow: hidden;">
       <div style="font-size: 12px; font-family: monospace; width: {{=PAPER_WIDTH - PAPER_MARGIN_LEFT - PAPER_MARGIN_RIGHT}}cm; height: {{=PAPER_HEIGHT - PAPER_MARGIN_TOP - PAPER_MARGIN_BOTTOM}}cm; line-height: 1.3; display: flex; flex-direction: column;">
+        {{card_w = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (cols - 1))) / cols }}
+        {{card_h = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (rows - 1))) / rows }}
         {{for i in range(rows):}}
           {{space_y = LABEL_SPACE_Y if i != rows - 1 else 0}}
           <div style="display: flex; flex: 1 1 auto;">
             {{for j in range(cols):}}
               {{space_x = LABEL_SPACE_X if j != cols - 1 else 0}}
-              <div style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto;">
+              <div style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto; display: flex; justify-content: center; align-items: center; max-width: {{=card_w}}cm; max-height: {{=card_h}}cm; min-width: {{=card_w}}cm; min-height: {{=card_h}}cm; overflow: hidden">
                 <div style="margin: 0px;">
-                  <div style="overflow: ellipsis">{{=item.name}}</div>
-                  {{taxes = item_taxes(item, item.base_price)}}
-                  <div>$ {{=DQ(item.base_price + taxes, True)}}</div>
-                  <div id="barcode_{{=item.id}}_{{=i}}_{{=j}}" class="barcode" style="margin: auto"> </div>
-                  <script>
-                    $("#barcode_{{=item.id}}_{{=i}}_{{=j}}").barcode({code: "{{=item.sku}}", crc: false}, "code39", {barHeight: 20})
-                  </script>
+                  {{if i * (cols * rows + 1) + j >= start_row * (cols * rows + 1) + start_col:}}
+                    <div style="overflow: ellipsis">{{=item.name}}</div>
+                    {{taxes = item_taxes(item, item.base_price)}}
+                    <div>$ {{=DQ(item.base_price + taxes, True)}}</div>
+                    <div id="barcode_{{=item.id}}_{{=i}}_{{=j}}" class="barcode" style="margin: auto"> </div>
+                    <script>
+                      $("#barcode_{{=item.id}}_{{=i}}_{{=j}}").barcode({code: "{{=item.sku}}", crc: false}, "code39", {barHeight: 20, barWidth: 1})
+                    </script>
+                  {{pass}}
                 </div>
 
               </div>
