@@ -484,6 +484,7 @@ def browse():
 def labels():
     """
         args: [items]
+        vars: [id_purchase]
     """
 
     items_ids = request.args(0).split('_')

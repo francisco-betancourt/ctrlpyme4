@@ -1,3 +1,5 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
 .footer > .container-fluid {
     padding-left: 15px;
     padding-right: 15px;
@@ -8,6 +10,7 @@ body {
   padding-top: 60px;
   min-height: 100%;
   height: 100%;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .footer {

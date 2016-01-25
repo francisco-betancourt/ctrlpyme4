@@ -14,7 +14,7 @@
 
     min-width: 300px;
 
-    box-shadow: 0px 4px 4px rgba(0,0,0,.2);
+    box-shadow: 0px 2px 6px rgba(0,0,0,.5);
 
     z-index: 100000;
   }
@@ -64,7 +64,7 @@
 
   .submenu {
     position: fixed;
-    margin-top: -1px;
+    margin-top: -2px;
     display: block;
     height: 64px;
     padding-left: 8px;
@@ -211,9 +211,9 @@
       {{if response.menu:}}
         {{i = 0}}
         {{for menu in response.menu:}}
-          <span class="menu-element" id="menu_{{=i}}">
+          <span class="menu-element" id="menu_{{=i}}" onclick="toggle_submenu({{=i}});">
             {{menu_link = menu[2] if len(menu) > 2 and menu[2] else "#"}}
-            <a href="{{=menu_link}}" onclick="toggle_submenu({{=i}});">
+            <a href="{{=menu_link}}" >
               {{=menu[0]}}
               {{if len(menu) > 3 and menu[3]:}}
                 <i class="fa fa-angle-right"></i>
@@ -257,7 +257,7 @@
               <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
             {{else:}}
               <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
-              <a href="{{=URL('default', 'user/login')}}"> {{=T("Login")}} </a>
+              <a href="{{=URL('default', 'user/login', vars=dict(_next=URL(request.controller, request.function, args=request.args, vars=request.vars)))}}"> {{=T("Login")}} </a>
             {{pass}}
           </span>
         </span>

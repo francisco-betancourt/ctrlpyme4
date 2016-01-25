@@ -90,6 +90,10 @@ $(document).ready(function () {
 
 
 <style>
+  .sheet .label-cell {
+    border: 1px dashed lightgrey;
+  }
+
   @page {
      size: portrait;
      margin: 0;
@@ -103,6 +107,9 @@ $(document).ready(function () {
       margin: 0px;
       padding: 0px;
       box-shadow: none;
+    }
+    .sheet .label-cell {
+      border: none;
     }
   }
 </style>
@@ -123,7 +130,7 @@ $(document).ready(function () {
       <div style="display: flex; flex: 1 1 auto;">
         {{for j in range(cols):}}
           {{space_x = LABEL_SPACE_X if j != cols - 1 else 0}}
-          <div class="" style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto; display: flex; justify-content: center; align-items: center; max-width: {{=card_w}}cm; max-height: {{=card_h}}cm; min-width: {{=card_w}}cm; min-height: {{=card_h}}cm; overflow: hidden">
+          <div class="label-cell" style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto; display: flex; justify-content: center; align-items: center; max-width: {{=card_w}}cm; max-height: {{=card_h}}cm; min-width: {{=card_w}}cm; min-height: {{=card_h}}cm; overflow: hidden">
             <div class="cell_{{=i * (cols * rows + 1) + j}} card-contents" style="margin: 0px;"> </div>
           </div>
         {{pass}}

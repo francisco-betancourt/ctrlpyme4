@@ -264,6 +264,12 @@ def store_selection():
             extra_query |= (db.store.id == store_id)
         user_stores_query = (user_stores_query & (extra_query))
 
+    stores = db(user_stores_query).select()
+    if len(stores) == 1:
+        session.store = stores.first().id
+        auto_bag_selection()
+        redirection()
+
     form = SQLFORM.factory(
         Field('store', "reference store", label=T('Store'), requires=IS_IN_DB(db(user_stores_query), 'store.id', '%(name)s'))
     )

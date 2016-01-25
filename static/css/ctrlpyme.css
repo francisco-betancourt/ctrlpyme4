@@ -230,6 +230,11 @@ select {
 }
 
 
+.left-sidebar h1 {
+  word-break: break-all;
+}
+
+
 @media(min-width: 992px) {
   .col-md-9 {
     /*width: 50%;*/
