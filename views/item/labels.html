@@ -13,6 +13,9 @@
 
   <script>
     var items_list = [];
+
+    var row = 0;
+    var col = 0;
   </script>
   <div class="list-group">
   {{for item in items:}}
@@ -156,7 +159,7 @@ $(document).ready(function () {
 </style>
 
 
-{{cols = 4}}
+{{cols = 3}}
 {{rows = 8}}
 {{start_col = 0}}
 {{start_row = 0}}
@@ -166,13 +169,15 @@ $(document).ready(function () {
   <div style="font-size: 12px; font-family: monospace; width: {{=PAPER_WIDTH - PAPER_MARGIN_LEFT - PAPER_MARGIN_RIGHT}}cm; height: {{=PAPER_HEIGHT - PAPER_MARGIN_TOP - PAPER_MARGIN_BOTTOM}}cm; line-height: 1.3; display: flex; flex-direction: column;">
     {{card_w = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (cols - 1))) / cols }}
     {{card_h = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (rows - 1))) / rows }}
+    {{index = 0}}
     {{for i in range(rows):}}
       {{space_y = LABEL_SPACE_Y if i != rows - 1 else 0}}
       <div style="display: flex; flex: 1 1 auto;">
         {{for j in range(cols):}}
           {{space_x = LABEL_SPACE_X if j != cols - 1 else 0}}
           <div class="label-cell" style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto; display: flex; justify-content: center; align-items: center; max-width: {{=card_w}}cm; max-height: {{=card_h}}cm; min-width: {{=card_w}}cm; min-height: {{=card_h}}cm; overflow: hidden">
-            <div class="cell_{{=i * (cols * rows + 1) + j}} card-contents" style="margin: 0px;"> </div>
+            <div class="cell_{{=i * (cols * rows + 1) + j}} card-contents" style="margin: 0px;" index="{{=index}}"> </div>
+            {{index += 1}}
           </div>
         {{pass}}
       </div>
@@ -205,9 +210,6 @@ $(document).ready(function () {
 
   function create_sheets() {
     var new_sheet = create_new_sheet()
-
-    var row = 2;
-    var col = 2;
     var label_index = row * {{=cols}} + col;
 
     for (index in items_list) {
@@ -230,5 +232,20 @@ $(document).ready(function () {
     }
   }
 
-  create_sheets();
+  create_new_sheet();
+
+  function cell_selector_event() {
+    $('.label-cell').click(function (event) {
+      var cell_index = $($(event.target).children()[0]).attr('index')
+      row = parseInt(cell_index / {{=cols}});
+      col = cell_index % {{=cols}};
+
+      delete_sheets();
+      create_sheets();
+
+      cell_selector_event();
+    });
+  }
+
+  cell_selector_event();
 </script>
