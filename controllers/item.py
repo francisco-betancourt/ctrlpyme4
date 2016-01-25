@@ -487,6 +487,17 @@ def labels():
         vars: [id_purchase]
     """
 
+    from_purchase = False
+    if request.vars.id_purchase:
+        from_purchase = True
+        purchase = db((db.purchase.id == request.vars.id_purchase) & (db.purchase.is_done == True)).select().first()
+        if not purchase:
+            raise HTTP(404)
+        purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
+        if not purchase_items:
+            raise HTTP(404)
+        return dict(items=purchase_items)
+
     items_ids = request.args(0).split('_')
     query = (db.item.id < 0)
     for item_id in items_ids:

@@ -2,8 +2,49 @@
 
 {{extend "layout.html"}}
 
+
+
 {{block left_sidebar}}
+  <script src="{{=URL('static','js/jquery-barcode.min.js')}}" charset="utf-8"></script>
+  <script src="{{=URL('static', 'js/jspdf.min.js')}}" charset="utf-8"></script>
+
+
   <h1>{{=T('Item labels')}}</h1>
+
+  <script>
+    var items_list = [];
+  </script>
+  <div class="list-group">
+  {{for item in items:}}
+    {{qty = 10}}
+    {{_item = item}}
+    {{if item.has_key('id_item'):}}
+      {{_item = item.id_item}}
+      {{qty = int(item.purchase_qty)}}
+    {{pass}}
+
+    <script>
+      items_list.push({ name: '{{=_item.id}}', qty: {{=qty}} })
+    </script>
+
+    <div class="list-group-item">
+      <p>{{=_item.name}}</p>
+      <input type="number" value="{{=qty}}" class="form-control">
+    </div>
+
+    <div id="proto_label_{{=_item.id}}" hidden="hidden">
+      <div style="overflow: ellipsis">{{=_item.name}}</div>
+      {{taxes = item_taxes(_item, _item.base_price)}}
+      <div>$ {{=DQ(_item.base_price + taxes, True)}}</div>
+      <div id="barcode_{{=_item.id}}" class="barcode" style="margin: auto"> </div>
+      <script>
+        $("#barcode_{{=_item.id}}").barcode({code: "{{=item_barcode(_item)}}", crc: false}, "code39", {barHeight: 20, barWidth: 1})
+      </script>
+    </div>
+  {{pass}}
+  </div>
+
+
   <button class="btn btn-primary btn-block" id="create_file">
     {{=T('Create file')}}
   </button>
@@ -12,10 +53,6 @@
 
 
 <h1>{{=T('Sheets')}}</h1>
-
-
-<script src="{{=URL('static','js/jquery-barcode.min.js')}}" charset="utf-8"></script>
-<script src="{{=URL('static', 'js/jspdf.min.js')}}" charset="utf-8"></script>
 
 
 <div id="out"></div>
@@ -94,6 +131,10 @@ $(document).ready(function () {
     border: 1px dashed lightgrey;
   }
 
+  .sheet {
+    margin-top: 20px;
+  }
+
   @page {
      size: portrait;
      margin: 0;
@@ -143,32 +184,51 @@ $(document).ready(function () {
 <section id="sheets">
 </section>
 
-
-{{for item in items:}}
-  <div id="proto_label_{{=item.id}}" hidden="hidden">
-    <div style="overflow: ellipsis">{{=item.name}}</div>
-    {{taxes = item_taxes(item, item.base_price)}}
-    <div>$ {{=DQ(item.base_price + taxes, True)}}</div>
-    <div id="barcode_{{=item.id}}" class="barcode" style="margin: auto"> </div>
-    <script>
-      $("#barcode_{{=item.id}}").barcode({code: "{{=item.sku}}", crc: false}, "code39", {barHeight: 20, barWidth: 1})
-    </script>
-  </div>
-{{pass}}
-
+{{row_mul = rows * cols + 1}}
+{{max_cell = (rows - 1) * row_mul + cols}}
 
 <script>
-  var new_sheet = $('#proto_sheet').clone();
-  new_sheet.attr('id', 'sheet_18293');
-  new_sheet.show();
-  $('#sheets').append(new_sheet);
+  var sheet_index = 0
+  function create_new_sheet() {
+    var new_sheet = $('#proto_sheet').clone();
+    new_sheet.attr('id', 'sheet_' + sheet_index);
+    new_sheet.show();
+    sheet_index += 1;
+    $('#sheets').append(new_sheet);
+    return new_sheet;
+  }
 
-  for (var i = 0; i < {{=rows}}; i++) {
-    for (var j = 0; j < {{=cols}}; j++) {
-      var c = i * {{=rows * cols + 1}} + j;
-      if (c >= {{=start_row * (cols * rows + 1) + start_col}}) {
-        new_sheet.find('.cell_' + c).html($('#proto_label_{{=items[0].id}}').html());
+  function delete_sheets() {
+    $('#sheets').children().remove();
+    sheet_index = 0;
+  }
+
+  function create_sheets() {
+    var new_sheet = create_new_sheet()
+
+    var row = 2;
+    var col = 2;
+    var label_index = row * {{=cols}} + col;
+
+    for (index in items_list) {
+      item = items_list[index];
+      for (var i = 0; i < item.qty; i++) {
+        c = label_index % {{=cols}};
+        r = parseInt(label_index / {{=cols}});
+        cell_id =  r * {{=row_mul}} + c
+        if (cell_id >= {{=max_cell}}) {
+          row = 0; col = 0;
+          var label_index = 0;
+          c = label_index % {{=cols}};
+          r = parseInt(label_index / {{=cols}});
+          cell_id =  r * {{=row_mul}} + c
+          new_sheet = create_new_sheet();
+        }
+        new_sheet.find('.cell_' + cell_id).html($('#proto_label_' + item.name).html());
+        label_index += 1;
       }
     }
   }
+
+  create_sheets();
 </script>
