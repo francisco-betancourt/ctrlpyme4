@@ -13,11 +13,12 @@ from math import floor
 
 def get_valid_bag(id_bag, completed=False):
     try:
-        bag = db((db.bag.id == id_bag)
-               & (db.bag.id_store == session.store)
-               & (db.bag.created_by == auth.user.id)
-               & (db.bag.completed == completed)
-               ).select().first()
+        query = (db.bag.id == id_bag)
+        query &= (db.bag.created_by == auth.user.id)
+        query &= (db.bag.completed == completed)
+        if not auth.user.is_client:
+            query &= (db.bag.id_store == session.store)
+        bag = db(query).select().first()
         return bag
     except:
         import traceback as tb
@@ -118,21 +119,20 @@ def set_bag_item(bag_item):
 def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
-        args:
-            bag_id
+        args: [bag_id]
 
     """
 
+    bag = get_valid_bag(request.args(0))
+    if not bag:
+        raise HTTP(404)
+    session.current_bag = bag.id
+    subtotal = 0
+    taxes = 0
+    total = 0
+    quantity = 0
+    bag_items = []
     try:
-        bag = get_valid_bag(request.args(0))
-        if not bag:
-            raise HTTP(404)
-        session.current_bag = bag.id
-        subtotal = 0
-        taxes = 0
-        total = 0
-        quantity = 0
-        bag_items = []
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
             subtotal += bag_item.sale_price * bag_item.quantity
             taxes += bag_item.sale_taxes * bag_item.quantity

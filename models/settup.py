@@ -1,5 +1,5 @@
 # Redirect the user to the store selection on controllers that requires it
-if auth.is_logged_in():
+if auth.user and not auth.user.is_client:
     if not request.controller in ['address', 'appadmin', 'brand', 'category', 'default', 'item', 'item_image', 'measure_unit', 'payment_opt', 'search', 'store', 'tax', 'trait', 'trait_category', 'user', 'wallet', 'tutorial']:
 
         # select the first store if theres only one

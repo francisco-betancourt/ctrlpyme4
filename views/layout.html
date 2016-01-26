@@ -232,7 +232,7 @@
               {{if auth.has_membership('Employee'):}}
                 {{if not session.store:}}
                   <h2>{{=T('Bag')}}</h2>
-                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
+                  {{=T('You need to')}} <a href="{{=URL('user', 'store_selection', vars=dict(_next=current_url() ))}}">{{=T('Select a store')}}</a> {{=T('in order to sell items')}}
                 {{elif not auth.has_membership('Sales bags'):}}
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
@@ -244,7 +244,7 @@
               {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
-              <a href="{{=URL('default', 'user/login')}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
+              <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
             {{pass}}
           </div>
         </secction>

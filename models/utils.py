@@ -251,3 +251,7 @@ def auto_bag_selection():
         current_bag = db.bag(new_bag_id)
 
     session.current_bag = current_bag.id
+
+
+def current_url():
+    return URL(request.controller, request.function, args=request.args, vars=request.vars)

@@ -189,22 +189,23 @@
   }
 
   function load_bag(bag_id) {
+    url = "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id;
+
     // retrieve bag items
     $.ajax({
-      url: "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id
+      url: url
     })
-    .done(function (data) {
-      var bag = data.bag
+    .done(function (res) {
+      var bag = res.bag
       $('#bag_items_list').children().remove();
       $('#bag_id').text(bag.id);
 
-      for (var bag_item_id in data.bag_items) {
-        console.log(bag_item_id);
-        var bag_item = data.bag_items[bag_item_id]
+      for (var bag_item_id in res.bag_items) {
+        var bag_item = res.bag_items[bag_item_id]
         $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
       }
 
-      set_bag_data(data);
+      set_bag_data(res);
 
       $('#active_bags').hide();
 
@@ -273,7 +274,6 @@
   $('#proto_bag_item').hide();
 
   function collapse_bag() {
-    console.log('collapse');
   }
 
 
