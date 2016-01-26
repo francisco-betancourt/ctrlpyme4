@@ -34,7 +34,12 @@
 
     <div class="list-group-item">
       <p>{{=_item.name}}</p>
-      <input type="number" value="{{=qty}}" class="form-control labels-qty" index="{{=i}}">
+      <div class="input-group">
+        <span class="input-group-addon">
+          <input type="checkbox" checked="checked" class="labels-enabled" index="{{=i}}"> {{=T('print')}}
+        </span>
+        <input type="number" value="{{=qty}}" class="form-control labels-qty" index="{{=i}}">
+      </div>
     </div>
 
     <div id="proto_label_{{=_item.id}}" hidden="hidden">
@@ -260,6 +265,15 @@ $(document).ready(function () {
     var target = $(event.target);
     var index = target.attr('index');
     items_list[index].qty = target.val();
+    delete_sheets();
+    create_sheets();
+    cell_selector_event();
+  });
+
+  $('.labels-enabled').change(function (event) {
+    var target = $(event.target);
+    var index = target.attr('index');
+    items_list[index].enabled = event.target.checked;
     delete_sheets();
     create_sheets();
     cell_selector_event();
