@@ -18,7 +18,9 @@
     var col = 0;
   </script>
   <div class="list-group">
+  {{i = -1}}
   {{for item in items:}}
+    {{i += 1}}
     {{qty = 10}}
     {{_item = item}}
     {{if item.has_key('id_item'):}}
@@ -27,12 +29,12 @@
     {{pass}}
 
     <script>
-      items_list.push({ name: '{{=_item.id}}', qty: {{=qty}} })
+      items_list.push({ name: '{{=_item.id}}', qty: {{=qty}}, enabled: true })
     </script>
 
     <div class="list-group-item">
       <p>{{=_item.name}}</p>
-      <input type="number" value="{{=qty}}" class="form-control">
+      <input type="number" value="{{=qty}}" class="form-control labels-qty" index="{{=i}}">
     </div>
 
     <div id="proto_label_{{=_item.id}}" hidden="hidden">
@@ -51,7 +53,6 @@
   <button class="btn btn-primary btn-block" id="create_file">
     {{=T('Create file')}}
   </button>
-
 {{end}}
 
 
@@ -189,6 +190,10 @@ $(document).ready(function () {
 <section id="sheets">
 </section>
 
+
+
+{{block page_js}}
+
 {{row_mul = rows * cols + 1}}
 {{max_cell = (rows - 1) * row_mul + cols}}
 
@@ -214,6 +219,7 @@ $(document).ready(function () {
 
     for (index in items_list) {
       item = items_list[index];
+      if (!item.enabled) { continue; }
       for (var i = 0; i < item.qty; i++) {
         c = label_index % {{=cols}};
         r = parseInt(label_index / {{=cols}});
@@ -248,4 +254,15 @@ $(document).ready(function () {
   }
 
   cell_selector_event();
+
+
+  $('.labels-qty').change(function (event) {
+    var target = $(event.target);
+    var index = target.attr('index');
+    items_list[index].qty = target.val();
+    delete_sheets();
+    create_sheets();
+    cell_selector_event();
+  });
 </script>
+{{end}}
