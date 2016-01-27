@@ -196,14 +196,14 @@
 <nav>
   <span class="main-menu">
     <i class="fa fa-times" id="close_search"></i>
-    <i id="hamburger" class="fa fa-bars"></i>
+    {{=ICON("bars", _id="hamburger")}}
     <span class="menu-element nav-logo">
       {{=response.logo}}
     </span>
 
     <span id="menu_options">
       <div class="menu-element extra-logo">
-        <i class="fa fa-bars hamburger base-color-text"></i>
+        {{=ICON("bars", _class="hamburger base-color-text")}}
         <span class="nav-logo">
           {{=response.logo}}
         </span>
@@ -244,7 +244,7 @@
       <span class="menu-element" id="search_btn">
         <i class="fa fa-search"></i>
       </span>
-      <span class="menu-element" onclick="$('#bag_container').toggle();" id="bag_btn"><i class="fa fa-shopping-cart"></i></span>
+      <span class="menu-element" onclick="$('#bag_container').toggle();" id="bag_btn">{{=ICON('shopping-cart')}}</span>
       <!-- auth menu -->
       <span class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
         <i class="fa fa-user"></i> <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else ""}}</span>

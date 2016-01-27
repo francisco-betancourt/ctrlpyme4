@@ -5,6 +5,26 @@
 import math
 
 
+def ICON(icon_name, _id="", _class=""):
+    # icon_name = icon_name.replace('-', '_')
+    return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)
+
+
+def INFO_CARD():
+    content = DIV(_class="panel-body")
+    content.append(DIV(ICON('times', _class="close", _id="info_close")))
+    if session.info.has_key('text'):
+        content.append(DIV(session.info['text'], _id="info_card__text"))
+    if session.info.has_key('btn'):
+        btn_data = session.info['btn']
+        target = btn_data['target'] if btn_data.has_key('target') else ''
+        href = btn_data['href'] if btn_data.has_key('href') else ''
+        link_text = btn_data['text'] if btn_data.has_key('text') else ''
+        if href:
+            content.append(DIV(P(), A(link_text, _href=href, _target=target, _class="btn btn-default btn-block"), _id="info_card__btn_container"))
+    return content
+
+
 def pages_menu(query, page=0, ipp=10):
     """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
 
@@ -39,8 +59,8 @@ def pages_menu(query, page=0, ipp=10):
     if page == pages_count:
         next_disabled = 'disabled'
         next_url = '#'
-    prev_link = LI(A(I(_class="fa fa-arrow-left"), _href=prev_url), _class="%s" % prev_disabled)
-    next_link = LI(A(I(_class="fa fa-arrow-right"), _href=next_url), _class="%s" % next_disabled)
+    prev_link = LI(A(ICON('arrow-left'), _href=prev_url), _class="%s" % prev_disabled)
+    next_link = LI(A(ICON("arrow-right"), _href=next_url), _class="%s" % next_disabled)
 
     pages_menu = DIV(UL(prev_link, LI(ipp), next_link, _class="pager") )
 
@@ -76,13 +96,13 @@ def create_item_options(item):
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
             options_container.append(
                 DIV(
-                    BUTTON(I(_class="fa fa-pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"),
+                    BUTTON(ICON("pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"),
                     _class="btn-group", _role="group"
                 )
             )
             options_container.append(
                 DIV(
-                    BUTTON(I(_class="fa fa-pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"
+                    BUTTON(ICON("pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"
                     ),
                     _class="btn-group", _role="group"
                 )
@@ -192,7 +212,7 @@ def filter_menu(filter_data):
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
-    button = BUTTON(I(_class='fa fa-%s' % icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
+    button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
     return button
 
 def row_options(row, update=False, delete=False, get=False):
@@ -293,7 +313,7 @@ def super_table(table, fields, query, row_function=default_row_function,
                     caret = 'down'
                     new_vars['ascendent'] = True
             order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-            thead.append(TH(A(label, _href=order_url), " ", I(_class="fa fa-caret-%s" % caret), _class=header_class))
+            thead.append(TH(A(label, _href=order_url), " ", ICON("caret-%s" % caret), _class=header_class))
     if options_enabled:
         thead.append(TH(T('Options'), _class='table-options'))
     thead = THEAD(thead)

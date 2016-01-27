@@ -43,7 +43,7 @@
     {{
     # using sidebars need to know what sidebar you want to use
     mc0 = 'col-md-12'
-    mc1 = 'col-md-9'
+    mc1 = 'col-md-7'
     mc2 = 'col-md-6'
     left_sidebar_enabled = globals().get('left_sidebar_enabled', False)
     right_sidebar_enabled = globals().get('right_sidebar_enabled', False)
@@ -72,24 +72,9 @@
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
     {{pass}}
-
-
-
      {{if session.info:}}
        <div class="info-card panel panel-default" id="info_card">
-         <div class="panel-body">
-           <div><i class="fa fa-times close" id="info_close"></i></div>
-           <div id="info_card__text">{{=session.info['text'] or ''}}</div>
-             {{if session.info.has_key('button') and session.info['button'].has_key('href'):}}
-             <div id="info_card__btn_container">
-             <p></p>
-               <a id="info_card__btn" class="btn btn-block btn-default info-btn" href=" {{=session.info['button']['ref']}}"
-                   target="{{=session.info['button']['target'] if session.info['button'].has_key('target') else ''}}">
-               {{=session.info['button']['text'] or ''}}
-             </a>
-           </div>
-           {{pass}}
-         </div>
+         {{=INFO_CARD()}}
        </div>
       {{else:}}
         <div class="info-card panel panel-default" id="info_card" hidden>
@@ -167,7 +152,7 @@
 
 
       {{if left_sidebar_enabled:}}
-        <div class="col-md-3 col-sm-5 left-sidebar">
+        <div class="col-md-5 col-sm-5 col-lg-3 left-sidebar">
             {{block left_sidebar}}
             <h3>Left Sidebar</h3>
             <p></p>
@@ -175,19 +160,13 @@
         </div>
       {{pass}}
 
-      <!-- FAB variables -->
-      {{fab_action = URL('create')}}
-      {{fab_icon = 'plus'}}
-      {{fab_options = None}}
-      {{fab_options_mode = None}}
-
       {{core_action = URL('create')}}
       {{core_action_icon = 'plus'}}
       {{core_options = None}}
 
       {{context_sidebar = True}}
 
-      <div class="{{=middle_column}}">
+      <div class="col-sm-7 col-md-7 col-lg-9">
         {{block center}}
         {{include}}
         {{end}}
@@ -198,8 +177,8 @@
       <style>
         #bag_container {
           background-color: #F0F0F0;
-          min-width: 300px;
-          max-width: 500px;
+          /*min-width: 300px;
+          max-width: 500px;*/
           position: fixed;
           right: 0px;
           z-index: 1000;
@@ -208,6 +187,7 @@
           overflow-y: scroll;
 
           box-shadow: 0px 0px 8px rgba(0,0,0,.3);
+          padding: 0px;
         }
 
         .bag-container {
@@ -224,7 +204,7 @@
       }}
 
       {{if include_bag and request.controller != 'appadmin':}}
-        <secction id="bag_container" hidden>
+        <secction id="bag_container" hidden class=" col-sm-5 col-md-5 col-lg-3">
           <div class="bag-container">
             {{if auth.is_logged_in():}}
               {{auto_bag_selection()}}

@@ -369,8 +369,7 @@ def cancel():
 def commit():
     """ Commits the purchase
 
-        args:
-            purchase_id
+        args: [purchase_id]
     """
 
     purchase = db.purchase(request.args(0))
@@ -397,6 +396,11 @@ def commit():
         item.update_record()
     purchase.is_done = True
     purchase.update_record()
+
+    session.info = {
+        'text': T('Purchase commited'),
+        'btn': dict(href=URL('item', 'labels', vars=dict(id_purchase=purchase.id)), text=T('Print labels'))
+    }
 
     redirection(URL('index'))
     # redirect()
@@ -455,6 +459,9 @@ def purchase_options(row):
     # edit option
     if not row.is_done:
         td.append(option_btn('pencil', URL('update', args=row.id)))
+    else:
+        td.append(option_btn('tags', URL('item', 'labels', vars=dict(id_purchase=row.id))))
+
     td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
     return td
 
