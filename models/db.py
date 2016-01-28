@@ -262,7 +262,7 @@ db.define_table(
   , Field('extra_field_2', label=T('Extra field') + '2')
   , Field('extra_field_3', label=T('Extra field') + '3')
 
-  , Field('clients_whitelist', label=T('Use clients whitelist'), default=True)
+  , Field('clients_whitelist', 'boolean', label=T('Use clients whitelist'), default=True, readable=False, writable=False)
   , Field('ticket_footer', label=T('Ticket footer'))
 
   , Field('paper_width', 'decimal(4,4)', label=T('Paper width'))

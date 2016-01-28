@@ -32,7 +32,8 @@ response.menu = [
 # configuration menu
 if auth.has_membership('Admin'):
     response.menu += [(T('Configuration'),False,None, [
-         (T('Stores'), False, URL('store', 'index'), None)
+         (T('Settings'), False, URL('settings', 'update_main'), None)
+        , (T('Stores'), False, URL('store', 'index'), None)
         , (T('Employees'), False, URL('user', 'index'), None)
         , (T('Clients'), False, URL('user', 'clients'), None)
         , (T('Addresses'), False, URL('address', 'index'), None)

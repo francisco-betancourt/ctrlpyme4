@@ -103,7 +103,7 @@
 
     function close_search() {
       $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').show();
-      $('#hamburger').removeClass('hidden');
+      $('#hamburger, #search_menu_btn').removeClass('hidden');
       $('#close_search').css('display', 'none');
       $('.submenu').hide();
       $('#nav_screen').hide();
@@ -154,7 +154,7 @@
 
   $('#search_menu_btn').click(function (event) {
     $('#bag_btn, #auth_menu, #search_menu_btn, .brand').hide();
-    $('#hamburger').addClass('hidden');
+    $('#hamburger, #search_menu_btn').addClass('hidden');
     $('#close_search').css('display', 'flex');
     $('.submenu').hide();
     $('#nav_screen').hide();

@@ -194,11 +194,11 @@ nav>section .form-group {
   #search_form {
     display: none;
   }
-  #search_menu_btn {
-    display: flex;
+  #search_menu_btn:not(.hidden) {
+    display: flex !important;
   }
 
-  #hamburger.hidden {
+  #hamburger.hidden, *.hidden {
     display: none !important;
   }
 }
