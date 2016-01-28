@@ -112,7 +112,7 @@
 
     <!-- Navbar ======================================= -->
 
-    {{include "navbar.html"}}
+    {{include "navbar2.html"}}
 
 
     <!-- Masthead ===================================== -->
@@ -166,7 +166,11 @@
 
       {{context_sidebar = True}}
 
-      <div class="col-sm-7 col-md-7 col-lg-9">
+      {{if left_sidebar_enabled:}}
+        <div class="col-sm-7 col-md-7 col-lg-9">
+      {{else:}}
+        <div class="col-lg-12">
+      {{pass}}
         {{block center}}
         {{include}}
         {{end}}

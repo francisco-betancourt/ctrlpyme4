@@ -169,9 +169,9 @@ select {
 }
 
 #search_form {
-  display: inline-block;
+  /*display: inline-block;
   min-width: 100px;
-  width: 200px;
+  width: 200px;*/
 }
 
 #search_form .search-icon {

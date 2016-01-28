@@ -1,0 +1,153 @@
+<link rel="stylesheet" href="{{=URL('static', 'css/navbar.css')}}">
+
+<nav>
+
+  <!-- main menu -->
+  <section class="nav-left">
+    <div class="menu-element primary-color-text" id="close_search" hidden="hidden">{{=ICON('times')}}</div>
+    <div class="menu-element primary-color-text" id="hamburger">{{=ICON('bars')}}</div>
+    <div class="menu-element brand primary-color-text"> {{=response.logo}} </div>
+    <div id="main_menu">
+      {{ i = 0 }}
+      {{for menu_item in response.menu:}}
+        {{ menu_item_name = menu_item[0] }}
+        {{ url = '' }}
+        {{ submenu = [] }}
+        {{ try: }}
+          {{ url = menu_item[2] }}
+          {{ submenu = menu_item[3] }}
+        {{ except: }}
+          {{None}}
+        {{ pass }}
+
+          {{ if url: }}
+            <div class="menu-element">
+              <a href="{{=url}}"> {{ =menu_item_name }} </a>
+            </div>
+          {{ else: }}
+            <div class="menu-element" onclick="toggle_submenu('{{=i}}');">
+              {{ if submenu: }}
+                <div class="submenu primary-color-dim" id="submenu_{{=i}}" hidden="hidden">
+                  {{ i += 1 }}
+                  {{ for submenu_item in submenu: }}
+                    {{ submenu_item_name = submenu_item[0] }}
+                    {{ suburl = '#' }}
+                    {{ try: }}
+                      {{ suburl = submenu_item[2] }}
+                    {{ except: }}
+                      {{ None }}
+                    {{ pass }}
+                    <div class="menu-element">
+                      <a href="{{=suburl}}"> {{ =submenu_item_name }} </a>
+                    </div>
+                  {{ pass }}
+                </div>
+              {{ pass }}
+
+              <div class="menu-text">{{ =menu_item_name }} {{=ICON('caret-down', _class="add-on")}}</div>
+            </div>
+          {{ pass }}
+      {{pass}}
+    </div>
+
+  </section>
+
+
+  <section class="nav-right">
+    <!-- search bar -->
+    <div class="menu-element">{{include 'search_bar.html'}}</div>
+    <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
+
+    <!-- bag icon -->
+    <div class="menu-element" onclick="$('#bag_container').toggle();" id="bag_btn">{{=ICON('shopping-cart')}}</div>
+
+    <!-- auth -->
+    <div class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
+      <div class="submenu primary-color-dim" id="submenu_auth" hidden="hidden">
+        {{ if auth.is_logged_in(): }}
+          <div class="menu-element">
+            <a href="{{=URL('user', 'profile')}}"> {{=T("Profile")}} </a>
+          </div>
+          <div class="menu-element">
+            <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
+          </div>
+        {{ else: }}
+          <div class="menu-element">
+            <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
+          </div>
+          <div class="menu-element">
+            <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}"> {{=T("Login")}} </a>
+          </div>
+        {{ pass }}
+      </div>
+      <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('caret-down', _class="add-on")}}
+    </div>
+  </section>
+
+</nav>
+
+<div id="nav_screen" hidden="hidden"></div>
+
+
+<script>
+  $('.submenu').hide();
+
+  function hide_main_menu() {
+    $('#main_menu').hide();
+    $('#hamburger, .brand').removeClass('base-color-text');
+    $('#hamburger, .brand').addClass('primary-color-text');
+    $('#nav_screen').hide();
+  }
+
+  function toggle_main_menu() {
+    $('#main_menu').toggle();
+    if ($('#main_menu').css('display') == 'none') {
+      $('#hamburger, .brand').removeClass('base-color-text');
+      $('#hamburger, .brand').addClass('primary-color-text');
+      $('#nav_screen').hide();
+    }
+    else {
+      $('#nav_screen').show();
+      $('#hamburger, .brand').addClass('base-color-text');
+      $('#hamburger, .brand').removeClass('primary-color-text');
+    }
+  }
+
+  $('#hamburger').click(function (event) {
+    toggle_main_menu();
+  });
+
+  $('#nav_screen, #bag_btn, #search_form').click(function (event) {
+    $('.submenu').hide();
+    $('#nav_screen').hide();
+  })
+
+  function toggle_submenu(name) {
+    $('.submenu').not('#submenu_' + name).hide();
+    $('#submenu_' + name).toggle();
+
+    if ($('#submenu_' + name).css('display') == 'block') {
+      $('#nav_screen').show();
+    }
+    else {
+      $('#nav_screen').hide();
+    }
+  }
+
+  $('#close_search').click(function (event) {
+    $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').show();
+    $('#close_search').css('display', 'none');
+    $('.submenu').hide();
+    $('#nav_screen').hide();
+    $('#search_form').hide();
+  });
+
+  $('#search_menu_btn').click(function (event) {
+    $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').hide();
+    $('#close_search').css('display', 'flex');
+    $('.submenu').hide();
+    $('#nav_screen').hide();
+    hide_main_menu();
+    $('#search_form').show();
+  })
+</script>

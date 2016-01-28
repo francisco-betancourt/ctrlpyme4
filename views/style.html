@@ -27,12 +27,18 @@
     background-color: {{=base_color_dim}};
   }*/
 
-  nav {
-    background-color: {{=primary_color}};
-  }
-
   a {
     color: {{=accent_color_dim}};
+  }
+
+  nav {
+    background-color: {{=primary_color}};
+    color: {{=primary_color_text}};
+  }
+
+  nav a, nav a:hover, nav a:focus {
+    color: {{=primary_color_text}};
+    text-decoration: none;
   }
 
   .btn-primary {
@@ -106,7 +112,11 @@
     color: {{=primary_color_text}};
   }
 
-  .base-color-text {
+  .primary-color-text, .primary-color-text * {
+    color: {{=primary_color_text}};
+  }
+
+  .base-color-text, .base-color-text *, .base-color-text *:hover, .base-color-text *:active, .base-color-text *:focus {
     color: {{=base_color_text}};
   }
 

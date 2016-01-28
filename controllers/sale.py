@@ -631,7 +631,8 @@ def sale_row(row, fields):
 
 
 def sale_extra_options(row):
-    return [option_btn('', URL('invoice', 'create'), action_name=T('Invoice'))]
+    return [option_btn('', URL('ticket', args=row.id), action_name=T('ticket')),
+            option_btn('', URL('invoice', 'create'), action_name=T('Invoice'))]
 
 
 

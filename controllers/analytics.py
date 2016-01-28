@@ -230,6 +230,7 @@ def item_analysis():
     stocks = stocks_table(item)
 
     sales = db(
+        # (db.bundle_item.id_bundle == db.item.id)
         (db.bag_item.id_bag == db.bag.id)
         & (db.sale.id_bag == db.bag.id)
         & (db.sale.id_store == session.store)
