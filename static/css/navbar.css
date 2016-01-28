@@ -49,7 +49,7 @@ nav>section .menu-element>.menu-text {
 
 
 nav>section.nav-left {
-  flex: 2 1 auto;
+  flex: 0 1 auto;
 }
 
 nav>section.nav-right {
@@ -118,8 +118,25 @@ nav>section .form-group {
   display: none;
 }
 
+#search_menu_element {
+  flex: auto;
+}
+
+#search_form {
+  width: 100%;
+}
 
 
+
+
+@media (min-width: 992px) {
+  #hamburger {
+    display: none !important;
+  }
+  #main_menu {
+    display: flex !important;
+  }
+}
 @media (max-width: 992px) {
   #main_menu {
     display: none;
@@ -145,7 +162,7 @@ nav>section .form-group {
   }
 
   #hamburger {
-    display: flex;
+    display: flex !important;
   }
 
   #main_menu .menu-element {
@@ -180,12 +197,16 @@ nav>section .form-group {
   #search_menu_btn {
     display: flex;
   }
+
+  #hamburger.hidden {
+    display: none !important;
+  }
 }
 @media (min-width: 600px) {
   #search_form {
     display: block !important;
   }
-  .brand, #hamburger, #bag_btn, #auth_menu {
+  .brand, #bag_btn, #auth_menu {
     display: flex !important;
   }
   #search_menu_btn, #close_search {

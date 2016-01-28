@@ -55,7 +55,7 @@
 
   <section class="nav-right">
     <!-- search bar -->
-    <div class="menu-element">{{include 'search_bar.html'}}</div>
+    <div class="menu-element" id="search_menu_element">{{include 'search_bar.html'}}</div>
     <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
 
     <!-- bag icon -->
@@ -99,6 +99,18 @@
     $('#nav_screen').hide();
   }
 
+
+
+    function close_search() {
+      $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').show();
+      $('#hamburger').removeClass('hidden');
+      $('#close_search').css('display', 'none');
+      $('.submenu').hide();
+      $('#nav_screen').hide();
+      $('#search_form').hide();
+    }
+
+
   function toggle_main_menu() {
     $('#main_menu').toggle();
     if ($('#main_menu').css('display') == 'none') {
@@ -111,6 +123,7 @@
       $('#hamburger, .brand').addClass('base-color-text');
       $('#hamburger, .brand').removeClass('primary-color-text');
     }
+    close_search();
   }
 
   $('#hamburger').click(function (event) {
@@ -134,16 +147,14 @@
     }
   }
 
+
   $('#close_search').click(function (event) {
-    $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').show();
-    $('#close_search').css('display', 'none');
-    $('.submenu').hide();
-    $('#nav_screen').hide();
-    $('#search_form').hide();
+    close_search();
   });
 
   $('#search_menu_btn').click(function (event) {
-    $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').hide();
+    $('#bag_btn, #auth_menu, #search_menu_btn, .brand').hide();
+    $('#hamburger').addClass('hidden');
     $('#close_search').css('display', 'flex');
     $('.submenu').hide();
     $('#nav_screen').hide();
