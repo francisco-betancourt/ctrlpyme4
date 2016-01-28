@@ -302,6 +302,30 @@ def remove_payment():
 
 
 @auth.requires_membership('Sales checkout')
+def cancel():
+    """
+        args: [id_bag]
+    """
+
+    bag = db.bag(request.args(0))
+    if not bag:
+        raise HTTP(404)
+    if not bag.completed:
+        raise HTTP(403)
+    if not bag.created_by.is_client and bag.created_by.id != auth.user.id:
+        raise HTTP(403)
+    if db(db.sale.id_bag == bag.id).select().first():
+        raise HTTP(403)
+
+    # delete the bag and all its bag items
+    db(db.bag_item.id_bag == bag.id).delete()
+    bag.delete_record()
+    db(db.sale_order.id_bag == bag.id).delete()
+
+    redirection()
+
+
+@auth.requires_membership('Sales checkout')
 def create():
     """
         args:
@@ -347,7 +371,7 @@ def create():
         bag_item.update_record()
 
     # set the form data to the previously calculated values
-    form = SQLFORM(db.sale)
+    form = SQLFORM(db.sale, submit_button=T('Sell'), buttons=[(TAG.button(T('Sell'), _type="submit", _class="btn btn-primary"), A(T('Cancel'), _href=URL('cancel', args=bag.id), _class="btn btn-default"))] )
     form.vars.id_bag = bag.id
     form.vars.subtotal = DQ(subtotal)
     form.vars.taxes = DQ(taxes)
