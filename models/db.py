@@ -233,6 +233,70 @@ db.define_table("address",
     )
 
 
+db.define_table("store",
+    Field("id_address", "reference address", label=T('Address')),
+    Field("name", "string", default=None, label=T('Name')),
+    Field("consecutive", "integer", default=1, readable=False, writable=False),
+    #Fields required for CFDI Invoice
+    Field('certificate',type='upload',autodelete=True,readable=False,writable=False,
+		uploadfolder=request.folder+'/private/',label=T("Certificate")+"(.cer)"),
+	Field('private_key',type='upload',autodelete=True,readable=False,writable=False,
+		uploadfolder=request.folder+'/private/',label=T("Private Key")+"(.key)"),
+	Field('invoice_series', label=T("CFDI Series"),readable=False),
+	#Completamente ocultos se generan cuando actualizas certificado
+	Field('certificate_number',readable=False,writable=False),
+	Field('certificate_base64',type="text",readable=False,writable=False),
+	Field('certpem_base64',type="text",readable=False,writable=False),
+    auth.signature)
+# db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
+db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+
+
+db.define_table(
+  'settings'
+  , Field('id_store', 'reference store', default=None, readable=False, writable=False)
+  , Field('company_name', label=T('Name'))
+  , Field('company_slogan', label=T('Slogan'))
+  , Field('company_logo', 'upload', label=T('Logo'))
+  , Field('extra_field_1', label=T('Extra field') + '1')
+  , Field('extra_field_2', label=T('Extra field') + '2')
+  , Field('extra_field_3', label=T('Extra field') + '3')
+
+  , Field('clients_whitelist', label=T('Use clients whitelist'), default=True)
+  , Field('ticket_footer', label=T('Ticket footer'))
+
+  , Field('paper_width', 'decimal(4,4)', label=T('Paper width'))
+  , Field('paper_height', 'decimal(4,4)', label=T('Paper height'))
+  , Field('paper_margin_top', 'decimal(4,4)', label=T('Paper margin top'))
+  , Field('paper_margin_right', 'decimal(4,4)', label=T('Paper margin right'))
+  , Field('paper_margin_bottom', 'decimal(4,4)', label=T('Paper margin bottom'))
+  , Field('paper_margin_left', 'decimal(4,4)', label=T('Paper margin left'))
+
+  , Field('label_space_x', 'decimal(4,4)', label=T('Labels') + ':' + T('left spacing'))
+  , Field('label_space_y', 'decimal(4,4)', label=T('Labels') + ':' + T('bottom spacing'))
+  , Field('label_cols', 'integer', label=T('Labels columns'))
+  , Field('label_rows', 'integer', label=T('Labels rows'))
+  , Field('label_show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
+  , Field('label_show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
+
+  , Field('primary_color', label=T('Primary color'))
+  , Field('primary_color_text', label=T('Primary color text'))
+  , Field('accent_color', label=T('Accent color'))
+  , Field('accent_color_text', label=T('Accent color text'))
+  , Field('base_color', label=T('Base color'))
+  , Field('base_color_text', label=T('Base color text'))
+
+  , auth.signature
+)
+hex_match = IS_MATCH('[0-9a-fA-F]{6}', error_message=T('not hex'))
+db.settings.primary_color.requires = hex_match
+db.settings.primary_color_text.requires = hex_match
+db.settings.accent_color.requires = hex_match
+db.settings.accent_color_text.requires = hex_match
+db.settings.base_color.requires = hex_match
+db.settings.base_color_text.requires = hex_match
+
+
 db.define_table("category",
     Field("name", "string", default=None, label=T('Name')),
     Field("description", "text", default=None, label=T('Description')),
@@ -299,23 +363,7 @@ db.define_table(
 )
 
 
-db.define_table("store",
-    Field("id_address", "reference address", label=T('Address')),
-    Field("name", "string", default=None, label=T('Name')),
-    Field("consecutive", "integer", default=1, readable=False, writable=False),
-    #Fields required for CFDI Invoice
-    Field('certificate',type='upload',autodelete=True,readable=False,writable=False,
-		uploadfolder=request.folder+'/private/',label=T("Certificate")+"(.cer)"),
-	Field('private_key',type='upload',autodelete=True,readable=False,writable=False,
-		uploadfolder=request.folder+'/private/',label=T("Private Key")+"(.key)"),
-	Field('invoice_series', label=T("CFDI Series"),readable=False),
-	#Completamente ocultos se generan cuando actualizas certificado
-	Field('certificate_number',readable=False,writable=False),
-	Field('certificate_base64',type="text",readable=False,writable=False),
-	Field('certpem_base64',type="text",readable=False,writable=False),
-    auth.signature)
-# db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
-db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+
 
 
 

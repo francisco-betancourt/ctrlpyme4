@@ -416,7 +416,7 @@ def item_options(row):
     # hide button
     if auth.has_membership('Items management'):
         td.append(hide_button(row))
-    td.append(option_btn('shopping-cart', onclick="add_bag_item(%s);" % row.id))
+    td.append(option_btn('shopping-bag', onclick="add_bag_item(%s);" % row.id))
 
 
     return td

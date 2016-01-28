@@ -7,9 +7,9 @@ COMPANY_LOGO_URL = ''
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC
 
-EXTRA_FIELD_1_NAME = ""
-EXTRA_FIELD_2_NAME = ""
-EXTRA_FIELD_3_NAME = ""
+EXTRA_FIELD_1_NAME = None
+EXTRA_FIELD_2_NAME = None
+EXTRA_FIELD_3_NAME = None
 
 # if set true, only those users who have been created by the admin will have access to the online store.
 USE_CLIENTS_WHITELIST = True
@@ -24,27 +24,85 @@ PAPER_MARGIN_RIGHT = 1
 PAPER_MARGIN_BOTTOM = 1
 PAPER_MARGIN_LEFT = 1
 
-# labels
+# labels, metrics in centimeters
 LABEL_SPACE_X = .5
 LABEL_SPACE_Y = .5
 LABEL_COLS = 3
 LABEL_ROWS = 8
 LABEL_SHOW_ITEM_NAME = True
 LABEL_SHOW_PRICE = True
-LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS
-LABEL_HEIGHT = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (LABEL_ROWS - 1))) / LABEL_ROWS
 
-PRIMARY_COLOR = '#0F5074'
-PRIMARY_COLOR = '#0F6D74'
-PRIMARY_COLOR = '#273C57'
 PRIMARY_COLOR = '#505050'
 PRIMARY_COLOR_TEXT = 'white'
 
-ACCENT_COLOR = '#2FA871'
-ACCENT_COLOR = '#502FA8'
 ACCENT_COLOR = '#2375CA'
-# ACCENT_COLOR = '#355CBC'
 ACCENT_COLOR_TEXT = 'white'
 
 BASE_COLOR = '#F3F3F3'
 BASE_COLOR_TEXT = '#444'
+
+
+main_settings = db(db.settings.id_store == None).select().first()
+if main_settings:
+    if main_settings.company_name:
+        COMPANY_NAME = main_settings.company_name
+    if main_settings.company_slogan:
+        COMPANY_SLOGAN = main_settings.company_slogan
+    if main_settings.company_logo:
+        COMPANY_LOGO_URL = main_settings.company_logo
+    # if main_settings.workflow:
+    #     COMPANY_WORKFLOW = main_settings.workflow
+    if main_settings.extra_field_1:
+        EXTRA_FIELD_1_NAME = main_settings.extra_field_1
+    if main_settings.extra_field_2:
+        EXTRA_FIELD_2_NAME = main_settings.extra_field_2
+    if main_settings.extra_field_3:
+        EXTRA_FIELD_3_NAME = main_settings.extra_field_3
+
+    if main_settings.clients_whitelist:
+        USE_CLIENTS_WHITELIST = main_settings.clients_whitelist
+
+    if main_settings.ticket_footer:
+        TICKET_FOOTER = main_settings.ticket_footer
+
+    if main_settings.paper_width:
+        PAPER_WIDTH = main_settings.paper_width
+    if main_settings.paper_height:
+        PAPER_HEIGHT = main_settings.paper_height
+    if main_settings.paper_margin_top:
+        PAPER_MARGIN_TOP = main_settings.paper_margin_top
+    if main_settings.paper_margin_right:
+        PAPER_MARGIN_RIGHT = main_settings.paper_margin_right
+    if main_settings.paper_margin_bottom:
+        PAPER_MARGIN_BOTTOM = main_settings.paper_margin_bottom
+    if main_settings.paper_margin_left:
+        PAPER_MARGIN_LEFT = main_settings.paper_margin_left
+
+    if main_settings.label_space_x:
+        LABEL_SPACE_X = main_settings.label_space_x
+    if main_settings.label_space_y:
+        LABEL_SPACE_Y = main_settings.label_space_y
+    if main_settings.label_rows:
+        LABEL_ROWS = main_settings.label_rows
+    if main_settings.label_cols:
+        LABEL_COLS = main_settings.label_cols
+    if main_settings.label_show_name:
+        LABEL_SHOW_ITEM_NAME = main_settings.label_show_name
+    if main_settings.label_show_price:
+        LABEL_SHOW_PRICE = main_settings.label_show_price
+
+    if main_settings.primary_color:
+        PRIMARY_COLOR = '#' + main_settings.primary_color
+    if main_settings.primary_color_text:
+        PRIMARY_COLOR_TEXT = '#' + main_settings.primary_color_text
+    if main_settings.accent_color:
+        ACCENT_COLOR = '#' + main_settings.accent_color
+    if main_settings.accent_color_text:
+        ACCENT_COLOR_TEXT = '#' + main_settings.accent_color_text
+    if main_settings.base_color:
+        BASE_COLOR = '#' + main_settings.base_color
+    if main_settings.base_color_text:
+        BASE_COLOR_TEXT = '#' + main_settings.base_color_text
+
+LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS
+LABEL_HEIGHT = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (LABEL_ROWS - 1))) / LABEL_ROWS
