@@ -6,6 +6,7 @@
   min-width: 260px;
   max-width: 260px;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  word-break: break-word;
 }
 .item-card>.panel-heading {
   height: 260px;

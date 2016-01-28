@@ -4,6 +4,14 @@
 
 
 
+{{cols = LABEL_COLS}}
+{{rows = LABEL_ROWS}}
+{{card_w = LABEL_WIDTH}}
+{{card_h = LABEL_HEIGHT}}
+{{start_col = 0}}
+{{start_row = 0}}
+
+
 {{block left_sidebar}}
   <script src="{{=URL('static','js/jquery-barcode.min.js')}}" charset="utf-8"></script>
   <script src="{{=URL('static', 'js/jspdf.min.js')}}" charset="utf-8"></script>
@@ -43,9 +51,13 @@
     </div>
 
     <div id="proto_label_{{=_item.id}}" hidden="hidden">
-      <div style="overflow: ellipsis">{{=_item.name}}</div>
-      {{taxes = item_taxes(_item, _item.base_price)}}
-      <div>$ {{=DQ(_item.base_price + taxes, True)}}</div>
+      {{if LABEL_SHOW_ITEM_NAME:}}
+        <div style="text-overflow: ellipsis; overflow: hidden; max-height: {{=LABEL_HEIGHT / 4}}cm;">{{=_item.name}}</div>
+      {{pass}}
+      {{if LABEL_SHOW_PRICE:}}
+        {{taxes = item_taxes(_item, _item.base_price)}}
+        <div>$ {{=DQ(_item.base_price + taxes, True)}}</div>
+      {{pass}}
       <div id="barcode_{{=_item.id}}" class="barcode" style="margin: auto"> </div>
       <script>
         $("#barcode_{{=_item.id}}").barcode({code: "{{=item_barcode(_item)}}", crc: false}, "code39", {barHeight: 20, barWidth: 1})
@@ -165,16 +177,10 @@ $(document).ready(function () {
 </style>
 
 
-{{cols = 3}}
-{{rows = 8}}
-{{start_col = 0}}
-{{start_row = 0}}
 
 
 <section id="proto_sheet" hidden="hidden" class="sheet" style="padding: {{=PAPER_MARGIN_TOP}}cm {{=PAPER_MARGIN_RIGHT}}cm {{=PAPER_MARGIN_BOTTOM}}cm {{=PAPER_MARGIN_LEFT}}cm; width: {{=PAPER_WIDTH}}cm; height: {{=PAPER_HEIGHT}}cm; background-color: white; overflow: hidden;">
   <div style="font-size: 12px; font-family: monospace; width: {{=PAPER_WIDTH - PAPER_MARGIN_LEFT - PAPER_MARGIN_RIGHT}}cm; height: {{=PAPER_HEIGHT - PAPER_MARGIN_TOP - PAPER_MARGIN_BOTTOM}}cm; line-height: 1.3; display: flex; flex-direction: column;">
-    {{card_w = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (cols - 1))) / cols }}
-    {{card_h = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (rows - 1))) / rows }}
     {{index = 0}}
     {{for i in range(rows):}}
       {{space_y = LABEL_SPACE_Y if i != rows - 1 else 0}}
