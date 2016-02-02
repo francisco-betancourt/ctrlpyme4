@@ -21,11 +21,16 @@ def client_order_options(row):
     return td
 
 
+@auth.requires_membership('Employee')
+def employee_profile():
+    return dict()
+
+
 def profile():
     if auth.has_membership('Clients'):
         redirect(URL('client_profile'))
     elif auth.has_membership('Employee'):
-        redirect(URL('default', 'index'))
+        redirect(URL('employee_profile'))
 
 
 @auth.requires_membership('Clients')

@@ -21,7 +21,7 @@ button.cp-fab:focus{
 .cp-fab-container {
   position: fixed;
   right: 0px;
-  bottom: 72px;
+  bottom: 10px;
   z-index: 20;
 }
 

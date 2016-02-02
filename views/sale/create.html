@@ -105,7 +105,6 @@
           $('#payments_list_container_' + payment_opt.id).hide();
         }
 
-        console.log(res);
         if (res.wallet_balance) {
           $('#user_wallet').find('.balance').text(res.wallet_balance)
         }
@@ -125,15 +124,12 @@
       url: "{{=URL('add_user_wallet_payment', extension='json')}}/{{=bag.id}}/"  + user_id
     })
     .done(function (res) {
-      console.log(res);
       add_payment_element(res.payment_opt, res.payment);
       $('#user_wallet').find('.balance').text(res.wallet_balance);
     })
     .fail(function (res) {
-      console.log(res);
     })
 
-    console.log(wallet_code);
     return false;
   }
 

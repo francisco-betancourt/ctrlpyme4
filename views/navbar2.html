@@ -46,6 +46,7 @@
 
               <div class="menu-text">{{ =menu_item_name }} {{=ICON('caret-down', _class="add-on")}}</div>
             </div>
+
           {{ pass }}
       {{pass}}
     </div>
@@ -59,7 +60,7 @@
     <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
 
     <!-- bag icon -->
-    <div class="menu-element" onclick="$('#bag_container').toggle();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
+    <div class="menu-element" onclick="toggle_bag();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
 
     <!-- auth -->
     <div class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">

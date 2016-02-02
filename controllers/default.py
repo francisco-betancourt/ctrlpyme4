@@ -127,3 +127,20 @@ def create_groups():
         if db(db.auth_group.role == key).select().first():
             continue
         auth.add_group(key, new_groups[key])
+
+
+
+
+# def test():
+#     query = (db.store.id_address == db.address.id) & (db.store.id > 0)
+#     fields = [
+#         {
+#             'table': 'store',
+#             'fields': [
+#                 {'field': 'id_address', 'fields': ['street', 'exterior']},
+#                 'name'
+#             ]
+#         }
+#     ]
+#     data = supert(query, fields=fields, select_args=dict(orderby=db.store.consecutive))
+#     return locals()

@@ -1,0 +1,64 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+  <h1>{{=T('Global settings')}}</h1>
+  {{=form}}
+
+  <script>
+    $('#settings_primary_color__row').hide();
+    $('#settings_primary_color_text__row').hide();
+    $('#settings_accent_color__row').hide();
+    $('#settings_accent_color_text__row').hide();
+    $('#settings_base_color__row').hide();
+    $('#settings_base_color_text__row').hide();
+  </script>
+{{end}}
+
+<h1>{{=T('Preview')}}</h1>
+
+<style>
+  #preview {
+    height: 500px;
+  }
+  #preview_nav {
+    height: 64px;
+  }
+
+  #preview_btn {
+    position: relative;
+    bottom: 0px;
+    background-color: red;
+  }
+</style>
+
+
+<div id="preview" class="base_color">
+  <div id="preview_nav" class="primary_color"> <b>Title</b> </div>
+  <h2>Header</h2>
+  <div id="preview_btn">{{=ICON('plus')}}</div>
+</div>
+
+<label for="">Primary color</label>
+<input type="color" colorname="primary_color">
+<label for="">Primary color text</label>
+<input type="color" colorname="primary_color" targetattr="color">
+<br>
+<label for="">Base color</label>
+<input type="color" colorname="base_color">
+<label for="">Base color text</label>
+<input type="color" colorname="base_color" targetattr="color">
+
+
+<script>
+  $('input[type="color"]').change(function (event) {
+    var target = $(event.target);
+    var color_name = target.attr('colorname');
+    var target_attr = target.attr('targetattr');
+    if (!target_attr) {
+      target_attr = 'background-color';
+    }
+    $('.' + color_name).css(target_attr, target.val())
+  })
+
+</script>

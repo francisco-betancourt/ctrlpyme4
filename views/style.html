@@ -15,6 +15,8 @@
 
   danger_color = color_mix(primary_color, '#FF0000')
   success_color = color_mix(primary_color, '#00BB00')
+
+  dim_rgba = 'rgba(0,0,0,.03)'
 }}
 
 <style>
@@ -41,6 +43,19 @@
     text-decoration: none;
   }
 
+
+  .btn-default {
+    background-color: {{=base_color_bright}};
+    color: {{=base_color_text}};
+    border-color: {{=base_color_dim}};
+  }
+
+  .btn-default:hover, .btn-default:focus, .btn-default:active {
+    background-color: {{=base_color_dim}};
+    color: {{=base_color_text}};
+    border-color: {{=base_color_dim}};
+  }
+
   .btn-primary {
     background-color: {{=accent_color}};
     color: {{=accent_color_text}};
@@ -52,6 +67,7 @@
     color: {{=accent_color_text}};
     border-color: {{=accent_color_dim}};
   }
+
 
   .btn-group .btn-primary {
     background-color: {{=primary_color}};
@@ -98,7 +114,7 @@
 
   /* table */
   .table-hover > tbody > tr:hover {
-    background-color: {{=base_color_dim}};
+    background-color: {{=dim_rgba}};
   }
 
 
@@ -118,6 +134,12 @@
 
   .base-color-text, .base-color-text *, .base-color-text *:hover, .base-color-text *:active, .base-color-text *:focus {
     color: {{=base_color_text}};
+  }
+
+
+  .pager li>a, .pager li>span, .pager li>a {
+    background: {{=base_color_bright}};
+    border-color: {{=base_color_dim}};
   }
 
 
@@ -163,6 +185,18 @@
   }
   .panel-primary {
     border-color: {{=primary_color}};
+  }
+
+
+  .item-card {
+    background-color: {{=base_color_bright}};
+    border-color: {{=base_color_dim}};
+  }
+
+
+  /* table */
+  .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+      border-color: {{=base_color_dim}};
   }
 
 

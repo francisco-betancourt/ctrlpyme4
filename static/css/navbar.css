@@ -66,7 +66,7 @@ nav>section.nav-left .menu-element {
   padding-right: 15px;
 }
 
-nav>section .menu-element .submenu {
+nav>section .submenu {
   display: block;
   top: 0px;
   margin-top: 64px;
@@ -77,13 +77,13 @@ nav>section .menu-element .submenu {
   border-top-right-radius: 0px;
   box-shadow: 0px 4px 4px rgba(0,0,0,.2);
 }
-nav>section .menu-element .submenu>.menu-element {
+nav>section .submenu>.menu-element {
   height: 36px;
   padding-left: 15px;
   padding-right: 15px;
 }
 
-nav>section .menu-element .submenu#submenu_auth {
+nav>section .submenu#submenu_auth {
   right: 0px;
 }
 
@@ -173,7 +173,7 @@ nav>section .form-group {
       height: auto;
     }
 
-  nav>section #main_menu .menu-element .submenu {
+  nav>section #main_menu .submenu {
       position: relative;
       display: flex;
       flex-direction: column;

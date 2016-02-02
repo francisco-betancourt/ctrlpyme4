@@ -176,29 +176,6 @@
         {{end}}
       </div>
 
-
-
-      <style>
-        #bag_container {
-          background-color: #F0F0F0;
-          /*min-width: 300px;
-          max-width: 500px;*/
-          position: fixed;
-          right: 0px;
-          z-index: 1000;
-          height: 100vh;
-          top: 0px;
-          overflow-y: scroll;
-
-          box-shadow: 0px 0px 8px rgba(0,0,0,.3);
-          padding: 0px;
-        }
-
-        .bag-container {
-          padding: 8px;
-        }
-      </style>
-
       {{
         try:
           include_bag
@@ -208,6 +185,7 @@
       }}
 
       {{if include_bag and request.controller != 'appadmin':}}
+        <link rel="stylesheet" href="{{=URL('static', 'css/bag.css')}}">
         <secction id="bag_container" hidden class=" col-sm-5 col-md-5 col-lg-3">
           <div class="bag-container">
             {{if auth.is_logged_in():}}
@@ -236,6 +214,10 @@
         <script>
           $('#bag_container').css("padding-top", $('nav').height());
           $('#bag_container').css("padding-bottom", $('nav').height());
+
+          function toggle_bag() {
+            $('#bag_container').toggle();
+          }
         </script>
       {{pass}}
 

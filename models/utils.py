@@ -49,7 +49,7 @@ def remove_fractions(value):
 def item_taxes(item, price):
     total = 0
     for tax in item.taxes:
-        total += price * D(tax.percentage / 100.0)
+        total += price or 0 * D(tax.percentage or 0 / 100.0)
     return DQ(total)
 
 
