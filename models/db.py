@@ -441,6 +441,8 @@ db.define_table("sale",
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
+    # true if the products in sale has been delivered
+    Field("is_done", "boolean", default=False, writable=False, readable=False),
     auth.signature)
 db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 

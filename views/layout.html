@@ -51,6 +51,14 @@
     (left_sidebar_enabled and 1 or 0)+(right_sidebar_enabled and 1 or 0)]
     }}
 
+    {{
+      try:
+        include_bag
+      except NameError:
+        include_bag = True
+      pass
+    }}
+
     {{include "style.html"}}
 
     <!-- Add to homescreen for Chrome on Android -->
@@ -175,14 +183,6 @@
         {{include}}
         {{end}}
       </div>
-
-      {{
-        try:
-          include_bag
-        except NameError:
-          include_bag = True
-        pass
-      }}
 
       {{if include_bag and request.controller != 'appadmin':}}
         <link rel="stylesheet" href="{{=URL('static', 'css/bag.css')}}">

@@ -79,6 +79,7 @@ def day_report_data(year, month, day):
     # income
     sales_total_sum = db.sale.total.sum()
     income = db((db.sale.id_store == session.store)
+                & (db.sale.is_done == True)
                 & (db.sale.created_on >= start_date)
                 & (db.sale.created_on <= end_date)
                 ).select(sales_total_sum).first()[sales_total_sum] or DQ(0)
@@ -102,6 +103,7 @@ def day_report_data(year, month, day):
         start_hour = datetime.datetime(date.year, date.month, date.day, hour)
         end_hour = start_hour + datetime.timedelta(hours=1)
         hour_sales = db((db.sale.id_store == session.store)
+                      & (db.sale.is_done == True)
                       & (db.sale.created_on >= start_hour)
                       & (db.sale.created_on < end_hour)
                      ).select(sales_total_sum).first()[sales_total_sum] or 0
@@ -212,7 +214,7 @@ def stocks_table(item):
 
         return tr
 
-    return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on)
+    return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on, search_enabled=False)
 
 
 @auth.requires_membership("Analytics")
@@ -226,7 +228,6 @@ def item_analysis():
 
     existence = item_stock(item, id_store=session.store)['quantity']
 
-    # purchases = None
     stocks = stocks_table(item)
 
     sales = db(

@@ -48,6 +48,8 @@ def create_client():
         clients_group = db(db.auth_group.role == 'Clients').select().first()
         new_client = db.auth_user(form.vars.id)
         new_client.is_client = True
+        # add a new wallet to client
+        new_client.id_wallet = new_wallet()
         new_client.update_record()
         if clients_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)

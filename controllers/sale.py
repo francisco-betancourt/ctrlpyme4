@@ -64,11 +64,6 @@ def remove_stocks(bag_items):
                 bag_item.update_record()
 
 
-@auth.requires_membership('Sales checkout')
-def scan_ticket():
-    return dict()
-
-
 def validate_sale_form(form):
     payments = db(db.payment.id_bag == form.vars.id_bag).select()
     total = 0
@@ -105,8 +100,8 @@ def ticket():
 
 
 
-def get_payments_data(id_bag):
-    payments = db(db.payment.id_bag == id_bag).select()
+def get_payments_data(id_sale):
+    payments = db(db.payment.id_sale == id_sale).select()
 
     total = 0
     change = 0
@@ -301,10 +296,13 @@ def remove_payment():
         traceback.print_exc()
 
 
+
+
+
 @auth.requires_membership('Sales checkout')
 def cancel():
     """
-        args: [id_bag]
+        args: [id_sale]
     """
 
     bag = db.bag(request.args(0))
@@ -323,6 +321,95 @@ def cancel():
     db(db.sale_order.id_bag == bag.id).delete()
 
     redirection()
+
+
+def valid_sale(sale):
+    if not sale.created_by.id == auth.user.id:
+        raise HTTP(401)
+    if not sale or sale.is_done:
+        raise HTTP(404)
+    return True
+
+
+@auth.requires_membership('Sales checkout')
+def update():
+    """
+        args: [id_sale]
+    """
+
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    clients = db(db.auth_user.is_client == True).select()
+
+    payments = db(db.payment.id_sale == sale.id).select()
+    payment_options = db(db.payment_opt.is_active == True).select()
+
+
+    return locals()
+
+
+@auth.requires_membership('Sales checkout')
+def set_sale_client():
+    """
+        args: [id_sale, id_client]
+    """
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+    client = db((db.auth_user.is_client == True)
+                & (db.auth_user.registration_key == '')
+                & (db.auth_user.id == request.args(1))
+                ).select().first()
+    wallet = None
+    if not client:
+        sale.id_client = None
+    else:
+        sale.id_client = client.id
+        if client.id_wallet:
+            wallet = client.id_wallet
+            wallet = db.wallet(wallet)
+            wallet.balance = str(DQ(wallet.balance, True))
+    sale.update_record()
+
+    return dict(wallet=wallet)
+
+
+def check_and_add_payment():
+    """
+        args: [id_sale]
+        vars: [payment_opt, amount]
+    """
+
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    total, change, payments = get_payments_data(sale.id)
+    # payments has already covered the total
+    if total >= sale.total:
+        return dict()
+
+
+
+@auth.requires_membership('Sales checkout')
+def add_client_wallet_payment():
+    """
+        args: [id_sale]
+    """
+
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    if sale.id_client and sale.id_client.id_wallet:
+        total, change, payments = get_payments_data(sale.id)
+        payment = db.payment.insert(
+            id_payment_opt=get_wallet_payment_opt(),
+            id_sale=sale.id, amount=sale.id_client.id_wallet.balance,
+            wallet_code=sale.id_client.id_wallet.wallet_code
+        )
+        fix_payment(payment, sale)
+
+
+
 
 
 @auth.requires_membership('Sales checkout')
@@ -352,6 +439,7 @@ def create():
         stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
         # if theres no stock the user needs to modify the bag
         if stock_qty <= quantity:
+            session.info = T('Some items are missing')
             redirect('default', 'index')
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
@@ -369,6 +457,13 @@ def create():
     for bag_item in bag_items:
         bag_item.item_taxes = bag_item.id_item.taxes
         bag_item.update_record()
+
+    new_sale = db.sale.insert(id_bag=bag.id, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, reward_points=reward_points, id_store=bag.id_store.id)
+
+    redirect(URL('update', args=new_sale))
+
+
+
 
     # set the form data to the previously calculated values
     form = SQLFORM(db.sale, submit_button=T('Sell'), buttons=[(TAG.button(T('Sell'), _type="submit", _class="btn btn-primary"), A(T('Cancel'), _href=URL('cancel', args=bag.id), _class="btn btn-default"))] )
@@ -501,6 +596,11 @@ def get_by_barcode():
         raise HTTP(404)
 
 
+@auth.requires_membership('Sales checkout')
+def scan_ticket():
+    return dict()
+
+
 @auth.requires_membership('Sales invoices')
 def scan_for_invoice():
     return dict()
@@ -586,7 +686,7 @@ def refund():
                 client = db.auth_user(sale.id_client)
                 wallet = client.id_wallet
                 if not wallet:
-                    client.id_wallet = db.wallet.insert(balance=total, wallet_code=uuid4())
+                    client.id_wallet = new_wallet(total)
                     client.update_record()
                 else:
                     wallet.balance += total
