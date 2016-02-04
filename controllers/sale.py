@@ -601,12 +601,18 @@ def refund():
                         wallet.balance += total
                         wallet.update_record()
                         already_added = True
+                    session.info = T("Sale returned, funds added to wallet") + " %s" % wallet_code
                 if not already_added:
                     wallet_code = request.vars.wallet_code or uuid4()
                     id_wallet = db.wallet.insert(balance=total, wallet_code=wallet_code)
-                    response.info = T('Sale returned, your wallet code is: ') + wallet_code
-                    response.info_btn = {'text': T('Print'), 'ref': URL('wallet', 'print_wallet', args=id_wallet), 'target': 'blank'}
-
+                    session.info = {
+                        'text': T('Sale returned, your wallet code is: ') + wallet_code,
+                        'btn': {
+                            'text': T('Print'),
+                            'href': URL('wallet', 'print_wallet', args=id_wallet),
+                            'target': 'blank'
+                        }
+                    }
             # add the credit note items
             for bag_item_id in credit_note_items.iterkeys():
                 returned_qty = credit_note_items[bag_item_id]
@@ -640,6 +646,7 @@ def refund():
                         reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, id_new_credit_note)
                 else:
                     reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, id_new_credit_note)
+        redirect(URL('credit_note', 'index'))
     return locals()
 
 
