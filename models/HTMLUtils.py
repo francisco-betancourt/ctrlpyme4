@@ -267,6 +267,21 @@ def super_table(table, fields, query, row_function=default_row_function,
     if not orderby_field:
         orderby_field = 'id'
 
+    term = request.vars.term
+    if term:
+        s_query = (db[table].id < 0)
+        for t_field in db[table].fields:
+            if db[table][t_field].type == 'string':
+                s_query |= (db[table][t_field].contains(term))
+            if db[table][t_field].type == 'integer':
+                try:
+                    int(term)
+                    s_query |= (db[table][t_field] == term)
+                except:
+                    pass
+
+        query &= s_query
+
     if not query:
         return None
     pages = ''
@@ -331,7 +346,11 @@ def super_table(table, fields, query, row_function=default_row_function,
             tr.append(options_td)
 
         tbody.append(tr)
-    table = DIV(TABLE(thead, tbody, _class="table table-hover"), pages)
+
+    filter_form = FORM(INPUT(_id='table_filter_term', _class="form-control"), INPUT(_type="submit", _value=T('Search')), _id="table_filter", _class="form-inline")
+    form_script = SCRIPT("$('#table_filter').submit(function (event) {window.location.href = '%s?term=' + $('#table_filter_term').val(); event.preventDefault()})" % URL(request.controller, request.function))
+
+    table = DIV(filter_form, TABLE(thead, tbody, _class="table table-hover"), pages, form_script)
 
     return table
 
