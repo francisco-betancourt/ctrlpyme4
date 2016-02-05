@@ -257,7 +257,7 @@ def default_options_function(row):
 def super_table(table, fields, query, row_function=default_row_function,
                 options_function=default_options_function, options_enabled=True,
                 show_id=False, selectable=False, custom_headers=[],
-                extra_options=None, paginate=True, orderby=None):
+                extra_options=None, paginate=True, orderby=None, search_enabled=True):
     """ Returns a data table with the specified rows obtained from the specified query, if a row function is supplied then rows will follow the format established by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id True if you want the table to display the id for every row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers is not empty, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
 
         This function will use the database table field labels as table headers.
@@ -266,6 +266,21 @@ def super_table(table, fields, query, row_function=default_row_function,
     orderby_field = request.vars.orderby
     if not orderby_field:
         orderby_field = 'id'
+
+    term = request.vars.term
+    if term and search_enabled:
+        s_query = (db[table].id < 0)
+        for t_field in db[table].fields:
+            if db[table][t_field].type == 'string':
+                s_query |= (db[table][t_field].contains(term))
+            if db[table][t_field].type == 'integer':
+                try:
+                    int(term)
+                    s_query |= (db[table][t_field] == term)
+                except:
+                    pass
+
+        query &= s_query
 
     if not query:
         return None
@@ -331,7 +346,14 @@ def super_table(table, fields, query, row_function=default_row_function,
             tr.append(options_td)
 
         tbody.append(tr)
-    table = DIV(TABLE(thead, tbody, _class="table table-hover"), pages)
+
+    filter_form = FORM(INPUT(_id='table_filter_term', _class="form-control"), INPUT(_type="submit", _value=T('Search')), _id="table_filter", _class="form-inline")
+    form_script = SCRIPT("$('#table_filter').submit(function (event) {window.location.href = '%s?term=' + $('#table_filter_term').val(); event.preventDefault()})" % URL(request.controller, request.function))
+    if not search_enabled:
+        filter_form = ''
+        form_script = ''
+
+    table = DIV(filter_form, TABLE(thead, tbody, _class="table table-hover"), pages, form_script)
 
     return table
 

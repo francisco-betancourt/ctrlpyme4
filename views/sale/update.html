@@ -1,0 +1,112 @@
+{{left_sidebar_enabled = True}}
+{{include_bag = False}}
+{{extend 'layout.html'}}
+
+{{block left_sidebar}}
+  <h1>{{=T('New Sale')}}</h1>
+  <p>{{=T('Subtotal')}} <span class="right">$ {{=DQ(sale.subtotal, True)}}</span></p>
+  <p>{{=T('Taxes')}} <span class="right">$ {{=DQ(sale.taxes, True)}}</span></p>
+  <p>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></p>
+  <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
+
+  <hr>
+  <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
+  <select name="" class="form-control" id="client_selector">
+    <option value=""></option>
+    {{for client in clients:}}
+      <option value="{{=client.id}}" {{if sale.id_client == client.id:}} selected="selected" {{pass}}>{{=client.first_name}} {{=client.last_name}} &lt{{=client.email}}&gt </option>
+    {{pass}}
+  </select>
+
+  <div id="client_wallet_data" hidden="hidden">
+    <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+    <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+  </div>
+
+  <hr>
+
+  <div style="margin-top: 30px">
+    <a href="" class="btn btn-default">Cancel</a>
+    <a href="" class="btn btn-primary right">Complete</a>
+  </div>
+{{end}}
+
+
+
+<h1>{{=T('Payments')}}</h1>
+<div class="btn-toolbar" role="toolbar" aria-label="...">
+  <div class="btn-group" role="group" aria-label="..." id="payment_options">
+    {{for payment_opt in payment_options:}}
+      <button class="btn btn-default {{='btn-primary' if payment_opt == payment_options[0] else ''}}" id="payment_opt_{{=payment_opt.id}}" payment-opt-id="{{=payment_opt.id}}"> {{=payment_opt.name}}</button>
+    {{pass}}
+  </div>
+  <div class="btn-group" role="group" aria-label="...">
+    <button class="btn btn-default" id="add_payment">{{=ICON('plus')}}</button>
+  </div>
+</div>
+
+<hr>
+
+<div class="payments_list">
+
+</div>
+
+
+{{block page_js}}
+<script>
+  // show client data wallet
+  {{if sale.id_client and sale.id_client.id_wallet:}}
+    $('#client_wallet_data').show();
+    $('#client_wallet_balance').text("{{=DQ(sale.id_client.id_wallet.balance,True)}}")
+  {{pass}}
+
+  // client selection
+  $('#client_selector').change(function (event) {
+    info_card("{{=T('Saving...')}}");
+
+    var target = $(event.target)
+    $.ajax({
+      url: "{{=URL('set_sale_client', extension='json', args=sale.id)}}/" + target.val()
+    })
+    .done(function (res) {
+      if (res.wallet) {
+        $('#client_wallet_data').show();
+        $('#client_wallet_balance').text(res.wallet.balance);
+      }
+      else {
+        $('#client_wallet_data').hide();
+      }
+      info_card("{{=T('Saved')}}");
+    })
+    .fail(function (res) {
+      info_card("{{=T('Something went wrong')}}");
+    });
+  });
+
+
+  $('#client_wallet_payment').click(function (event) {
+    $.ajax({
+      url: "{{=URL('')}}"
+    })
+  });
+
+
+
+  selected_payment_opt_id = {{=payment_options.first().id}}
+
+  // payment option selection
+  $('#payment_options>button').click(function (event) {
+    target = $(event.target)
+    selected_payment_opt_id = target.attr('payment-opt-id');
+    $('#payment_options>button').removeClass('btn-primary');
+    target.addClass('btn-primary');
+  });
+
+
+  // add_payment
+  $('#add_payment').click(function (event) {
+
+  });
+
+</script>
+{{end}}

@@ -1,7 +1,13 @@
+{{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
-<h1>{{=T('New Sale')}}</h1>
-{{=form}}
-{{context_sidebar = False}}
+
+{{block left_sidebar}}
+  <h1>{{=T('New Sale')}}</h1>
+  {=form}
+{{end}}
+
+<h1>{{=T('Payments')}}</h1>
+
 
 
 <div id="proto_payment" hidden="hidden">
@@ -18,7 +24,6 @@
 <div id="proto_wallet_data" hidden="hidden" class="col-sm-9 col-sm-offset-3">
   <h3>{{=T("Wallet Balance")}}</h3>
   <h3>$ <span class="balance"></span> <button class="right pay"> {{=T('Pay')}} </button></h3>
-
 </div>
 
 

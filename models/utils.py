@@ -7,6 +7,7 @@ import re
 from decimal import Decimal as D
 import math
 import json
+from uuid import uuid4
 
 
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
@@ -99,6 +100,10 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
         return dict(stocks=stocks, quantity=quantity)
     else:
         return dict(stocks=None, quantity=0)
+
+
+def new_wallet(balance=0):
+    return db.wallet.insert(wallet_code=uuid4(), balance=balance)
 
 
 def is_wallet(payment_opt):

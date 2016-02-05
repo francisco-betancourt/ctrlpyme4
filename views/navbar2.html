@@ -60,7 +60,9 @@
     <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
 
     <!-- bag icon -->
-    <div class="menu-element" onclick="toggle_bag();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
+    {{if include_bag:}}
+      <div class="menu-element" onclick="toggle_bag();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
+    {{pass}}
 
     <!-- auth -->
     <div class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
