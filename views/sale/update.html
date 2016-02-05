@@ -45,10 +45,37 @@
   </div>
 </div>
 
-<hr>
-
 <div class="payments_list">
+  {{for payment_opt in payment_options:}}
+    <div id="payments_{{=payment_opt.id}}" hidden="hidden">
+      <hr>
 
+      <div class="panel panel-default">
+        <div class="panel-heading"><h3>{{=payment_opt.name}}</h3></div>
+        <div class="panel-body" id="payments_list_{{=payment_opt.id}}">
+        </div>
+      </div>
+
+      <div id="proto_payment_{{=payment_opt.id}}" hidden="hidden" class="form-inline">
+        <div class="input-group">
+          <span class="input-group-addon">{{=T('Amount')}}</span>
+          <input type="text" name="amount" class="form-control amount">
+        </div>
+        {{if payment_opt.allow_change:}}
+          <div class="input-group">
+            <span class="input-group-addon">{{=T('Change')}}</span>
+            <input type="text" class="form-control change" disabled>
+          </div>
+        {{pass}}
+        {{if payment_opt.requires_account:}}
+          <div class="input-group">
+            <span class="input-group-addon">{{=T('Account')}}</span>
+            <input type="text" name="account" class="form-control account" dissabled>
+          </div>
+        {{pass}}
+      </div>
+    </div>
+  {{pass}}
 </div>
 
 
@@ -92,7 +119,7 @@
 
 
 
-  selected_payment_opt_id = {{=payment_options.first().id}}
+  var selected_payment_opt_id = {{=payment_options.first().id}}
 
   // payment option selection
   $('#payment_options>button').click(function (event) {
@@ -103,10 +130,74 @@
   });
 
 
+  function clone_proto_payment(payment) {
+    var e_payment = $('#proto_payment_' + payment.id_payment_opt).clone();
+    e_payment.attr('id', 'payment_' + payment.id);
+    e_payment.show()
+    e_payment.find('.amount').val(payment.amount);
+    e_payment.find('.change').val(payment.change);
+    e_payment.find('.account').val(payment.account);
+    e_payment.find('.wallet_code').val(payment.wallet_code);
+    $('#payments_list_' + payment.id_payment_opt).append(e_payment);
+
+
+    $('#payment_' + payment.id + ' input').change(function (event) {
+      info_card("{{=T('Saving...')}}")
+
+      var target = $(event.target)
+      var field = target.attr('name');
+      var value = target.val();
+
+      $.ajax({
+        url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + payment.id + '?' + field + '=' + value
+      })
+      .done(function (res) {
+        info_card("{{=T('Saved')}}")
+        e_payment.find('.amount').val(res.payment.amount);
+        e_payment.find('.change').val(res.payment.change_amount);
+
+        if (res.extra_updated) {
+          for (var index in res.extra_updated) {
+            var extra_payment = res.extra_updated[index];
+            $('#payment_' + extra_payment.id).find('.amount').val(extra_payment.amount);
+            $('#payment_' + extra_payment.id).find('.change').val(extra_payment.change_amount);
+          }
+        }
+      })
+      .fail(function (res) {
+        info_card("{{=T('Something went wrong')}}")
+      })
+    });
+
+
+  }
+
+
   // add_payment
   $('#add_payment').click(function (event) {
-
+    $.ajax({
+      url: "{{=URL('add_payment', args=sale.id, extension='json')}}/" + selected_payment_opt_id
+    })
+    .done(function (res) {
+      info_card("{{=T('Payment added')}}")
+    })
+    .fail(function (res) {
+      info_card("{{=T('Unable to add payment!')}}");
+    })
   });
+
+  {{for payment in payments:}}
+    $('#payments_{{=payment.id_payment_opt.id}}').show();
+    clone_proto_payment({
+      id: '{{=payment.id}}',
+      id_payment_opt: '{{=payment.id_payment_opt.id}}',
+      amount: '{{=str(DQ(payment.amount, True))}}',
+      change: '{{=str(DQ(payment.change_amount, True))}}',
+      account: {{=payment.account or 'null'}},
+      wallet_code: {{=payment.wallet_code or 'null'}},
+    });
+  {{pass}}
+
 
 </script>
 {{end}}

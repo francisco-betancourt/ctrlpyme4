@@ -236,27 +236,114 @@ def add_user_wallet_payment():
 @auth.requires_membership('Sales checkout')
 def add_payment():
     """ Adds a payment related to a bag, with the specified payment option
-        args:
-            id_bag
-            id_payment_opt
+        args: [id_sale, id_payment_opt]
     """
 
-    id_bag = request.args(0)
-    bag = db.bag(id_bag)
-    payment_opt = db.payment_opt(request.args(1))
-    if not payment_opt or not bag:
-        raise HTTP(404)
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
 
     # check if the payments total is lower than the total
     s = db.payment.amount.sum()
-    payments_total = db(db.payment.id_bag == id_bag).select(s).first()[s]
+    payments_total = db(db.payment.id_sale == sale.id).select(s).first()[s]
+    if not payments_total < db.sale(sale.id).total:
+        raise HTTP(405)
 
-    if not payments_total < db.bag(id_bag).total:
-        return dict(msg=T("You dont need to add more payments"))
+    payment_opt = db.payment_opt(request.args(1))
+    print payment_opt
+    if not payment_opt:
+        raise HTTP(404)
 
-    new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_bag=id_bag))
+    add_new_payment = False
+
+    # allow multiple payments for the same payment option
+    if payment_opt.requires_account or is_wallet(payment_opt):
+        add_new_payment = True
+    else:
+        # get payments with the same payment option
+        payment = db((db.payment.id_sale == sale.id) & (db.payment.id_payment_opt == payment_opt.id)).select().first()
+        if not payment:
+            add_new_payment = True
+
+    if add_new_payment:
+        new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_sale=sale.id))
+    else:
+        raise HTTP(405)
 
     return dict(payment_opt=payment_opt, payment=new_payment)
+
+
+@auth.requires_membership('Sales checkout')
+def update_payment():
+    """
+        args: [id_sale, id_payment]
+        vars: [amount, account, wallet_code]
+    """
+
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    payment = db((db.payment.id == request.args(1))
+               & (db.payment.id_sale == sale.id)).select().first()
+    if not payment:
+        raise HTTP(404)
+
+    try:
+        new_amount = D(request.vars.amount or payment.amount)
+    except:
+        raise HTTP(417)
+
+    extra_updated_payments = []
+    total, change, payments = get_payments_data(sale.id)
+    new_total = total - change - (payment.amount - payment.change_amount) + new_amount
+    print new_total
+    if new_total > sale.total:
+        # when the payment does not allow change, cut the amount to the exact remaining
+        if not payment.id_payment_opt.allow_change:
+            new_amount -= new_total - sale.total
+    else:
+        remaining = sale.total - new_total
+        # when the payment modification makes the new total lower than the sale total, we have to find all the payments with change > 0 (if any) and recalculate their amount and their change
+        for other_payment in payments:
+            if not other_payment.id_payment_opt.allow_change or other_payment.id == payment.id:
+                continue
+            if remaining == 0:
+                break
+            if other_payment.change_amount > 0:
+                new_remaining = min(remaining, other_payment.change_amount)
+                new_change = other_payment.change_amount - new_remaining
+                remaining -= new_remaining
+                other_payment.change_amount = new_change
+                # other_payment.amount += new_remaining
+                other_payment.update_record()
+                other_payment.amount = str(DQ(other_payment.amount, True))
+                other_payment.change_amount = str(DQ(other_payment.change_amount, True))
+                extra_updated_payments.append(other_payment)
+
+    change = max(0, new_total - sale.total)
+    account = request.vars.account
+    wallet_code = request.vars.wallet_code
+    if not payment.id_payment_opt.allow_change:
+        change = 0
+    if not payment.id_payment_opt.requires_account:
+         account = None
+    if not is_wallet(payment.id_payment_opt):
+         wallet_code = None
+    else:
+        # wallet payment amount cannot be modified by the user, instead, when the user modifies the wallet code, we query the specified wallet and withdraw all the possible funds from its balance
+        if not wallet_code:
+            pass
+        payment.amount = 0
+
+    payment.amount = new_amount
+    payment.change_amount = change
+    payment.account = account
+    payment.wallet_code = wallet_code
+    payment.update_record()
+
+    payment.amount = str(DQ(payment.amount, True))
+    payment.change_amount = str(DQ(payment.change_amount, True))
+
+    return dict(payment=payment, extra_updated=extra_updated_payments)
 
 
 @auth.requires_membership('Sales checkout')
