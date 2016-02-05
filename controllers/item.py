@@ -502,7 +502,7 @@ def labels():
     query = (db.item.id < 0)
     for item_id in items_ids:
         query |= (db.item.id == int(item_id))
-    items = db((query) & (db.item.is_active == True)).select()
+    items = db((query) & (db.item.is_active == True) & (db.item.has_inventory == True)).select()
 
     return dict(items=items)
 

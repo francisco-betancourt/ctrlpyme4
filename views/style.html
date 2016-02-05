@@ -5,6 +5,7 @@
   primary_color_text = PRIMARY_COLOR_TEXT
 
   accent_color = ACCENT_COLOR
+  accent_color_bright = bright_hex(ACCENT_COLOR)
   accent_color_dim = dim_hex(ACCENT_COLOR)
   accent_color_text = ACCENT_COLOR_TEXT
 
@@ -41,6 +42,11 @@
   nav a, nav a:hover, nav a:focus {
     color: {{=primary_color_text}};
     text-decoration: none;
+  }
+
+
+  h1 {
+    color: {{=accent_color_bright}};
   }
 
 
@@ -99,7 +105,7 @@
   }
 
   .list-group-item:hover:not(.node-disabled) {
-    background-color: {{=base_color_dim}} !important;
+    background-color: {{=dim_rgba}} !important;
   }
 
   /* treeview node */
