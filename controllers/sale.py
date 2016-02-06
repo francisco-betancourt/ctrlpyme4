@@ -249,7 +249,6 @@ def add_payment():
         raise HTTP(405)
 
     payment_opt = db.payment_opt(request.args(1))
-    print payment_opt
     if not payment_opt:
         raise HTTP(404)
 
@@ -369,44 +368,6 @@ def update_payment():
         payment.delete_record()
 
     return dict(updated=extra_updated_payments)
-
-
-@auth.requires_membership('Sales checkout')
-def remove_payment():
-    """ removes a payment related to a bag, with the specified payment option
-        args:
-            id_payment
-    """
-
-    extra_params = {}
-
-    try:
-        payment = db.payment(request.args(0))
-        if not payment:
-            raise HTTP(404)
-        id_bag = payment.id_bag.id
-        if is_wallet(payment.id_payment_opt):
-            # get the payment wallet
-            wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-            if wallet:
-                wallet.balance += payment.amount
-                wallet.update_record()
-                if payment.account == 'user':
-                    extra_params["wallet_balance"] = DQ(wallet.balance, True)
-        payment.delete_record()
-
-        # sice there could be other payments with some change in them, we need to recalculate the total change (if any) and add it to a payment that allows change
-        total, change, payments = get_payments_data(id_bag)
-
-        for other_payment in payments:
-            other_payment.change_amount = 0
-            other_payment.update_record()
-
-        return dict(payments=payments, **extra_params)
-    except:
-        import traceback
-        traceback.print_exc()
-
 
 
 

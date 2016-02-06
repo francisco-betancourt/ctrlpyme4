@@ -94,6 +94,12 @@
     $('#client_wallet_balance').text("{{=DQ(sale.id_client.id_wallet.balance,True)}}")
   {{pass}}
 
+  {{if sale.id_client and sale.id_client.id_wallet:}}
+    var client_wallet_code = "{{=sale.id_client.id_wallet.wallet_code}}";
+  {{else:}}
+    var client_wallet_code = null;
+  {{pass}}
+
   // client selection
   $('#client_selector').change(function (event) {
     info_card("{{=T('Saving...')}}");
@@ -106,6 +112,7 @@
       if (res.wallet) {
         $('#client_wallet_data').show();
         $('#client_wallet_balance').text(res.wallet.balance);
+        client_wallet_code = res.wallet.wallet_code;
       }
       else {
         $('#client_wallet_data').hide();
@@ -119,9 +126,28 @@
 
 
   $('#client_wallet_payment').click(function (event) {
+    // add payment
     $.ajax({
-      url: "{{=URL('')}}"
+      url: "{{=URL('add_payment', args=[sale.id, get_wallet_payment_opt().id], extension='json')}}"
     })
+    .done(function (res) {
+      clone_proto_payment(res.payment);
+      $('#payments_' + res.payment.id_payment_opt).show();
+
+      $.ajax({
+        url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + res.payment.id + '?wallet_code=' + client_wallet_code
+      })
+      .done(function (res) {
+        info_card("{{=T('Payment added')}}");
+        post_update(res);
+      })
+      .fail(function (res) {
+        info_card("{{=T('Something went wrong')}}")
+      });
+    })
+    .fail(function (res) {
+      info_card("{{=T('Something went wrong')}}");
+    });
   });
 
 
@@ -196,8 +222,6 @@
         info_card("{{=T('Something went wrong')}}")
       })
     });
-
-
   }
 
 
