@@ -73,6 +73,13 @@
             <input type="text" name="account" class="form-control account" dissabled>
           </div>
         {{pass}}
+        {{if is_wallet(payment_opt):}}
+          <div class="input-group">
+            <span class="input-group-addon">{{=T('Code')}}</span>
+            <input type="text" name="wallet_code" class="form-control wallet_code" dissabled>
+          </div>
+        {{pass}}
+        {{=ICON('times', _class="delete")}}
       </div>
     </div>
   {{pass}}
@@ -130,6 +137,18 @@
   });
 
 
+  function post_update(res) {
+    if (res.updated) {
+      for (var index in res.updated) {
+        var payment = res.updated[index];
+        $('#payment_' + payment.id).find('.amount').val(payment.amount);
+        $('#payment_' + payment.id).find('.change').val(payment.change_amount);
+        $('#payment_' + payment.id).find('.wallet_code').val(payment.wallet_code);
+      }
+    }
+  }
+
+
   function clone_proto_payment(payment) {
     var e_payment = $('#proto_payment_' + payment.id_payment_opt).clone();
     e_payment.attr('id', 'payment_' + payment.id);
@@ -139,6 +158,23 @@
     e_payment.find('.account').val(payment.account);
     e_payment.find('.wallet_code').val(payment.wallet_code);
     $('#payments_list_' + payment.id_payment_opt).append(e_payment);
+
+    e_payment.find('.delete').click(function (event) {
+      $.ajax({
+        url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + payment.id + '?delete=True'
+      })
+      .done(function (res) {
+        info_card("{{=T('Payment removed')}}");
+        $('#payment_' + payment.id).remove();
+        if ($('#payments_list_' + payment.id_payment_opt).children().length == 0) {
+          $('#payments_' + payment.id_payment_opt).hide();
+        }
+        post_update(res);
+      })
+      .fail(function (res) {
+        info_card("{{=T('Something went wrong')}}");
+      });
+    });
 
 
     $('#payment_' + payment.id + ' input').change(function (event) {
@@ -153,16 +189,8 @@
       })
       .done(function (res) {
         info_card("{{=T('Saved')}}")
-        e_payment.find('.amount').val(res.payment.amount);
-        e_payment.find('.change').val(res.payment.change_amount);
 
-        if (res.extra_updated) {
-          for (var index in res.extra_updated) {
-            var extra_payment = res.extra_updated[index];
-            $('#payment_' + extra_payment.id).find('.amount').val(extra_payment.amount);
-            $('#payment_' + extra_payment.id).find('.change').val(extra_payment.change_amount);
-          }
-        }
+        post_update(res);
       })
       .fail(function (res) {
         info_card("{{=T('Something went wrong')}}")
@@ -180,6 +208,8 @@
     })
     .done(function (res) {
       info_card("{{=T('Payment added')}}")
+      clone_proto_payment(res.payment);
+      $('#payments_' + res.payment.id_payment_opt).show();
     })
     .fail(function (res) {
       info_card("{{=T('Unable to add payment!')}}");
@@ -193,8 +223,8 @@
       id_payment_opt: '{{=payment.id_payment_opt.id}}',
       amount: '{{=str(DQ(payment.amount, True))}}',
       change: '{{=str(DQ(payment.change_amount, True))}}',
-      account: {{=payment.account or 'null'}},
-      wallet_code: {{=payment.wallet_code or 'null'}},
+      account: "{{=payment.account or ''}}",
+      wallet_code: "{{=payment.wallet_code or ''}}",
     });
   {{pass}}
 

@@ -276,7 +276,7 @@ def add_payment():
 def update_payment():
     """
         args: [id_sale, id_payment]
-        vars: [amount, account, wallet_code]
+        vars: [amount, account, wallet_code, delete]
     """
 
     sale = db.sale(request.args(0))
@@ -292,10 +292,16 @@ def update_payment():
     except:
         raise HTTP(417)
 
+    if payment.wallet_code:
+        new_amount = payment.amount
+        wallet_code = payment.wallet_code
+
+    if request.vars.delete:
+        new_amount = 0
+
     extra_updated_payments = []
     total, change, payments = get_payments_data(sale.id)
     new_total = total - change - (payment.amount - payment.change_amount) + new_amount
-    print new_total
     if new_total > sale.total:
         # when the payment does not allow change, cut the amount to the exact remaining
         if not payment.id_payment_opt.allow_change:
@@ -329,10 +335,25 @@ def update_payment():
     if not is_wallet(payment.id_payment_opt):
          wallet_code = None
     else:
-        # wallet payment amount cannot be modified by the user, instead, when the user modifies the wallet code, we query the specified wallet and withdraw all the possible funds from its balance
-        if not wallet_code:
-            pass
-        payment.amount = 0
+        if payment.wallet_code:
+            # return wallet funds
+            if request.vars.delete:
+                wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
+                if wallet:
+                    wallet.balance += payment.amount
+                    wallet.update_record()
+
+        # only accept the first wallet code specified
+        if wallet_code != payment.wallet_code:
+            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+            if wallet:
+                new_amount = min(wallet.balance, sale.total - new_total)
+                wallet.balance -= new_amount
+                wallet.update_record()
+            # if the code is invalid, remove its specified value
+            else:
+                wallet_code = None
+                new_amount = 0
 
     payment.amount = new_amount
     payment.change_amount = change
@@ -342,8 +363,12 @@ def update_payment():
 
     payment.amount = str(DQ(payment.amount, True))
     payment.change_amount = str(DQ(payment.change_amount, True))
+    if not request.vars.delete:
+        extra_updated_payments.append(payment)
+    else:
+        payment.delete_record()
 
-    return dict(payment=payment, extra_updated=extra_updated_payments)
+    return dict(updated=extra_updated_payments)
 
 
 @auth.requires_membership('Sales checkout')
