@@ -376,7 +376,16 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
             , store.id_address.state_province
             , store.id_address.country
         ))
+    disable_taxes_list = False
     items_list = DIV(_id="items_list")
+    # headers
+    items_list.append(DIV(
+        SPAN(T('QTY'), _class="qty"),
+        SPAN(T('CONCEPT'), _class="name"),
+        SPAN(T('PRICE'), _class="price"),
+        _class="item"
+    ))
+    items_list.append(HR())
     subtotal = D(0)
     taxes = {}
     taxes_percentages = {}
@@ -391,19 +400,27 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
             try:
                 item_name = bag_item.product_name
                 item_price = bag_item.sale_price
-                if bag_item.item_taxes:
-                    for tax in bag_item.item_taxes:
-                        if not taxes.has_key(str(tax.name)):
-                            taxes[str(tax.name)] = D(0)
-                            taxes_percentages[str(tax.name)] = tax.percentage
-                        taxes[str(tax.name)] += item_price * (tax.percentage / DQ(100.0))
+                try:
+                    if bag_item.item_taxes:
+                        taxes_str = bag_item.item_taxes.split(',')
+                        for tax_str in taxes_str:
+                            tax_name, tax_percentage = tax_str.split(':')
+                            if not taxes_percentages.has_key(tax_name):
+                                taxes_percentages[tax_name] = DQ(tax_percentage, True, normalize=True)
+                            if not taxes.has_key(tax_name):
+                                taxes[tax_name] = 0
+                            taxes[tax_name] += item_price * (D(tax_percentage) / DQ(100.0))
+                except:
+                    import traceback as tb
+                    tb.print_exc()
+                    disable_taxes_list = True
                 subtotal += item_price
                 total += item_price + bag_item.sale_taxes
             except:
                 import traceback as tb
                 tb.print_exc()
             items_list.append(DIV(
-                SPAN(DQ(item.quantity, True), _class="qty"),
+                SPAN(DQ(item.quantity, True, normalize=True), _class="qty"),
                 SPAN(item_name, _class="name"),
                 SPAN('$ %s' % DQ(item_price, True), _class="price"),
                 _class="item"
@@ -412,9 +429,10 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
     total_data = DIV(_id="total_data")
     total_data.append(DIV(T('Subtotal') + ': $ %s' % DQ(subtotal, True)))
     # taxes
-    for key in taxes.iterkeys():
-        text = '%s %s %%: $ %s' % (key, taxes_percentages[key], DQ(taxes[key], True))
-        total_data.append(DIV(text))
+    if not disable_taxes_list:
+        for key in taxes.iterkeys():
+            text = '%s %s %%: $ %s' % (key, taxes_percentages[key], DQ(taxes[key], True))
+            total_data.append(DIV(text))
     total_data.append(DIV(T('Total') + ': $ %s' % DQ(total, True)))
 
     ticket = DIV(

@@ -184,7 +184,12 @@ def add_bag_item():
             base_qty = 1 if item_stock_qty >= 1 or is_online_sale else item_stock_qty % 1
             if base_qty <= 0:
                 return dict(status="out of stock")
-            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name, item_taxes=item.taxes,
+            item_taxes_str = ''
+            for tax in item.taxes:
+                item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
+                if tax != item.taxes[-1]:
+                    item_taxes_str += ','
+            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name, item_taxes=item_taxes_str,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:

@@ -374,11 +374,6 @@ def create():
     quantity = DQ(quantity, True)
     reward_points = DQ(reward_points, True)
 
-    # set bag item taxes list
-    for bag_item in bag_items:
-        bag_item.item_taxes = bag_item.id_item.taxes
-        bag_item.update_record()
-
     new_sale = db.sale.insert(id_bag=bag.id, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, reward_points=reward_points, id_store=bag.id_store.id)
 
     redirect(URL('update', args=new_sale))
