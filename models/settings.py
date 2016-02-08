@@ -65,32 +65,6 @@ if main_settings:
     if main_settings.ticket_footer:
         TICKET_FOOTER = main_settings.ticket_footer
 
-    if main_settings.paper_width:
-        PAPER_WIDTH = main_settings.paper_width
-    if main_settings.paper_height:
-        PAPER_HEIGHT = main_settings.paper_height
-    if main_settings.paper_margin_top:
-        PAPER_MARGIN_TOP = main_settings.paper_margin_top
-    if main_settings.paper_margin_right:
-        PAPER_MARGIN_RIGHT = main_settings.paper_margin_right
-    if main_settings.paper_margin_bottom:
-        PAPER_MARGIN_BOTTOM = main_settings.paper_margin_bottom
-    if main_settings.paper_margin_left:
-        PAPER_MARGIN_LEFT = main_settings.paper_margin_left
-
-    if main_settings.label_space_x:
-        LABEL_SPACE_X = main_settings.label_space_x
-    if main_settings.label_space_y:
-        LABEL_SPACE_Y = main_settings.label_space_y
-    if main_settings.label_rows:
-        LABEL_ROWS = main_settings.label_rows
-    if main_settings.label_cols:
-        LABEL_COLS = main_settings.label_cols
-    if main_settings.label_show_name:
-        LABEL_SHOW_ITEM_NAME = main_settings.label_show_name
-    if main_settings.label_show_price:
-        LABEL_SHOW_PRICE = main_settings.label_show_price
-
     if main_settings.primary_color:
         PRIMARY_COLOR = '#' + main_settings.primary_color
     if main_settings.primary_color_text:
@@ -103,6 +77,7 @@ if main_settings:
         BASE_COLOR = '#' + main_settings.base_color
     if main_settings.base_color_text:
         BASE_COLOR_TEXT = '#' + main_settings.base_color_text
+
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS
 LABEL_HEIGHT = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (LABEL_ROWS - 1))) / LABEL_ROWS

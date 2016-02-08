@@ -4,10 +4,10 @@
 
 
 
-{{cols = LABEL_COLS}}
-{{rows = LABEL_ROWS}}
-{{card_w = LABEL_WIDTH}}
-{{card_h = LABEL_HEIGHT}}
+{{cols = layout.cols}}
+{{rows = layout.rows}}
+{{card_w = layout.label_width}}
+{{card_h = layout.label_height}}
 {{start_col = 0}}
 {{start_row = 0}}
 
@@ -19,12 +19,29 @@
 
   <h1>{{=T('Item labels')}}</h1>
 
+  <h3>{{=T('Page format')}}</h3>
+  <select name="" id="page_format" class="form-control">
+    {{for p_layout in db(db.labels_page_layout).select():}}
+      <option value="{{=URL('labels', args=request.args, vars=dict(id_layout=p_layout.id, id_purchase=request.vars.id_purchase))}}" {{if p_layout.id == layout.id:}} selected="selected" {{pass}}>
+        {{=p_layout.name}}
+      </option>
+    {{pass}}
+  </select>
+
+  <script>
+    $('#page_format').on('change', function (event) {
+      window.location.href = event.target.value
+    });
+  </script>
+
+
   <script>
     var items_list = [];
 
     var row = 0;
     var col = 0;
   </script>
+  <h3>{{=T('Items list')}}</h3>
   <div class="list-group">
   {{i = -1}}
   {{for item in items:}}
@@ -51,10 +68,10 @@
     </div>
 
     <div id="proto_label_{{=_item.id}}" hidden="hidden">
-      {{if LABEL_SHOW_ITEM_NAME:}}
+      {{if layout.show_item_name:}}
         <div style="text-overflow: ellipsis; overflow: hidden; max-height: {{=LABEL_HEIGHT / 4}}cm;">{{=_item.name}}</div>
       {{pass}}
-      {{if LABEL_SHOW_PRICE:}}
+      {{if layout.show_price:}}
         {{taxes = item_taxes(_item, _item.base_price)}}
         <div>$ {{=DQ(_item.base_price + taxes, True)}}</div>
       {{pass}}
@@ -179,14 +196,14 @@ $(document).ready(function () {
 
 
 
-<section id="proto_sheet" hidden="hidden" class="sheet" style="padding: {{=PAPER_MARGIN_TOP}}cm {{=PAPER_MARGIN_RIGHT}}cm {{=PAPER_MARGIN_BOTTOM}}cm {{=PAPER_MARGIN_LEFT}}cm; width: {{=PAPER_WIDTH}}cm; height: {{=PAPER_HEIGHT}}cm; background-color: white; overflow: hidden;">
-  <div style="font-size: 12px; font-family: monospace; width: {{=PAPER_WIDTH - PAPER_MARGIN_LEFT - PAPER_MARGIN_RIGHT}}cm; height: {{=PAPER_HEIGHT - PAPER_MARGIN_TOP - PAPER_MARGIN_BOTTOM}}cm; line-height: 1.3; display: flex; flex-direction: column;">
+<section id="proto_sheet" hidden="hidden" class="sheet" style="padding: {{=layout.margin_top}}cm {{=layout.margin_right}}cm {{=layout.margin_bottom}}cm {{=layout.margin_left}}cm; width: {{=layout.width}}cm; height: {{=layout.height}}cm; background-color: white; overflow: hidden;">
+  <div style="font-size: 12px; font-family: monospace; width: {{=layout.width - layout.margin_left - layout.margin_right}}cm; height: {{=layout.height - layout.margin_top - layout.margin_bottom}}cm; line-height: 1.3; display: flex; flex-direction: column;">
     {{index = 0}}
     {{for i in range(rows):}}
-      {{space_y = LABEL_SPACE_Y if i != rows - 1 else 0}}
+      {{space_y = layout.space_y if i != rows - 1 else 0}}
       <div style="display: flex; flex: 1 1 auto;">
         {{for j in range(cols):}}
-          {{space_x = LABEL_SPACE_X if j != cols - 1 else 0}}
+          {{space_x = layout.space_x if j != cols - 1 else 0}}
           <div class="label-cell" style="text-align: center; margin: 0cm {{=space_x}}cm {{=space_y}}cm 0cm; flex: 1 1 auto; display: flex; justify-content: center; align-items: center; max-width: {{=card_w}}cm; max-height: {{=card_h}}cm; min-width: {{=card_w}}cm; min-height: {{=card_h}}cm; overflow: hidden">
             <div class="cell_{{=i * (cols * rows + 1) + j}} card-contents" style="margin: 0px;" index="{{=index}}"> </div>
             {{index += 1}}

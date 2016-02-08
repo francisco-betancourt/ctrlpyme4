@@ -3,6 +3,8 @@
 # Author: Daniel J. Ramirez
 
 import json
+from gluon.storage import Storage
+
 
 
 def categories_tree_html(categories, item=None):
@@ -484,11 +486,39 @@ def browse():
 def labels():
     """
         args: [items]
-        vars: [id_purchase]
+        vars: [id_purchase, id_layout]
     """
 
     from_purchase = False
-    if request.vars.id_purchase:
+
+    page_layout = None
+    if request.vars.id_layout:
+        page_layout = db.labels_page_layout(request.vars.id_layout)
+    else:
+        page_layout = db(db.labels_page_layout).select().first()
+    if not page_layout:
+        redirect(URL('labels_page_layout'))
+    layout = {
+        'id': page_layout.id,
+        'width': page_layout.id_paper_size.width,
+        'height': page_layout.id_paper_size.height,
+        'margin_top': page_layout.margin_top,
+        'margin_right': page_layout.margin_right,
+        'margin_bottom': page_layout.margin_bottom,
+        'margin_left': page_layout.margin_left,
+        'space_x': page_layout.space_x,
+        'space_y': page_layout.space_y,
+        'cols': page_layout.label_cols,
+        'rows': page_layout.label_rows,
+        'show_item_name': page_layout.show_name,
+        'show_price': page_layout.show_price
+    }
+
+    layout = Storage(layout)
+    layout.label_width = (layout.width - (layout.margin_left + layout.margin_right + layout.space_x * (layout.cols - 1))) / layout.cols
+    layout.label_height = (layout.height - (layout.margin_top + layout.margin_bottom + layout.space_y * (layout.rows - 1))) / layout.rows
+
+    if request.vars.id_purchase and request.vars.id_purchase != 'None':
         from_purchase = True
         purchase = db((db.purchase.id == request.vars.id_purchase) & (db.purchase.is_done == True)).select().first()
         if not purchase:
@@ -496,7 +526,7 @@ def labels():
         purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
         if not purchase_items:
             raise HTTP(404)
-        return dict(items=purchase_items)
+        return dict(items=purchase_items, layout=layout)
 
     items_ids = request.args(0).split('_')
     query = (db.item.id < 0)
@@ -504,7 +534,7 @@ def labels():
         query |= (db.item.id == int(item_id))
     items = db((query) & (db.item.is_active == True) & (db.item.has_inventory == True)).select()
 
-    return dict(items=items)
+    return dict(items=items, layout=layout)
 
 
 

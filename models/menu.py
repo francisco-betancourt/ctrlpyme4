@@ -33,6 +33,7 @@ response.menu = [
 if auth.has_membership('Admin'):
     response.menu += [(T('Configuration'),False,None, [
          (T('Settings'), False, URL('settings', 'update_main'), None)
+        , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)
         , (T('Stores'), False, URL('store', 'index'), None)
         , (T('Employees'), False, URL('user', 'index'), None)
         , (T('Clients'), False, URL('user', 'clients'), None)

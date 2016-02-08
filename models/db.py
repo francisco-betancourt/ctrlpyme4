@@ -265,20 +265,6 @@ db.define_table(
   , Field('clients_whitelist', 'boolean', label=T('Use clients whitelist'), default=True, readable=False, writable=False)
   , Field('ticket_footer', label=T('Ticket footer'))
 
-  , Field('paper_width', 'decimal(4,4)', label=T('Paper width'))
-  , Field('paper_height', 'decimal(4,4)', label=T('Paper height'))
-  , Field('paper_margin_top', 'decimal(4,4)', label=T('Paper margin top'))
-  , Field('paper_margin_right', 'decimal(4,4)', label=T('Paper margin right'))
-  , Field('paper_margin_bottom', 'decimal(4,4)', label=T('Paper margin bottom'))
-  , Field('paper_margin_left', 'decimal(4,4)', label=T('Paper margin left'))
-
-  , Field('label_space_x', 'decimal(4,4)', label=T('Labels') + ':' + T('left spacing'))
-  , Field('label_space_y', 'decimal(4,4)', label=T('Labels') + ':' + T('bottom spacing'))
-  , Field('label_cols', 'integer', label=T('Labels columns'))
-  , Field('label_rows', 'integer', label=T('Labels rows'))
-  , Field('label_show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
-  , Field('label_show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
-
   , Field('primary_color', label=T('Primary color'))
   , Field('primary_color_text', label=T('Primary color text'))
   , Field('accent_color', label=T('Accent color'))
@@ -295,6 +281,31 @@ db.settings.accent_color.requires = hex_match
 db.settings.accent_color_text.requires = hex_match
 db.settings.base_color.requires = hex_match
 db.settings.base_color_text.requires = hex_match
+
+
+db.define_table(
+    'paper_size'
+    , Field('name', label=T('Name'), unique=True)
+    , Field('width', 'decimal(4,4)', label=T('Paper width'))
+    , Field('height', 'decimal(4,4)', label=T('Paper height'))
+)
+
+db.define_table(
+    'labels_page_layout'
+    , Field('name', label=T('Name'))
+    , Field('id_paper_size', 'reference paper_size', label=T("Paper size"))
+    , Field('margin_top', 'decimal(4,4)', label=T('Paper margin top'))
+    , Field('margin_right', 'decimal(4,4)', label=T('Paper margin right'))
+    , Field('margin_bottom', 'decimal(4,4)', label=T('Paper margin bottom'))
+    , Field('margin_left', 'decimal(4,4)', label=T('Paper margin left'))
+
+    , Field('space_x', 'decimal(4,4)', label=T('Labels') + ':' + T('left spacing'))
+    , Field('space_y', 'decimal(4,4)', label=T('Labels') + ':' + T('bottom spacing'))
+    , Field('label_cols', 'integer', label=T('Labels columns'))
+    , Field('label_rows', 'integer', label=T('Labels rows'))
+    , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
+    , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
+)
 
 
 db.define_table("category",
