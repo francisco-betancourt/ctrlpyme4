@@ -260,3 +260,9 @@ def auto_bag_selection():
 
 def current_url():
     return URL(request.controller, request.function, args=request.args, vars=request.vars)
+
+
+def valid_account(payment):
+    if payment.id_payment_opt.requires_account and not payment.account or payment.id_payment_opt.requires_account and payment.account and len(payment.account) != 4:
+        return False
+    return True

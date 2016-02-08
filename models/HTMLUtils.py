@@ -13,15 +13,18 @@ def ICON(icon_name, _id="", _class=""):
 def INFO_CARD():
     content = DIV(_class="panel-body")
     content.append(DIV(ICON('times', _class="close", _id="info_close")))
-    if session.info.has_key('text'):
-        content.append(DIV(session.info['text'], _id="info_card__text"))
-    if session.info.has_key('btn'):
-        btn_data = session.info['btn']
-        target = btn_data['target'] if btn_data.has_key('target') else ''
-        href = btn_data['href'] if btn_data.has_key('href') else ''
-        link_text = btn_data['text'] if btn_data.has_key('text') else ''
-        if href:
-            content.append(DIV(P(), A(link_text, _href=href, _target=target, _class="btn btn-default btn-block"), _id="info_card__btn_container"))
+    if type(session.info) == str:
+        content.append(DIV(session.info, _id="info_card__text"))
+    if type(session.info) == dict:
+        if session.info.has_key('text'):
+            content.append(DIV(session.info['text'], _id="info_card__text"))
+        if session.info.has_key('btn'):
+            btn_data = session.info['btn']
+            target = btn_data['target'] if btn_data.has_key('target') else ''
+            href = btn_data['href'] if btn_data.has_key('href') else ''
+            link_text = btn_data['text'] if btn_data.has_key('text') else ''
+            if href:
+                content.append(DIV(P(), A(link_text, _href=href, _target=target, _class="btn btn-default btn-block"), _id="info_card__btn_container"))
     return content
 
 

@@ -26,8 +26,8 @@
   <hr>
 
   <div style="margin-top: 30px">
-    <a href="" class="btn btn-default">Cancel</a>
-    <a href="" class="btn btn-primary right">Complete</a>
+    <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default">{{=T('Cancel')}}</a>
+    <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary right">{{=T('Complete')}}</a>
   </div>
 {{end}}
 
@@ -80,6 +80,7 @@
           </div>
         {{pass}}
         {{=ICON('times', _class="delete")}}
+        <div class="error"> </div>
       </div>
     </div>
   {{pass}}
@@ -185,6 +186,10 @@
     e_payment.find('.wallet_code').val(payment.wallet_code);
     $('#payments_list_' + payment.id_payment_opt).append(e_payment);
 
+    if (payment.error) {
+      e_payment.find('.error').text(payment.error);
+    }
+
     e_payment.find('.delete').click(function (event) {
       $.ajax({
         url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + payment.id + '?delete=True'
@@ -249,7 +254,13 @@
       change: '{{=str(DQ(payment.change_amount, True))}}',
       account: "{{=payment.account or ''}}",
       wallet_code: "{{=payment.wallet_code or ''}}",
+      {{ if not valid_account(payment): }}
+        error: "{{=T('This payment requires a 4 digits account')}}"
+      {{ pass }}
     });
+
+    // errors
+
   {{pass}}
 
 
