@@ -306,6 +306,7 @@ db.define_table(
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
     , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
 )
+db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
 
 
 db.define_table("category",

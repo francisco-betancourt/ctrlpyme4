@@ -497,7 +497,7 @@ def labels():
     else:
         page_layout = db(db.labels_page_layout).select().first()
     if not page_layout:
-        redirect(URL('labels_page_layout'))
+        redirect(URL('labels_page_layout', 'index'))
     layout = {
         'id': page_layout.id,
         'width': page_layout.id_paper_size.width,
