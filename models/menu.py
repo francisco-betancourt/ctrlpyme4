@@ -52,6 +52,7 @@ if auth.has_membership("Items info"):
             , (T('Brands'), False, URL('brand', 'index'), None)
             , (T('Categories'), False, URL('category', 'index'), None)
             , (T('Traits'), False, URL('trait_category', 'index'), None)
+            , (T('Transfer'), False, URL('stock_transfer', 'index'), None)
         ]
         response.menu += [
              (T('Items'), False, None, submenu)

@@ -120,6 +120,7 @@ def create_groups():
         , "Employee": "An Employee"
         , "Analytics": "Users in this group have acces to the analytic tools"
         , "Sale orders": "Solve client orders and notify clients about their orders"
+        , "Stock transfers": "Create a stock transfer ticket, removing stock from the base store and reintegrating it in the receiving store"
     }
 
 

@@ -204,9 +204,10 @@ def stocks_table(item):
         # stock is from credit note
         elif row.id_credit_note:
             tr.append(TD(A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))))
+        elif row.id_stock_transfer:
+            tr.append(TD(A(T('Stock transfer'), _href=URL('stock_transfer', 'ticket', args=row.id_stock_transfer.id))))
 
-        for field in fields:
-            tr.append(TD(row[field]))
+        tr.append(TD(DQ(row.purchase_qty, True)))
         tr.append(TD(row['created_on'].strftime('%d %b %Y, %H:%M')))
 
         #TODO  add link to employee analysis
@@ -237,6 +238,13 @@ def item_analysis():
         & (db.sale.id_store == session.store)
         & (db.bag_item.id_item == item.id)
     ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
+    stock_transfers = db(
+        # (db.bundle_item.id_bundle == db.item.id)
+        (db.bag_item.id_bag == db.bag.id)
+        & (db.stock_transfer.id_bag == db.bag.id)
+        & (db.stock_transfer.id_store_from == session.store)
+        & (db.bag_item.id_item == item.id)
+    ).select(db.stock_transfer.ALL, db.bag_item.ALL, orderby=~db.stock_transfer.created_on)
 
     return locals()
 

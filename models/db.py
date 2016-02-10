@@ -506,6 +506,16 @@ db.define_table("inventory_item",
     )
 
 
+db.define_table(
+    'stock_transfer'
+    , Field('id_store_from', 'reference store', label=T('From store'), writable=False, readable=False)
+    , Field('id_store_to', 'reference store', label=T('To store'), writable=False, readable=False)
+    , Field('id_bag', 'reference bag', label=T('bag'), writable=False, readable=False)
+    , Field('is_done', 'boolean', default=False, label=T('Is done'), writable=False, readable=False)
+    , auth.signature
+)
+
+
 db.define_table("stock_item",
     Field("id_purchase", "reference purchase", label=T('Purchase')),
     # When the item is returned we have to create a stock item with the
@@ -513,6 +523,7 @@ db.define_table("stock_item",
     Field("id_credit_note", "reference credit_note", label=T('Credit note')),
     # When there are more items than those registered by the system, we have to add stock related to that inventory
     Field("id_inventory", "reference inventory", label=T('Inventory')),
+    Field("id_stock_transfer", "reference stock_transfer", label=T('Stock transfer')),
     # to simplify queries
     Field("id_store", "reference store", label=T('Store')),
     Field("id_item", "reference item", label=T('Item')),

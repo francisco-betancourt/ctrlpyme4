@@ -266,3 +266,78 @@ def valid_account(payment):
     if payment.id_payment_opt.requires_account and not payment.account or payment.id_payment_opt.requires_account and payment.account and len(payment.account) != 4:
         return False
     return True
+
+
+
+def _remove_stocks(item, quantity, sale_date):
+    if not item.has_inventory:
+        return 0, 0
+    if not quantity:
+        return 0, 0
+    original_qty = quantity
+    stock_items, quantity = item_stock(item, session.store).itervalues()
+    quantity = DQ(quantity)
+    total_buy_price = 0
+    wavg_days_in_shelf = 0
+    for stock_item in stock_items:
+        if not quantity:
+            return 0, 0
+        stock_qty = DQ(stock_item.stock_qty) - DQ(original_qty)
+        stock_item.stock_qty = max(0, stock_qty)
+        stock_item.update_record()
+        quantity = abs(stock_qty)
+
+        total_buy_price += original_qty * (stock_item.price or 0)
+        days_since_purchase = (sale_date - stock_item.created_on).days
+        wavg_days_in_shelf += days_since_purchase
+    wavg_days_in_shelf /= original_qty
+
+    return total_buy_price, wavg_days_in_shelf
+
+
+def remove_stocks(bag_items):
+    for bag_item in bag_items:
+        #TODO:50 implement stock removal for bag items with serial number
+        if bag_item.id_item.has_serial_number:
+            pass
+        else:
+            bag_item_total_buy_price = 0
+            # when we have a bundle, we have to remove stocks for every item in the bundle. Since bundles cannot be purchased, we have to consider its average days in shelf, as the average of its bundle items weighted average days in shelf
+            if bag_item.id_item.is_bundle:
+                total_wavg_days_in_shelf = 0
+                bundle_items_qty = 0
+                bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item.id).select()
+                for bundle_item in bundle_items:
+                    bundle_items_qty += 1
+                    total_buy_price, wavg_days_in_shelf = _remove_stocks(bundle_item.id_item, bundle_item.quantity, bag_item.created_on)
+                    total_wavg_days_in_shelf += wavg_days_in_shelf
+                    bag_item_total_buy_price += total_buy_price
+                total_wavg_days_in_shelf /= bundle_items_qty
+
+                bag_item.total_buy_price = bag_item_total_buy_price
+                bag_item.wavg_days_in_shelf = total_wavg_days_in_shelf
+
+                bag_item.update_record()
+            else:
+                total_buy_price, wavg_days_in_shelf = _remove_stocks(bag_item.id_item, bag_item.quantity, bag_item.created_on)
+                bag_item.total_buy_price = total_buy_price
+                bag_item.wavg_days_in_shelf = wavg_days_in_shelf
+
+                bag_item.update_record()
+
+
+def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id):
+    stock_item = db((db.stock_item[target_field] == target_id) & (db.stock_item.id_item == item.id)).select().first()
+    if stock_item:
+        stock_item.purchase_qty += returned_qty
+        stock_item.stock_qty += returned_qty
+        stock_qty.update_record()
+    else:
+        target_data = {target_field: target_id}
+        db.stock_item.insert(id_item=item.id,
+                             purchase_qty=returned_qty,
+                             price=avg_buy_price,
+                             stock_qty=returned_qty,
+                             id_store=session.store,
+                             taxes=0, **target_data
+                             )

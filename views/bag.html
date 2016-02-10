@@ -40,11 +40,16 @@
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
     <hr>
 
-    <button class="btn btn-default discard_bag" onclick="discard_bag();">
-      {{=T('Discard')}}
-    </button>
-    <button class="btn btn-primary right sell_bag" onclick="sell_bag();">
+    <button class="btn btn-primary btn-block sell_bag" onclick="sell_bag();">
       {{=T('Complete')}}
+    </button>
+    {{if auth.has_membership('Stock transfers'):}}
+      <button class="btn btn-default btn-block transfer_bag" onclick="transfer_bag();">
+        {{=T('Stock transfer')}}
+      </button>
+    {{pass}}
+    <button class="btn btn-default btn-block discard_bag" onclick="discard_bag();">
+      {{=T('Discard')}}
     </button>
   </div>
 </div>
@@ -396,6 +401,13 @@
     window.location.href = "{{=URL('bag', 'complete')}}";
   }
 
+
+  function transfer_bag() {
+    var r = confirm("{{=T('Confirm stock transfer?')}}");
+    if (r == true) {
+      window.location.href = "{{=URL('bag', 'stock_transfer')}}";
+    }
+  }
 
   $('#proto_bag_item').hide();
 

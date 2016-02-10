@@ -1,0 +1,21 @@
+{{extend 'basic_layout.html'}}
+
+{{=ticket}}
+
+
+{{if print_ticket:}}
+  <script>
+    window.print();
+    $('body').keyup(function (event) {
+      if (event.charCode == 0) {
+        window.close();
+      }
+    });
+  </script>
+
+  <script>
+    window.open("{{=URL('ticket', args=sale.id)}}", '1', resizable=1)
+  </script>
+{{else:}}
+
+{{pass}}

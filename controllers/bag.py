@@ -280,6 +280,21 @@ def change_bag_item_sale_price():
     return dict(status="ok", **bag_data)
 
 
+def check_bag_items_integrity(bag_items):
+    out_of_stock_items = []
+    for bag_item in bag_items:
+        # delete bag item when the item has 0 quantity
+        if bag_item.quantity <= 0:
+            db(db.bag_item.id == bag_item.id).delete()
+        qty = item_stock(bag_item.id_item, session.store)['quantity']
+        if bag_item.quantity > qty:
+            out_of_stock_items.append(bag_item)
+    if out_of_stock_items and (auth.has_membership('Employee') or auth.has_membership('Admin')):
+        response.flash = T('Some items are out of stock or are inconsistent')
+        auto_bag_selection()
+        redirection()
+
+
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
@@ -297,18 +312,7 @@ def complete():
         auto_bag_selection()
         redirection()
 
-    out_of_stock_items = []
-    for bag_item in bag_items:
-        # when the item has 0 quantity
-        if bag_item.quantity <= 0:
-            db(db.bag_item.id == bag_item.id).delete()
-        qty = item_stock(bag_item.id_item, session.store)['quantity']
-        if bag_item.quantity > qty:
-            out_of_stock_items.append(bag_item)
-    if out_of_stock_items and (auth.has_membership('Employee') or auth.has_membership('Admin')):
-        response.flash = T('Some items are out of stock or are inconsistent')
-        auto_bag_selection()
-        redirection()
+    check_bag_items_integrity(bag_items)
 
     if auth.has_membership('Clients'):
         bag.is_on_hold = True
@@ -326,6 +330,34 @@ def complete():
         bag.update_record()
         auto_bag_selection()
         redirect(URL('ticket', args=bag.id))
+
+
+@auth.requires_membership('Stock transfers')
+def stock_transfer():
+    """ """
+
+    bag = get_valid_bag(session.current_bag)
+
+    if not bag:
+        raise HTTP(404)
+
+    # check if all the bag items are consistent
+    bag_items = db(db.bag_item.id_bag == bag.id).select()
+    # delete the bag if there are no items
+    if not bag_items:
+        db(db.bag.id == bag.id).delete()
+        auto_bag_selection()
+        redirection()
+
+    check_bag_items_integrity(bag_items)
+
+    # create stock transfer record
+    new_stock_transfer_id = db.stock_transfer.insert(id_store_from=bag.id_store.id, id_bag=bag.id)
+    bag.completed = True
+    bag.update_record()
+    remove_stocks(bag_items)
+
+    redirect(URL('stock_transfer', 'ticket', args=new_stock_transfer_id))
 
 
 @auth.requires(auth.has_membership('Sales bags')
