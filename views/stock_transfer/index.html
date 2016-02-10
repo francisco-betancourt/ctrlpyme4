@@ -1,0 +1,7 @@
+{{extend 'layout.html'}}
+<h1>{{=T('Stock Transfers')}}</h1>
+{{=data}}
+
+{{core_action = URL('scan_for_receive')}}
+{{core_action_icon = 'barcode'}}
+{{include 'core_button.html'}}

@@ -247,7 +247,9 @@ db.define_table("store",
 	Field('certificate_number',readable=False,writable=False),
 	Field('certificate_base64',type="text",readable=False,writable=False),
 	Field('certpem_base64',type="text",readable=False,writable=False),
-    auth.signature)
+    auth.signature,
+    format='%(name)s'
+    )
 # db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
 
