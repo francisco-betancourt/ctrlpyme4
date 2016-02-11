@@ -28,6 +28,10 @@ def index():
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10), groupby=db.item.name)
 
+    offers = db((db.offer_group.starts_on < request.now)
+              & (db.offer_group.ends_on > request.now)
+              ).select()
+
     return locals()
 
 
@@ -121,6 +125,7 @@ def create_groups():
         , "Analytics": "Users in this group have acces to the analytic tools"
         , "Sale orders": "Solve client orders and notify clients about their orders"
         , "Stock transfers": "Create a stock transfer ticket, removing stock from the base store and reintegrating it in the receiving store"
+        , "Offers": "Create offers that can contain discounts and free items"
     }
 
 

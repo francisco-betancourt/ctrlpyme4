@@ -563,37 +563,63 @@ db.define_table("item_image",
     Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
 )
 db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
-# db.item_image.thumb.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
-# db.item_image.small.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
-# db.item_image.medium.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
-# db.item_image.large.requires = IS_EMPTY_OR(IS_IMAGE(extensions=('jpeg', 'png')))
 
 
-db.define_table("promotion",
-    Field("id_store", "reference store", label=T('Store')),
-    Field("json_data", "text", default=None, label=T('JSON data')),
-    Field("code", "string", default=None, label=T('Code')),
-    Field("starts_on", "datetime", default=None, label=T('Starts on')),
-    Field("ends_on", "datetime", default=None, label=T('Ends on')),
-    Field("is_coupon", "boolean", default=None, label=T('Is coupon')),
-    Field("is_combinable", "boolean", default=None, label=T('Is combinable')),
-    auth.signature)
+db.define_table(
+    'offer_group'
+    , Field('name', label=T('Name'))
+    , Field('description', label=T('Description'))
+    , Field("id_store", "reference store", label=T('Store'))
+    , Field("code", "string", default=None, label=T('Code'))
+    , Field("starts_on", "datetime", default=None, label=T('Starts on'))
+    , Field("ends_on", "datetime", default=None, label=T('Ends on'))
+    , Field("is_coupon", "boolean", default=None, label=T('Is coupon'))
+    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
+    , auth.signature
+)
+db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+
+
+db.define_table(
+    'item_discount'
+    , Field('id_offer_group', 'reference offer_group')
+    , Field('id_item', 'reference item')
+    , Field("discount", "integer", label=T('Discount'))
+    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
+    , Field("is_coupon", "boolean", default=None, label=T('Is coupon'))
+    , auth.signature
+)
+db.item_discount.discount.requires = IS_INT_IN_RANGE(1, 101)
+
+
+db.define_table("offer",
+    Field('id_offer_group', 'reference offer_group'),
+    Field("id_required_item", "reference item", label=T('Required item')),
+    Field("required_qty", "decimal(16,6)", label=T('Required quantity')),
+    Field("id_added_item", "reference item", label=T('Added item')),
+    Field("discount", "integer", label=T('Discount')),
+    auth.signature
+)
+
 
 db.define_table("account_receivable",
     Field("id_sale", "reference sale", label=T('Sale')),
     Field("is_settled", "boolean", default=None, label=T('Is settled')),
     auth.signature)
 
+
 db.define_table("account_payable",
     Field("id_purchase", "reference purchase", label=T('Purchase')),
     Field("is_settled", "boolean", default=None, label=T('Is settled')),
     auth.signature)
+
 
 db.define_table("tax_data",
     Field("tax_id", "integer", default=None, label=T('Tax ID')),
     Field("business_name", "string", default=None, label=T('Business Name')),
     Field("id_address", "reference address", label=T('Address')),
     auth.signature)
+
 
 db.define_table("invoice",
     Field("id_sale", "reference sale", label=T('Sale')),

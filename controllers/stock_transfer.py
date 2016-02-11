@@ -46,6 +46,8 @@ def receive():
     stock_transfer.id_store_to = session.store
     stock_transfer.update_record()
 
+    session.info = T('Products added to stock')
+    redirect(URL('default', 'index'))
 
     return locals()
 

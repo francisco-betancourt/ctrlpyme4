@@ -14,9 +14,9 @@
 {{block left_sidebar}}
   <!-- <h1>Ads</h1> -->
   <h2></h2>
-  {{for i in range(3):}}
+  {{for offer in offers:}}
     <div class="ad">
-      <h2>This is an Ad</h2>
+      <h2>{{=offer.name}}</h2>
     </div>
   {{pass}}
 {{end}}
