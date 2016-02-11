@@ -1,15 +1,26 @@
+.items-container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-justify: space-around;
+}
+.items-container.no-wrap {
+  flex-wrap: nowrap;
+  /*flex-justify: space-around;*/
+  overflow-x: scroll;
+}
+
 .item-card {
   position: relative;
   margin-right: 8px;
   padding-top: 10px;
   flex: auto;
-  min-width: 260px;
-  max-width: 260px;
+  min-width: 220px;
+  max-width: 220px;
   box-shadow: 0 2px 4px rgba(0,0,0,.2);
   word-break: break-word;
 }
 .item-card>.panel-heading {
-  height: 260px;
+  height: 200px;
   background-size: 85%;
   background-repeat: no-repeat;
   background-position: center;
@@ -51,6 +62,7 @@
 @media(max-width: 700px) {
   .items-container {
     flex-flow: column;
+    overflow-x: auto;
   }
 
   .item-card {

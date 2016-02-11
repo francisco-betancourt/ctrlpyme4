@@ -175,9 +175,9 @@
       {{context_sidebar = True}}
 
       {{if left_sidebar_enabled:}}
-        <div class="col-sm-7 col-md-7 col-lg-9">
+        <div class="col-sm-7 col-md-7 col-lg-9" id="main_container">
       {{else:}}
-        <div class="col-lg-12">
+        <div class="col-lg-12" id="main_container">
       {{pass}}
         {{block center}}
         {{include}}

@@ -121,13 +121,6 @@ button.cp-fab:focus{
 }
 
 
-.items-container {
-  display: flex;
-  flex-wrap: wrap;
-  flex-justify: space-around;
-}
-
-
 #thumbs {
   margin: auto;
   margin-top: 10px;

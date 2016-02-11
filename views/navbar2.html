@@ -85,6 +85,9 @@
       </div>
       <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('caret-down', _class="add-on")}}
     </div>
+    <div class="menu-element" id="help_menu_btn" onclick="show_help();">
+      {{=ICON('question-circle')}}
+    </div>
   </section>
 
 </nav>

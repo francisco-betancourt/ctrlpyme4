@@ -1,19 +1,40 @@
-{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{left_sidebar_enabled=True}}
 {{extend 'layout.html'}}
 
 
+<style>
+  .ad {
+    background-color: grey;
+    height: 150px;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+</style>
 
+{{block left_sidebar}}
+  <!-- <h1>Ads</h1> -->
+  <h2></h2>
+  {{for i in range(3):}}
+    <div class="ad">
+      <h2>This is an Ad</h2>
+    </div>
+  {{pass}}
+{{end}}
 
 <h2>{{=T('Popular items')}}</h2>
-<div class="items-container">
+<div class="items-container no-wrap">
   {{for popular_item in popular_items:}}
     {{=item_card(popular_item)}}
   {{pass}}
 </div>
 
 <h2>{{=T('New items')}}</h2>
-<div class="items-container">
+<div class="items-container no-wrap">
   {{for new_item in new_items:}}
     {{=item_card(new_item)}}
   {{pass}}
 </div>
+
+
+<script>
+</script>
