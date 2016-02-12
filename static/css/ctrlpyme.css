@@ -221,13 +221,6 @@ select {
   word-break: break-all;
 }
 
-
-@media(min-width: 992px) {
-  .col-md-9 {
-    /*width: 50%;*/
-  }
-}
-
 .sale-data {
   display: flex;
 }

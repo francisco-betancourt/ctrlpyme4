@@ -9,6 +9,16 @@
       <button type="button" class="btn btn-default">{{=T('Item discount')}}</button>
     </div>
   </div>
+  <hr>
+
+  <form enctype="multipart/form-data" action="{{=URL('add_item_discount')}}" method="post">
+    <div class="form-group">
+      <label for="discount">{{=T('Discount')}}</label>
+      <input type="number" class="form-control" id="discount" placeholder="discount">
+      <input type="submit" class="btn-block btn-primary">
+    </div>
+
+  </form>
 {{end}}
 
 <h1>{{=T('Offers')}}</h1>

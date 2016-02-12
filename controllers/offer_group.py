@@ -13,9 +13,27 @@ def create():
 
 
 @auth.requires_membership('Offers')
+def add_item_discount():
+    """ args: [id_offer_group] """
+    offer_group = db.offer_group(request.args(0))
+
+    return dict()
+
+
+@auth.requires_membership('Offers')
 def fill():
     """ args: [id_offer_group] """
     offer_group = db.offer_group(request.args(0))
+
+    # get all offers
+    item_discounts = db(db.item_discount.id_offer_group == offer_group.id).select()
+
+    # item_discount_form = SQLFORM(db.item_discount)
+    # item_discount_form.vars.id_offer_group = offer_group.id
+    # if item_discount_form.process().accepted:
+    #     response.flash = T('Discount added')
+    # elif item_discount_form.errors:
+    #     response.flash = T('form has errors')
 
     return locals()
 

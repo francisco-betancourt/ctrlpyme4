@@ -28,6 +28,10 @@ def index():
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10), groupby=db.item.name)
 
+    highlights = db((db.highlight.id_store == session.store)
+                  | (db.highlight.id_store == None)
+                  ).select()
+
     offers = db((db.offer_group.starts_on < request.now)
               & (db.offer_group.ends_on > request.now)
               ).select()

@@ -254,6 +254,22 @@ db.define_table("store",
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
 
 
+highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))
+
+db.define_table(
+    'highlight'
+    , Field('id_store', 'reference store', label=T('Store'))
+    , Field('title', label=T('Title'))
+    , Field('description', label=T('Description'))
+    , Field('url', label=T('URL'))
+    , Field('bg_image', 'upload', label=T('Image'))
+    , auth.signature
+)
+db.highlight.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
+db.highlight.url.requires = IS_URL()
+db.highlight.bg_image.requires = highlight_image_validator
+
+
 db.define_table(
   'settings'
   , Field('id_store', 'reference store', default=None, readable=False, writable=False)
@@ -575,9 +591,11 @@ db.define_table(
     , Field("ends_on", "datetime", default=None, label=T('Ends on'))
     , Field("is_coupon", "boolean", default=None, label=T('Is coupon'))
     , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
+    , Field('bg_image', 'upload', label=T('Background image'))
     , auth.signature
 )
 db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+db.offer_group.bg_image.requires = highlight_image_validator
 
 
 db.define_table(

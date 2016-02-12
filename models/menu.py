@@ -42,7 +42,9 @@ if auth.has_membership('Admin'):
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
+        , (T('Highlights'), False, URL('highlight', 'index'), None)
     ])]
+
 
 # items menu
 if auth.has_membership("Items info"):
