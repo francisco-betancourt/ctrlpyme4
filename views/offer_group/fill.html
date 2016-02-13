@@ -69,6 +69,10 @@
 
 <h1>{{=T('Discounts')}}</h1>
 
+{{for discount in discounts:}}
+  <h3>{{=discount.id}}</h3>
+{{pass}}
+
 
 {{block page_js}}
   <script>
@@ -96,7 +100,15 @@
       var code = $('#discount_code').val();
       var is_combinable = $('#discount_is_combinable').prop('checked');
       var is_coupon = $('#discount_is_coupon').prop('checked');
-      console.log(target_id, percentage, code, is_combinable, is_coupon);
+
+      url = "{{=URL('add_discount', args=offer_group.id)}}?"
+        + "target_name=" + current_target
+        + "&target_id=" + target_id
+        + "&percentage=" + percentage
+        + "&code=" + code
+        + "&is_combinable=" + is_combinable
+        + "&is_coupon=" + is_coupon
+      window.location.href = url;
     });
   </script>
 {{end}}
