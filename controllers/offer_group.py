@@ -26,7 +26,7 @@ def fill():
     offer_group = db.offer_group(request.args(0))
 
     # get all offers
-    item_discounts = db(db.item_discount.id_offer_group == offer_group.id).select()
+    discounts = db(db.discount.id_offer_group == offer_group.id).select()
 
     # item_discount_form = SQLFORM(db.item_discount)
     # item_discount_form.vars.id_offer_group = offer_group.id

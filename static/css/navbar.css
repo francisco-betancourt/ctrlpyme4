@@ -201,9 +201,6 @@ nav>section .form-group {
   #hamburger.hidden, *.hidden {
     display: none !important;
   }
-  .submenu {
-    display: block !important;
-  }
 }
 @media (min-width: 600px) {
   #search_form {
@@ -214,5 +211,8 @@ nav>section .form-group {
   }
   #search_menu_btn, #close_search {
     display: none !important;
+  }
+  .submenu {
+    display: block;
   }
 }

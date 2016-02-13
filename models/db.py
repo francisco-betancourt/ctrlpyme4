@@ -589,35 +589,27 @@ db.define_table(
     , Field("code", "string", default=None, label=T('Code'))
     , Field("starts_on", "datetime", default=None, label=T('Starts on'))
     , Field("ends_on", "datetime", default=None, label=T('Ends on'))
-    , Field("is_coupon", "boolean", default=None, label=T('Is coupon'))
     , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
     , Field('bg_image', 'upload', label=T('Background image'))
     , auth.signature
 )
-db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
 db.offer_group.bg_image.requires = highlight_image_validator
 
 
 db.define_table(
-    'item_discount'
+    'discount'
     , Field('id_offer_group', 'reference offer_group')
+    , Field('id_category', 'reference category')
     , Field('id_item', 'reference item')
-    , Field("discount", "integer", label=T('Discount'))
-    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
-    , Field("is_coupon", "boolean", default=None, label=T('Is coupon'))
+    , Field('id_brand', 'reference brand')
+    , Field("percentage", "integer", label=T('Percentage'))
+    , Field("code", label=T('Code'))
+    , Field("is_combinable", "boolean", default=False, label=T('Is combinable'))
+    , Field("is_coupon", "boolean", default=False, label=T('Is coupon'))
     , auth.signature
 )
-db.item_discount.discount.requires = IS_INT_IN_RANGE(1, 101)
-
-
-db.define_table("offer",
-    Field('id_offer_group', 'reference offer_group'),
-    Field("id_required_item", "reference item", label=T('Required item')),
-    Field("required_qty", "decimal(16,6)", label=T('Required quantity')),
-    Field("id_added_item", "reference item", label=T('Added item')),
-    Field("discount", "integer", label=T('Discount')),
-    auth.signature
-)
+db.discount.percentage.requires = IS_INT_IN_RANGE(1, 101)
 
 
 db.define_table("account_receivable",

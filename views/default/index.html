@@ -1,4 +1,3 @@
-{{left_sidebar_enabled=True}}
 {{extend 'layout.html'}}
 
 
@@ -10,10 +9,19 @@
     margin-bottom: 10px;
   }
 
+  .highlighs {
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+  }
+
   .highlight {
     background-size: cover;
     height: 250px;
+    width: 400px;
+    min-width: 400px;
     margin-bottom: 10px;
+    margin-right: 10px;
     border-radius: 2px;
     display: flex;
     align-items: flex-end;
@@ -39,9 +47,9 @@
   }
 </style>
 
-{{block left_sidebar}}
-  <!-- <h1>Ads</h1> -->
-  <h2></h2>
+
+<h1>{{=T('Highlights')}}</h1>
+<div class="highlighs">
   {{for highlight in highlights:}}
     <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=highlight.bg_image)}})">
       <div class="data">
@@ -59,7 +67,7 @@
       </div>
     </div>
   {{pass}}
-{{end}}
+</div>
 
 
 

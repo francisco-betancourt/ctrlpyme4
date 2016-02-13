@@ -2,25 +2,101 @@
 {{extend 'layout.html'}}
 
 {{block left_sidebar}}
-  <h1>{{=T('Add Offer')}}</h1>
+  <h1>{{=T('Add Discount')}}</h1>
 
-  <div class="btn-group btn-group-justified" role="group" aria-label="...">
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-default">{{=T('Item discount')}}</button>
+  <div class="form-group">
+    <label for="discount_percentage">{{=T('Percentage')}}</label>
+    <div class="input-group">
+      <input type="number" id="discount_percentage" class="form-control" min=1 max=100 value=20>
+      <div class="input-group-addon">%</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="discount_code">{{=T('Code')}}</label>
+    <input id="discount_code" class="form-control">
+  </div>
+  <div class="form-group">
+    <label>
+      <input type="checkbox" id="discount_is_combinable">
+      {{=T('Is combinable')}}
+    </label>
+  </div>
+  <div class="form-group">
+    <label>
+      <input type="checkbox" id="discount_is_coupon">
+      {{=T('Is coupon')}}
+    </label>
+  </div>
+
+
+  <h3>{{=T('Target')}}</h3>
+  <div class="btn-toolbar" role="toolbar" id="targets_toolbar">
+    <div class="btn-group" role="group" aria-label="...">
+        <button type="button" class="btn btn-default btn-primary" target="id_item" id="target_btn_id_item">{{=T('Item')}}</button>
+        <button type="button" class="btn btn-default" target="id_brand" id="target_btn_id_brand">
+          {{=T('Brand')}}
+        </button>
+        <button type="button" class="btn btn-default" target="id_category" id="target_btn_id_category">
+          {{=T('Category')}}
+        </button>
     </div>
   </div>
   <hr>
 
-  <form enctype="multipart/form-data" action="{{=URL('add_item_discount')}}" method="post">
-    <div class="form-group">
-      <label for="discount">{{=T('Discount')}}</label>
-      <input type="number" class="form-control" id="discount" placeholder="discount">
-      <input type="submit" class="btn-block btn-primary">
-    </div>
 
-  </form>
+  <div id="target_id_item">
+    {{include 'barcode_scanner.html'}}
+    <div id="item_data">
+      <p class="item-name"></p>
+    </div>
+  </div>
+
+
+  <div id="target_id_brand" hidden="hidden">
+    <select class="form-control" name="" id="id_brand">
+      <option value=""></option>
+      {{for brand in db(db.brand.is_active == True).select():}}
+        <option value="{{=brand.id}}">{{=brand.name}}</option>
+      {{pass}}
+    </select>
+  </div>
+
+  <hr>
+  <button id="add_discount_btn" class="btn btn-primary btn-block">
+    {{=T('Add discount')}}
+  </button>
 {{end}}
 
-<h1>{{=T('Offers')}}</h1>
+<h1>{{=T('Discounts')}}</h1>
 
-{{include 'barcode_scanner.html'}}
+
+{{block page_js}}
+  <script>
+    var current_target = 'id_item';
+    var target_id = null;
+
+    function success_callback(data, barcode) {
+      $('#item_data>.item-name').text(data.name);
+      target_id = data.id;
+    }
+    setup_scanner(success_callback);
+
+    $('#targets_toolbar button').click(function (event) {
+      var el_target = $(event.target);
+      $('#target_btn_' + current_target).removeClass('btn-primary');
+      $('#target_' + current_target).hide();
+      current_target = el_target.attr('target');
+      $('#target_btn_' + current_target).addClass('btn-primary');
+      $('#target_' + current_target).show();
+    });
+
+
+    $('#add_discount_btn').click(function (event) {
+      var percentage = $('#discount_percentage').val();
+      var code = $('#discount_code').val();
+      var is_combinable = $('#discount_is_combinable').prop('checked');
+      var is_coupon = $('#discount_is_coupon').prop('checked');
+      console.log(target_id, percentage, code, is_combinable, is_coupon);
+    });
+  </script>
+{{end}}
