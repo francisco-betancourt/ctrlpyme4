@@ -61,17 +61,48 @@
     </select>
   </div>
 
+  <div id="target_id_category" hidden="hidden">
+    <div class="form-group">
+      <input type="text" id="category_search" class="form-control" placeholder="{{=T('Search category')}}">
+    </div>
+    <div id="categories_tree"></div>
+  </div>
+
+
   <hr>
   <button id="add_discount_btn" class="btn btn-primary btn-block">
     {{=T('Add discount')}}
   </button>
 {{end}}
 
-<h1>{{=T('Discounts')}}</h1>
 
-{{for discount in discounts:}}
-  <h3>{{=discount.id}}</h3>
-{{pass}}
+<!-- discounts list -->
+<h1>{{=T('Discounts')}}</h1>
+<ul class="list-group">
+  {{for discount in discounts:}}
+    <li class="list-group-item">
+      <b>{{=discount.percentage}}% {{=T('OFF')}}</b>
+      {{=T('for')}}
+      {{if discount.id_item:}}
+        <a href="{{=URL('item', 'get_item', args=discount.id_item.id)}}" target='_blank'>
+          {{=T('item')}} {{=discount.id_item.name}} {{discount.id_item.id}}
+        </a>
+      {{elif discount.id_brand:}}
+        <a href="{{=URL('item', 'get_by_brand', args=discount.id_brand.id)}}" target='_blank'>
+          {{=T('brand')}} {{=discount.id_brand.name}} {{discount.id_brand.id}}
+        </a>
+      {{elif discount.id_category:}}
+        <a href="{{=URL('item', 'browse', vars=dict(category=discount.id_category.id))}}" target='_blank'>
+          {{=T('category')}} {{=discount.id_category.name}} {{discount.id_category.id}}
+        </a>
+      {{pass}}
+      {{if discount.code:}}
+        {{=T('using code:')}} <b>{{=discount.code}}</b>
+      {{pass}}
+      <a class="right" href="{{=URL('delete_discount', args=discount.id)}}">{{=ICON('times')}}</a>
+    </li>
+  {{pass}}
+</ul>
 
 
 {{block page_js}}
@@ -95,6 +126,11 @@
     });
 
 
+    $('#id_brand').change(function (event) {
+      target_id = event.target.value;
+    });
+
+
     $('#add_discount_btn').click(function (event) {
       var percentage = $('#discount_percentage').val();
       var code = $('#discount_code').val();
@@ -110,5 +146,42 @@
         + "&is_coupon=" + is_coupon
       window.location.href = url;
     });
+  </script>
+
+
+  {{=categories_data_script}}
+  <script>
+    $('#categories_tree').treeview({
+      data: categories_tree_data,
+      checkedIcon: 'fa fa-check-square-o',
+      uncheckedIcon: 'fa fa-square-o',
+      expandIcon: 'fa fa-plus',
+      collapseIcon: 'fa fa-minus',
+      highlightSelected: true,
+      levels: 1
+    });
+
+
+
+
+    $('#categories_tree').on('nodeSelected', function(event, data) {
+      target_id = data.category_id
+    });
+
+
+    var selected_node = $('#categories_tree').treeview('getSelected')[0];
+    if (selected_node) {
+      $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true } ]);
+    }
+
+    $('#category_search').bind('change paste keyup', function(event) {
+      var pattern = $(this).val()
+      $('#categories_tree').treeview('collapseAll', { silent: true });
+      $('#categories_tree').treeview('search', [pattern , {
+        ignoreCase: true,     // case insensitive
+        exactMatch: false,    // like or equals
+        revealResults: true  // reveal matching nodes
+      }]);
+    })
   </script>
 {{end}}

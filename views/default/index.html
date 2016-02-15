@@ -9,42 +9,7 @@
     margin-bottom: 10px;
   }
 
-  .highlighs {
-    display: flex;
-    flex-direction: row;
-    overflow-x: scroll;
-  }
-
-  .highlight {
-    background-size: cover;
-    height: 250px;
-    width: 400px;
-    min-width: 400px;
-    margin-bottom: 10px;
-    margin-right: 10px;
-    border-radius: 2px;
-    display: flex;
-    align-items: flex-end;
-  }
-
-  .highlight>.data {
-    background-color: rgba(0,0,0,.5);
-    width: 100%;
-    color: white;
-    padding: 15px;
-    text-shadow: 0px 0px 4px rgba(0, 0, 0, .7);
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
-  }
-  .highlight>.data>h2 {
-    margin-top: 0px;
-    font-weight: bold;
-  }
-  .highlight>.data>a.btn {
-    border-color: white;
-    color: white;
-    font-size: 16px;
-  }
+  
 </style>
 
 
@@ -60,10 +25,11 @@
     </div>
   {{pass}}
   {{for offer in offers:}}
-    <div class="highlight shadow-1">
+    <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer.bg_image)}})">
       <div class="data">
         <h2>{{=offer.name}}</h2>
-        <a href="{{=highlight.url}}" class="btn btn-block"> {{=T('View discounts')}} </a>
+        <p>{{=offer.starts_on.strftime('%a %d %B %Y')}} -  {{=offer.ends_on.strftime('%a %d %B %Y')}}</p>
+        <a href="{{=URL('offer_group', 'get', args=offer.id)}}" class="btn btn-block"> {{=T('View discounts')}} </a>
       </div>
     </div>
   {{pass}}

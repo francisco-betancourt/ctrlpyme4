@@ -13,6 +13,18 @@ def create():
 
 
 @auth.requires_membership('Offers')
+def delete_discount():
+    """ args: [id_discount] """
+
+    discount = db.discount(request.args(0))
+    if not discount:
+        raise HTTP(404)
+    discount.delete_record()
+
+    redirect(URL('fill', args=discount.id_offer_group.id))
+
+
+@auth.requires_membership('Offers')
 def add_discount():
     """
         args: [id_offer_group]
@@ -64,18 +76,45 @@ def fill():
     # get all offers
     discounts = db(db.discount.id_offer_group == offer_group.id).select()
 
-    # item_discount_form = SQLFORM(db.item_discount)
-    # item_discount_form.vars.id_offer_group = offer_group.id
-    # if item_discount_form.process().accepted:
-    #     response.flash = T('Discount added')
-    # elif item_discount_form.errors:
-    #     response.flash = T('form has errors')
+    categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree())
+
+    return locals()
+
+
+@auth.requires_membership('Offers')
+def update():
+    return common_update('offer_group', request.args)
+
+
+def get():
+    """ args: [id_offer_group]"""
+
+    offer_group = db.offer_group(request.args(0))
+    if not offer_group:
+        raise HTTP(404)
+
+    discounts = db((db.discount.id_offer_group == offer_group.id)
+                 & (db.discount.is_coupon == False)
+                 & (db.discount.code == '')
+                 ).select()
+
+    query = (db.item.id < 0)
+    for discount in discounts:
+        if discount.id_item:
+            query |= (db.item.id == discount.id_item.id)
+        if discount.id_brand:
+            query |= (db.item.id_brand == discount.id_brand.id)
+        if discount.id_category:
+            query |= (db.item.categories.contains(discount.id_category.id))
+    items = db(query).select()
 
     return locals()
 
 
 @auth.requires_membership('Offers')
 def index():
-    data = super_table('offer_group', ['name'], (db.offer_group), options_function=lambda row : [option_btn('pencil', URL('fill', args=row.id))])
+    data = super_table('offer_group', ['name'], (db.offer_group), options_function=lambda row : [
+            option_btn('pencil', URL('update', args=row.id)),
+            option_btn('list-ul', URL('fill', args=row.id))])
 
     return locals()

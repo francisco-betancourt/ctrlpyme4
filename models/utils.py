@@ -102,6 +102,22 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
         return dict(stocks=None, quantity=0)
 
 
+def item_discounts(item):
+    # get the current offer groups
+    offer_groups = db((db.offer_group.starts_on > request.now) & (db.offer_group.ends_on < request.now)).select()
+    final_query = (db.discount.id > 0)
+    base_query = ((db.discount.is_coupon == False) & (db.discount.code == ''))
+    for offer_group in offer_groups:
+        query = (db.discount.id_item == item.id) | (db.discount.id_brand == item.id_brand.id)
+        for category in item.categories:
+            query |= (db.discount.id_category == category.id)
+        query = ((query) & db.discount.id_offer_group == offer_group.id)
+        final_query = ((total_query) | (query))
+    final_query = (final_query) & base_query
+    discounts = db(final_query).select()
+    print discounts
+
+
 def new_wallet(balance=0):
     return db.wallet.insert(wallet_code=uuid4(), balance=balance)
 
