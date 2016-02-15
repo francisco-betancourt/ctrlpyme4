@@ -27,7 +27,16 @@
 </div>
 {{pass}}
 
-<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(item.base_price, True)}}</span></span></h3>
+{{discounts = item_discounts(item)}}
+<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price" {{if discounts:}} style="text-decoration: line-through" {{pass}}>{{=DQ(item.base_price, True)}}</span></span></h3>
+{{if discounts:}}
+  {{discounted_price = DQ(item.base_price)}}
+  {{for discount in discounts:}}
+    {{discounted_price = discounted_price - discounted_price * DQ(discount.percentage / 100.0)}}
+  {{pass}}
+  <h3 class="right">$ {{=DQ(discounted_price, True)}}</h3>
+{{pass}}
+
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
 <p></p>
@@ -114,9 +123,6 @@
   </ul>
   {{pass}}
 </div>
-
-{{item_discounts(item)}}
-
 
 
 {{block page_js}}

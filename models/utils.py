@@ -114,8 +114,23 @@ def item_discounts(item):
         query = ((query) & db.discount.id_offer_group == offer_group.id)
         final_query = ((total_query) | (query))
     final_query = (final_query) & base_query
-    discounts = db(final_query).select()
-    print discounts
+    combinable_discounts = db(final_query & (db.discount.is_combinable == True)).select()
+    nocombinable_discounts = db(final_query & (db.discount.is_combinable == False)).select()
+    # calculate the sum of combinable discounts
+    combinable_discounts_p = 0
+    for c_discount in combinable_discounts:
+        combinable_discounts_p += c_discount.percentage
+    max_nc_discount = nocombinable_discounts.first()
+    for nc_discount in nocombinable_discounts:
+        if max_nc_discount.percentage < nc_discount.percentage:
+            max_nc_discount = nc_discount
+    if combinable_discounts or nocombinable_discounts:
+        if max_nc_discount.percentage > combinable_discounts_p:
+            print max_nc_discount.percentage
+
+            return [max_nc_discount]
+        else:
+            return combinable_discounts
 
 
 def new_wallet(balance=0):
