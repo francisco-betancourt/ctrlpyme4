@@ -174,6 +174,8 @@ def item_card(item):
     brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
 
     item_price = (item.base_price or 0) + item_taxes(item, item.base_price)
+    fix_item_price(item, item.base_price)
+    item_price = item.discounted_price
 
     return DIV(
         DIV(_class="panel-heading", _style=bg_style, _onclick="window.location.href = '%s';" % URL('item', 'get_item', vars=dict(name=item.name))),
@@ -185,7 +187,9 @@ def item_card(item):
             brand_link,
             # create_item_options(item),
             # P(item.description, _class="description"),
-            DIV(_class='filler'),
+            HR(),
+            DIV(T('before'), SPAN('$ ', SPAN(item.new_price, _class="old-price"), _class="right")),
+            DIV(T('discount'), SPAN(SPAN(item.discount_percentage), '%', _class="right text-danger")),
             DIV(
                 SPAN(T(available), _class=available_class + ' item-available'),
                 H4('$ ', DQ(item_price, True), _class="item-price"),

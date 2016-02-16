@@ -217,6 +217,11 @@ select {
 }
 
 
+.old-price {
+  text-decoration: line-through;
+}
+
+
 .left-sidebar h1 {
   word-break: break-all;
 }

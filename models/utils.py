@@ -113,7 +113,9 @@ def item_discounts(item):
     base_query = (db.discount.is_coupon == False) & (db.discount.code == '')
     for offer_group in offer_groups:
         # for every group query all applicable discounts
-        query = (db.discount.id_item == item.id) | (db.discount.id_brand == item.id_brand.id)
+        query = db.discount.id_item == item.id
+        if item.id_brand:
+            query |= db.discount.id_brand == item.id_brand.id
         for category in item.categories:
             query |= db.discount.id_category == category.id
         query &= db.discount.id_offer_group == offer_group.id
@@ -144,18 +146,18 @@ def item_discounts(item):
         return c_discounts
 
 
-def fix_item_price(item):
+def fix_item_price(item, price):
     """ modifies the item data based on discounts and taxes """
 
-    new_price = item.base_price
+    new_price = price
     discounts = item_discounts(item)
     for discount in discounts:
         new_price -= new_price * DQ(discount.percentage / 100.0)
     new_price += item_taxes(item, new_price)
 
-    item.base_price += item_taxes(item, item.base_price)
-    discount_percentage = int((1 - (new_price / item.base_price)) * 100)
-    item.base_price = str(DQ(item.base_price, True))
+    item.new_price = price + item_taxes(item, price)
+    discount_percentage = int((1 - (new_price / item.new_price)) * 100)
+    item.new_price = str(DQ(item.new_price, True))
     item.discounted_price = str(DQ(new_price, True))
     item.discount_percentage = discount_percentage
 
