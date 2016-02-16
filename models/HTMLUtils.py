@@ -52,7 +52,7 @@ def INFO_CARD():
     return content
 
 
-def pages_menu(query, page=0, ipp=10):
+def pages_menu(query, page=0, ipp=10, distinct=None):
     """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
 
     try:
@@ -64,7 +64,7 @@ def pages_menu(query, page=0, ipp=10):
 
     start = page * ipp
     end = start + ipp
-    total_rows_count = db(query).count()
+    total_rows_count = db(query).count(distinct=distinct)
     pages_count = total_rows_count / ipp
     page = int(min(page, pages_count))
     page = int(max(0, page))

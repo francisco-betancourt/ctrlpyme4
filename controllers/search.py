@@ -49,7 +49,7 @@ def search_item():
 
     if not term:
         query = (db.item.is_active == True)
-    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
+    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(groupby=db.item.name, limitby=limits)
 
     return dict(items=items, categories_data_script=categories_data_script, pages=pages)
