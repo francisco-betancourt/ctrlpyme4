@@ -104,33 +104,39 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
 
 def item_discounts(item):
     # get the current offer groups
-    offer_groups = db((db.offer_group.starts_on > request.now) & (db.offer_group.ends_on < request.now)).select()
-    final_query = (db.discount.id > 0)
-    base_query = ((db.discount.is_coupon == False) & (db.discount.code == ''))
+    offer_groups = db((db.offer_group.starts_on < request.now) & (db.offer_group.ends_on > request.now)).select()
+    if not offer_groups:
+        return []
+
+    final_query = db.discount.id < 0
+    base_query = (db.discount.is_coupon == False) & (db.discount.code == '')
     for offer_group in offer_groups:
         query = (db.discount.id_item == item.id) | (db.discount.id_brand == item.id_brand.id)
         for category in item.categories:
-            query |= (db.discount.id_category == category.id)
-        query = ((query) & db.discount.id_offer_group == offer_group.id)
-        final_query = ((total_query) | (query))
-    final_query = (final_query) & base_query
-    combinable_discounts = db(final_query & (db.discount.is_combinable == True)).select()
-    nocombinable_discounts = db(final_query & (db.discount.is_combinable == False)).select()
-    # calculate the sum of combinable discounts
-    combinable_discounts_p = 0
-    for c_discount in combinable_discounts:
-        combinable_discounts_p += c_discount.percentage
-    max_nc_discount = nocombinable_discounts.first()
-    for nc_discount in nocombinable_discounts:
-        if max_nc_discount.percentage < nc_discount.percentage:
-            max_nc_discount = nc_discount
-    if combinable_discounts or nocombinable_discounts:
-        if max_nc_discount.percentage > combinable_discounts_p:
-            print max_nc_discount.percentage
+            query |= db.discount.id_category == category.id
+        query &= db.discount.id_offer_group == offer_group.id
+        final_query |= query
+    final_query &= base_query
+    # print final_query
+    c_discounts = db(final_query & (db.discount.is_combinable == True)).select()
+    nc_discounts = db(final_query & (db.discount.is_combinable == False)).select()
+    print nc_discounts
 
-            return [max_nc_discount]
-        else:
-            return combinable_discounts
+    # calculate the sum of combinable discounts
+    c_discounts_p = 0
+    for c_discount in c_discounts:
+        c_discounts_p += c_discount.percentage
+    if nc_discounts:
+        max_nc_discount = nc_discounts.first()
+        for nc_discount in nc_discounts:
+            if max_nc_discount.percentage < nc_discount.percentage:
+                max_nc_discount = nc_discount
+    else:
+        return c_discounts
+    if max_nc_discount.percentage > c_discounts_p:
+        return [max_nc_discount]
+    else:
+        return c_discounts
 
 
 def new_wallet(balance=0):
