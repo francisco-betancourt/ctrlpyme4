@@ -177,24 +177,34 @@ def item_card(item):
     fix_item_price(item, item.base_price)
     item_price = item.discounted_price
 
+    item_price_html = DIV()
+    if item.discount_percentage > 0:
+        item_price_html.append(DIV(T('before'), SPAN('$ ', SPAN(item.new_price, _class="old-price"), _class="right")))
+        item_price_html.append(
+            DIV(T('discount'), SPAN(SPAN(item.discount_percentage), '%', _class="right text-danger"))
+        )
+    item_price_html.append(
+        DIV(
+            SPAN(T(available), _class=available_class + ' item-available'),
+            H4('$ ', DQ(item_price, True), _class="item-price"),
+            _class="item-card-bottom"
+        )
+    )
+
     return DIV(
         DIV(_class="panel-heading", _style=bg_style, _onclick="window.location.href = '%s';" % URL('item', 'get_item', vars=dict(name=item.name))),
         DIV(
-            H4(
-                A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))
-                )
+            DIV(
+                H4(
+                    A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))
+                    )
+                ),
+                brand_link,
+                _class="item_data"
             ),
-            brand_link,
             # create_item_options(item),
             # P(item.description, _class="description"),
-            HR(),
-            DIV(T('before'), SPAN('$ ', SPAN(item.new_price, _class="old-price"), _class="right")),
-            DIV(T('discount'), SPAN(SPAN(item.discount_percentage), '%', _class="right text-danger")),
-            DIV(
-                SPAN(T(available), _class=available_class + ' item-available'),
-                H4('$ ', DQ(item_price, True), _class="item-price"),
-                _class="item-card-bottom"
-            ),
+            item_price_html,
             _class="panel-body"
         ),
         _class="panel panel-default item-card"
