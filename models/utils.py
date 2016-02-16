@@ -47,6 +47,7 @@ def remove_fractions(value):
     return D(math.floor(float(value))).quantize(D('1'))
 
 
+
 def item_taxes(item, price):
     total = 0
     for tax in item.taxes:
@@ -111,21 +112,24 @@ def item_discounts(item):
     final_query = db.discount.id < 0
     base_query = (db.discount.is_coupon == False) & (db.discount.code == '')
     for offer_group in offer_groups:
+        # for every group query all applicable discounts
         query = (db.discount.id_item == item.id) | (db.discount.id_brand == item.id_brand.id)
         for category in item.categories:
             query |= db.discount.id_category == category.id
         query &= db.discount.id_offer_group == offer_group.id
         final_query |= query
     final_query &= base_query
-    # print final_query
+
+    # combinable discounts
     c_discounts = db(final_query & (db.discount.is_combinable == True)).select()
+    # non combinable discounts
     nc_discounts = db(final_query & (db.discount.is_combinable == False)).select()
-    print nc_discounts
 
     # calculate the sum of combinable discounts
     c_discounts_p = 0
     for c_discount in c_discounts:
         c_discounts_p += c_discount.percentage
+    # get the maximum no combinable discount
     if nc_discounts:
         max_nc_discount = nc_discounts.first()
         for nc_discount in nc_discounts:
@@ -133,10 +137,27 @@ def item_discounts(item):
                 max_nc_discount = nc_discount
     else:
         return c_discounts
+    # return the max discount
     if max_nc_discount.percentage > c_discounts_p:
         return [max_nc_discount]
     else:
         return c_discounts
+
+
+def fix_item_price(item):
+    """ modifies the item data based on discounts and taxes """
+
+    new_price = item.base_price
+    discounts = item_discounts(item)
+    for discount in discounts:
+        new_price -= new_price * DQ(discount.percentage / 100.0)
+    new_price += item_taxes(item, new_price)
+
+    item.base_price += item_taxes(item, item.base_price)
+    discount_percentage = int((1 - (new_price / item.base_price)) * 100)
+    item.base_price = str(DQ(item.base_price, True))
+    item.discounted_price = str(DQ(new_price, True))
+    item.discount_percentage = discount_percentage
 
 
 def new_wallet(balance=0):

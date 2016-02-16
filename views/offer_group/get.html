@@ -10,24 +10,15 @@
 </style>
 
 {{block left_sidebar}}
+<hr>
 <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer_group.bg_image)}})">
   <div class="data">
     <h2>{{=offer_group.name}}</h2>
     <p>{{=offer_group.starts_on.strftime('%a %d %B %Y')}} -  {{=offer_group.ends_on.strftime('%a %d %B %Y')}}</p>
   </div>
 </div>
-{{for discount in discounts:}}
-  <h3>
-    {{=discount.percentage}}% {{=T('OFF')}} {{=T('on')}}
-    {{if discount.id_item:}}
-      {{=discount.id_item.name}}
-    {{elif discount.id_brand:}}
-      {{=discount.id_brand.name}}
-    {{elif discount.id_category:}}
-      {{=discount.id_category.name}}
-    {{pass}}
-  </h3>
-{{pass}}
+<hr>
+{{=discounts_list(discounts)}}
 {{end}}
 
 <hr>

@@ -5,6 +5,30 @@
 import math
 
 
+def discounts_list(discounts):
+    ul = UL(_class="list-group")
+
+    for discount in discounts:
+        li = LI(_class="list-group-item")
+        li.append(B('%s%% %s' % (discount.percentage, T('OFF'))))
+        li.append(' %s ' % T('for'))
+        if discount.id_item:
+            a_text = '%s %s %s' % (T('item'), discount.id_item.name, discount.id_item.id)
+            a_href = URL('item', 'get_item', args=discount.id_item.id)
+        if discount.id_brand:
+            a_text = '%s %s' % (T('brand'), discount.id_brand.name)
+            a_href = URL('item', 'get_by_brand', args=discount.id_brand.id)
+        if discount.id_category:
+            a_text = '%s %s' % (T('category'), discount.id_category.name)
+            a_href = URL('item', 'browse', vars=dict(category=discount.id_category.id))
+        li.append(A(a_text, _href=a_href, _target='_blank'))
+        if discount.code:
+            li.append(' %s: ' % T('using code'))
+            li.append(B(discount.code))
+        ul.append(li)
+    return ul
+
+
 def ICON(icon_name, _id="", _class=""):
     # icon_name = icon_name.replace('-', '_')
     return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)

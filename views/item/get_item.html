@@ -27,14 +27,21 @@
 </div>
 {{pass}}
 
-{{discounts = item_discounts(item)}}
-<h3>{{=T('Price')}}: <span class="right">$ <span class="item-price" {{if discounts:}} style="text-decoration: line-through" {{pass}}>{{=DQ(item.base_price, True)}}</span></span></h3>
+
 {{if discounts:}}
-  {{discounted_price = DQ(item.base_price)}}
-  {{for discount in discounts:}}
-    {{discounted_price = discounted_price - discounted_price * DQ(discount.percentage / 100.0)}}
-  {{pass}}
-  <h3 class="right">$ {{=DQ(discounted_price, True)}}</h3>
+  <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price" style="text-decoration: line-through">{{=DQ(item.base_price, True)}}</span> </span></h3>
+  <h3>{{=T('Discount')}}:
+    <span class="right text-danger">
+      <span class="discount_percentage">{{=item.discount_percentage}}</span>%
+    </span>
+  </h3>
+  <h3 class="right">$
+    <span class="discounted_price">
+      {{=DQ(item.discounted_price, True)}}
+    </span>
+  </h3>
+{{else:}}
+  <h3>{{=T('Price')}}: <span class="right">$ <span class="item-price">{{=DQ(item.base_price, True)}}</span> </span></h3>
 {{pass}}
 
 
@@ -157,6 +164,8 @@
     })
     .done(function (data) {
       $('.item-price').text(data.item.base_price);
+      $('.discounted_price').text(data.item.discounted_price);
+      $('.discount_percentage').text(data.item.discount_percentage);
       $('.stock').html(data.stock);
       current_item_id = data.item.id;
 

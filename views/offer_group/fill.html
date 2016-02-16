@@ -78,31 +78,8 @@
 
 <!-- discounts list -->
 <h1>{{=T('Discounts')}}</h1>
-<ul class="list-group">
-  {{for discount in discounts:}}
-    <li class="list-group-item">
-      <b>{{=discount.percentage}}% {{=T('OFF')}}</b>
-      {{=T('for')}}
-      {{if discount.id_item:}}
-        <a href="{{=URL('item', 'get_item', args=discount.id_item.id)}}" target='_blank'>
-          {{=T('item')}} {{=discount.id_item.name}} {{discount.id_item.id}}
-        </a>
-      {{elif discount.id_brand:}}
-        <a href="{{=URL('item', 'get_by_brand', args=discount.id_brand.id)}}" target='_blank'>
-          {{=T('brand')}} {{=discount.id_brand.name}} {{discount.id_brand.id}}
-        </a>
-      {{elif discount.id_category:}}
-        <a href="{{=URL('item', 'browse', vars=dict(category=discount.id_category.id))}}" target='_blank'>
-          {{=T('category')}} {{=discount.id_category.name}} {{discount.id_category.id}}
-        </a>
-      {{pass}}
-      {{if discount.code:}}
-        {{=T('using code:')}} <b>{{=discount.code}}</b>
-      {{pass}}
-      <a class="right" href="{{=URL('delete_discount', args=discount.id)}}">{{=ICON('times')}}</a>
-    </li>
-  {{pass}}
-</ul>
+
+{{=discounts_list(discounts)}}
 
 
 {{block page_js}}

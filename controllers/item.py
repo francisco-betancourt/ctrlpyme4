@@ -365,8 +365,17 @@ def get_item():
     if not item:
         raise HTTP(404)
 
+    new_price = item.base_price
+    discounts = item_discounts(item)
+    for discount in discounts:
+        new_price -= new_price * DQ(discount.percentage / 100.0)
+    new_price += item_taxes(item, new_price)
+
     item.base_price += item_taxes(item, item.base_price)
+    discount_percentage = int((1 - (new_price / item.base_price)) * 100)
     item.base_price = str(DQ(item.base_price, True))
+    item.discounted_price = str(DQ(new_price, True))
+    item.discount_percentage = discount_percentage
     stock = stock_info(item)
     images = db(db.item_image.id_item == item.id).select()
 
