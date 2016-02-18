@@ -146,6 +146,17 @@ def item_discounts(item):
         return c_discounts
 
 
+def discount_data(discounts, price):
+    new_price = price
+    for discount in discounts:
+        new_price -= new_price * D(discount.percentage / 100.0)
+    return new_price, (D(1.0) - (new_price / price)) * D(100)
+
+def apply_discount(discounts, price):
+    return discount_data(discounts, price)[0]
+
+
+
 def fix_item_price(item, price):
     """ modifies the item data based on discounts and taxes """
 

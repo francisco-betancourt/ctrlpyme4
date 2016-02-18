@@ -92,13 +92,16 @@ def modify_bag_item():
     return dict(status='ok', bag_item=bag_item, **bag_data)
 
 
-def set_bag_item(bag_item):
+def set_bag_item(bag_item, discounts=[]):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
-    item = db.item(bag_item.id_item)
+    item = bag_item.id_item
     # bag_item.name = item.name
+
+    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + bag_item.discount))
+    item.base_price -= item.base_price * discount_p
     bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
-    bag_item.price2 = money_format(DQ(item.price2, True)) if item.price2 else 0
-    bag_item.price3 = money_format(DQ(item.price3, True)) if item.price3 else 0
+    bag_item.price2 = money_format(DQ(item.price2 - item.price2 * discount_p, True)) if item.price2 else 0
+    bag_item.price3 = money_format(DQ(item.price3 - item.price3 * discount_p, True)) if item.price3 else 0
     bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0, True))
 
     bag_item.measure_unit = item.id_measure_unit.symbol
@@ -107,6 +110,7 @@ def set_bag_item(bag_item):
     stocks = item_stock(item, session.store)
     bag_item.has_inventory = item.has_inventory
     bag_item.stock = stocks['quantity'] if stocks else 0
+    bag_item.discount_percentage = int(discount_p * D(100.0))
 
     return bag_item
 
@@ -189,7 +193,10 @@ def add_bag_item():
                 item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
                 if tax != item.taxes[-1]:
                     item_taxes_str += ','
-            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=item.base_price, product_name=item.name, item_taxes=item_taxes_str,
+            discounts = item_discounts(item)
+            sale_price = discount_data(discounts, item.base_price)[0]
+            discount = item.base_price - sale_price
+            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=sale_price, discount=discount, product_name=item.name, item_taxes=item_taxes_str,
                 sale_taxes=item_taxes(item, item.base_price))
             bag_item = db.bag_item(id_bag_item)
         else:

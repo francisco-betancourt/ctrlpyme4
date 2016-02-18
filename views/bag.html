@@ -59,7 +59,7 @@
 
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
-    <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
+    <h4><span class="item_name"></span> <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}}</span><i class="fa fa-times right close"></i></h4>
     <p><span class="item_stock"></span></p>
     <p><span class="item_price base_price"></span></p>
     <p>
@@ -258,6 +258,8 @@
     else {
       new_item.find('.extra_prices').remove();
     }
+
+    new_item.find('.discount').text(data.discount_percentage);
 
     new_item.find('.item_qty').val(data.quantity);
     new_item.find('.munit').text(data.measure_unit);
