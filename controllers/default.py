@@ -9,24 +9,17 @@
 #########################################################################
 
 def index():
-    """
-    example action using the internationalization operator T and flash
-    rendered by views/default/index.html or views/generic.html
-
-    if you need a simple wiki simply replace the two lines below with:
-    return auth.wiki()
-    """
-    # response.flash = T("Hello World")
-
     popular_items_rows = db((db.sale.id_bag == db.bag.id)
                           & (db.bag_item.id_bag == db.bag.id)
-                        #   & (db.)
-                          ).select(orderby=db.bag_item.quantity, groupby=db.bag_item.product_name, limitby=(0,10))
+                          & (db.bag_item.id_item == db.item.id)
+                          & (db.sale.is_done == True)
+                          & (db.item.id > 0)
+                          ).select(orderby=db.bag_item.quantity, limitby=(0,10))
     popular_items = []
     for pitem in popular_items_rows:
         popular_items.append(pitem.bag_item.id_item)
 
-    new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10), groupby=db.item.name)
+    new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 
     highlights = db((db.highlight.id_store == session.store)
                   | (db.highlight.id_store == None)

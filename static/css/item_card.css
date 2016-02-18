@@ -12,6 +12,7 @@
 .item-card {
   position: relative;
   margin-right: 8px;
+  margin-bottom: 8px;
   padding-top: 10px;
   flex: auto;
   min-width: 220px;
@@ -45,6 +46,17 @@
 }
 .item-card .item_data {
   flex: 100%;
+}
+
+.item-card .item-options {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+.item-card .item-options .dropdown-menu {
+  left: auto;
+  right: 0px;
 }
 
 .item-card-bottom {

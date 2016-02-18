@@ -163,7 +163,7 @@ def item_card(item):
     bg_style = ""
     images = db(
         (db.item_image.id_item == db.item.id)
-      & (db.item.name == item.name)
+      & (db.item.id == item.id)
       & (db.item.is_active == True)
     ).select(db.item_image.ALL)
     if images:
@@ -191,17 +191,42 @@ def item_card(item):
         )
     )
 
+    # item options
+    item_options = DIV(
+        BUTTON(ICON('shopping-bag'), _type="button", _class="btn btn-default", _onclick="add_bag_item(%s)" % item.id)
+        , _class="btn-group item-options"
+    )
+    if auth.has_membership('Employee'):
+        expand_btn = BUTTON(SPAN(_class="caret"), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
+        item_options.append(expand_btn)
+        options_ul = UL(_class="dropdown-menu")
+        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+            options_ul.append(LI(A(ICON('pencil'), ' ', T('Update'), _href=URL('item', 'update', args=item.id))))
+            options_ul.append(LI(A(ICON('th'), ' ', T('Print labels'), _href=URL('item', 'labels', args=item.id))))
+            options_ul.append(LI(A(ICON('picture-o'), ' ', T('Add images'), _href=URL('item_image', 'create', args=item.id))))
+        if auth.has_membership('Analytics'):
+            options_ul.append(LI(A(ICON('line-chart'), ' ', T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
+        item_options.append(options_ul)
+
+
+    # concatenate all the item traits, this string will be appended to the item name
+    traits_str = ''
+    traits_ids = ''
+    for trait in item.traits:
+        traits_ids += str(trait.id)
+        traits_str += trait.trait_option + ' '
+        if trait != item.traits[-1]:
+            traits_ids += ','
+    item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
+    item_name = item.name + ' ' + traits_str
+
     return DIV(
-        DIV(_class="panel-heading", _style=bg_style, _onclick="window.location.href = '%s';" % URL('item', 'get_item', vars=dict(name=item.name))),
+        A('', _class="panel-heading", _style=bg_style, _href=item_url),
         DIV(
-            DIV(
-                H4(
-                    A(item.name, _href=URL('item', 'get_item', vars=dict(name=item.name))
-                    )
-                ),
-                brand_link,
+            DIV(H4(A(item_name, _href=item_url)), brand_link,
                 _class="item_data"
             ),
+            item_options,
             # create_item_options(item),
             # P(item.description, _class="description"),
             item_price_html,

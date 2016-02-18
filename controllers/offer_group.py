@@ -107,7 +107,7 @@ def get():
         if discount.id_category:
             query |= (db.item.categories.contains(discount.id_category.id))
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(groupby=db.item.name, limitby=limits)
+    items = db(query).select(limitby=limits)
 
     return locals()
 
