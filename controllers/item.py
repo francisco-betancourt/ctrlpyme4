@@ -312,6 +312,8 @@ def get_item():
         item_name = request.vars.name
 
         # when traits are specified, only one item with the specified name and traits should match
+                # this is the first item
+        item = None
         if request.vars.traits:
             traits = request.vars.traits.split(',')
             item = db(
@@ -319,49 +321,52 @@ def get_item():
               & (db.item.traits.contains(traits, all=True))
               & (db.item.is_active == True)
             ).select().first()
-        # multiple items could have the same name, we have to return those items and its traits, for future selection
         else:
-            items = db(
+            item = db(
                 (db.item.name == item_name)
               & (db.item.is_active == True)
-            ).select()
-            if not items:
-                raise HTTP(404)
-            if len(items) > 1:
-                multiple_items = True
+            ).select().first()
+        if not item:
+            raise HTTP(404)
 
-            same_traits = True
-            base_trait_category_set = []
-            trait_options = {}
+        # since the could be multiple items with the same name, we query all the items with the specified name different than the first item
+        items = db(
+            (db.item.name == item_name)
+          & (db.item.id != item.id)
+          & (db.item.is_active == True)
+        ).select()
+        if items > 1:
+            multiple_items = True
 
-            # this is the first item
-            item = items.first()
+        same_traits = True
+        base_trait_category_set = []
+        trait_options = {}
 
-            if multiple_items:
-                other_items = items[1:]
-                for trait in items.first().traits:
-                    base_trait_category_set.append(trait.id_trait_category)
-                    trait_options[str(trait.id_trait_category.id)] = {
-                        'id': trait.id_trait_category.id,
-                        'options': [{'name': trait.trait_option, 'id': trait.id}]
-                    }
-                base_trait_category_set = set(base_trait_category_set)
-                # check if all the items have the same traits
-                broken = False
-                for other_item in other_items:
-                    other_trait_category_set = []
-                    if not other_item.traits and item.traits:
+        if multiple_items:
+            other_items = items
+            for trait in item.traits:
+                base_trait_category_set.append(trait.id_trait_category)
+                trait_options[str(trait.id_trait_category.id)] = {
+                    'id': trait.id_trait_category.id,
+                    'options': [{'name': trait.trait_option, 'id': trait.id}]
+                }
+            base_trait_category_set = set(base_trait_category_set)
+            # check if all the items have the same traits
+            broken = False
+            for other_item in other_items:
+                other_trait_category_set = []
+                if not other_item.traits and item.traits:
+                    same_traits = False
+                    break
+                for trait in other_item.traits:
+                    other_trait_category_set.append(trait.id_trait_category)
+                    if not trait.id_trait_category in base_trait_category_set:
                         same_traits = False
+                        broken = True
                         break
-                    for trait in other_item.traits:
-                        other_trait_category_set.append(trait.id_trait_category)
-                        if not trait.id_trait_category in base_trait_category_set:
-                            same_traits = False
-                            broken = True
-                            break
-                        trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
-                    if broken:
-                        break
+                    trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
+                if broken:
+                    break
     if not item:
         raise HTTP(404)
 
@@ -371,6 +376,7 @@ def get_item():
         new_price -= new_price * DQ(discount.percentage / 100.0)
     new_price += item_taxes(item, new_price)
 
+    item.barcode = item_barcode(item)
     item.base_price += item_taxes(item, item.base_price)
     discount_percentage = int((1 - (new_price / item.base_price)) * 100)
     item.base_price = str(DQ(item.base_price, True))

@@ -197,7 +197,7 @@ def item_card(item):
         , _class="btn-group item-options"
     )
     if auth.has_membership('Employee'):
-        expand_btn = BUTTON(SPAN(_class="caret"), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
+        expand_btn = BUTTON(ICON('ellipsis-v'), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
         item_options.append(expand_btn)
         options_ul = UL(_class="dropdown-menu")
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):

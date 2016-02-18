@@ -163,6 +163,7 @@
       url: url
     })
     .done(function (data) {
+      $('.barcode').text(data.item.barcode);
       $('.item-price').text(data.item.base_price);
       $('.discounted_price').text(data.item.discounted_price);
       $('.discount_percentage').text(data.item.discount_percentage);
