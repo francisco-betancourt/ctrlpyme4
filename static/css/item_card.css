@@ -52,6 +52,13 @@
   position: absolute;
   top: 0px;
   right: 0px;
+
+  margin-top: -1px;
+  margin-right: -1px;
+}
+.item-card .item-options button {
+  border-bottom-right-radius: 0px;
+  border-top-left-radius: 0px;
 }
 
 .item-card .item-options .dropdown-menu {
@@ -126,12 +133,6 @@
 
 @media(max-width: 500px) {
   .item-card .item-available {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    left: auto;
-    bottom: auto;
-
     width: 14px;
     height: 14px;
     border-radius: 100%;

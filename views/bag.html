@@ -259,7 +259,12 @@
       new_item.find('.extra_prices').remove();
     }
 
-    new_item.find('.discount').text(data.discount_percentage);
+    if (data.discount_percentage == 0) {
+      new_item.find('.discount').parent().remove();
+    }
+    else {
+      new_item.find('.discount').text(data.discount_percentage);
+    }
 
     new_item.find('.item_qty').val(data.quantity);
     new_item.find('.munit').text(data.measure_unit);

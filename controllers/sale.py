@@ -302,11 +302,14 @@ def create():
     for bag_item in bag_items:
         #TODO check for existences before the sale
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
-        stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
-        # if theres no stock the user needs to modify the bag
-        if stock_qty <= quantity:
-            session.info = T('Some items are missing')
-            redirect('default', 'index')
+        if bag_item.id_item.has_inventory:
+            stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
+            # if theres no stock the user needs to modify the bag
+            if stock_qty <= quantity:
+                session.info = T('Some items are missing')
+                bag.completed = False
+                bag.update_record()
+                redirect(URL('default', 'index'))
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity

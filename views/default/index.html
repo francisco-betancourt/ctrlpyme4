@@ -9,12 +9,12 @@
     margin-bottom: 10px;
   }
 
-  
+
 </style>
 
 
 <h1>{{=T('Highlights')}}</h1>
-<div class="highlighs">
+<div class="highlights">
   {{for highlight in highlights:}}
     <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=highlight.bg_image)}})">
       <div class="data">

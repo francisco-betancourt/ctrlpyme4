@@ -270,13 +270,15 @@ def change_bag_item_sale_price():
     if is_vip_seller:
         # change the item bag item sale price in db
         sale_price = bag_item.sale_price
+        discount_p = D(1) - (sale_price / (sale_price + bag_item.discount))
         if price_index == '1':
             sale_price = bag_item.id_item.base_price
         elif price_index == '2':
             sale_price = bag_item.id_item.price2
         elif price_index == '3':
             sale_price = bag_item.id_item.price3
-        bag_item.sale_price = sale_price
+        bag_item.sale_price = sale_price - sale_price * discount_p
+        bag_item.discount = sale_price * discount_p
         bag_item.sale_taxes = item_taxes(bag_item.id_item, bag_item.sale_price or 0)
         bag_item.update_record()
     else:
