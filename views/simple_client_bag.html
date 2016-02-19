@@ -10,13 +10,11 @@
   </div>
 
   <div class="panel-footer">
-    <p> <span>{{=T('Subtotal')}}</span> <span class="right subtotal">00</span> </p>
-    <p> <span>{{=T('Taxes')}}</span> <span class="right taxes">00</span> </p>
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
 
     <div id="bag_buttons">
       <hr>
-      <button class="btn btn-primary sell_bag" onclick="sell_bag();">
+      <button class="btn btn-primary btn-block sell_bag" onclick="sell_bag();">
         {{=T('Complete')}}
       </button>
     </div>
@@ -24,40 +22,29 @@
   </div>
 </div>
 
+<p>{{=T('All prices includes taxes')}}</p>
+
 
 
 
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
-    <h4><span class="item_name"></span><i class="fa fa-times right close"></i></h4>
+    <h4><span class="item_name"></span>
+      <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}} ({{=T('Already applied')}})</span>
+      <i class="fa fa-times right close"></i>
+    </h4>
     <p><span class="item_stock"></span></p>
-    <p><span class="item_price base_price"></span></p>
+    <p>
+      <span>
+        <span> {{=T('Unit price')}}: </span>
+        <span class="right">$ <span class="item_price base_price"></span></span>
+      </span>
+    </p>
 
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
       <input type="number" class="form-control item_qty">
       <div class="input-group-addon munit"></div>
-    </div>
-  </div>
-</div>
-
-
-
-<div class="modal fade" tabindex="-1" role="dialog" id="access_code_modal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">{{=T('Manager access')}}</h4>
-      </div>
-      <div class="modal-body">
-        <input type="password" id="access_code" class="form-control">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary submit">
-          {{=T('Authenticate')}}
-        </button>
-      </div>
     </div>
   </div>
 </div>
@@ -91,32 +78,8 @@
 <script>
 
   function set_bag_data(data) {
-    $('#current_bag .subtotal').text(data.subtotal);
-    $('#current_bag .taxes').text(data.taxes);
     $('#current_bag .total').text(data.total);
-
     $('#current_bag .bag_quantity').text(data.quantity);
-  }
-
-
-  function set_sale_price(price_index, bag_item_id, target) {
-    $('#access_code_modal').find('.submit').click(function (event) {
-      $.ajax({
-        url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
-      })
-      .done(function (data) {
-        $('#access_code_modal').modal('hide');
-        $(target).parent().find('.btn-primary').removeClass('btn-primary');
-        $(target).addClass('btn-primary');
-
-        set_bag_data(data)
-      })
-      .fail(function (data) {
-        $('#access_code_modal').modal('hide');
-        alert('Invalid access');
-      })
-    })
-    $('#access_code_modal').modal();
   }
 
 
@@ -151,7 +114,7 @@
     else {
       new_item_stock.text('{{=T("only")}} ' + data.stock + ' {{=T("left")}}');
     }
-    new_item.find('.item_price').text(data.base_price);
+    new_item.find('.item_price').text(data.total_sale_price);
 
     new_item.find('.item_qty').val(data.quantity);
     new_item.find('.munit').text(data.measure_unit);
@@ -165,6 +128,13 @@
         set_bag_data(res)
       })
     })
+
+    if (data.discount_percentage == 0) {
+      new_item.find('.discount').parent().remove();
+    }
+    else {
+      new_item.find('.discount').text(data.discount_percentage);
+    }
 
     new_item.find('.item_qty').change(function (event) {
       $.ajax({

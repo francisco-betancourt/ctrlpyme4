@@ -38,6 +38,10 @@ def client_profile():
     orders = db(db.sale_order.id_client == auth.user.id).select()
     orders_data = None
     orders_data = super_table('sale_order', ['is_ready'], (db.sale_order.id_client == auth.user.id), options_function=client_order_options, show_id=True, selectable=False)
+    wallet_balance = 0
+    if auth.user.id_wallet:
+        wallet_balance = db.wallet(auth.user.id_wallet).balance
+    wallet_balance = str(DQ(wallet_balance, True))
     return locals()
 
 
@@ -49,7 +53,7 @@ def create_client():
         new_client = db.auth_user(form.vars.id)
         new_client.is_client = True
         # add a new wallet to client
-        new_client.id_wallet = new_wallet()
+        new_client.id_wallet = db.wallet(new_wallet())
         new_client.update_record()
         if clients_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)
@@ -237,9 +241,8 @@ def index():
 
 @auth.requires_login()
 def post_login():
-    if auth.has_membership('Clients'):
+    if auth.has_membership('Clients') or auth.user.is_client:
         auto_bag_selection()
-
     redirection()
 
 

@@ -99,6 +99,7 @@ def set_bag_item(bag_item, discounts=[]):
 
     discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + bag_item.discount))
     item.base_price -= item.base_price * discount_p
+    bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
     bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
     bag_item.price2 = money_format(DQ(item.price2 - item.price2 * discount_p, True)) if item.price2 else 0
     bag_item.price3 = money_format(DQ(item.price3 - item.price3 * discount_p, True)) if item.price3 else 0
@@ -197,7 +198,7 @@ def add_bag_item():
             sale_price = discount_data(discounts, item.base_price)[0]
             discount = item.base_price - sale_price
             id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=sale_price, discount=discount, product_name=item.name, item_taxes=item_taxes_str,
-                sale_taxes=item_taxes(item, item.base_price))
+                sale_taxes=item_taxes(item, sale_price))
             bag_item = db.bag_item(id_bag_item)
         else:
             base_qty = item_stock_qty if item_stock_qty < 1 and not is_online_sale else 1
