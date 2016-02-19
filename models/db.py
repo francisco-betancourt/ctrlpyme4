@@ -256,6 +256,21 @@ db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior
 
 highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))
 
+
+db.define_table(
+    'notification'
+    , Field('id_store', 'reference store', label=T('Store'))
+    # , Field('id_group', 'reference auth_group', label=T('Group'))
+    , Field('title', label=T('Title'))
+    , Field('description', label=T('Description'))
+    , Field('url', label=T('URL'))
+    , Field('is_done', 'boolean', default=False, label=T('Is done'))
+    , auth.signature
+)
+db.notification.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
+db.notification.url.requires = IS_URL()
+
+
 db.define_table(
     'highlight'
     , Field('id_store', 'reference store', label=T('Store'))

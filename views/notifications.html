@@ -1,0 +1,42 @@
+<style>
+  #notifications {
+  }
+
+  .notifications-list {
+    padding-left: 0px;
+    list-style-type: none;
+  }
+
+  .notification {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+</style>
+
+<div id="notifications" class="panel panel-default">
+  <div class="panel-heading">
+    <h3>Notifications</h3>
+  </div>
+  <div class="panel-body">
+    {{if notifications:}}
+      <ul class="notifications-list">
+        {{for notification in notifications:}}
+          <li class="notification">
+            <div>
+              <b>{{=notification.title}}</b> <br>
+              {{=notification.description}}
+            </div>
+            <div> {{=ICON('check')}} </div>
+          </li>
+        {{pass}}
+      </ul>
+    {{else:}}
+      <p>{{=T('No notifications')}}</p>
+    {{pass}}
+  </div>
+</div>

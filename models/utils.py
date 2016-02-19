@@ -8,6 +8,7 @@ from decimal import Decimal as D
 import math
 import json
 from uuid import uuid4
+from gluon.storage import Storage
 
 
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
@@ -25,6 +26,16 @@ def urlify_string(string):
     s = urllib.quote(s)
     return s
 
+
+def get_notifications():
+    notifications = []
+    # check pending orders
+    if auth.has_membership('Sale orders'):
+        pending_orders = db(db.sale_order.is_ready == False).select()
+        for pending_order in pending_orders:
+            notifications.append(Storage(title=T('Sale order'), description=T('This sale order is incomplete') ))
+
+    return notifications
 
 def item_barcode(item):
     return item.sku or item.ean or item.upc

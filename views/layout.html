@@ -119,6 +119,8 @@
     </script>
 
     <!-- Navbar ======================================= -->
+    {{notifications = get_notifications()}}
+    
 
     {{include "navbar2.html"}}
 
@@ -184,6 +186,18 @@
         {{end}}
       </div>
 
+      <section id="notifications_container" hidden class=" col-sm-5 col-md-5 col-lg-3 floating-container">
+        {{include 'notifications.html'}}
+      </section>
+      <script>
+        $('#notifications_container').css("padding-top", $('nav').height());
+
+        function toggle_notifications() {
+          $('#bag_container').hide();
+          $('#notifications_container').toggle();
+        }
+      </script>
+
       {{if include_bag and request.controller != 'appadmin':}}
         <link rel="stylesheet" href="{{=URL('static', 'css/bag.css')}}">
         <secction id="bag_container" hidden class=" col-sm-5 col-md-5 col-lg-3">
@@ -213,9 +227,9 @@
 
         <script>
           $('#bag_container').css("padding-top", $('nav').height());
-          $('#bag_container').css("padding-bottom", $('nav').height());
 
           function toggle_bag() {
+            $('#notifications_container').hide();
             $('#bag_container').toggle();
           }
         </script>

@@ -59,6 +59,16 @@
     <div class="menu-element" id="search_menu_element">{{include 'search_bar.html'}}</div>
     <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
 
+    {{ notifications_qty = len(notifications) }}
+    {{if notifications:}}
+      {{ if notifications_qty == 0: }}
+        {{ notifications_qty = '' }}
+      {{ elif notifications_qty > 99: }}
+        {{ notifications_qty = '99+' }}
+      {{ pass }}
+      <div class="menu-element" onclick="toggle_notifications();" id="notifications_btn">{{=ICON('bell')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
+    {{pass}}
+
     <!-- bag icon -->
     {{if include_bag:}}
       <div class="menu-element" onclick="toggle_bag();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
