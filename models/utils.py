@@ -32,8 +32,10 @@ def get_notifications():
     # check pending orders
     if auth.has_membership('Sale orders'):
         pending_orders = db(db.sale_order.is_ready == False).select()
-        for pending_order in pending_orders:
-            notifications.append(Storage(title=T('Sale order'), description=T('This sale order is incomplete') ))
+        if pending_orders:
+            notifications.append(Storage(
+                title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
+            ))
 
     return notifications
 
