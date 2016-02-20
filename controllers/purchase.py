@@ -117,6 +117,13 @@ def response_stock_item(stock_item):
     return res
 
 
+def valid_purchase(purchase):
+    if not purchase:
+        raise HTTP(404)
+    if purchase.is_done:
+        raise HTTP(405)
+
+
 @auth.requires_membership('Purchases')
 def add_stock_item():
     """ Used to add a stock_item to the specified purchase, this method will return a form to edit the newly created purchase item
@@ -129,12 +136,12 @@ def add_stock_item():
     try:
         purchase = db.purchase(request.args(0))
         item = db.item(request.args(1))
-        if not purchase or not item:
+        valid_purchase(purchase)
+        if not item:
             raise HTTP(404)
-        if purchase.is_done:
-            raise HTTP(405)
         if item.is_bundle or not item.has_inventory:
             raise HTTP(403)
+
         stock_item = db((db.stock_item.id_item == item.id) &
                            (db.stock_item.id_purchase == purchase.id)
                           ).select().first()
@@ -142,13 +149,18 @@ def add_stock_item():
             stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
             stock_item = db.stock_item(stock_item)
             stock_item = response_stock_item(stock_item)
-        # else:
-        #     stock_item.purchase_qty += 1
-        #     stock_item.update_record()
         return locals()
     except:
         import traceback
         traceback.print_exc()
+
+
+def update_items_total(purchase):
+    items_total = 0
+    for s_item in db(db.stock_item.id_purchase == purchase.id).select():
+        items_total += s_item.price * s_item.purchase_qty
+    purchase.items_total = items_total
+    purchase.update_record()
 
 
 @auth.requires_membership('Purchases')
@@ -159,11 +171,13 @@ def delete_stock_item():
             stock_item_id
     """
 
-    stock_item_id = request.args(0)
-    if not stock_item_id:
+    stock_item = db.stock_item(request.args(0))
+    if not stock_item:
         raise HTTP(400)
+    valid_purchase(stock_item.id_purchase)
 
-    db(db.stock_item.id == stock_item_id).delete()
+    stock_item.delete_record()
+    update_items_total(stock_item.id_purchase)
 
     return dict(status="ok")
 
@@ -200,6 +214,9 @@ def modify_stock_item():
     """
 
     stock_item = db.stock_item(request.args(0))
+    purchase = db.purchase(stock_item.id_purchase.id)
+    valid_purchase(purchase)
+
     if not stock_item:
         raise HTTP(404)
     if stock_item.id_purchase.is_done:
@@ -212,6 +229,8 @@ def modify_stock_item():
             stock_item[param_name] = param_value
             stock_item = postprocess_stock_item(stock_item)
             stock_item.update_record()
+
+        update_items_total(purchase)
 
         return response_stock_item(stock_item)
     except:
@@ -232,10 +251,7 @@ def add_item_and_stock_item():
     """
 
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
 
     item_data = dict(request.vars)
 
@@ -272,7 +288,6 @@ def add_item_and_stock_item():
                 pass
     else:
         item_data['taxes'] = None
-    print item_data
     try:
         item_data['created_by'] = auth.user.id
 
@@ -295,10 +310,8 @@ def add_item_and_stock_item():
 @auth.requires_membership('Purchases')
 def update_value():
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
+
     field_name = request.vars.keys()[0]
     valid_fields = []
     for field in db.purchase:
@@ -309,6 +322,8 @@ def update_value():
     if field_name in valid_fields:
         params = {field_name: request.vars[field_name]}
         r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
+        if r.errors:
+            print r.errors
         purchase = db.purchase(request.args(0))
         return {field_name: purchase[field_name]}
     return locals()
@@ -323,10 +338,7 @@ def fill():
     """
 
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
 
     buttons = [
           A(T('Commit'), _class="btn btn-primary", _href=URL('commit', args=purchase.id))
@@ -354,10 +366,7 @@ def cancel():
     """
 
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
 
     db(db.stock_item.id_purchase == request.args(0)).delete()
     db(db.purchase.id == request.args(0)).delete()
@@ -373,12 +382,12 @@ def commit():
     """
 
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise(HTTP, 404)
-    if purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
 
-    # #TODO:70 purchase total should match the amount stablished by the purchase items
+    # < 1 peso difference allowed
+    if abs(purchase.total - purchase.items_total) > D(1):
+        session.info = T('Purchase total does not match the items total')
+        redirect(URL('fill', args=purchase.id))
 
     # generate stocks for every purchase item
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()
@@ -396,6 +405,9 @@ def commit():
         item.update_record()
     purchase.is_done = True
     purchase.update_record()
+
+    if purchase.id_payment_opt.credit_days > 0:
+        db.account_payable.insert(id_purchase=purchase.id)
 
     session.info = {
         'text': T('Purchase commited'),
@@ -418,10 +430,7 @@ def get():
         args: [purchase_id]
     """
     purchase = db.purchase(request.args(0))
-    if not purchase:
-        raise HTTP(404)
-    if not purchase.is_done:
-        raise HTTP(405)
+    valid_purchase(purchase)
 
     def stock_item_row(row, fields):
         tr = TR()

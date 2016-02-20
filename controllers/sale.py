@@ -62,8 +62,14 @@ def get_payments_data(id_sale):
 def valid_sale(sale):
     if not sale.created_by.id == auth.user.id:
         raise HTTP(401)
-    if not sale or sale.is_done:
+    if not sale:
         raise HTTP(404)
+    if sale.is_done:
+        session.info = {
+            'text': 'Sale has been paid',
+            'btn': {'text': T('View ticket'), 'target': '_blank' , 'href': URL('sale', 'ticket', args=sale.id)}
+        }
+        redirect(URL('default', 'index'))
     return True
 
 
@@ -86,6 +92,10 @@ def add_payment():
     payment_opt = db.payment_opt(request.args(1))
     if not payment_opt:
         raise HTTP(404)
+
+    # only accept credit payments for registered clients
+    if payment_opt.credit_days > 0 and not sale.id_client:
+        raise HTTP(405)
 
     add_new_payment = False
 
@@ -344,6 +354,10 @@ def complete():
     payments_total = 0
     bad_payments = False
     for payment in payments:
+        if payment.id_payment_opt.credit_days > 0 and not sale.id_client:
+            session.info = T('Credit payments only allowed for registered clients, please select a client or remove the payment')
+            redirect(URL('update', args=sale.id))
+
         payments_total += payment.amount - payment.change_amount
         if not valid_account(payment):
             bad_payments = True
@@ -356,6 +370,12 @@ def complete():
     if bad_payments:
         session.info = T('Some payments requires account')
         redirect(URL('update', args=sale.id))
+
+    # if theres a payment with a payment option with credit days, create an account receivable record
+    for payment in payments:
+        if payment.id_payment_opt.credit_days > 0:
+            db.account_receivable.insert(id_sale=sale.id)
+            break;
 
     store = db(db.store.id == session.store).select(for_update=True).first()
     sale.consecutive = store.consecutive

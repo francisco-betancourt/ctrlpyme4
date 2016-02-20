@@ -442,6 +442,7 @@ db.define_table("purchase",
     Field("invoice_number", "integer", default=None, label=T('Invoice number')),
     Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=0, label=T('Total')),
+    Field("items_total", "decimal(16,6)", default=0, label=T('Total'), readable=False, writable=False),
     Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
     Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
@@ -630,13 +631,13 @@ db.discount.percentage.requires = IS_INT_IN_RANGE(1, 101)
 
 db.define_table("account_receivable",
     Field("id_sale", "reference sale", label=T('Sale')),
-    Field("is_settled", "boolean", default=None, label=T('Is settled')),
+    Field("is_settled", "boolean", default=False, label=T('Is settled')),
     auth.signature)
 
 
 db.define_table("account_payable",
     Field("id_purchase", "reference purchase", label=T('Purchase')),
-    Field("is_settled", "boolean", default=None, label=T('Is settled')),
+    Field("is_settled", "boolean", default=False, label=T('Is settled')),
     auth.signature)
 
 

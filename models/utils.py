@@ -36,6 +36,7 @@ def get_notifications():
             notifications.append(Storage(
                 title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
             ))
+    accounts_r = db(db.account_receivable.is_settled == False).select()
 
     return notifications
 
