@@ -336,10 +336,10 @@ def super_table(table, fields, query, row_function=default_row_function,
     term = request.vars.term
     if term and search_enabled:
         s_query = (db[table].id < 0)
-        for t_field in db[table].fields:
+        for t_field in fields:
             if db[table][t_field].type == 'string':
                 s_query |= (db[table][t_field].contains(term))
-            if db[table][t_field].type == 'integer':
+            if db[table][t_field].type == 'integer' or db[table][t_field].type.split(' ')[0] == 'reference':
                 try:
                     int(term)
                     s_query |= (db[table][t_field] == term)

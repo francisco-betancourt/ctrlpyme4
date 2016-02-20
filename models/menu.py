@@ -72,6 +72,7 @@ if auth.has_membership('Purchases'):
         (T('Purchases'), False, None, [
              (T('List'), False, URL('purchase', 'index'), None)
             , (T('Suppliers'), False, URL('supplier', 'index'), None)
+            , (T('Accounts payable'), False, URL('account_payable', 'index'), None)
         ])
     ]
 
@@ -87,6 +88,7 @@ if auth.has_membership('Sales invoices'):
         submenu += [(T('Credit notes'), False, URL('credit_note', 'index'), None)]
     if not url:
         submenu.insert(0, (T('List'), False, URL('sale', 'index'), None))
+    submenu.append((T('Accounts receivable'), False, URL('account_receivable', 'index'), None))
     response.menu += [(T('Sales'), False, url, submenu)]
 
 if auth.has_membership('Inventories'):

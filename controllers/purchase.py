@@ -430,7 +430,10 @@ def get():
         args: [purchase_id]
     """
     purchase = db.purchase(request.args(0))
-    valid_purchase(purchase)
+    if not purchase:
+        raise HTTP(404)
+    if not purchase.is_done:
+        raise HTTP(405)
 
     def stock_item_row(row, fields):
         tr = TR()
