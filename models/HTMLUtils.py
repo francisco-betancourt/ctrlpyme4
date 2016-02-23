@@ -453,6 +453,7 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
     taxes = {}
     taxes_percentages = {}
     total = D(0)
+    bag = None
     if items:
         for item in items:
             bag_item = item
@@ -461,6 +462,8 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
             except:
                 bag_item = item.id_bag_item
             try:
+                if not bag and bag_item.id_bag:
+                    bag = bag_item.id_bag
                 item_name = bag_item.product_name
                 item_price = bag_item.sale_price
                 try:
@@ -498,15 +501,29 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
             total_data.append(DIV(text))
     total_data.append(DIV(T('Total') + ': $ %s' % DQ(total, True)))
 
+    reward_points = None
+    payments_data = DIV(_id="payments_data")
+    sale = db(db.sale.id_bag == bag.id).select().first()
+    if sale and sale.is_done:
+        change = 0
+        payments = db(db.payment.id_sale == sale.id).select()
+        for payment in payments:
+            payment_name = payment.id_payment_opt.name
+            if payment.id_payment_opt.requires_account:
+                payment_name += ' %s' % payment.account
+            change += payment.change_amount
+            payments_data.append(
+                DIV('%s : $ %s' % (payment_name, DQ(payment.amount, True)) )
+            )
+        payments_data.append(DIV('%s : $ %s' % (T('change'), DQ(change, True))))
+        reward_points = '%s : $ %s' % (T('Reward points'), sale.reward_points)
+
     ticket = DIV(
-        DIV(_class="logo"),
-        P(title),
-        P(COMPANY_NAME),
-        store_data,
-        items_list,
-        total_data,
+        DIV(_class="logo"), P(title), P(COMPANY_NAME),
+        store_data, items_list, total_data, payments_data,
         DIV(_id="barcode"),
         P(TICKET_FOOTER, _id="ticket_footer"),
+        P(reward_points),
         SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"

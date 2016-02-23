@@ -60,19 +60,23 @@
           </div>
           <div>
             {{total_change = 0}}
+            {{payments_total = 0}}
             {{payments = db(db.payment.id_sale == sale_data.sale.id).select(orderby=db.payment.id_payment_opt)}}
+            {{for payment in payments:}}
+              {{payments_total += payment.amount}}
+            {{pass}}
             <div class="progress sale-progress" style="margin-bottom:0px;">
               {{for payment in payments:}}
                 {{ hex = payment_opt_data[str(payment.id_payment_opt.id)]["color"] }}
 
-                {{p = (payment.amount - payment.change_amount) / sale_data.sale.total * DQ(100, True)}}
+                {{p = (payment.amount - payment.change_amount) / payments_total * DQ(100, True)}}
                 <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
                   <span>{{=payment.id_payment_opt.name}}: {{=DQ(payment.amount, True)}}</span>
                   {{ payment_opt_data[str(payment.id_payment_opt.id)]['value'] += DQ(payment.amount, True) }}
                 </div>
                 {{total_change += payment.change_amount}}
               {{pass}}
-              {{change = total_change / sale_data.sale.total * DQ(100, True)}}
+              {{change = total_change / payments_total * DQ(100, True)}}
               <div class="progress-bar" style="width: {{=change}}%; background-color: {{=change_color}};"> </div>
               {{total_change = DQ(total_change, True)}}
               <script>

@@ -83,7 +83,7 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
 
     stocks = None
 
-    # this is somthing like a service, it does not have existences, so its always available
+    # this is something like a service, it does not have existences, so its always available
     if not item.has_inventory:
         return dict(stocks=None, quantity=1)
 
@@ -177,6 +177,9 @@ def discount_data(discounts, price):
 
 def apply_discount(discounts, price):
     return discount_data(discounts, price)[0]
+
+def get_discount_percentage(bag_item):
+    return (D(1) - bag_item.sale_price / (bag_item.sale_price + bag_item.discount)) * D(100)
 
 
 

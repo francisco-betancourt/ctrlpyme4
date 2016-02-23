@@ -477,6 +477,17 @@ db.define_table("bag_item",
     Field("serial_number", "string", default=None, label=T('Serial number')),
     auth.signature)
 
+
+db.define_table(
+    "cash_out"
+    , Field('sys_cash', 'decimal(16,6)', default=0, label=T('System cash'))
+    , Field('cash', 'decimal(16,6)', default=0, label=T('Physical cash'))
+    , Field('id_seller', 'reference auth_user', label=T('Seller'))
+    , Field('notes', 'text', label=T('Notes'))
+    , Field('is_done', 'boolean', default=False, label=T('Is done'))
+)
+
+
 db.define_table("sale",
     Field("id_bag", "reference bag", label=T('Bag'), readable=False, writable=False),
     Field("consecutive", "integer", default=None, label=T('Consecutive'), readable=False, writable=False),
