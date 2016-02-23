@@ -36,16 +36,19 @@ def get_notifications():
             notifications.append(Storage(
                 title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
             ))
-    accounts_r = db(db.account_receivable.is_settled == False).select()
-    if accounts_r:
-        notifications.append(Storage(
-            title=T("Accounts receivable"), description=T('Accounts receivable unsettled'), url=URL('account_receivable', 'index')
-        ))
-    accounts_p = db(db.account_receivable.is_settled == False).select()
-    if accounts_r:
-        notifications.append(Storage(
-            title=T("Accounts payable"), description=T('Accounts payable unsettled'), url=URL('account_payable', 'index')
-        ))
+
+    if auth.has_membership('Accounts payable'):
+        accounts_r = db(db.account_receivable.is_settled == False).select()
+        if accounts_r:
+            notifications.append(Storage(
+                title=T("Accounts receivable"), description=T('Accounts receivable unsettled'), url=URL('account_receivable', 'index')
+            ))
+    if auth.has_membership('Accounts receivable'):
+        accounts_p = db(db.account_receivable.is_settled == False).select()
+        if accounts_r:
+            notifications.append(Storage(
+                title=T("Accounts payable"), description=T('Accounts payable unsettled'), url=URL('account_payable', 'index')
+            ))
 
     return notifications
 
@@ -340,10 +343,14 @@ def color_mix(hex1, hex2):
 
 
 def auto_bag_selection():
+    # admin cannot sell
+    if auth.has_membership('Admin'):
+        return
     # Automatic bag creation
     # check if theres a current bag
     bag_query = (db.bag.created_by == auth.user.id) & (db.bag.completed == False)
-    if auth.has_membership('Employee') or auth.has_membership('Admin') or auth.has_membership('Sales bags'):
+    # if the user is employee then select bags by store
+    if not auth.user.is_client:
         bag_query &= (db.bag.id_store == session.store)
     current_bag = db(bag_query).select().first()
 

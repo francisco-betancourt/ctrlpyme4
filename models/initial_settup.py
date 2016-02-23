@@ -5,6 +5,9 @@
 
 # create payment methods
 db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
+db.settings.update_or_insert(db.settings.id_store == None, id_store=None)
+db.measure_unit.update_or_insert(db.measure_unit.name == 'unit', name='unit', symbol='u')
+db.brand.update_or_insert(db.brand.name == 'no brand', name='no brand')
 # db.payment_opt.update_or_insert(db.payment_opt.name == '', name='wallet', allow_change=False)
 # db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
 
@@ -34,6 +37,9 @@ new_groups = {
     , "Sale orders": "Solve client orders and notify clients about their orders"
     , "Stock transfers": "Create a stock transfer ticket, removing stock from the base store and reintegrating it in the receiving store"
     , "Offers": "Create offers that can contain discounts and free items"
+
+    , 'Accounts payable': 'Settle payable accounts'
+    , 'Accounts receivable': 'Settle receivable accounts'
 }
 
 

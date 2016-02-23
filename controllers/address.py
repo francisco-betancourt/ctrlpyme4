@@ -2,25 +2,34 @@
 #
 # Author: Daniel J. Ramirez
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+@auth.requires_membership('Admin')
 def create():
-    return common_create('address')
+    form = SQLFORM(db.address)
+    if form.process().accepted:
+        response.flash = T('form accepted')
+        if request.vars._next:
+            request.vars._next += '/%s' % form.vars.id
+        redirection()
+    elif form.errors:
+        response.flash = T('form has errors')
+    return dict(form=form)
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+
+@auth.requires_membership('Admin')
 def get():
     pass
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+@auth.requires_membership('Admin')
 def update():
     return common_update('address',request.args)
 
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+@auth.requires_membership('Admin')
 def delete():
     common_delete('address',request.args)
 
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+@auth.requires_membership('Admin')
 def address_row(row, fields):
     address = ""
     for field in fields:
@@ -28,7 +37,7 @@ def address_row(row, fields):
     return TR(TD(address))
 
 
-@auth.requires(auth.has_membership('Admin') or auth.has_membership('Manager'))
+@auth.requires_membership('Admin')
 def index():
     """ """
 

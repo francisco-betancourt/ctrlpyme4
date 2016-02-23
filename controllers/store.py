@@ -5,7 +5,12 @@
 
 @auth.requires_membership('Admin')
 def create():
+    """ args: [id_address] """
+    address = db.address(request.args(0))
+    if not address:
+        redirect(URL('address', 'create', vars=dict(_next=URL('create'))))
     form = SQLFORM(db.store)
+    form.vars.id_address = address.id
     if form.process().accepted:
         # insert store group
         db.auth_group.insert(role='Store %s' % form.vars.id)

@@ -2,6 +2,7 @@
 #
 # Author: Daniel J. Ramirez
 
+@auth.requires_membership('Accounts payable')
 def settle():
     """ args: [id_account_payable] """
     account_payable = db.account_payable(request.args(0))
@@ -13,7 +14,7 @@ def settle():
     session.info = T('Settled debt')
     redirect(URL('index'))
 
-
+@auth.requires_membership('Accounts payable')
 def account_row(row, fields):
     #TODO show remaining days
     tr = TR()
@@ -25,6 +26,7 @@ def account_row(row, fields):
     return tr
 
 
+@auth.requires_membership('Accounts payable')
 def index():
     data = super_table('account_payable', ['id_purchase'], db.account_payable.is_settled == False, row_function=account_row, options_function=lambda row : [option_btn('check', URL('settle', args=row.id), ' settle')])
     return locals()

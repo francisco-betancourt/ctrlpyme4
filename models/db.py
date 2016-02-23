@@ -216,7 +216,8 @@ db.define_table("payment_opt",
     Field("allow_change", "boolean", default=None, label=T('Allow change')),
     Field("requires_account", "boolean", default=None, label=T('Requires account')),
     Field("credit_days", "integer", default=None, label=T('Credit days')),
-    auth.signature)
+    auth.signature
+    )
 
 db.define_table("address",
     Field("street", "string", default=None, label=T('Street')),
@@ -308,12 +309,12 @@ db.define_table(
   , auth.signature
 )
 hex_match = IS_MATCH('[0-9a-fA-F]{6}', error_message=T('not hex'))
-db.settings.primary_color.requires = hex_match
-db.settings.primary_color_text.requires = hex_match
-db.settings.accent_color.requires = hex_match
-db.settings.accent_color_text.requires = hex_match
-db.settings.base_color.requires = hex_match
-db.settings.base_color_text.requires = hex_match
+db.settings.primary_color.requires = IS_EMPTY_OR(hex_match)
+db.settings.primary_color_text.requires = IS_EMPTY_OR(hex_match)
+db.settings.accent_color.requires = IS_EMPTY_OR(hex_match)
+db.settings.accent_color_text.requires = IS_EMPTY_OR(hex_match)
+db.settings.base_color.requires = IS_EMPTY_OR(hex_match)
+db.settings.base_color_text.requires = IS_EMPTY_OR(hex_match)
 
 
 db.define_table(
