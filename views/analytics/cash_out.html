@@ -31,14 +31,13 @@
     <hr>
     <div class="form-group">
       <label for="phys_cash">{{=T('Physical cash')}}:</label>
-      <input type="number" class="form-control" id="phys_cash" name="phys_cash">
+      <input type="number" class="form-control cash-out-update" id="phys_cash" name="phys_cash" value="{{=cash_out.cash}}" target="cash">
     </div>
     <div class="form-group">
       <label for="cash_out_notes">{{=T('Notes')}}:</label>
-      <textarea id="cash_out_notes" name="cash_out_notes" rows="8" cols="40" class="form-control">
-      </textarea>
+      <textarea id="cash_out_notes" name="cash_out_notes" rows="8" cols="40" class="form-control cash-out-update" target="notes">{{=cash_out.notes if cash_out.notes else ''}}</textarea>
     </div>
-    <a class="btn btn-primary btn-block" href="">{{=T('Save')}}</a>
+    <a class="btn btn-primary btn-block" href="">{{=T('Done')}}</a>
   {{end}}
 
   <h2 class="noprint">{{=T("Sales")}}</h2>
@@ -53,7 +52,7 @@
         </div>
         <div class="media-body" style="padding-left: 16px;">
           <div class="sale-data">
-            <h4> <b class="print"> {{=T('sale')}} #{{=sale.id}}</b> -
+            <h4> <b class="print"> {{=T('sale')}} #{{=sale.id}} - </b>
               {{=sale.created_on}}
             </h4>
             <h4 class="right"> $ {{=DQ(sale.total, True)}} </h4>
@@ -90,7 +89,10 @@
       {{pass}}
     {{pass}}
     <hr>
-    <h5><b class="right">{{=T('Total cash')}} : $ {{=total_cash}}</b></h5>
+    <h5><b class="right">{{=T('System cash')}} : $ {{=total_cash}}</b></h5><br>
+    <h5><b class="right">
+      {{=T('Physical cash')}} : $ <span id="cash_out_cash">{{=DQ(cash_out.cash, True)}}</span>
+    </b></h5>
   </div>
 
 
@@ -101,6 +103,25 @@
     <script type="text/javascript">
       var ctx = document.getElementById("payment_opt_distrib").getContext("2d");
       var myDoughnutChart = new Chart(ctx).Pie(payment_opt_distrib, null);
+
+      $('.cash-out-update').change(function (event) {
+        info_card("{{=T('Saving...')}}");
+
+        var target = $(event.target);
+        $.ajax({
+          url: "{{=URL('cash_out', 'update', args=cash_out.id, extension='json')}}?target=" + target.attr('target') + '&value=' + target.val()
+        })
+        .done(function (res) {
+          info_card("{{=T('Saved')}}");
+          if (res.target) {
+            $('#cash_out_' + res.target).text(res.value);
+            target.val(res.value);
+          }
+        })
+        .fail(function (res) {
+          info_card("{{=T('Error')}}");
+        })
+      });
     </script>
   {{end}}
 

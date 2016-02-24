@@ -23,7 +23,6 @@ def analize(queries):
 
 @auth.requires_membership("Analytics")
 def cash_out():
-    print 'function call'
     """ Returns the specified date, information
 
         args: [year, month, day]
@@ -40,6 +39,9 @@ def cash_out():
         raise HTTP(400)
     seller = db.auth_user(request.vars.id_seller)
     if not seller:
+        raise HTTP(404)
+    cash_out = db.cash_out(request.vars.id_cash_out)
+    if not cash_out:
         raise HTTP(404)
 
     date = datetime.date(year, month, day)
@@ -298,6 +300,6 @@ def index():
                     & (db.auth_user.registration_key == '')
                     & (db.auth_membership.user_id == db.auth_user.id)
                     & (db.auth_group.role == 'Sales checkout'))
-    employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', vars={'id_seller': row.id}), T('Cash out')))
+    employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', 'create', args=row.id), T('Cash out')))
 
     return locals()

@@ -82,11 +82,11 @@
       {{session.info = {'text': response.flash} }}
     {{pass}}
      {{if session.info:}}
-       <div class="info-card panel panel-default" id="info_card">
+       <div class="info-card panel panel-default noprint" id="info_card">
          {{=INFO_CARD()}}
        </div>
       {{else:}}
-        <div class="info-card panel panel-default" id="info_card" hidden>
+        <div class="info-card panel panel-default noprint" id="info_card" hidden>
           <div class="panel-body">
             <div><i class="fa fa-times close" id="info_close"></i></div>
             <div id="info_card__text"></div>
@@ -313,6 +313,11 @@
        });
        delete_rows(ids, "", "{{=vars_string}}");
      });
+
+
+     {{ if request.vars._print: }}
+      window.print();
+     {{ pass }}
 
     </script>
 
