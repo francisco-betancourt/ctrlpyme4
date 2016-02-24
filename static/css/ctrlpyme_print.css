@@ -1,0 +1,20 @@
+@media print {
+  nav, footer, .left-sidebar, .noprint {
+    display: none !important;
+  }
+  .print {
+    display: initial !important;
+  }
+  #main_container {
+    width: 100vw;
+  }
+  body {
+    padding-top: 0px;
+  }
+
+
+  /* Cash out */
+  .cash-out-sale h4 {
+    font-size: 14px;
+  }
+}

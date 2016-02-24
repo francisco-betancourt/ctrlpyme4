@@ -1,11 +1,20 @@
 {{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
-{{import random}}
-{{import datetime}}
 {{from gluon.serializers import json}}
 
-<h1>{{=T('Details')}}</h1>
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'css/ctrlpyme_print.css')}}">
+{{end}}
+
+
+<h1 class="noprint">{{=T('Details')}}</h1>
+<h3 class="print">
+  {{=T('Cash out report')}} {{=T('for')}}:
+  {{=seller.first_name}} {{=seller.last_name}}
+  &lt{{=seller.email}}&gt
+  <hr>
+</h3>
 {{if not sales:}}
   <p>{{=T("No sales reported")}} </p>
 {{else:}}
@@ -32,22 +41,24 @@
     <a class="btn btn-primary btn-block" href="">{{=T('Save')}}</a>
   {{end}}
 
-  <h2>{{=T("Sales")}}</h2>
+  <h2 class="noprint">{{=T("Sales")}}</h2>
 
   {{for sale in sales:}}
     <div>
-      <div class="media">
-        <div class="media-left media-top">
+      <div class="media cash-out-sale">
+        <div class="media-left media-top noprint">
           <a href="{{=URL('sale', 'ticket', args=sale.id)}}" target="_blank">
-            <h3>#{{=sale.id}}</h3>
+            <h3 class="noprint">#{{=sale.id}}</h3>
           </a>
         </div>
         <div class="media-body" style="padding-left: 16px;">
           <div class="sale-data">
-            <h4> {{=sale.created_on}} </h4>
+            <h4> <b class="print"> {{=T('sale')}} #{{=sale.id}}</b> -
+              {{=sale.created_on}}
+            </h4>
             <h4 class="right"> $ {{=DQ(sale.total, True)}} </h4>
           </div>
-            <div class="progress sale-progress" style="margin-bottom:0px;">
+            <div class="progress sale-progress noprint">
               {{for payment_key in sale.payments.iterkeys(): }}
                 {{ payment_opt = payment_opt_data[payment_key] }}
                 {{ payment = sale.payments[payment_key]}}
@@ -69,6 +80,19 @@
       </div>
     </div>
   {{pass}}
+
+  <div class="print">
+    <h5><span class="right">{{=T('Total')}} : $ {{=total}}</span></h5><br>
+    <hr>
+    {{for payment_opt in payment_opt_data.itervalues(): }}
+      {{ if payment_opt['value']: }}
+        <h5><span class="right">{{=payment_opt['label']}} : $ {{=payment_opt['value']}}</span></h5><br>
+      {{pass}}
+    {{pass}}
+    <hr>
+    <h5><b class="right">{{=T('Total cash')}} : $ {{=total_cash}}</b></h5>
+  </div>
+
 
 
   {{block page_js}}

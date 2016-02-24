@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="{{=URL('static','css/item_card.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ticket.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
+    {{block page_css}} {{end}}
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
     <!-- All JavaScript at the bottom, except for Modernizr which enables
@@ -120,7 +121,7 @@
 
     <!-- Navbar ======================================= -->
     {{notifications = get_notifications()}}
-    
+
 
     {{include "navbar2.html"}}
 
@@ -265,12 +266,6 @@
     {{pass}}
 
     <script>
-      $('#tabs a').click(function (e) {
-        e.preventDefault()
-        $(this).tab('show')
-      });
-
-
       var countChecked = function() {
        var n = $( ".row_checkbox:checked" ).length;
        // in this case we have to show the selection options
