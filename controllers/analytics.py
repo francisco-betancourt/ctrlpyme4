@@ -7,6 +7,7 @@ import calendar
 import datetime
 import random
 import json
+from gluon.storage import Storage
 
 
 hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
@@ -22,6 +23,7 @@ def analize(queries):
 
 @auth.requires_membership("Analytics")
 def cash_out():
+    print 'function call'
     """ Returns the specified date, information
 
         args: [year, month, day]
@@ -44,22 +46,53 @@ def cash_out():
     start_date = datetime.datetime(date.year, date.month, date.day, 0)
     end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
 
-    sales_data = db((db.sale.id == db.sale_log.id_sale)
-                    & (db.sale_log.sale_event == 'paid')
-                    & (db.sale.id_store == session.store)
-                    & (db.sale.created_by == seller.id)
-                    & time_interval_query('sale', start_date, end_date)
-                    ).select()
-
     payment_opts = db(db.payment_opt.is_active == True).select()
-
-    # will be used to create a pay chart
+    # will be used to create a payments chart
     payment_opt_data = {}
     for payment_opt in payment_opts:
         payment_opt_data[str(payment_opt.id)] = {
             "color": random_color_mix(PRIMARY_COLOR), "label": payment_opt.name, "value": 0
         }
-    change_color = "#333"
+
+    sales = db((db.sale.id == db.sale_log.id_sale)
+                & (db.sale_log.sale_event == 'paid')
+                & (db.sale.id_store == session.store)
+                & (db.sale.created_by == seller.id)
+                & time_interval_query('sale', start_date, end_date)
+                ).select(db.sale.ALL, orderby=db.sale.id)
+    payments_query = (db.payment.id < 0)
+
+    total = 0
+    total_cash = 0
+    # set payments query and total sold quantity
+    for sale in sales:
+        payments_query |= db.payment.id_sale == sale.id
+        total += sale.total
+    payment_index = 0
+    payments = db(payments_query).select(orderby=db.payment.id_sale)
+    for sale in sales:
+        sale.total_change = 0
+        sale.payments = {}
+        sale.payments_total = 0
+        sale.change = 0
+        for payment in payments[payment_index:]:
+            if payment.id_sale != sale.id:
+                break
+            sale.payments_total += payment.amount
+            if not sale.payments.has_key(str(payment.id_payment_opt.id)):
+                sale.payments[str(payment.id_payment_opt.id)] = Storage(dict(amount=payment.amount, change_amount=payment.change_amount))
+            else:
+                _payment = sale.payments[str(payment.id_payment_opt.id)]
+                _payment.amount += payment.amount
+                _payment.change_amount += payment.change_amount
+            if payment.id_payment_opt.allow_change:
+                total_cash += payment.amount - payment.change_amount
+            sale.total_change += payment.change_amount
+            sale.change += payment.change_amount
+        sale.change = DQ(sale.change, True)
+        payment_index += 1
+    total = DQ(total, True)
+    total_cash = DQ(total_cash, True)
 
     return locals()
 

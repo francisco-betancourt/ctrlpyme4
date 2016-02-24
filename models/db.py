@@ -486,6 +486,7 @@ db.define_table(
     , Field('id_seller', 'reference auth_user', label=T('Seller'))
     , Field('notes', 'text', label=T('Notes'))
     , Field('is_done', 'boolean', default=False, label=T('Is done'))
+    , auth.signature
 )
 
 
