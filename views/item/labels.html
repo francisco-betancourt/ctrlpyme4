@@ -2,7 +2,9 @@
 
 {{extend "layout.html"}}
 
-
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'css/ctrlpyme_print.css')}}">
+{{end}}
 
 {{cols = layout.cols}}
 {{rows = layout.rows}}
@@ -14,8 +16,6 @@
 
 {{block left_sidebar}}
   <script src="{{=URL('static','js/jquery-barcode.min.js')}}" charset="utf-8"></script>
-  <script src="{{=URL('static', 'js/jspdf.min.js')}}" charset="utf-8"></script>
-
 
   <h1>{{=T('Item labels')}}</h1>
 
@@ -32,10 +32,6 @@
     $('#page_format').on('change', function (event) {
       window.location.href = event.target.value
     });
-  </script>
-
-
-  <script>
     var items_list = [];
 
     var row = 0;
@@ -90,79 +86,7 @@
 {{end}}
 
 
-<h1>{{=T('Sheets')}}</h1>
-
-
-<div id="out"></div>
-
-<div>
-  <canvas id="canvas" style="background-color: white; margin: auto;" hidden="hidden"></canvas>
-</div>
-
-<script>
-function pdf_page(content, pdf_doc, newpage, callback) {
-  if (!pdf_doc) {
-    return;
-  }
-  if (newpage) {
-    pdf_doc.addPage();
-  }
-  var canvas = document.getElementById('canvas');
-  var sheet = $(content);
-  var pageW = sheet.innerWidth();
-  var pageH = sheet.innerHeight();
-  canvas.width = pageW;
-  canvas.height = pageH;
-
-  var ctx = canvas.getContext('2d');
-
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'black';
-
-  var data = '<svg xmlns="http://www.w3.org/2000/svg" width="22cm" height="28cm">' +
-             '<foreignObject width="100%" height="100%">' +
-             '<div xmlns="http://www.w3.org/1999/xhtml">' +
-               sheet.prop('outerHTML') +
-             '</div>' +
-             '</foreignObject>' +
-             '</svg>';
-
-  var DOMURL = window.URL || window.webkitURL || window;
-
-  var img = new Image();
-  img.crossOrigin = "Anonymous";
-  var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-  var url = DOMURL.createObjectURL(svg);
-  console.log(url);
-
-  img.onload = function () {
-    ctx.drawImage(img, 0, 0);
-    DOMURL.revokeObjectURL(url);
-
-    try {
-      var dataURL = canvas.toDataURL('image/jpeg', 1);
-      pdf_doc.addImage(dataURL, 'JPEG', 0, 0);
-      if (callback) { callback(); }
-    }
-    catch (e) {
-      window.print();
-    }
-  }
-  img.src = url;
-}
-
-
-$(document).ready(function () {
-  $('#create_file').click(function (event) {
-
-    var doc = new jsPDF('p', 'mm', 'letter');
-    var sheet = $('#sheet_{{=items[0].id}}').children()[0];
-    pdf_page(sheet, doc, false, function () { doc.save('labels.pdf') });
-  });
-});
-</script>
-
+<h1 class="noprint">{{=T('Sheets')}}</h1>
 
 <style>
   .sheet .label-cell {
@@ -176,20 +100,6 @@ $(document).ready(function () {
   @page {
      size: portrait;
      margin: 0;
-  }
-
-  @media print {
-    nav, .left-sidebar, footer, h1, #bag_container, #bag_container * {
-      display: none;
-    }
-    body, .col-md-9, .sheet {
-      margin: 0px;
-      padding: 0px;
-      box-shadow: none;
-    }
-    .sheet .label-cell {
-      border: none;
-    }
   }
 </style>
 
