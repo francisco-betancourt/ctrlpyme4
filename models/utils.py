@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) <2016>  <Daniel J. Ramirez>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import urllib
 import re
@@ -85,6 +98,17 @@ def remove_fractions(value):
 
     return D(math.floor(float(value))).quantize(D('1'))
 
+
+
+def get_wavg_days_in_shelf(item, id_store=None):
+    q = (db.bag_item.id_bag == db.bag.id) & (db.bag_item.id_item == item)  & (db.bag_item.wavg_days_in_shelf != None)
+    days = db(q).select(db.bag_item.wavg_days_in_shelf)
+    if not days:
+        return None
+    avg_days_in_shelf = 0
+    for day in days:
+        avg_days_in_shelf += day.wavg_days_in_shelf
+    return avg_days_in_shelf / len(days)
 
 
 def item_taxes(item, price):

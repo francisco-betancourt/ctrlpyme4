@@ -61,7 +61,8 @@ nav>section.nav-right {
 }
 
 nav>section.nav-right .menu-element {
-  padding-left: 15px;
+  padding-left: 7px;
+  padding-right: 7px;
 }
 nav>section .menu-element i.add-on {
   padding-left: 8px;

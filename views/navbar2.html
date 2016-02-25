@@ -66,12 +66,12 @@
       {{ elif notifications_qty > 99: }}
         {{ notifications_qty = '99+' }}
       {{ pass }}
-      <div class="menu-element" onclick="toggle_notifications();" id="notifications_btn">{{=ICON('bell')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
+      <div class="menu-element" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('bell')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
     {{pass}}
 
     <!-- bag icon -->
     {{if include_bag:}}
-      <div class="menu-element" onclick="toggle_bag();" id="bag_btn">{{=ICON('shopping-bag')}}</div>
+      <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping-bag')}}</div>
     {{pass}}
 
     <!-- auth -->

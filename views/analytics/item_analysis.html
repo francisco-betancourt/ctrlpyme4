@@ -9,7 +9,10 @@
     {{if main_image:}}
     <img src="{{=URL('default', 'download', args=main_image.md)}}" alt="" width="100%">
     {{pass}}
-    <h3>Existences <span class="right">{{=DQ(existence, True)}}</span></h3>
+    <h3>{{=T('Existences')}} <span class="right">{{=DQ(existence, True)}}</span></h3>
+    <h3>{{=T('Average days in shelf')}} <span class="right">
+      {{=get_wavg_days_in_shelf(item)}}</span>
+    </h3>
   </div>
 </div>
 {{end}}

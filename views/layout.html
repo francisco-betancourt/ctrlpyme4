@@ -187,21 +187,12 @@
         {{end}}
       </div>
 
-      <section id="notifications_container" hidden class=" col-sm-5 col-md-5 col-lg-3 floating-container">
+      <section id="notifications_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container" state="hidden">
         {{include 'notifications.html'}}
       </section>
-      <script>
-        $('#notifications_container').css("padding-top", $('nav').height());
-
-        function toggle_notifications() {
-          $('#bag_container').hide();
-          $('#notifications_container').toggle();
-        }
-      </script>
 
       {{if include_bag and request.controller != 'appadmin':}}
-        <link rel="stylesheet" href="{{=URL('static', 'css/bag.css')}}">
-        <secction id="bag_container" hidden class=" col-sm-5 col-md-5 col-lg-3">
+        <secction id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container" state="hidden">
           <div class="bag-container">
             {{if auth.is_logged_in():}}
               {{auto_bag_selection()}}
@@ -228,11 +219,6 @@
 
         <script>
           $('#bag_container').css("padding-top", $('nav').height());
-
-          function toggle_bag() {
-            $('#notifications_container').hide();
-            $('#bag_container').toggle();
-          }
         </script>
       {{pass}}
 
@@ -266,6 +252,26 @@
     {{pass}}
 
     <script>
+
+      function hide_container(container_id) {
+        $('#' + container_id).attr('state', 'hidden');
+        $('#' + container_id).css('transform', 'translateX(100%)');
+      }
+      function show_container(container_id) {
+        $('#' + container_id).attr('state', 'visible');
+        $('#' + container_id).css('transform', 'translateX(0%)');
+      }
+
+      function toggle_container(id) {
+        if ($('#' + id).attr('state') == 'hidden') {
+          show_container(id);
+        }
+        else {
+          hide_container(id);
+        }
+      }
+
+
       var countChecked = function() {
        var n = $( ".row_checkbox:checked" ).length;
        // in this case we have to show the selection options
