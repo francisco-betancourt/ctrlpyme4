@@ -11,6 +11,19 @@ from uuid import uuid4
 from gluon.storage import Storage
 
 
+def INFO(text, btn_text=None, btn_url=None, btn_target=None):
+    d = {
+        'text': text
+    }
+    if btn_text and btn_url:
+        d['btn'] = {
+            'text': btn_text,
+            'href': btn_url,
+            'target': btn_target
+        }
+    return d
+
+
 rmap = {  'á': 'a', 'Á': 'a' , 'é': 'e', 'É': 'e' , 'í': 'i', 'Í': 'i'
         , 'ó': 'o', 'Ó': 'o' , 'ú': 'u', 'Ú': 'u'
        }

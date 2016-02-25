@@ -26,7 +26,7 @@ def cash_out():
     """ Returns the specified date, information
 
         args: [year, month, day]
-        vars: [id_seller]
+        vars: [id_cash_out]
     """
 
     year, month, day = None, None, None
@@ -37,16 +37,17 @@ def cash_out():
         year, month, day = today.year, today.month, today.day
     if not year or not month or not day:
         raise HTTP(400)
-    seller = db.auth_user(request.vars.id_seller)
-    if not seller:
-        raise HTTP(404)
     cash_out = db.cash_out(request.vars.id_cash_out)
     if not cash_out:
         raise HTTP(404)
+    seller = cash_out.id_seller
 
     date = datetime.date(year, month, day)
     start_date = datetime.datetime(date.year, date.month, date.day, 0)
-    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+    end_date = start_date + CASH_OUT_INTERVAL
+
+    if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
+        raise HTTP(405)
 
     payment_opts = db(db.payment_opt.is_active == True).select()
     # will be used to create a payments chart

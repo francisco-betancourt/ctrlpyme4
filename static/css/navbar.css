@@ -39,6 +39,10 @@ nav>section .menu-element {
   display: flex;
   align-items: center;
   height: 64px;
+
+  font-size: 12px;
+  font-weight: bolder;
+  text-transform: uppercase;
 }
 
 nav>section .menu-element>.menu-text {

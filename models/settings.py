@@ -1,11 +1,15 @@
 # settings list
 
+from datetime import timedelta
+
 COMPANY_NAME = 'CtrlPyME'
 COMPANY_SLOGAN = 'Press Ctrl + PyME to begin.'
 COMPANY_LOGO_URL = ''
 
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC
+
+CASH_OUT_INTERVAL = timedelta(days=1)
 
 EXTRA_FIELD_1_NAME = None
 EXTRA_FIELD_2_NAME = None
