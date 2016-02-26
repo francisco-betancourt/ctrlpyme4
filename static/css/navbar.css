@@ -44,6 +44,9 @@ nav>section .menu-element {
   font-weight: bolder;
   text-transform: uppercase;
 }
+nav>section .menu-element .fa {
+  font-size: 16px;
+}
 
 nav>section .menu-element>.menu-text {
   display: flex;
@@ -102,6 +105,10 @@ nav>section .form-group {
   margin: 0px;
 }
 
+#hamburger, .brand {
+  transition: color 2s ease;
+}
+
 #hamburger {
   display: none;
 }
@@ -116,7 +123,9 @@ nav>section .form-group {
   overflow: hidden;
   position: fixed;
   z-index: 1000;
-  background-color: transparent;
+  background-color: rgba(0,0,0,.3);
+  opacity: 0;
+  transition: opacity .2s ease;
 }
 
 #search_menu_btn, #close_search {
@@ -141,10 +150,18 @@ nav>section .form-group {
   #main_menu {
     display: flex !important;
   }
+  #main_menu {
+    transform: none !important;
+  }
 }
 @media (max-width: 992px) {
+  nav {
+    padding-left: 0px;
+  }
   #main_menu {
-    display: none;
+    /*display: none;*/
+    transition: transform .2s ease;
+    transform: translateX(-100%);
     left: 0px;
     position: fixed;
     flex-direction: column;
@@ -167,6 +184,7 @@ nav>section .form-group {
   }
 
   #hamburger {
+    padding-left: 15px;
     display: flex !important;
   }
 
@@ -193,11 +211,16 @@ nav>section .form-group {
       border: none;
       box-shadow: none;
     }
+  #close_search {
+    padding-left: 15px;
+  }
 }
 
 @media (max-width: 600px) {
   #search_form {
-    display: none;
+    /*display: none;*/
+    transform: translateY(-64px);
+    transition: transform .2s ease;
   }
   #search_menu_btn:not(.hidden) {
     display: flex !important;
@@ -209,7 +232,8 @@ nav>section .form-group {
 }
 @media (min-width: 600px) {
   #search_form {
-    display: block !important;
+    /*display: block !important;*/
+    transform: none !important;
   }
   .brand, #bag_btn, #auth_menu {
     display: flex !important;

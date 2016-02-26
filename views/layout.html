@@ -213,13 +213,15 @@
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
               <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
+
+              <script>
+                function add_bag_item() {
+                  show_container('bag_container');
+                }
+              </script>
             {{pass}}
           </div>
         </secction>
-
-        <script>
-          $('#bag_container').css("padding-top", $('nav').height());
-        </script>
       {{pass}}
 
 
@@ -253,9 +255,10 @@
 
     <script>
 
-      function hide_container(container_id) {
+      function hide_container(container_id, left) {
+        var v = left ? '-100%' : '100%';
         $('#' + container_id).attr('state', 'hidden');
-        $('#' + container_id).css('transform', 'translateX(100%)');
+        $('#' + container_id).css('transform', 'translateX('+v+')');
       }
       function show_container(container_id) {
         $('#' + container_id).attr('state', 'visible');
