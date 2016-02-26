@@ -134,8 +134,8 @@
     $('#hamburger, #search_menu_btn').removeClass('hidden');
     $('#close_search').css('display', 'none');
     $('.submenu').hide();
-    // $('#nav_screen').hide();
     $('#search_form').css('transform', 'translateY(-64px)');
+    $('#search_form').css('width', '0px');
   }
 
   function toggle_main_menu() {
@@ -168,10 +168,12 @@
   function toggle_submenu(name) {
     $('.submenu').not('#submenu_' + name).hide();
     $('#submenu_' + name).toggle();
-    if ($('#submenu_' + name).css('display') == 'block') {
-      show_nav_screen();
-    } else {
-      hide_nav_screen();
+    if ($('#hamburger').css('display') == 'none' || $('#hamburger').css('display') == 'none !important' || name == 'auth') {
+      if ($('#submenu_' + name).css('display') == 'block') {
+        show_nav_screen();
+      } else {
+        hide_nav_screen();
+      }
     }
   }
 
@@ -188,6 +190,6 @@
     hide_nav_screen();
     hide_main_menu();
     $('#search_form').css('transform', 'translateY(0px)');
-    // $('#search_form').show();
+    $('#search_form').css('width', '100%');
   })
 </script>

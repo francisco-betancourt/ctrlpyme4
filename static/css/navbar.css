@@ -150,9 +150,10 @@ nav>section .form-group {
   }
   #main_menu {
     display: flex !important;
-  }
-  #main_menu {
     transform: none !important;
+  }
+  #search_form {
+    width: 100% !important;
   }
 }
 @media (max-width: 992px) {
@@ -221,6 +222,7 @@ nav>section .form-group {
   #search_form {
     /*display: none;*/
     transform: translateY(-64px);
+    width: 0px;
     transition: transform .2s ease;
   }
   #search_menu_btn:not(.hidden) {
