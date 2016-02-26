@@ -41,7 +41,7 @@ new_groups = {
     , 'Accounts payable': 'Settle payable accounts'
     , 'Accounts receivable': 'Settle receivable accounts'
     , 'Config': 'App configuration'
-
+    , 'Highlights': 'Create an edit highlighted things'
 }
 
 

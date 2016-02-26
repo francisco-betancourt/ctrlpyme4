@@ -192,6 +192,8 @@ select {
 #current_bag>.panel-body {
   padding-left: 0px;
   padding-right: 0px;
+  transition: height .2s ease;
+  overflow: hidden;
 }
 
 #current_bag>.panel-body>#barcode_scanner_container {

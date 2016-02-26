@@ -187,12 +187,17 @@
         {{end}}
       </div>
 
-      <section id="notifications_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container" state="hidden">
+      <section id="notifications_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
         {{include 'notifications.html'}}
       </section>
 
+      <script>
+        function add_bag_item() {
+          show_container('bag_container');
+        }
+      </script>
       {{if include_bag and request.controller != 'appadmin':}}
-        <secction id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container" state="hidden">
+        <secction id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
           <div class="bag-container">
             {{if auth.is_logged_in():}}
               {{auto_bag_selection()}}
@@ -213,12 +218,6 @@
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
               <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
-
-              <script>
-                function add_bag_item() {
-                  show_container('bag_container');
-                }
-              </script>
             {{pass}}
           </div>
         </secction>

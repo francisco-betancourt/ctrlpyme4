@@ -95,7 +95,8 @@
     else {
       $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
     }
-    set_bag_data(res)
+    set_bag_data(res);
+    show_container('bag_container');
   }
 
 
