@@ -5,49 +5,28 @@
   <!-- main menu -->
   <section class="nav-left">
     <div class="menu-element primary-color-text" id="close_search" hidden="hidden">{{=ICON('times')}}</div>
-    <div class="menu-element primary-color-text" id="hamburger">{{=ICON('bars')}}</div>
-    <div class="menu-element brand primary-color-text"> {{=response.logo}} </div>
-    <div id="main_menu" state="hidden">
-      {{ i = 0 }}
-      {{for menu_item in response.menu:}}
-        {{ menu_item_name = menu_item[0] }}
-        {{ url = '' }}
-        {{ submenu = [] }}
-        {{ try: }}
-          {{ url = menu_item[2] }}
-          {{ submenu = menu_item[3] }}
-        {{ except: }}
-          {{None}}
+
+    <div id="m_nav_filler" class="menu-element" state="hidden">
+      <div class="menu-element hamburger">{{=ICON('bars')}}</div>
+      <div class="menu-element brand">{{=response.logo}}</div>
+    </div>
+
+    <div class="menu-element primary-color-text hamburger" id="hamburger">{{=ICON('bars')}}</div>
+    <div class="menu-element brand primary-color-text">{{=response.logo}}</div>
+    <div id="main_menu_m" state="hidden">
+      {{ for m_element in MENU_ELEMENTS('m'): }}
+        {{ =m_element.menu }}
+        {{ if m_element.submenu: }}
+          {{ =m_element.submenu }}
         {{ pass }}
-
-          {{ if url: }}
-            <div class="menu-element">
-              <a href="{{=url}}"> {{ =menu_item_name }} </a>
-            </div>
-          {{ else: }}
-            <div class="menu-element" onclick="toggle_submenu('{{=i}}');">
-              {{ if submenu: }}
-                <div class="submenu primary-color-dim" id="submenu_{{=i}}" hidden="hidden">
-                  {{ i += 1 }}
-                  {{ for submenu_item in submenu: }}
-                    {{ submenu_item_name = submenu_item[0] }}
-                    {{ suburl = '#' }}
-                    {{ try: }}
-                      {{ suburl = submenu_item[2] }}
-                    {{ except: }}
-                      {{ None }}
-                    {{ pass }}
-                    <div class="menu-element">
-                      <a href="{{=suburl}}"> {{ =submenu_item_name }} </a>
-                    </div>
-                  {{ pass }}
-                </div>
-              {{ pass }}
-
-              <div class="menu-text">{{ =menu_item_name }} {{=ICON('caret-down', _class="add-on")}}</div>
-            </div>
-
-          {{ pass }}
+      {{pass}}
+    </div>
+    <div id="main_menu">
+      {{ for m_element in MENU_ELEMENTS(): }}
+        {{ if m_element.submenu: }}
+          {{ m_element.menu.insert(0, m_element.submenu) }}
+        {{ pass }}
+        {{ =m_element.menu }}
       {{pass}}
     </div>
 
@@ -106,7 +85,7 @@
 
 
 <script>
-  $('.submenu').hide();
+  // $('.submenu').hide();
 
   $('#nav_screen')[0].addEventListener('transitionend', function (event) {
     if (event.target.style.opacity == 0) {
@@ -123,9 +102,8 @@
   }
 
   function hide_main_menu() {
-    hide_container('main_menu', true);
-    $('#hamburger, .brand').removeClass('base-color-text');
-    $('#hamburger, .brand').addClass('primary-color-text');
+    hide_container('main_menu_m', true);
+    hide_container('m_nav_filler', true);
     hide_nav_screen();
   }
 
@@ -139,24 +117,18 @@
   }
 
   function toggle_main_menu() {
-    if ($('#main_menu').attr('state') == 'hidden') {
-      show_container('main_menu');
-      $('#hamburger, .brand').addClass('base-color-text');
-      $('#hamburger, .brand').removeClass('primary-color-text');
+    if ($('#main_menu_m').attr('state') == 'hidden') {
+      show_container('main_menu_m');
+      show_container('m_nav_filler');
       show_nav_screen();
       // $('#nav_screen').show();
-    }
-    else {
-      hide_container('main_menu', true);
-      // $('#nav_screen').hide();
-      hide_nav_screen();
-      $('#hamburger, .brand').removeClass('base-color-text');
-      $('#hamburger, .brand').addClass('primary-color-text');
+    } else {
+      hide_main_menu();
     }
     close_search();
   }
 
-  $('#hamburger').click(function (event) {
+  $('.hamburger').click(function (event) {
     toggle_main_menu();
   });
 

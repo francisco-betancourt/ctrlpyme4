@@ -297,7 +297,7 @@ select {
 .highlights {
   display: flex;
   flex-direction: row;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 .highlights>.highlight {
   background-size: cover;

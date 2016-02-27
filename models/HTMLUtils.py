@@ -17,6 +17,8 @@
 
 
 import math
+from gluon.storage import Storage
+
 
 def discounts_list(discounts):
     ul = UL(_class="list-group")
@@ -63,6 +65,45 @@ def INFO_CARD():
             if href:
                 content.append(DIV(P(), A(link_text, _href=href, _target=target, _class="btn btn-default btn-block"), _id="info_card__btn_container"))
     return content
+
+
+def MENU_ELEMENTS(submenu_prefix = ''):
+    # elements = []
+    i = 0
+    for menu_item in response.menu:
+        res = Storage()
+        menu_item_name = menu_item[0]
+        url = ''
+        submenu = []
+        try:
+            url = menu_item[2]
+            submenu = menu_item[3]
+        except:
+            None
+        if url:
+            res.menu = DIV(menu_item_name, _href=url, _class="menu-element")
+            yield res
+        else:
+            menu = DIV(
+                _class="menu-element", _onclick="toggle_submenu('%s_%s')" % (submenu_prefix, i)
+            )
+            if submenu:
+                sub = DIV(_class="submenu primary-color-dim", _id="submenu_%s_%s" % (submenu_prefix, i), _hidden="hidden"
+                    )
+                i += 1
+                for submenu_item in submenu:
+                    submenu_item_name = submenu_item[0]
+                    suburl = '#'
+                    try:
+                        suburl = submenu_item[2]
+                    except:
+                        None
+                    sub.append(DIV(A(submenu_item_name, _href=suburl), _class="menu-element"))
+                # menu.append(sub)
+                res.submenu = sub
+            menu.append(DIV(menu_item_name, ICON('caret-down', _class="add-on"), _class="menu-text"))
+            res.menu = menu
+            yield res
 
 
 def pages_menu(query, page=0, ipp=10, distinct=None):
