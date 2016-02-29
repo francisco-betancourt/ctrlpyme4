@@ -81,7 +81,7 @@ def MENU_ELEMENTS(submenu_prefix = ''):
         except:
             None
         if url:
-            res.menu = DIV(menu_item_name, _href=url, _class="menu-element")
+            res.menu = A(menu_item_name, _href=url, _class="menu-element")
             yield res
         else:
             menu = DIV(
@@ -98,7 +98,7 @@ def MENU_ELEMENTS(submenu_prefix = ''):
                         suburl = submenu_item[2]
                     except:
                         None
-                    sub.append(DIV(A(submenu_item_name, _href=suburl), _class="menu-element"))
+                    sub.append(A(submenu_item_name, _href=suburl, _class="menu-element"))
                 # menu.append(sub)
                 res.submenu = sub
             menu.append(DIV(menu_item_name, ICON('caret-down', _class="add-on"), _class="menu-text"))
