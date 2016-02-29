@@ -23,6 +23,8 @@ from decimal import ROUND_FLOOR
 from math import floor
 
 
+allow_out_of_stock = True
+
 def get_valid_bag(id_bag, completed=False):
     try:
         query = (db.bag.id == id_bag)
@@ -52,12 +54,14 @@ def refresh_bag_data(id_bag):
     taxes = D(0)
     total = D(0)
     quantity = D(0)
+    reward_points
     for bag_item in bag_items:
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
-    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total))
+        reward_points += bag_item.id_item.reward_points or 0
+    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), reward_points=DQ(reward_points))
     subtotal = money_format(DQ(subtotal, True))
     taxes = money_format(DQ(taxes, True))
     total = money_format(DQ(total, True))
@@ -82,17 +86,13 @@ def modify_bag_item():
     if not bag_item:
         raise HTTP(404)
 
-    is_online_sale = False
-    if auth.has_membership('Clients'):
-        is_online_sale = True
-
     old_qty = bag_item.quantity
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
     if not bag_item.id_item.allow_fractions:
         bag_item.quantity = remove_fractions(bag_item.quantity)
     bag_item.quantity = DQ(bag_item.quantity)
 
-    if not is_online_sale:
+    if not allow_out_of_stock:
         qty = item_stock(db.item(bag_item.id_item), session.store, id_bag=session.current_bag)['quantity']
         diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
         if qty + diff < bag_item.quantity - old_qty:
@@ -172,10 +172,6 @@ def select_bag():
             )
 def add_bag_item():
     """ args: [ id_item ] """
-
-    allow_out_of_stock = True
-    # if auth.has_membership('Clients'):
-    #     allow_out_of_stock = True
 
     item = db.item(request.args(0))
     bag = get_valid_bag(session.current_bag)
@@ -292,22 +288,6 @@ def change_bag_item_sale_price():
     return dict(status="ok", **bag_data)
 
 
-def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
-    """ verify item stocks and remove unnecessary items """
-    out_of_stock_items = []
-    for bag_item in bag_items:
-        # delete bag item when the item has 0 quantity
-        if bag_item.quantity <= 0:
-            db(db.bag_item.id == bag_item.id).delete()
-        qty = item_stock(bag_item.id_item, session.store)['quantity']
-        if bag_item.quantity > qty:
-            out_of_stock_items.append(bag_item)
-    if out_of_stock_items and auth.has_membership('Employee'):
-        session.flash = T('Some items are out of stock or are inconsistent')
-        auto_bag_selection()
-        redirection()
-
-
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
@@ -324,7 +304,7 @@ def complete():
         db(db.bag.id == bag.id).delete()
         auto_bag_selection()
         redirection()
-    check_bag_items_integrity(bag_items)
+    check_bag_items_integrity(bag_items, True) # allow out of stock items
 
     if auth.has_membership('Clients'):
         bag.is_on_hold = True

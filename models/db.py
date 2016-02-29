@@ -386,7 +386,7 @@ db.define_table("item",
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
     Field("thumb", "upload", default=None, label=T('Thumbnail')),
-    Field("reward_points", "integer", default=None, label=T('Reward Points')),
+    Field("reward_points", "integer", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
@@ -457,6 +457,7 @@ db.define_table("bag",
     , Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal'))
     , Field("taxes", "decimal(16,6)", default=0, label=T('Taxes'))
     , Field("total", "decimal(16,6)", default=0, label=T('Total'))
+    , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))

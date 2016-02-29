@@ -166,6 +166,22 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
         return dict(stocks=None, quantity=0)
 
 
+def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
+    """ verify item stocks and remove unnecessary items """
+    out_of_stock_items = []
+    for bag_item in bag_items:
+        # delete bag item when the item has 0 quantity
+        if bag_item.quantity <= 0:
+            db(db.bag_item.id == bag_item.id).delete()
+        qty = item_stock(bag_item.id_item, session.store)['quantity']
+        if bag_item.quantity > qty and not allow_out_of_stock:
+            out_of_stock_items.append(bag_item)
+    if out_of_stock_items and auth.has_membership('Employee'):
+        session.flash = T('Some items are out of stock or are inconsistent')
+        auto_bag_selection()
+        redirection()
+
+
 def item_discounts(item):
     # get the current offer groups
     offer_groups = db((db.offer_group.starts_on < request.now) & (db.offer_group.ends_on > request.now)).select()
