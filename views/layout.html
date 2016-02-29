@@ -255,11 +255,27 @@
     <script>
 
       function hide_container(container_id, left) {
+        switch (container_id) {
+          case 'bag_container':
+            $('#bag_btn').removeClass('accent-color-text');
+            break;
+          case 'notifications_container':
+            $('#notifications_btn').removeClass('accent-color-text');
+            break;
+        };
         var v = left ? '-100%' : '100%';
         $('#' + container_id).attr('state', 'hidden');
         $('#' + container_id).css('transform', 'translateX('+v+')');
       }
       function show_container(container_id) {
+        switch (container_id) {
+          case 'bag_container':
+            $('#bag_btn').addClass('accent-color-text');
+            break;
+          case 'notifications_container':
+            $('#notifications_btn').addClass('accent-color-text');
+            break;
+        };
         $('#' + container_id).attr('state', 'visible');
         $('#' + container_id).css('transform', 'translateX(0%)');
       }

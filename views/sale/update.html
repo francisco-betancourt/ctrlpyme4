@@ -25,9 +25,9 @@
 
   <hr>
 
-  <div style="margin-top: 30px">
-    <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default">{{=T('Cancel')}}</a>
-    <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary right">{{=T('Complete')}}</a>
+  <div>
+    <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary btn-block">{{=T('Complete')}}</a>
+    <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
   </div>
 {{end}}
 

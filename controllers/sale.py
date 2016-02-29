@@ -316,7 +316,7 @@ def create():
             stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
             # if theres no stock the user needs to modify the bag
             if stock_qty <= quantity:
-                session.info = T('Some items are missing')
+                session.info = T('Some items are out of stock')
                 bag.completed = False
                 bag.update_record()
                 redirect(URL('default', 'index'))

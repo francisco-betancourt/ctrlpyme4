@@ -36,11 +36,11 @@
 
   nav {
     background-color: {{=primary_color}};
-    color: {{=primary_color_text}};
+    color: {{=hex_to_css_rgba(primary_color_text, .7)}};
   }
 
   nav a, nav a:hover, nav a:focus {
-    color: {{=primary_color_text}};
+    color: {{=hex_to_css_rgba(primary_color_text, .7)}};
     text-decoration: none;
   }
 
@@ -137,6 +137,9 @@
 
   .primary-color-text, .primary-color-text * {
     color: {{=primary_color_text}};
+  }
+  .accent-color-text, .accent-color-text * {
+    color: {{=accent_color_text}};
   }
 
   .base-color-text, .base-color-text *, .base-color-text *:hover, .base-color-text *:active, .base-color-text *:focus {

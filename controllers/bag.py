@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
-
+# Copyright (C) 2016  Daniel J. Ramirez at Bet@net
 #
 # A bag is a storage for items that will be sold.
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
@@ -60,9 +72,8 @@ def refresh_bag_data(id_bag):
 def modify_bag_item():
     """
         modifies the bag_item quantity.
+        args: [ bag_item ]
 
-        args:
-            bag_item_id
     """
 
     bag_item = db.bag_item(request.args(0))
@@ -160,35 +171,29 @@ def select_bag():
             or auth.has_membership('Clients')
             )
 def add_bag_item():
-    """
-        args:
-            id_item
-    """
+    """ args: [ id_item ] """
 
-    is_online_sale = False
-    if auth.has_membership('Clients'):
-        is_online_sale = True
+    allow_out_of_stock = True
+    # if auth.has_membership('Clients'):
+    #     allow_out_of_stock = True
 
+    item = db.item(request.args(0))
+    bag = get_valid_bag(session.current_bag)
+    id_bag = bag.id if bag else None
+    if not item or not id_bag:
+        raise HTTP(404)
     try:
-        item = db.item(request.args(0))
-        bag = get_valid_bag(session.current_bag)
-
-        id_bag = bag.id if bag else None
-
-        if not item or not id_bag:
-            raise HTTP(404)
-
         bag_item = db((db.bag_item.id_item == item.id)
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
 
         item_stock_qty = DQ(item_stock(item, session.store, id_bag=session.current_bag)['quantity'])
+        base_qty = base_qty = 1 if item_stock_qty >= 1 or allow_out_of_stock else item_stock_qty % 1 # modulo to consider fractionary items
+        # if there is no stock notify the user
+        if base_qty <= 0:
+            return dict(status="out of stock")
 
-        # if theres no stock notify the user
         if not bag_item:
-            base_qty = 1 if item_stock_qty >= 1 or is_online_sale else item_stock_qty % 1
-            if base_qty <= 0:
-                return dict(status="out of stock")
             item_taxes_str = ''
             for tax in item.taxes:
                 item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
@@ -201,9 +206,6 @@ def add_bag_item():
                 sale_taxes=item_taxes(item, sale_price))
             bag_item = db.bag_item(id_bag_item)
         else:
-            base_qty = item_stock_qty if item_stock_qty < 1 and not is_online_sale else 1
-            if base_qty <= 0:
-                return dict(status="out of stock")
             bag_item.quantity += base_qty
             bag_item.update_record()
 
@@ -290,7 +292,8 @@ def change_bag_item_sale_price():
     return dict(status="ok", **bag_data)
 
 
-def check_bag_items_integrity(bag_items):
+def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
+    """ verify item stocks and remove unnecessary items """
     out_of_stock_items = []
     for bag_item in bag_items:
         # delete bag item when the item has 0 quantity
@@ -299,8 +302,8 @@ def check_bag_items_integrity(bag_items):
         qty = item_stock(bag_item.id_item, session.store)['quantity']
         if bag_item.quantity > qty:
             out_of_stock_items.append(bag_item)
-    if out_of_stock_items and (auth.has_membership('Employee') or auth.has_membership('Admin')):
-        response.flash = T('Some items are out of stock or are inconsistent')
+    if out_of_stock_items and auth.has_membership('Employee'):
+        session.flash = T('Some items are out of stock or are inconsistent')
         auto_bag_selection()
         redirection()
 
@@ -321,7 +324,6 @@ def complete():
         db(db.bag.id == bag.id).delete()
         auto_bag_selection()
         redirection()
-
     check_bag_items_integrity(bag_items)
 
     if auth.has_membership('Clients'):
