@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016  Daniel J. Ramirez at Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
 from uuid import uuid4
-
-
-
 
 
 def validate_sale_form(form):
@@ -24,10 +34,7 @@ def validate_sale_form(form):
 
 @auth.requires_membership('Sales checkout')
 def ticket():
-    """
-        args:
-            id_sale
-    """
+    """ args: [id_sale] """
 
     sale = db.sale(request.args(0))
     print_ticket = request.vars.print_ticket
@@ -39,12 +46,15 @@ def ticket():
     # get bag items data
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
-    ticket = create_ticket('Sale', sale.id_store, sale.created_by, bag_items, ticket_barcode, '')
+    title = ''
+    if sale.is_done:
+        title = 'Sale'
+    elif sale.is_defered:
+        title = 'Defered sale'
+
+    ticket = create_ticket(title, sale.id_store, sale.created_by, bag_items, ticket_barcode, '')
 
     return locals()
-
-
-
 
 
 def get_payments_data(id_sale):
@@ -104,7 +114,10 @@ def add_payment():
         add_new_payment = True
     else:
         # get payments with the same payment option
-        payment = db((db.payment.id_sale == sale.id) & (db.payment.id_payment_opt == payment_opt.id)).select().first()
+        payment = db((db.payment.id_sale == sale.id)
+            & (db.payment.id_payment_opt == payment_opt.id)
+            & (db.payment.is_updatable == True)
+        ).select().first()
         if not payment:
             add_new_payment = True
 
@@ -130,6 +143,8 @@ def update_payment():
                & (db.payment.id_sale == sale.id)).select().first()
     if not payment:
         raise HTTP(404)
+    if not payment.is_updatable:
+        raise HTTP(405)
 
     try:
         new_amount = D(request.vars.amount or payment.amount)
@@ -203,6 +218,9 @@ def update_payment():
     payment.change_amount = change
     payment.account = account
     payment.wallet_code = wallet_code
+    # only accept a single update when we have a defered sale, this is because the user can leave the page without defering again, so the payments will be modifiable, and we don't want that.
+    if sale.is_defered:
+        payment.is_updatable = False
     payment.update_record()
 
     payment.amount = str(DQ(payment.amount, True))
@@ -224,6 +242,9 @@ def cancel():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    # cannot cancel a defered sale, without credit note and all that stuff
+    if sale.is_defered:
+        raise HTTP(405)
 
     # return wallet payments
     wallet_opt = get_wallet_payment_opt()
@@ -246,9 +267,7 @@ def cancel():
 
 @auth.requires_membership('Sales checkout')
 def update():
-    """
-        args: [id_sale]
-    """
+    """ args: [id_sale] """
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
@@ -257,7 +276,6 @@ def update():
 
     payments = db(db.payment.id_sale == sale.id).select()
     payment_options = db(db.payment_opt.is_active == True).select()
-
 
     return locals()
 
@@ -269,11 +287,14 @@ def set_sale_client():
     """
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.is_defered:
+        raise HTTP(405)
     client = db((db.auth_user.is_client == True)
                 & (db.auth_user.registration_key == '')
                 & (db.auth_user.id == request.args(1))
                 ).select().first()
     wallet = None
+    #TODO remove credit payments if the user is None
     if not client:
         sale.id_client = None
     else:
@@ -303,53 +324,18 @@ def create():
         redirect(URL('default', 'index'))
     # get bag items data, calculate total, subtotal, taxes, quantity, reward points.
     bag_items = db(db.bag_item.id_bag == bag.id).select()
-    total = 0
-    taxes = 0
-    subtotal = 0
-    reward_points = 0
-    quantity = 0
-    requires_serials = False
-    for bag_item in bag_items:
-        #TODO check for existences before the sale
-        # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
-        if bag_item.id_item.has_inventory:
-            stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
-            # if theres no stock the user needs to modify the bag
-            if stock_qty <= quantity:
-                session.info = T('Some items are out of stock')
-                bag.completed = False
-                bag.update_record()
-                redirect(URL('default', 'index'))
-        subtotal += bag_item.sale_price * bag_item.quantity
-        taxes += bag_item.sale_taxes * bag_item.quantity
-        total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
-        quantity += bag_item.quantity
-        reward_points += bag_item.id_item.reward_points or 0
-        requires_serials |= bag_item.id_item.has_serial_number or False
-    subtotal = DQ(subtotal, True)
-    taxes = DQ(taxes, True)
-    total = DQ(total, True)
-    quantity = DQ(quantity, True)
-    reward_points = DQ(reward_points, True)
+    #TODO check discounts coherence
 
-    new_sale = db.sale.insert(id_bag=bag.id, subtotal=subtotal, taxes=taxes, total=total, quantity=quantity, reward_points=reward_points, id_store=bag.id_store.id)
+    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=bag.id_store.id)
 
     redirect(URL('update', args=new_sale))
 
 
-@auth.requires_membership('Sales checkout')
-def complete():
-    """
-        args: [id_sale]
-    """
-    sale = db.sale(request.args(0))
-    valid_sale(sale)
 
-    payments = db(db.payment.id_sale == sale.id).select()
+def verify_payments(payments, sale, check_total=True):
     if not payments:
         session.info = T('There are no payments')
         redirect(URL('update', args=sale.id))
-
     # verify payments consistency
     payments_total = 0
     bad_payments = False
@@ -363,13 +349,36 @@ def complete():
             bad_payments = True
         if payment.amount <= 0:
             payment.delete_record()
-
-    if payments_total < sale.total:
+    if payments_total < sale.total and check_total:
         session.info = T('Payments amount is lower than the total')
         redirect(URL('update', args=sale.id))
     if bad_payments:
         session.info = T('Some payments requires account')
         redirect(URL('update', args=sale.id))
+
+
+@auth.requires_membership('Sales checkout')
+def complete():
+    """
+        args: [id_sale]
+    """
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    payments = db(db.payment.id_sale == sale.id).select()
+    verify_payments(payments, sale)
+
+    # verify items stock
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+    requires_serials = False  #TODO implement serial numbers
+    for bag_item in bag_items:
+        # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
+        stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
+        # Cannot deliver a sale with out of stock items
+        if stock_qty <= bag_item.quantity:
+            session.info = T("You can't create a counter sale with out of stock items")
+            redirect(URL('update', args=sale.id))
+        requires_serials |= bag_item.id_item.has_serial_number or False
 
     # if theres a payment with a payment option with credit days, create an account receivable record
     for payment in payments:
@@ -391,24 +400,47 @@ def complete():
         wallet.balance += sale.reward_points
         wallet.update_record()
 
+    #TODO check company workflow
     if not auth.has_membership('Sales delivery'):
         redirect(URL('scan_ticket'))
     else:
         bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
         remove_stocks(bag_items)
         db.sale_log.insert(id_sale=sale.id, sale_event="delivered")
-        redirect(URL('ticket', args=sale.id, vars={'print_ticket': True}))
+        redirect(URL('ticket', args=sale.id, vars={'_print': True}))
+
+
+@auth.requires_membership('Sales checkout')
+def defer():
+    """ args: [id_sale] """
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+
+    payments = db(db.payment.id_sale == sale.id).select()
+    verify_payments(payments, sale, False)
+    payments = db(db.payment.id_sale == sale.id).select()
+    # Since this sale will be edited later we have to make sure that current payments will not be modified, so we set them as non updatable
+    for payment in payments:
+        payment.is_updatable = False;
+        payment.update_record()
+
+    # if defered function is called on a defered sale, we skip the following steps
+    if not sale.is_defered:
+        sale.is_defered = True
+        sale.update_record()
+        db.sale_log.insert(id_sale=sale.id, sale_event="defered")
+
+        # create sale order based on the
+        db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
+
+    redirect(URL('ticket', args=sale.id, vars={'_print': True}))
 
 
 @auth.requires_membership('Sales delivery')
 def deliver():
-    """
-        args:
-            sale_id
-    """
+    """ args: [sale_id] """
 
     sale = db.sale(request.args(0))
-    print sale
     if not sale:
         raise HTTP(404)
     # find all the sold items whose purchase had serial numbers
@@ -491,7 +523,6 @@ def refund():
 
     # check if the sale has been delivered
     if not db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == "delivered")).select().first():
-        print "not delivered"
         response.flash = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
 

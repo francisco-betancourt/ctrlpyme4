@@ -14,4 +14,19 @@
       {{include}}
     </div>
   </body>
+
+
+  <script type="text/javascript">
+    {{ if request.vars._print: }}
+     window.print();
+     // window.print();
+     // $('body').keyup(function (event) {
+     //   if (event.charCode == 0) {
+     //     window.close();
+     //   }
+     // });
+     //
+     // window.open("{{=URL('ticket', args=sale.id)}}", '1', resizable=1)
+    {{ pass }}
+  </script>
 </html>

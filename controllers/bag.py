@@ -54,14 +54,14 @@ def refresh_bag_data(id_bag):
     taxes = D(0)
     total = D(0)
     quantity = D(0)
-    reward_points
+    reward_points = 0
     for bag_item in bag_items:
         subtotal += bag_item.sale_price * bag_item.quantity
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
         reward_points += bag_item.id_item.reward_points or 0
-    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), reward_points=DQ(reward_points))
+    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
     subtotal = money_format(DQ(subtotal, True))
     taxes = money_format(DQ(taxes, True))
     total = money_format(DQ(total, True))

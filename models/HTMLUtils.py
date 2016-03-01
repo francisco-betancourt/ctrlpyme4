@@ -558,11 +558,13 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
     reward_points = None
     payments_data = DIV(_id="payments_data")
     sale = db(db.sale.id_bag == bag.id).select().first()
-    if sale and sale.is_done:
+    if sale and (sale.is_done or sale.is_defered):
         change = 0
         payments = db(db.payment.id_sale == sale.id).select()
         for payment in payments:
             payment_name = payment.id_payment_opt.name
+            if sale.is_defered:
+                payment_name = '%s %s ' % (payment.created_on, payment_name)
             if payment.id_payment_opt.requires_account:
                 payment_name += ' %s' % payment.account
             change += payment.change_amount

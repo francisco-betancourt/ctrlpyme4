@@ -458,6 +458,7 @@ db.define_table("bag",
     , Field("taxes", "decimal(16,6)", default=0, label=T('Taxes'))
     , Field("total", "decimal(16,6)", default=0, label=T('Total'))
     , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
+    , Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'))
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
@@ -502,8 +503,10 @@ db.define_table("sale",
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
     Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
-    # true if the products in sale has been delivered
+    # true if the products in sale has been delivered and the sale has been paid
     Field("is_done", "boolean", default=False, writable=False, readable=False),
+    # true if the sale has been defered for later payment
+    Field("is_defered", "boolean", default=False, writable=False, readable=False),
     auth.signature)
 db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 
@@ -530,10 +533,11 @@ db.define_table("credit_note_item",
 
 db.define_table(
   'sale_order'
-  , Field('id_client', 'reference auth_user', label=T('Client'), readable=False, writable=False)
+  , Field('id_client', 'reference auth_user', default=None, label=T('Client'), readable=False, writable=False)
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
   , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=False, writable=False)
   , Field('id_store', 'reference store', label=T('Store'))
+  , Field('is_for_defered_sale', 'boolean', default=False, label=T('Is for defered sale'))
   , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=False, writable=False)
   , auth.signature
 )
@@ -598,6 +602,7 @@ db.define_table("payment",
     Field("account", "string", default=None, label=T('Account')),
     Field("change_amount", "decimal(16,6)", default=0, label=T('Change amount')),
     Field("wallet_code", default=None, label=T('Wallet code')),
+    Field("is_updatable", 'boolean', default=True, label=T('Is updatable')),
     auth.signature)
 
 

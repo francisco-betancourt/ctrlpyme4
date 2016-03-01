@@ -125,7 +125,7 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
 
     # this is something like a service, it does not have existences, so its always available
     if not item.has_inventory:
-        return dict(stocks=None, quantity=1)
+        return dict(stocks=None, quantity=float('inf'))
 
     if item.is_bundle:
         bundle_items = db(db.bundle_item.id_bundle == item.id).select()

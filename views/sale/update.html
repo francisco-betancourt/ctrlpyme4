@@ -11,23 +11,30 @@
 
   <hr>
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
-  <select name="" class="form-control" id="client_selector">
-    <option value=""></option>
-    {{for client in clients:}}
-      <option value="{{=client.id}}" {{if sale.id_client == client.id:}} selected="selected" {{pass}}>{{=client.first_name}} {{=client.last_name}} &lt{{=client.email}}&gt </option>
-    {{pass}}
-  </select>
+  {{ if not sale.is_defered: }}
+    <select name="" class="form-control" id="client_selector">
+      <option value=""></option>
+      {{for client in clients:}}
+        <option value="{{=client.id}}" {{if sale.id_client == client.id:}} selected="selected" {{pass}}>{{=client.first_name}} {{=client.last_name}} &lt{{=client.email}}&gt </option>
+      {{pass}}
+    </select>
 
-  <div id="client_wallet_data" hidden="hidden">
-    <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
-    <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
-  </div>
+    <div id="client_wallet_data" hidden="hidden">
+      <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+      <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+    </div>
+  {{ else: }}
+    <p>{{ =sale.id_client }}</p>
+  {{ pass }}
 
   <hr>
 
   <div>
     <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary btn-block">{{=T('Complete')}}</a>
-    <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
+    <a href="{{=URL('defer', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Defer')}}</a>
+    {{ if not sale.is_defered: }}
+      <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
+    {{ pass }}
   </div>
 {{end}}
 
@@ -181,6 +188,9 @@
     e_payment.attr('id', 'payment_' + payment.id);
     e_payment.show()
     e_payment.find('.amount').val(payment.amount);
+    if (!payment.is_updatable) {
+      e_payment.find('.amount').attr('disabled', 'disabled');
+    }
     e_payment.find('.change').val(payment.change);
     e_payment.find('.account').val(payment.account);
     e_payment.find('.wallet_code').val(payment.wallet_code);
