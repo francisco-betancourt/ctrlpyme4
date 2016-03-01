@@ -58,7 +58,8 @@ def cash_out():
         }
 
     sales = db((db.sale.id == db.sale_log.id_sale)
-                & (db.sale_log.sale_event == 'paid')
+                & ((db.sale_log.sale_event == 'paid')
+                | (db.sale_log.sale_event == 'defered'))
                 & (db.sale.id_store == session.store)
                 & (db.sale.created_by == seller.id)
                 & time_interval_query('sale', start_date, end_date)
@@ -70,7 +71,6 @@ def cash_out():
     # set payments query and total sold quantity
     for sale in sales:
         payments_query |= db.payment.id_sale == sale.id
-        total += sale.total
     payment_index = 0
     payments = db(payments_query).select(orderby=db.payment.id_sale)
     for sale in sales:
@@ -92,6 +92,7 @@ def cash_out():
                 total_cash += payment.amount - payment.change_amount
             sale.total_change += payment.change_amount
             sale.change += payment.change_amount
+            total += payment.amount - payment.change_amount
         sale.change = DQ(sale.change, True)
         payment_index += 1
     total = DQ(total, True)
@@ -112,21 +113,6 @@ def day_report_data(year, month, day):
     start_date = datetime.datetime(date.year, date.month, date.day, 0)
     end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
 
-    # income
-    sales_total_sum = db.sale.total.sum()
-    income = db((db.sale.id_store == session.store)
-                & (db.sale.is_done == True)
-                & (db.sale.created_on >= start_date)
-                & (db.sale.created_on <= end_date)
-                ).select(sales_total_sum).first()[sales_total_sum] or DQ(0)
-    # expenses
-    purchases_total_sum =db.purchase.total.sum()
-    expenses = db((db.purchase.id_store == session.store)
-                & (db.purchase.is_done >= True)
-                & (db.purchase.created_on >= start_date)
-                & (db.purchase.created_on <= end_date)
-                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
-
     sales_data = {
         'labels': [],
         'datasets': [{
@@ -136,15 +122,31 @@ def day_report_data(year, month, day):
 
     for hour in range(24):
         sales_data['labels'].append('%d:00' % hour)
-        start_hour = datetime.datetime(date.year, date.month, date.day, hour)
-        end_hour = start_hour + datetime.timedelta(hours=1)
-        hour_sales = db((db.sale.id_store == session.store)
-                      & (db.sale.is_done == True)
-                      & (db.sale.created_on >= start_hour)
-                      & (db.sale.created_on < end_hour)
-                     ).select(sales_total_sum).first()[sales_total_sum] or 0
-        sales_data['datasets'][0]['data'].append(float(hour_sales))
+        sales_data['datasets'][0]['data'].append(0)
+
+    # income
+    payments = db(
+        (db.payment.id_sale == db.sale.id)
+        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
+        & (db.sale.id_store == session.store)
+        & (db.payment.created_on >= start_date)
+        & (db.payment.created_on <= end_date)
+    ).select(db.payment.ALL, orderby=db.payment.created_on)
+    income = 0
+    for payment in payments:
+        income += payment.amount - payment.change_amount
+        index = payment.created_on.hour
+        sales_data['datasets'][0]['data'][index] += float(payment.amount - payment.change_amount)
     sales_data = json.dumps(sales_data)
+
+    # expenses
+    purchases_total_sum =db.purchase.total.sum()
+    expenses = db((db.purchase.id_store == session.store)
+                & (db.purchase.is_done >= True)
+                & (db.purchase.created_on >= start_date)
+                & (db.purchase.created_on <= end_date)
+                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
+
     return locals()
 
 
