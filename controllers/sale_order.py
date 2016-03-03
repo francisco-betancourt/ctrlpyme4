@@ -33,12 +33,7 @@ def create():
     elif form.errors:
         response.flash = 'form has errors'
 
-    # new_order = db.sale_order.insert(id_bag=bag.id, id_client=auth.user.id)
-    #
-
     return locals()
-
-    # redirect(URL('default', 'index'))
 
 
 def get():
@@ -119,6 +114,6 @@ def client_order_options(row):
 
 @auth.requires_membership('Sale orders')
 def index():
-    data = super_table('sale_order', ['is_ready'], (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False), options_function=client_order_options, show_id=True)
+    data = super_table('sale_order', ['is_ready', 'is_for_defered_sale'], (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False), options_function=client_order_options, show_id=True)
     # data = common_index('sale_order', ['is_ready'], dict(options_function=client_order_options, show_id=True))
     return locals()
