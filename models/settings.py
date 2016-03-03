@@ -70,17 +70,17 @@ if main_settings:
         TICKET_FOOTER = main_settings.ticket_footer
 
     if main_settings.primary_color:
-        PRIMARY_COLOR = '#' + main_settings.primary_color
+        PRIMARY_COLOR = main_settings.primary_color
     if main_settings.primary_color_text:
-        PRIMARY_COLOR_TEXT = '#' + main_settings.primary_color_text
+        PRIMARY_COLOR_TEXT = main_settings.primary_color_text
     if main_settings.accent_color:
-        ACCENT_COLOR = '#' + main_settings.accent_color
+        ACCENT_COLOR = main_settings.accent_color
     if main_settings.accent_color_text:
-        ACCENT_COLOR_TEXT = '#' + main_settings.accent_color_text
+        ACCENT_COLOR_TEXT = main_settings.accent_color_text
     if main_settings.base_color:
-        BASE_COLOR = '#' + main_settings.base_color
+        BASE_COLOR = main_settings.base_color
     if main_settings.base_color_text:
-        BASE_COLOR_TEXT = '#' + main_settings.base_color_text
+        BASE_COLOR_TEXT = main_settings.base_color_text
 
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS

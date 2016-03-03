@@ -44,7 +44,7 @@ if auth.has_membership('Admin'):
         , (T('Taxes'), False, URL('tax', 'index'), None)
         , (T('Highlights'), False, URL('highlight', 'index'), None)
     ])]
-if auth.has_membership('Manager'):
+if auth.has_membership('Manager') and not auth.has_membership('Admin'):
     response.menu += [(T('Configuration'),False,None, [
         # (T('Paper sizes'), False, URL('paper_size', 'index'), None)
         # , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)

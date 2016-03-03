@@ -6,59 +6,210 @@
   {{=form}}
 
   <script>
-    // $('#settings_primary_color__row').hide();
-    // $('#settings_primary_color_text__row').hide();
-    // $('#settings_accent_color__row').hide();
-    // $('#settings_accent_color_text__row').hide();
-    // $('#settings_base_color__row').hide();
-    // $('#settings_base_color_text__row').hide();
+    $('#settings_primary_color__row').hide();
+    $('#settings_primary_color_text__row').hide();
+    $('#settings_accent_color__row').hide();
+    $('#settings_accent_color_text__row').hide();
+    $('#settings_base_color__row').hide();
+    $('#settings_base_color_text__row').hide();
   </script>
 {{end}}
 
-<h1>{{=T('Preview')}}</h1>
-
 <style>
-  #preview {
-    height: 500px;
+  .preview-container {
+    overflow: auto;
+    padding-bottom: 15px;
   }
-  #preview_nav {
-    height: 64px;
+  .preview-content {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-bottom: 30px;
   }
-
-  #preview_btn {
-    position: relative;
-    bottom: 0px;
-    background-color: red;
+  .preview-button {
+    float: right;
+  }
+  .theme-panel {
+    padding: 0px;
+    margin-left: -1px;
+    border-radius: 0px;
+    margin-bottom: -1px;
   }
 </style>
 
 
-<div id="preview" class="base_color">
-  <div id="preview_nav" class="primary_color"> <b>Title</b> </div>
-  <h2>Header</h2>
-  <div id="preview_btn">{{=ICON('plus')}}</div>
+
+<div id="proto_preview" hidden="hidden">
+  <div class="preview-container base-color">
+
+    <nav class="primary-color">
+      <section class="nav-left">
+        <div class="menu-element brand">{{=COMPANY_NAME}}</div>
+        <div class="menu-element">{{=T('menu')}}</div>
+      </section>
+      <section class="nav-right">
+        <div class="menu-element">{{=ICON('ellipsis-v')}}</div>
+      </section>
+    </nav>
+    <div class="preview-content">
+      <h1>{{=T('Header')}}</h1>
+        <input type="text" class="form-control">
+    </div>
+    <div id="core_button" class="btn-group btn-group-lg preview-button">
+      <button id="core_action" type="button" class="btn btn-primary btn-default accent-color" aria-label="">
+        {{=ICON('plus')}}
+      </button>
+    </div>
+
+  </div>
 </div>
 
-<label for="">Primary color</label>
-<input type="color" colorname="primary_color">
-<label for="">Primary color text</label>
-<input type="color" colorname="primary_color" targetattr="color">
-<br>
-<label for="">Base color</label>
-<input type="color" colorname="base_color">
-<label for="">Base color text</label>
-<input type="color" colorname="base_color" targetattr="color">
 
 
+<h1 id="preview_header">{{=T('Preview')}}</h1>
+
+<div class="panel panel-default preview">
+  <div class="panel-body" id="main_preview">
+
+  </div>
+  <div class="panel-footer">
+    <label for="">{{=T('Primary color')}}</label>
+    <input type="color" colorname="primary-color" value="{{=primary_color}}" id="primary_color_picker">
+    <label for="">{{=T('Primary color text')}}</label>
+    <input type="color" colorname="primary-color" targetattr="color" value="{{=primary_color_text}}" id="primary_color_text_picker">
+
+    <br>
+    <label for="">{{=T('Accent color')}}</label>
+    <input type="color" colorname="accent-color" value="{{=accent_color}}" id="accent_color_picker">
+    <label for="">{{=T('Accent color text')}}</label>
+    <input type="color" colorname="accent-color" targetattr="color" value="{{=accent_color_text}}" id="accent_color_text_picker">
+  </div>
+</div>
+
+
+<div id="proto_panel" hidden="hidden" class="panel panel-default col-md-6 col-sm-12 col-lg-4 theme-panel">
+  <div class="panel-heading">
+    <h3>
+      <span class="theme-name"></span>
+      <button class="right btn btn-default use-btn">{{=T('Use')}}</button>
+    </h3>
+  </div>
+  <div class="panel-body"></div>
+</div>
+<hr>
+<h1>{{=T('Themes')}}</h1>
+<div id="themes">
+
+</div>
+
+
+
+{{block page_js}}
 <script>
+  function set_preview_colors(preview, data) {
+    preview.find('.primary-color').css('background-color', data.p_color);
+    preview.find('.primary-color').css('color', data.p_color_text);
+    preview.find('.accent-color').css('background-color', data.a_color);
+    preview.find('.accent-color').css('color', data.a_color_text);
+  }
+
+  function new_preview(data) {
+    var preview = $('#proto_preview').clone().show();
+    preview.attr('id', 'preview_' + data.name);
+    set_preview_colors(preview, data);
+    return preview;
+  }
+
+  $('#main_preview').append(new_preview({
+    name: 'default',
+    p_color: '{{=primary_color}}', p_color_text: '{{=primary_color_text}}',
+    a_color: '{{=accent_color}}', a_color_text: '{{=accent_color_text}}'
+  }));
+
+
+  var themes = [
+    {
+      name: 'Default',
+      p_color: '#505050', p_color_text: '#FFFFFF',
+      a_color: '#2375CA', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Purple Haze',
+      p_color: '#6861ac', p_color_text: '#FFFFFF',
+      a_color: '#844ddf', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Love',
+      p_color: '#c37cc1', p_color_text: '#FFFFFF',
+      a_color: '#8f76f4', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Hate',
+      p_color: '#3d3d3d', p_color_text: '#f54545',
+      a_color: '#df4d52', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Omni',
+      p_color: '#616aae', p_color_text: '#FFFFFF',
+      a_color: '#4ddf9a', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Leaf',
+      p_color: '#5bac75', p_color_text: '#FFFFFF',
+      a_color: '#f42c6a', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Cherry',
+      p_color: '#ef4455', p_color_text: '#FFFFFF',
+      a_color: '#097eff', a_color_text: '#FFFFFF'
+    },
+    {
+      name: 'Seti',
+      p_color: '#3c485b', p_color_text: '#5ef3d2',
+      a_color: '#0bf6b3', a_color_text: '#435966'
+    }
+  ]
+
+  for (var index in themes) {
+    var theme = themes[index];
+    var panel = $('#proto_panel').clone().show();
+    panel.attr('id', 'panel_' + theme.name);
+    panel.find('.theme-name').text(theme.name);
+    var n_theme = new_preview(theme);
+    n_theme.attr('target-theme', index);
+    panel.find('.panel-body').append(n_theme);
+    panel.find('.use-btn').attr('target', index);
+    $('#themes').append(panel);
+  }
+
+
+  function use_theme(index) {
+    var theme = themes[index]
+    set_preview_colors($('#main_preview'), theme);
+    $('#accent_color_picker, #settings_accent_color').val(theme.a_color);
+    $('#accent_color_text_picker, #settings_accent_color_text').val(theme.a_color_text);
+    $('#primary_color_picker, #settings_primary_color').val(theme.p_color);
+    $('#primary_color_text_picker, #settings_primary_color_text').val(theme.p_color_text);
+    $('#preview_header')[0].scrollIntoView();
+  }
+
+  $('.use-btn').click(function (event) {
+    use_theme($(event.target).attr('target'));
+  });
+
+
   $('input[type="color"]').change(function (event) {
     var target = $(event.target);
     var color_name = target.attr('colorname');
     var target_attr = target.attr('targetattr');
+    var target_field = color_name.replace('-', '_');
     if (!target_attr) {
       target_attr = 'background-color';
+    } else {
+      target_field += '_text';
     }
-    $('.' + color_name).css(target_attr, target.val())
+    $('#main_preview .' + color_name).css(target_attr, target.val())
+    $('#settings_' + target_field).val(target.val());
   })
 
 </script>
+{{end}}

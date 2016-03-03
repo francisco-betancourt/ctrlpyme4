@@ -30,18 +30,20 @@
     background-color: {{=base_color_dim}};
   }*/
 
-  a {
-    color: {{=accent_color_dim}};
+  a, a:hover, a:visited {
+    color: {{=primary_color_dim}};
   }
 
   nav {
     background-color: {{=primary_color}};
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
   }
-
-  nav a, nav a:hover, nav a:focus {
+  nav a, nav a:hover, nav a:focus, nav a:visited {
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
     text-decoration: none;
+  }
+  nav .badge {
+    background-color: {{=primary_color_bright}};
   }
 
 
@@ -54,19 +56,19 @@
   .btn-default {
     background-color: {{=base_color_bright}};
     color: {{=base_color_text}};
-    border-color: {{=base_color_dim}};
+    border-color: rgba(0,0,0,.2);
   }
 
   .btn-default:hover, .btn-default:focus, .btn-default:active {
     background-color: {{=base_color_dim}};
     color: {{=base_color_text}};
-    border-color: {{=base_color_dim}};
+    border-color: rgba(0,0,0,.3);
   }
 
   .btn-primary {
     background-color: {{=accent_color}};
     color: {{=accent_color_text}};
-    border-color: {{=accent_color_dim}};
+    border-color: rgba(0,0,0,.3);
   }
 
   .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
@@ -92,13 +94,12 @@
   #core_button .btn-primary {
     background-color: {{=accent_color}};
     color: {{=accent_color_text}};
-    border-color: {{=accent_color_dim}};
+    border-color: rgba(0,0,0,.3);
   }
 
   #core_button .btn-primary:hover, #core_button .btn-primary:focus, #core_button .btn-primary:active {
     background-color: {{=accent_color_dim}};
     color: {{=accent_color_text}};
-    border-color: {{=accent_color_dim}};
   }
 
   .list-group-item {
@@ -129,19 +130,22 @@
     background-color: {{=primary_color}};
     color: {{=primary_color_text}};
   }
-
   .primary-color-dim {
     background-color: {{=primary_color_dim}};
     color: {{=primary_color_text}};
   }
-
   .primary-color-text, .primary-color-text * {
     color: {{=primary_color_text}};
+  }
+  .accent-color {
+    background-color: {{=accent_color}};
   }
   .accent-color-text, .accent-color-text * {
     color: {{=accent_color_text}};
   }
-
+  .base-color {
+    background-color: {{=base_color}};
+  }
   .base-color-text, .base-color-text *, .base-color-text *:hover, .base-color-text *:active, .base-color-text *:focus {
     color: {{=base_color_text}};
   }
@@ -199,8 +203,10 @@
 
 
   .item-card {
+    border-color: rgba(0,0,0,.2);
+  }
+  .item-card>.panel-body {
     background-color: {{=base_color_bright}};
-    border-color: {{=base_color_dim}};
   }
 
 

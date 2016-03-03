@@ -1,9 +1,13 @@
+nav.the-nav {
+  position: fixed;
+  top: 0px;
+  min-width: calc(100vw - 15px);
+}
+
 nav {
   display: flex;
   flex-direction: row;
 
-  position: fixed;
-  top: 0px;
   height: 64px;
   min-height: 64px;
 
@@ -12,7 +16,6 @@ nav {
 
   width: 100%;
   min-width: 100%;
-  min-width: calc(100vw - 15px);
 
   box-shadow: 0px 2px 6px rgba(0,0,0,.5);
 

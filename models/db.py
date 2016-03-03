@@ -308,7 +308,7 @@ db.define_table(
 
   , auth.signature
 )
-hex_match = IS_MATCH('[0-9a-fA-F]{6}', error_message=T('not hex'))
+hex_match = IS_MATCH('#[0-9a-fA-F]{6}', error_message=T('not hex'))
 db.settings.primary_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.primary_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.accent_color.requires = IS_EMPTY_OR(hex_match)
