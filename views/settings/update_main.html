@@ -15,30 +15,8 @@
   </script>
 {{end}}
 
-<style>
-  .preview-container {
-    overflow: auto;
-    padding-bottom: 15px;
-  }
-  .preview-content {
-    padding-left: 15px;
-    padding-right: 15px;
-    margin-bottom: 30px;
-  }
-  .preview-button {
-    float: right;
-  }
-  .theme-panel {
-    padding: 0px;
-    margin-left: -1px;
-    border-radius: 0px;
-    margin-bottom: -1px;
-  }
-</style>
 
-
-
-<div id="proto_preview" hidden="hidden">
+<template id="proto_preview">
   <div class="preview-container base-color">
 
     <nav class="primary-color">
@@ -59,10 +37,8 @@
         {{=ICON('plus')}}
       </button>
     </div>
-
   </div>
-</div>
-
+</template>
 
 
 <h1 id="preview_header">{{=T('Preview')}}</h1>
@@ -95,6 +71,8 @@
   </div>
   <div class="panel-body"></div>
 </div>
+
+
 <hr>
 <h1>{{=T('Themes')}}</h1>
 <div id="themes">
@@ -113,10 +91,10 @@
   }
 
   function new_preview(data) {
-    var preview = $('#proto_preview').clone().show();
-    preview.attr('id', 'preview_' + data.name);
-    set_preview_colors(preview, data);
-    return preview;
+    var t_preview = document.querySelector('#proto_preview');
+    set_preview_colors($(t_preview.content), data);
+    var clone = document.importNode(t_preview.content, true);
+    return $(clone);
   }
 
   $('#main_preview').append(new_preview({

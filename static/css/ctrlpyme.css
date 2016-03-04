@@ -331,3 +331,24 @@ select {
   color: white;
   font-size: 16px;
 }
+
+
+/* theme previews */
+.preview-container {
+  overflow: auto;
+  padding-bottom: 15px;
+}
+.preview-content {
+  padding-left: 15px;
+  padding-right: 15px;
+  margin-bottom: 30px;
+}
+.preview-button {
+  float: right;
+}
+.theme-panel {
+  padding: 0px;
+  margin-left: -1px;
+  border-radius: 0px;
+  margin-bottom: -1px;
+}
