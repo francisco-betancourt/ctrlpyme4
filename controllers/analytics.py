@@ -131,6 +131,8 @@ def day_report_data(year, month, day):
         & (db.sale.id_store == session.store)
         & (db.payment.created_on >= start_date)
         & (db.payment.created_on <= end_date)
+        # do not consider wallet payments
+        & (db.payment.id_payment_opt != get_wallet_payment_opt())
     ).select(db.payment.ALL, orderby=db.payment.created_on)
     income = 0
     for payment in payments:
@@ -287,12 +289,17 @@ def item_analysis():
     return locals()
 
 
+@auth.requires_membership('Admin')
+def dashboard():
+    pass
+
+
 @auth.requires_membership("Analytics")
 def index():
-    start_date, end_date, timestep = daily_interval(11, 2015)
+    if auth.has_membership('Admin'):
+        redirect(URL('dashboard'))
 
     query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
-
     day_data = day_report_data(None, None, None)
     income = day_data['income']
     expenses = day_data['expenses']

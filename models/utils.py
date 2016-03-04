@@ -183,6 +183,8 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
 
 
 def item_discounts(item):
+    """ returns the maximum applicable discounts for the specified item """
+
     # get the current offer groups
     offer_groups = db((db.offer_group.starts_on < request.now) & (db.offer_group.ends_on > request.now)).select()
     if not offer_groups:
@@ -255,8 +257,12 @@ def fix_item_price(item, price):
     item.discount_percentage = discount_percentage
 
 
+def get_random_wallet_code():
+    return str(uuid4()).split('-')[0] # is this random enough?
+
 def new_wallet(balance=0):
-    return db.wallet.insert(wallet_code=uuid4(), balance=balance)
+    wallet_code = get_random_wallet_code()
+    return db.wallet.insert(wallet_code=wallet_code, balance=balance)
 
 
 def is_wallet(payment_opt):

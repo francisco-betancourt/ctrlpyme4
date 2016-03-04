@@ -315,6 +315,7 @@ db.settings.accent_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.accent_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color_text.requires = IS_EMPTY_OR(hex_match)
+db.settings.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
 
 
 db.define_table(

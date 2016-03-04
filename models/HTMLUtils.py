@@ -481,7 +481,7 @@ def super_table(table, fields, query, row_function=default_row_function,
     return table
 
 
-def create_ticket(title, store, seller, items, barcode, footer=""):
+def ticket_store_data(store):
     store_data = P()
     if store:
         store_data.append(T('Store') + ': %s' % store.name)
@@ -496,7 +496,14 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
             , store.id_address.state_province
             , store.id_address.country
         ))
-    disable_taxes_list = False
+    return store_data
+
+
+def ticket_item_list(items, concept=''):
+    """ creates a table of items, if concept is specified, ignores the items list and uses concept as a unique item in the table, the table will be something like
+        QTY  CONCEPT                                           PRICE
+        --   <concept>                                         $ --
+    """
     items_list = DIV(_id="items_list")
     # headers
     items_list.append(DIV(
@@ -507,60 +514,88 @@ def create_ticket(title, store, seller, items, barcode, footer=""):
     ))
     items_list.append(HR())
     subtotal = D(0)
+    disable_taxes_list = False
     taxes = {}
     taxes_percentages = {}
     total = D(0)
-    bag = None
-    if items:
+    items = [] if not items else items
+    if concept:
+        items_list.append(DIV(
+            SPAN('--', _class="qty"), SPAN(concept, _class="name"),
+            SPAN('$ --', _class="price"),
+            _class="item"
+        ))
+    else:
         for item in items:
+            # assume bag items are being received
             bag_item = item
+            # TODO find a better way to identify if the list contains bag items or credit note items
             try:
                 item.product_name
             except:
                 bag_item = item.id_bag_item
+            if not bag_item:
+                continue
+            item_name = bag_item.product_name
+            item_price = bag_item.sale_price
+            # get item taxes
             try:
-                if not bag and bag_item.id_bag:
-                    bag = bag_item.id_bag
-                item_name = bag_item.product_name
-                item_price = bag_item.sale_price
-                try:
-                    if bag_item.item_taxes:
-                        taxes_str = bag_item.item_taxes.split(',')
-                        for tax_str in taxes_str:
-                            tax_name, tax_percentage = tax_str.split(':')
-                            if not taxes_percentages.has_key(tax_name):
-                                taxes_percentages[tax_name] = DQ(tax_percentage, True, normalize=True)
-                            if not taxes.has_key(tax_name):
-                                taxes[tax_name] = 0
-                            taxes[tax_name] += item_price * (D(tax_percentage) / DQ(100.0))
-                except:
-                    import traceback as tb
-                    tb.print_exc()
-                    disable_taxes_list = True
-                subtotal += item_price
-                total += item_price + bag_item.sale_taxes
+                if bag_item.item_taxes:
+                    taxes_str = bag_item.item_taxes.split(',')
+                    for tax_str in taxes_str:
+                        tax_name, tax_percentage = tax_str.split(':')
+                        if not taxes_percentages.has_key(tax_name):
+                            taxes_percentages[tax_name] = DQ(tax_percentage, True, normalize=True)
+                        if not taxes.has_key(tax_name):
+                            taxes[tax_name] = 0
+                        taxes[tax_name] += item_price * (D(tax_percentage) / DQ(100.0))
             except:
-                import traceback as tb
-                tb.print_exc()
+                disable_taxes_list = True
+            subtotal += item_price
+            total += item_price + bag_item.sale_taxes
+            item_quantity = DQ(item.quantity, True, normalize=True)
+            item_price = DQ(item_price, True)
+
             items_list.append(DIV(
-                SPAN(DQ(item.quantity, True, normalize=True), _class="qty"),
+                SPAN(item_quantity, _class="qty"),
                 SPAN(item_name, _class="name"),
-                SPAN('$ %s' % DQ(item_price, True), _class="price"),
+                SPAN('$ %s' % item_price, _class="price"),
                 _class="item"
             ))
+
+    if disable_taxes_list:
+        taxes = {}
+        taxes_percentages = {}
+
+    return items_list, subtotal, total, taxes, taxes_percentages
+
+
+
+def create_ticket(title, store, seller, items, barcode, footer="", sale=None):
+    store_data = ticket_store_data(store)
+    disable_taxes_list = False
+    concept = None
+    if sale and sale.is_defered and not sale.is_done:
+        concept = T('Defered sale')
+
+    items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items, concept)
+    bag = None
 
     total_data = DIV(_id="total_data")
     total_data.append(DIV(T('Subtotal') + ': $ %s' % DQ(subtotal, True)))
     # taxes
-    if not disable_taxes_list:
-        for key in taxes.iterkeys():
-            text = '%s %s %%: $ %s' % (key, taxes_percentages[key], DQ(taxes[key], True))
-            total_data.append(DIV(text))
+    for key in taxes.iterkeys():
+        text = '%s %s %%: $ %s' % (key, taxes_percentages[key], DQ(taxes[key], True))
+        total_data.append(DIV(text))
     total_data.append(DIV(T('Total') + ': $ %s' % DQ(total, True)))
 
     reward_points = None
     payments_data = DIV(_id="payments_data")
-    sale = db(db.sale.id_bag == bag.id).select().first()
+    if not sale:
+        try:
+            sale = db(db.sale.id_bag == bag.id).select().first()
+        except:
+            pass
     if sale and (sale.is_done or sale.is_defered):
         change = 0
         payments = db(db.payment.id_sale == sale.id).select()
