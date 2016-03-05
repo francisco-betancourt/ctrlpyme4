@@ -352,11 +352,11 @@ def complete():
             redirect(URL('update', args=sale.id))
         requires_serials |= bag_item.id_item.has_serial_number or False
 
-    # if theres a payment with a payment option with credit days, create an account receivable record
+    # for every payment with a payment option with credit days, set payment to not settled
     for payment in payments:
         if payment.id_payment_opt.credit_days > 0:
-            db.account_receivable.insert(id_sale=sale.id)
-            break;
+            payment.is_settled = False
+            payment.update_record();
 
     store = db(db.store.id == session.store).select(for_update=True).first()
     sale.consecutive = store.consecutive
