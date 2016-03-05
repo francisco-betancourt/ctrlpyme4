@@ -604,6 +604,7 @@ db.define_table("payment",
     Field("change_amount", "decimal(16,6)", default=0, label=T('Change amount')),
     # only applicable if payment opt has credit days
     Field('is_settled', 'boolean', default=True, label=T('Is settled')),
+    Field('settled_on', 'datetime', label=T('Settled on')),
     Field("wallet_code", default=None, label=T('Wallet code')),
     Field("is_updatable", 'boolean', default=True, label=T('Is updatable')),
     auth.signature)

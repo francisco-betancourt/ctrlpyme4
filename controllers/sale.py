@@ -23,19 +23,6 @@ import json
 from uuid import uuid4
 
 
-def validate_sale_form(form):
-    payments = db(db.payment.id_bag == form.vars.id_bag).select()
-    total = 0
-    for payment in payments:
-        requires_account = payment.id_payment_opt.requires_account
-        total += DQ(payment.amount)
-        if payment.account and len(payment.account) != 4 and requires_account:
-            form.errors.payments_data = T('Some payments require an account')
-            return
-    if total < form.vars.total:
-        form.errors.payments_data = T('Payments amount is lower than the total')
-
-
 def ticket():
     redirect( URL( 'ticket', 'get', vars=dict(id_sale=request.args(0)) ) )
 
@@ -93,7 +80,7 @@ def add_payment():
     add_new_payment = False
 
     # allow multiple payments for the same payment option
-    if payment_opt.requires_account or is_wallet(payment_opt):
+    if payment_opt.requires_account or is_wallet(payment_opt) or sale.is_defered:
         add_new_payment = True
     else:
         # get payments with the same payment option
@@ -127,6 +114,13 @@ def update_payment():
     if not payment:
         raise HTTP(404)
     if not payment.is_updatable:
+        raise HTTP(405)
+
+    # Accept updates for 7 minutes
+    if (request.now - payment.created_on).seconds / 60.0 / 7.0 > 1:
+        if sale.is_defered:
+            payment.is_updatable = False
+            payment.update_record()
         raise HTTP(405)
 
     try:
@@ -201,16 +195,13 @@ def update_payment():
     payment.change_amount = change
     payment.account = account
     payment.wallet_code = wallet_code
-    # only accept a single update when we have a defered sale, this is because the user can leave the page without defering again, so the payments will be modifiable, and we don't want that.
-    if sale.is_defered:
-        payment.is_updatable = False
     payment.update_record()
 
     payment.amount = str(DQ(payment.amount, True))
     payment.change_amount = str(DQ(payment.change_amount, True))
     if not request.vars.delete:
         extra_updated_payments.append(payment)
-    else:
+    elif payment.is_updatable:
         payment.delete_record()
 
     return dict(updated=extra_updated_payments)

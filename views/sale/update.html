@@ -188,6 +188,7 @@
     e_payment.attr('id', 'payment_' + payment.id);
     e_payment.show()
     e_payment.find('.amount').val(payment.amount);
+    console.log(payment);
     if (!payment.is_updatable) {
       e_payment.find('.amount').attr('disabled', 'disabled');
     }
@@ -264,6 +265,7 @@
       change: '{{=str(DQ(payment.change_amount, True))}}',
       account: "{{=payment.account or ''}}",
       wallet_code: "{{=payment.wallet_code or ''}}",
+      is_updatable: {{='true' if payment.is_updatable else 'false'}},
       {{ if not valid_account(payment): }}
         error: "{{=T('This payment requires a 4 digits account')}}"
       {{ pass }}
