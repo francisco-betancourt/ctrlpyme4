@@ -341,11 +341,6 @@ def stock_transfer():
 def ticket():
     """ args: [bag_id] """
 
-    bag = get_valid_bag(request.args(0), completed=True)
-
-    if not bag:
-        raise HTTP(404)
-
     redirect( URL( 'ticket', 'get', vars=dict(id_bag=request.args(0)) ) )
 
 
