@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016  Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 import urllib
 import re
@@ -180,6 +183,21 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
         session.flash = T('Some items are out of stock or are inconsistent')
         auto_bag_selection()
         redirection()
+
+
+def get_valid_bag(id_bag, completed=False):
+    try:
+        query = (db.bag.id == id_bag)
+        query &= db.bag.created_by == auth.user.id
+        query &= db.bag.completed == completed
+        if not auth.user.is_client:
+            query &= db.bag.id_store == session.store
+        bag = db(query).select().first()
+        return bag
+    except:
+        import traceback as tb
+        tb.print_exc()
+        return None
 
 
 def item_discounts(item):

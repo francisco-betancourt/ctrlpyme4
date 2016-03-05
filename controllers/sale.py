@@ -38,27 +38,7 @@ def validate_sale_form(form):
 
 @auth.requires_membership('Sales checkout')
 def ticket():
-    """ args: [id_sale] """
-
-    sale = db.sale(request.args(0))
-    print_ticket = request.vars.print_ticket
-
-    if not sale:
-        raise HTTP(404)
-    # format ticket barcode
-    ticket_barcode = "%010d" % sale.id
-    # get bag items data
-    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
-
-    title = ''
-    if sale.is_done:
-        title = 'Sale'
-    elif sale.is_defered:
-        title = 'Defered sale'
-
-    ticket = create_ticket(title, sale.id_store, sale.created_by, bag_items, ticket_barcode, '')
-
-    return locals()
+    redirect( URL( 'ticket', 'get', vars=dict(id_sale=request.args(0)) ) )
 
 
 def get_payments_data(id_sale):

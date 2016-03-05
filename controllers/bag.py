@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016  Daniel J. Ramirez at Bet@net
-#
-# A bag is a storage for items that will be sold.
+# Copyright (C) 2016 Bet@net
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
 from decimal import Decimal as D
@@ -25,24 +26,9 @@ from math import floor
 
 allow_out_of_stock = True
 
-def get_valid_bag(id_bag, completed=False):
-    try:
-        query = (db.bag.id == id_bag)
-        query &= (db.bag.created_by == auth.user.id)
-        query &= (db.bag.completed == completed)
-        if not auth.user.is_client:
-            query &= (db.bag.id_store == session.store)
-        bag = db(query).select().first()
-        return bag
-    except:
-        import traceback as tb
-        tb.print_exc()
-        return None
-
 
 def money_format(value):
     return '$ ' + str(value)
-
 
 
 def refresh_bag_data(id_bag):
@@ -352,30 +338,15 @@ def stock_transfer():
     redirect(URL('stock_transfer', 'ticket', args=new_stock_transfer_id))
 
 
-@auth.requires(auth.has_membership('Sales bags')
-            or auth.has_membership('Clients')
-            )
 def ticket():
-    """
-        args:
-            bag_id
-    """
+    """ args: [bag_id] """
 
     bag = get_valid_bag(request.args(0), completed=True)
 
     if not bag:
         raise HTTP(404)
 
-    # bag items
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
-
-    ticket_barcode = "%010d" % bag.id
-    if bag.created_by.is_client:
-        ticket = create_ticket(T('Order'), None, None, bag_items, ticket_barcode)
-    else:
-        ticket = create_ticket(T('Order'), bag.id_store, bag.created_by, bag_items, ticket_barcode)
-
-    return locals()
+    redirect( URL( 'ticket', 'get', vars=dict(id_bag=request.args(0)) ) )
 
 
 @auth.requires(auth.has_membership('Sales checkout')

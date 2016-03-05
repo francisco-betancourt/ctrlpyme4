@@ -4,21 +4,7 @@
 
 @auth.requires_membership('Stock transfers')
 def ticket():
-    """
-        args: [id_stock_transfer]
-    """
-
-    stock_transfer = db.stock_transfer(request.args(0))
-    if not stock_transfer:
-        raise HTTP(404)
-
-    print_ticket = request.vars.print_ticket
-
-    items = db(db.bag_item.id_bag == stock_transfer.id_bag.id).select()
-
-    _ticket = create_ticket(T('Stock transfer'), stock_transfer.id_store_from, stock_transfer.created_by, items, stock_transfer.id)
-
-    return dict(ticket=_ticket, print_ticket=print_ticket)
+    redirect( URL( 'ticket', 'get', vars=dict(id_stock_transfer=request.args(0)) ) )
 
 
 @auth.requires_membership('Stock transfers')
