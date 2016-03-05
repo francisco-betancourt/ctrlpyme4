@@ -158,7 +158,8 @@ def ticket_format(store_data=None, title="", content=None, barcode="", footer=No
 
 
 def credit_note_ticket(id_credit_note):
-    """ args: [id_credit_note] """
+    if not auth.has_membership('Sales returns'):
+        raise HTTP(404)
 
     credit_note = db.credit_note(id_credit_note)
     store_data = ticket_store_data(credit_note.id_sale.id_store)
@@ -181,7 +182,8 @@ def credit_note_ticket(id_credit_note):
 
 
 def sale_ticket(id_sale):
-    """ args: [id_sale] """
+    if not auth.has_membership('Sales checkout'):
+        raise HTTP(404)
     sale = db.sale(id_sale)
     store_data = ticket_store_data(sale.id_store)
     items = db( (db.bag_item.id_bag == sale.id_bag.id) ).select()
@@ -225,6 +227,8 @@ def bag_ticket(id_bag):
 
 
 def stock_transfer_ticket(id_stock_transfer):
+    if not auth.has_membership('Stock transfers'):
+        raise HTTP(404)
     stock_transfer = db.stock_transfer(id_stock_transfer)
     bag = stock_transfer.id_bag
     store_data = ticket_store_data(stock_transfer.id_store_from)

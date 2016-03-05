@@ -21,9 +21,7 @@
 
 @auth.requires_membership('Sales returns')
 def get():
-    """
-        args: [id_credit_note]
-    """
+    """ args: [id_credit_note] """
 
     redirect( URL('ticket', 'get', vars=dict(id_credit_note=request.args(0))) )
 

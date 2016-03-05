@@ -36,7 +36,6 @@ def validate_sale_form(form):
         form.errors.payments_data = T('Payments amount is lower than the total')
 
 
-@auth.requires_membership('Sales checkout')
 def ticket():
     redirect( URL( 'ticket', 'get', vars=dict(id_sale=request.args(0)) ) )
 
