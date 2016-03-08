@@ -4,7 +4,7 @@
 
 
 import calendar
-import datetime
+from datetime import timedelta, datetime, date
 import random
 import json
 from gluon.storage import Storage
@@ -33,7 +33,7 @@ def cash_out():
     try:
         year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
     except:
-        today = datetime.date.today()
+        today = date.today()
         year, month, day = today.year, today.month, today.day
     if not year or not month or not day:
         raise HTTP(400)
@@ -42,8 +42,8 @@ def cash_out():
         raise HTTP(404)
     seller = cash_out.id_seller
 
-    date = datetime.date(year, month, day)
-    start_date = datetime.datetime(date.year, date.month, date.day, 0)
+    date = date(year, month, day)
+    start_date = datetime(date.year, date.month, date.day, 0)
     end_date = start_date + CASH_OUT_INTERVAL
 
     if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
@@ -102,16 +102,52 @@ def cash_out():
 
 
 
+def get_payments_in_range(start_date, end_date, id_store):
+    """ Returns all income payments in the specified time interval, performed in the specified store """
+    payments = db(
+        (db.payment.id_sale == db.sale.id)
+        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
+        & (db.sale.id_store == id_store)
+        & (db.payment.created_on >= start_date)
+        & (db.payment.created_on <= end_date)
+        # do not consider wallet payments
+        & (db.payment.id_payment_opt != get_wallet_payment_opt())
+        & (db.payment.is_settled == True)
+    ).select(db.payment.ALL, orderby=db.payment.created_on)
+    return payments
+
+
+def get_day_sales_data(day, id_store):
+    if not day:
+        day = date(request.now.year, request.now.month, request.now.day)
+
+    start_date = datetime(day.year, day.month, day.day, 0)
+    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
+
+    data = [0 for i in range(24)]
+
+    # income
+    payments = get_payments_in_range(start_date, end_date, id_store)
+    income = 0
+    for payment in payments:
+        income += payment.amount - payment.change_amount
+        index = payment.created_on.hour
+        data[index] += float(payment.amount - payment.change_amount)
+
+    return data
+
+
+
 def day_report_data(year, month, day):
-    year = datetime.date.today().year if not year else year
-    month = datetime.date.today().month if not month else month
-    day = datetime.date.today().day if not day else day
+    year = date.today().year if not year else year
+    month = date.today().month if not month else month
+    day = date.today().day if not day else day
 
-    date = datetime.date(year, month, day)
+    date = date(year, month, day)
 
 
-    start_date = datetime.datetime(date.year, date.month, date.day, 0)
-    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+    start_date = datetime(date.year, date.month, date.day, 0)
+    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
 
     sales_data = {
         'labels': [],
@@ -125,15 +161,7 @@ def day_report_data(year, month, day):
         sales_data['datasets'][0]['data'].append(0)
 
     # income
-    payments = db(
-        (db.payment.id_sale == db.sale.id)
-        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
-        & (db.sale.id_store == session.store)
-        & (db.payment.created_on >= start_date)
-        & (db.payment.created_on <= end_date)
-        # do not consider wallet payments
-        & (db.payment.id_payment_opt != get_wallet_payment_opt())
-    ).select(db.payment.ALL, orderby=db.payment.created_on)
+    payments = get_payments_in_range(start_date, end_date, session.store)
     income = 0
     for payment in payments:
         income += payment.amount - payment.change_amount
@@ -170,10 +198,10 @@ def day_report():
     if not year or not month or not day:
         raise HTTP(400)
 
-    date = datetime.date(year, month, day)
+    date = date(year, month, day)
 
-    start_date = datetime.datetime(date.year, date.month, date.day, 0)
-    end_date = start_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+    start_date = datetime(date.year, date.month, date.day, 0)
+    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
 
     # income
     sales_total_sum = db.sale.total.sum()
@@ -195,7 +223,7 @@ def day_report():
 def daily_report():
     """ """
 
-    today = datetime.date.today()
+    today = date.today()
     redirect(URL('day_report', args=[today.year, today.month, today.day]))
 
 
@@ -204,12 +232,12 @@ def daily_interval(month, year):
     # Days Of The Month
     dotm = calendar.monthrange(year, month)[1]
     # the first day of the specified month and year
-    end_date = datetime.date(year, month, 1)
+    end_date = date(year, month, 1)
     # a month previous to the specified month
-    start_date = end_date - datetime.timedelta(days=dotm)
-    start_date = datetime.date(start_date.year, start_date.month, 1)
+    start_date = end_date - timedelta(days=dotm)
+    start_date = date(start_date.year, start_date.month, 1)
 
-    timestep = datetime.timedelta(days=1)
+    timestep = timedelta(days=1)
 
     return start_date, end_date, timestep
 
@@ -289,9 +317,67 @@ def item_analysis():
     return locals()
 
 
+def dataset_format(label, data, f_color):
+    fill_color = f_color
+    if not f_color:
+        fill_color = random_color_mix(PRIMARY_COLOR)
+    return {
+        'label': label,
+        'data': data,
+        'fillColor': hex_to_css_rgba(fill_color, .4),
+        'strokeColor': fill_color,
+        'pointColor': fill_color,
+    }
+
+
+def pie_data_format(records):
+    data = []
+    for record in records:
+        f_color = record.c_color if record.c_color else random_color_mix(PRIMARY_COLOR)
+        data.append(dict(
+            value=record.c_value,
+            label=record.c_label,
+            color=f_color
+        ))
+    return data
+
+
+
 @auth.requires_membership('Admin')
 def dashboard():
-    pass
+    # store income
+    current_month = request.now.month
+    current_year = request.now.year
+    start_date = date(current_year, current_month, 1)
+    end_date = start_date + timedelta(days=30)
+
+    sales_data = {
+        'labels': ['%d:00' % hour for hour in range(24)],
+        'datasets': []
+    }
+
+    stores = db(db.store.is_active == True).select()
+    for store in stores:
+        store.c_color = random_color_mix(PRIMARY_COLOR)
+        store.c_label = store.name
+        # select this month payments
+        payments = get_payments_in_range(start_date, end_date, store.id)
+        store.c_value = 0
+        for payment in payments:
+            store.c_value += payment.amount - payment.change_amount
+        store.c_value = str(DQ(store.c_value, True))
+        sales_data['datasets'].append(
+            dataset_format(store.name, get_day_sales_data(None, store.id), store.c_color)
+        )
+
+    script_stores_income = SCRIPT('var stores_income_data = %s;' % json.dumps(pie_data_format(stores)))
+    script_stores_sales = SCRIPT('var stores_sales_data = %s;' % json.dumps(sales_data))
+
+
+    return locals()
+
+
+
 
 
 @auth.requires_membership("Analytics")

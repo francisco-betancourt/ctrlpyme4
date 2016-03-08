@@ -1,0 +1,53 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Dashboard')}}</h1>
+
+
+<div class="row">
+  <div class="panel panel-default col-md-12 col-sm-12 col-lg-12 theme-panel">
+    <div class="panel-heading">
+      <h3> <span class="theme-name">{{=T('Today')}}</span> </h3>
+    </div>
+    <div class="panel-body">
+      <canvas style="width: 100%" id="today_sales"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="datas" class="row">
+
+  <div class="panel panel-default col-md-6 col-sm-12 col-lg-4 theme-panel">
+    <div class="panel-heading">
+      <h3> <span class="theme-name">{{=T('Income by store')}} - {{=request.now.strftime('%B %Y')}}</span> </h3>
+    </div>
+    <div class="panel-body">
+      <canvas style="width: 100%" id="stores_income"></canvas>
+    </div>
+  </div>
+  <div class="panel panel-default col-md-6 col-sm-12 col-lg-4 theme-panel">
+    <div class="panel-heading">
+      <h3> <span class="theme-name">{{=T('Items by store')}}</span> </h3>
+    </div>
+    <div class="panel-body">
+      <canvas id="stores_items" style="width: 100%"></canvas>
+    </div>
+  </div>
+</div>
+
+
+
+{{block page_js}}
+<script src="{{=URL('static', 'js/Chart.min.js')}}" charset="utf-8"></script>
+{{=script_stores_income}}
+{{=script_stores_sales}}
+
+<script>
+  var ctx = $("#stores_income").get(0).getContext("2d");
+  var myPieChart = new Chart(ctx).Pie(stores_income_data, {});
+  ctx = $("#today_sales").get(0).getContext("2d");
+  new Chart(ctx).Line(stores_sales_data, {
+    multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%>$ <%= value %>"
+  });
+
+</script>
+{{end}}
