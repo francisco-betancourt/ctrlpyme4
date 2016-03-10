@@ -32,6 +32,16 @@
       <canvas id="stores_items" style="width: 100%"></canvas>
     </div>
   </div>
+
+  <div class="panel panel-default col-md-6 col-sm-12 col-lg-4 theme-panel">
+    <div class="panel-heading">
+      <h3> <span class="theme-name">{{=T('Stagnated items')}}</span> </h3>
+    </div>
+    <div class="panel-body">
+      <canvas id="stores_items" style="width: 100%"></canvas>
+    </div>
+  </div>
+
 </div>
 
 
@@ -40,6 +50,7 @@
 <script src="{{=URL('static', 'js/Chart.min.js')}}" charset="utf-8"></script>
 {{=script_stores_income}}
 {{=script_stores_sales}}
+{{=script_stores_items}}
 
 <script>
   var ctx = $("#stores_income").get(0).getContext("2d");
@@ -47,6 +58,10 @@
   ctx = $("#today_sales").get(0).getContext("2d");
   new Chart(ctx).Line(stores_sales_data, {
     multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%>$ <%= value %>"
+  });
+  ctx = $("#stores_items").get(0).getContext("2d");
+  new Chart(ctx).Line(stores_items_data, {
+    multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%> <%= value %>"
   });
 
 </script>

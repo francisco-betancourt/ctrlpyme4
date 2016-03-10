@@ -348,6 +348,7 @@ def dashboard():
     # store income
     current_month = request.now.month
     current_year = request.now.year
+    year_start_date = date(current_year, 1, 1)
     start_date = date(current_year, current_month, 1)
     end_date = start_date + timedelta(days=30)
 
@@ -356,6 +357,12 @@ def dashboard():
         'datasets': []
     }
 
+    items_data = {
+        'labels': [],
+        'datasets': []
+    }
+
+    stocks_sum = db.stock_item.stock_qty.sum()
     stores = db(db.store.is_active == True).select()
     for store in stores:
         store.c_color = random_color_mix(PRIMARY_COLOR)
@@ -370,8 +377,26 @@ def dashboard():
             dataset_format(store.name, get_day_sales_data(None, store.id), store.c_color)
         )
 
+        # query items quantity monthly
+        current_max_stock_date = year_start_date
+        stocks_qty_data = []
+        while current_max_stock_date < end_date:
+            # add labels if this is the first time that we add data
+            if not items_data['datasets']:
+                items_data['labels'].append(current_max_stock_date.strftime('%B'))
+            current_items = db(
+                (db.stock_item.id_store == store.id)
+                & (db.stock_item.created_on < current_max_stock_date)
+                ).select(stocks_sum).first()[stocks_sum]
+            stocks_qty_data.append(float(current_items or 0))
+            # select next month assuming that the end date is the las month of the current year
+            current_max_stock_date = date(current_max_stock_date.year, current_max_stock_date.month + 1, 1)
+
+        items_data['datasets'].append(dataset_format(store.name, stocks_qty_data, store.c_color))
+
     script_stores_income = SCRIPT('var stores_income_data = %s;' % json.dumps(pie_data_format(stores)))
     script_stores_sales = SCRIPT('var stores_sales_data = %s;' % json.dumps(sales_data))
+    script_stores_items = SCRIPT('var stores_items_data = %s;' % json.dumps(items_data))
 
 
     return locals()
