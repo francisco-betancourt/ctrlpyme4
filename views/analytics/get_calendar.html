@@ -1,0 +1,75 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+
+{{block left_sidebar}}
+{{if selected_day == today:}}
+  <h1>{{=T('Today')}}</h1>
+{{else:}}
+  <h1>{{=selected_day.strftime('%B %d, %Y')}}</h1>
+{{pass}}
+{{end}}
+
+
+<h1>Calendar</h1>
+
+<style>
+  .calendar-view {
+    table-layout: fixed;
+  }
+  .calendar-header {
+
+  }
+  .calendar-content {
+  }
+  .calendar-week {
+  }
+  .calendar-day:not(.empty) {
+    border: 1px solid rgba(0,0,0,.1);
+    background-color: white;
+  }
+  .calendar-day {
+
+  }
+  .day-number {
+    top: 0px;
+    right: 0px;
+  }
+</style>
+
+
+<table class="table calendar-view">
+  <thead>
+    {{ for day_name in day_names: }}
+      <th class="calendar-header">{{=day_name}}</th>
+    {{ pass }}
+  </thead>
+  <tbody class="calendar-content">
+    {{ for week in month_calendar: }}
+      <tr class="calendar-week">
+        {{ for day in week: }}
+          {{ if day: }}
+            <td class="calendar-day">
+              <h3 class="day-number">{{=day}}</h3>
+            </td>
+          {{ else: }}
+            <td class="calendar-day empty"></td>
+          {{ pass }}
+        {{ pass }}
+      </tr>
+    {{ pass }}
+  </tbody>
+</table>
+
+
+
+<script>
+  function resize_weeks() {
+    var w = $('.calendar-header').css('width');
+    $('.calendar-week').css('height', w);
+  }
+  resize_weeks();
+  window.addEventListener("resize", function(event) {
+  resize_weeks();
+  });
+</script>

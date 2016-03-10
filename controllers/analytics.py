@@ -17,8 +17,39 @@ def time_interval_query(tablename, start_date, end_date):
     return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
 
 
-def analize(queries):
-    pass
+def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
+    """ Returns all income payments in the specified time interval, performed in the specified store """
+    payments = db(
+        (db.payment.id_sale == db.sale.id)
+        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
+        & (db.sale.id_store == id_store)
+        & (db.payment.created_on >= start_date)
+        & (db.payment.created_on <= end_date)
+        # do not consider wallet payments
+        & (db.payment.id_payment_opt != get_wallet_payment_opt())
+        & (db.payment.is_settled == True)
+    ).select(db.payment.ALL, orderby=db.payment.created_on)
+    return payments
+
+
+def get_day_sales_data(day, id_store):
+    if not day:
+        day = date(request.now.year, request.now.month, request.now.day)
+
+    start_date = datetime(day.year, day.month, day.day, 0)
+    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
+
+    data = [0 for i in range(24)]
+
+    # income
+    payments = get_payments_in_range(start_date, end_date, id_store)
+    income = 0
+    for payment in payments:
+        income += payment.amount - payment.change_amount
+        index = payment.created_on.hour
+        data[index] += float(payment.amount - payment.change_amount)
+
+    return data
 
 
 @auth.requires_membership("Analytics")
@@ -101,52 +132,12 @@ def cash_out():
     return locals()
 
 
-
-def get_payments_in_range(start_date, end_date, id_store):
-    """ Returns all income payments in the specified time interval, performed in the specified store """
-    payments = db(
-        (db.payment.id_sale == db.sale.id)
-        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
-        & (db.sale.id_store == id_store)
-        & (db.payment.created_on >= start_date)
-        & (db.payment.created_on <= end_date)
-        # do not consider wallet payments
-        & (db.payment.id_payment_opt != get_wallet_payment_opt())
-        & (db.payment.is_settled == True)
-    ).select(db.payment.ALL, orderby=db.payment.created_on)
-    return payments
-
-
-def get_day_sales_data(day, id_store):
-    if not day:
-        day = date(request.now.year, request.now.month, request.now.day)
-
-    start_date = datetime(day.year, day.month, day.day, 0)
-    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
-
-    data = [0 for i in range(24)]
-
-    # income
-    payments = get_payments_in_range(start_date, end_date, id_store)
-    income = 0
-    for payment in payments:
-        income += payment.amount - payment.change_amount
-        index = payment.created_on.hour
-        data[index] += float(payment.amount - payment.change_amount)
-
-    return data
-
-
-
 def day_report_data(year, month, day):
     year = date.today().year if not year else year
     month = date.today().month if not month else month
     day = date.today().day if not day else day
-
-    date = date(year, month, day)
-
-
-    start_date = datetime(date.year, date.month, date.day, 0)
+    c_date = date(year, month, day)
+    start_date = datetime(c_date.year, c_date.month, c_date.day, 0)
     end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
 
     sales_data = {
@@ -155,7 +146,6 @@ def day_report_data(year, month, day):
             'data': []
         }]
     }
-
     for hour in range(24):
         sales_data['labels'].append('%d:00' % hour)
         sales_data['datasets'][0]['data'].append(0)
@@ -178,53 +168,6 @@ def day_report_data(year, month, day):
                 ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
 
     return locals()
-
-
-
-@auth.requires_membership("Analytics")
-def day_report():
-    """ Returns the specified date, information
-
-        args: [year, month, day]
-    """
-
-    return day_report_data(int(request.args(0)), int(request.args(1)), int(request.args(2)))
-
-    year, month, day = None, None, None
-    try:
-        year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
-    except:
-        raise HTTP(400)
-    if not year or not month or not day:
-        raise HTTP(400)
-
-    date = date(year, month, day)
-
-    start_date = datetime(date.year, date.month, date.day, 0)
-    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
-
-    # income
-    sales_total_sum = db.sale.total.sum()
-    income = db((db.sale.id_store == session.store)
-                & (db.sale.created_on >= start_date)
-                & (db.sale.created_on <= end_date)
-                ).select(sales_total_sum).first()[sales_total_sum] or 0
-    # expenses
-    purchases_total_sum = db.purchase.total.sum()
-    expenses = db((db.purchase.id_store == session.store)
-                & (db.purchase.is_done >= True)
-                & (db.purchase.created_on >= start_date)
-                & (db.purchase.created_on <= end_date)
-                ).select(purchases_total_sum).first()[purchases_total_sum] or 0
-    return locals()
-
-
-@auth.requires_membership("Analytics")
-def daily_report():
-    """ """
-
-    today = date.today()
-    redirect(URL('day_report', args=[today.year, today.month, today.day]))
 
 
 #TODO check if the selected interval has already passed
@@ -391,7 +334,6 @@ def dashboard():
             stocks_qty_data.append(float(current_items or 0))
             # select next month assuming that the end date is the las month of the current year
             current_max_stock_date = date(current_max_stock_date.year, current_max_stock_date.month + 1, 1)
-
         items_data['datasets'].append(dataset_format(store.name, stocks_qty_data, store.c_color))
 
     script_stores_income = SCRIPT('var stores_income_data = %s;' % json.dumps(pie_data_format(stores)))
@@ -410,7 +352,6 @@ def index():
     if auth.has_membership('Admin'):
         redirect(URL('dashboard'))
 
-    query = (db.purchase.id_store == session.store) & (db.purchase.is_active == True)
     day_data = day_report_data(None, None, None)
     income = day_data['income']
     expenses = day_data['expenses']
@@ -422,5 +363,27 @@ def index():
                     & (db.auth_membership.user_id == db.auth_user.id)
                     & (db.auth_group.role == 'Sales checkout'))
     employees_data = super_table('auth_user', ['email'], employees_query, show_id=True, selectable=False, options_function=lambda row: option_btn('', URL('cash_out', 'create', args=row.id), T('Cash out')))
+
+    return locals()
+
+
+import calendar
+
+@auth.requires_membership("Analytics")
+def get_calendar():
+    today = date(request.now.year, request.now.month, request.now.day)
+    selected_day = today
+    if len(request.args) == 3:
+        try:
+            selected_day = date(int(request.args(0)), int(request.args(1)), int(request.args(2)))
+        except:
+            pass
+
+    calendar.setfirstweekday(calendar.MONDAY)
+    # print calendar.monthrange(selected_day.year, selected_day.month)
+    day_names = calendar.day_name
+    month_calendar = calendar.monthcalendar(selected_day.year, selected_day.month)
+    mc = calendar.monthcalendar(selected_day.year, selected_day.month)
+
 
     return locals()
