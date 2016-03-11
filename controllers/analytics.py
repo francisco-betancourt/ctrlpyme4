@@ -13,6 +13,12 @@ from gluon.storage import Storage
 hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
 
 
+def get_month_interval(year, month):
+    start_date = date(year, month, 1)
+    end_date = start_date + timedelta(days=calendar.monthrange(year, month)[1])
+    return start_date, end_date
+
+
 def time_interval_query(tablename, start_date, end_date):
     return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
 
@@ -383,7 +389,28 @@ def get_calendar():
     # print calendar.monthrange(selected_day.year, selected_day.month)
     day_names = calendar.day_name
     month_calendar = calendar.monthcalendar(selected_day.year, selected_day.month)
-    mc = calendar.monthcalendar(selected_day.year, selected_day.month)
 
+    # get selected month events
+    # events array
+    events = [[] for day in range(0, calendar.monthrange(today.year, today.month)[1])]
+    start_date, end_date = get_month_interval(today.year, today.month)
+    # accounts payable
+    accounts_payable = db(
+        (db.account_payable.epd >= start_date)
+        & (db.account_payable.epd < end_date)
+        & (db.account_payable.is_settled == False)
+    ).select(orderby=db.account_payable.epd)
+    for payable in accounts_payable:
+        day = payable.epd.day
+        events[day].append(dict(name='Account payable'))
+    accounts_receivable = db(
+        (db.payment.epd >= start_date)
+        & (db.payment.epd < end_date)
+        & (db.payment.is_settled == False)
+    ).select(orderby=db.payment.epd)
+    for receivable in accounts_receivable:
+        day = receivable.epd.day
+        print day
+        events[day - 1].append(Storage(name='Account receivable'))
 
     return locals()

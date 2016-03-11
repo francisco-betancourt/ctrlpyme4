@@ -21,6 +21,7 @@
 
 import json
 from uuid import uuid4
+from datetime import date, timedelta
 
 
 def ticket():
@@ -355,6 +356,7 @@ def complete():
     # for every payment with a payment option with credit days, set payment to not settled
     for payment in payments:
         if payment.id_payment_opt.credit_days > 0:
+            payment.epd = date(request.now.year, request.now.month, request.now.day) + timedelta(days=payment.id_payment_opt.credit_days)
             payment.is_settled = False
             payment.update_record();
 
