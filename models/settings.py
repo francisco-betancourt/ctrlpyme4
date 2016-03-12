@@ -45,6 +45,8 @@ ACCENT_COLOR_TEXT = '#FFFFFF'
 BASE_COLOR = '#F3F3F3'
 BASE_COLOR_TEXT = '#444'
 
+USE_MATERIAL_ICONS = True
+
 
 main_settings = db(db.settings.id_store == None).select().first()
 if main_settings:

@@ -114,8 +114,10 @@ def get():
 
 @auth.requires_membership('Offers')
 def index():
-    data = super_table('offer_group', ['name'], (db.offer_group), options_function=lambda row : [
-            option_btn('pencil', URL('update', args=row.id)),
-            option_btn('list-ul', URL('fill', args=row.id))])
+    data = supert((db.offer_group), fields=['name', {'fields': ['starts_on', 'ends_on'], 'label_as': 'valid date'} ])
+
+    # data = super_table('offer_group', ['name'], (db.offer_group), options_function=lambda row : [
+    #         option_btn('edit', URL('update', args=row.id)),
+    #         option_btn('list', URL('fill', args=row.id))])
 
     return locals()
