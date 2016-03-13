@@ -121,7 +121,7 @@ def item_taxes(item, price):
     return DQ(total)
 
 
-def item_stock(item, id_store=None, include_empty=False, id_bag=None):
+def item_stock(item, id_store=None, include_empty=False, id_bag=None, max_date=None):
     """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
 
     stocks = None
@@ -140,9 +140,11 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None):
 
     query = (db.stock_item.id_item == item.id)
     if id_store > 0:
-        query &= (db.stock_item.id_store == id_store)
+        query &= db.stock_item.id_store == id_store
     if not include_empty:
-        query &= (db.stock_item.stock_qty > 0)
+        query &= db.stock_item.stock_qty > 0
+    if max_date:
+        query &= db.stock_item.created_on < max_date
     bag_item_count = 0
     if id_bag:
         # check bundle items containing the specified item

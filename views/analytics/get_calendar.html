@@ -1,0 +1,122 @@
+{{left_sidebar_enabled = True}}
+{{extend 'layout.html'}}
+
+{{ block page_css }}
+  <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme_print.css')}}"/>
+{{ end }}
+
+
+{{block left_sidebar}}
+{{if selected_day == today:}}
+  <h1>{{=T('Today')}}</h1>
+{{else:}}
+  <h1>{{=selected_day.strftime('%B %d, %Y')}}</h1>
+{{pass}}
+{{end}}
+
+
+<h1>Calendar</h1>
+
+<style>
+  .calendar-view {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .calendar-header {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  .calendar-day, .calendar-header {
+    margin-top: -1px;
+    margin-left: -1px;
+    min-width: 14.285714285714286%;
+    width: 14.285714285714286%;
+    padding: 1vmin;
+  }
+  .calendar-day {
+    display: flex;
+    flex-direction: column;
+  }
+  .calendar-day:not(.empty) {
+    border: 1px solid rgba(0,0,0,.1);
+    background-color: white;
+  }
+  .calendar-day.empty * {
+    display: none;
+  }
+  .calendar-day.today {
+    background-color: rgba(0, 0, 0, .01);
+    z-index: 100;
+    /*color: white;*/
+  }
+  .calendar-day.selected {
+    background-color: {{=primary_color}};
+    color: white;
+    z-index: 100;
+    /*color: white;*/
+  }
+  .day-number {
+    font-size: 2vmax;
+    text-align: right;
+    margin: 0px;
+  }
+  .day-events {
+    display: flex;
+    flex: 1 1 100%;
+    align-items: flex-end;
+    align-self: flex-end;
+    font-size: 22px;
+  }
+</style>
+
+<div class="calendar-view">
+  {{ for day_name in day_names: }}
+    <div class="calendar-header">
+      {{ =day_name }}
+    </div>
+  {{ pass }}
+  {{ for week in month_calendar: }}
+    {{ for day in week: }}
+      {{ classes = "calendar-day" }}
+      {{ if not day: }} {{ classes += " empty" }} {{ pass }}
+      {{ if selected_day.day == day: }}{{ classes += " selected" }}{{ pass }}
+      {{ if day == today.day: }} {{ classes += " today" }} {{ pass }}
+      <div class="{{=classes}}" {{if day:}}id="day_{{=day}}"{{pass}} day="{{=day}}">
+        <h3 class="day-number">{{=day}}</h3>
+        <div class="day-events">
+          {{ for event in events[day - 1]: }}
+            {{ =ICON('money') }}
+          {{ pass }}
+        </div>
+      </div>
+    {{ pass }}
+  {{ pass }}
+</div>
+
+
+
+
+
+
+
+
+{{ block page_js }}
+  <script>
+    function resize_weeks() {
+      var w = $('.calendar-day').css('width');
+      $('.calendar-day').css('height', w);
+    }
+    resize_weeks();
+    window.addEventListener("resize", function(event) {
+    resize_weeks();
+    });
+
+    var selected_day = {{=selected_day.day}};
+    $('.calendar-day:not(.empty)').click(function (event) {
+      $('.calendar-day.selected').removeClass('selected');
+      selected_day = $(this).attr('day');
+      $('#day_' + selected_day).addClass('selected');
+    })
+  </script>
+{{ pass }}

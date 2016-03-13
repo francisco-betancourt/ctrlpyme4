@@ -27,6 +27,9 @@
     <link rel="stylesheet" href="{{=URL('static','css/item_card.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ticket.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
+    {{ if USE_MATERIAL_ICONS: }}
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    {{ pass }}
     {{block page_css}} {{end}}
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">

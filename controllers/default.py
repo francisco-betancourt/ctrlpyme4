@@ -8,7 +8,17 @@
 ## - download is for downloading files uploaded in the db (does streaming)
 #########################################################################
 
+from datetime import date
+
 def index():
+    # best sellers this month
+    start_date = date(request.now.year, request.now.month, 1)
+    end_date = date(request.now.year, request.now.month + 1, 1)
+    best_sellers = db(
+        (db.sale.id_bag == db.bag.id)
+        & (db.bag_item.id_bag == db.bag.id)
+        & (db.bag_item.quantity)
+    )
     popular_items_rows = db((db.sale.id_bag == db.bag.id)
                           & (db.bag_item.id_bag == db.bag.id)
                           & (db.bag_item.id_item == db.item.id)

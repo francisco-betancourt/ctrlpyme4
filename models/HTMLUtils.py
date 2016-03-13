@@ -47,8 +47,10 @@ def discounts_list(discounts):
     return ul
 
 
-def ICON(icon_name, _id="", _class=""):
+def ICON(icon_name, _id="", _class="", m_icon_name="error_outline"):
     # icon_name = icon_name.replace('-', '_')
+    if USE_MATERIAL_ICONS:
+        return I(icon_name, _class="material-icons %s" % (_class), _id=_id)
     return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)
 
 
@@ -104,7 +106,7 @@ def MENU_ELEMENTS(submenu_prefix = ''):
                     sub.append(A(submenu_item_name, _href=suburl, _class="menu-element"))
                 # menu.append(sub)
                 res.submenu = sub
-            menu.append(DIV(menu_item_name, ICON('caret-down', _class="add-on"), _class="menu-text"))
+            menu.append(DIV(menu_item_name, ICON('arrow_drop_down', _class="add-on"), _class="menu-text"))
             res.menu = menu
             yield res
 
@@ -143,8 +145,8 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
     if page == pages_count:
         next_disabled = 'disabled'
         next_url = '#'
-    prev_link = LI(A(ICON('arrow-left'), _href=prev_url), _class="%s" % prev_disabled)
-    next_link = LI(A(ICON("arrow-right"), _href=next_url), _class="%s" % next_disabled)
+    prev_link = LI(A(ICON('arrow_back'), _href=prev_url), _class="%s" % prev_disabled)
+    next_link = LI(A(ICON("arrow_forward"), _href=next_url), _class="%s" % next_disabled)
 
     pages_menu = DIV(UL(prev_link, LI(ipp), next_link, _class="pager") )
 
@@ -180,13 +182,13 @@ def create_item_options(item):
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
             options_container.append(
                 DIV(
-                    BUTTON(ICON("pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"),
+                    BUTTON(ICON("edit"), _class="btn btn-default", _onclick="update_item(current_item_id)"),
                     _class="btn-group", _role="group"
                 )
             )
             options_container.append(
                 DIV(
-                    BUTTON(ICON("pencil"), _class="btn btn-default", _onclick="update_item(current_item_id)"
+                    BUTTON(ICON("edit"), _class="btn btn-default", _onclick="update_item(current_item_id)"
                     ),
                     _class="btn-group", _role="group"
                 )
@@ -250,19 +252,19 @@ def item_card(item):
 
     # item options
     item_options = DIV(
-        BUTTON(ICON('shopping-bag'), _type="button", _class="btn btn-default", _onclick="add_bag_item(%s)" % item.id)
+        BUTTON(ICON('shopping_basket'), _type="button", _class="btn btn-default", _onclick="add_bag_item(%s)" % item.id)
         , _class="btn-group item-options"
     )
     if auth.has_membership('Employee'):
-        expand_btn = BUTTON(ICON('ellipsis-v'), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
+        expand_btn = BUTTON(ICON('more_vert'), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
         item_options.append(expand_btn)
         options_ul = UL(_class="dropdown-menu")
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
-            options_ul.append(LI(A(ICON('pencil'), ' ', T('Update'), _href=URL('item', 'update', args=item.id))))
-            options_ul.append(LI(A(ICON('th'), ' ', T('Print labels'), _href=URL('item', 'labels', args=item.id))))
-            options_ul.append(LI(A(ICON('picture-o'), ' ', T('Add images'), _href=URL('item_image', 'create', args=item.id))))
+            options_ul.append(LI(A(ICON('mode_edit'), ' ', T('Update'), _href=URL('item', 'update', args=item.id))))
+            options_ul.append(LI(A(ICON('label'), ' ', T('Print labels'), _href=URL('item', 'labels', args=item.id))))
+            options_ul.append(LI(A(ICON('add_a_photo'), ' ', T('Add images'), _href=URL('item_image', 'create', args=item.id))))
         if auth.has_membership('Analytics'):
-            options_ul.append(LI(A(ICON('line-chart'), ' ', T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
+            options_ul.append(LI(A(ICON('show_chart'), ' ', T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
         item_options.append(options_ul)
 
 
@@ -335,7 +337,7 @@ def filter_menu(filter_data):
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
-    button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn btn-default', _onclick=click_action)
+    button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn', _onclick=click_action)
     return button
 
 def row_options(row, update=False, delete=False, get=False):
@@ -343,9 +345,9 @@ def row_options(row, update=False, delete=False, get=False):
     if get:
         options.append(option_btn(''))
     if update:
-        options.append(option_btn('pencil', URL(request.controller, 'update', args=row.id)))
+        options.append(option_btn('edit', URL(request.controller, 'update', args=row.id)))
     if delete:
-        options.append(option_btn('eye-slash', URL(request.controller, 'delete', args=row.id)))
+        options.append(option_btn('visibility_off', URL(request.controller, 'delete', args=row.id)))
     return options
 
 
@@ -364,16 +366,16 @@ def default_row_function(row, fields):
 def hide_button(row):
     """" Returns a button that calls the delete_row javascript function """
 
-    return option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id))
+    return option_btn('visibility_off', onclick='delete_rows("/%s", "", "")' % (row.id))
 
 
 def default_options_function(row):
-    """ Returns a column with a generci edit option and genertic delete javascript option """
+    """ Returns a column with a generic edit option and delete javascript option """
 
     td = TD()
     # edit option
-    td.append(option_btn('pencil', URL('update', args=row.id)))
-    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
+    td.append(option_btn('edit', URL('update', args=row.id)))
+    td.append(option_btn('visibility_off', onclick='delete_rows("/%s", "", "")' % (row.id)))
     return td
 
 
@@ -451,7 +453,7 @@ def super_table(table, fields, query, row_function=default_row_function,
                     caret = 'down'
                     new_vars['ascendent'] = True
             order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-            thead.append(TH(A(label, _href=order_url), " ", ICON("caret-%s" % caret), _class=header_class))
+            thead.append(TH(A(label, _href=order_url), " ", ICON("arrow_drop_%s" % caret), _class=header_class))
     if options_enabled:
         thead.append(TH(T('Options'), _class='table-options'))
     thead = THEAD(thead)

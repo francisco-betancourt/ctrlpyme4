@@ -2,6 +2,33 @@
 
 <h1> {{=T('Offers')}} </h1>
 
+
+<style>
+  .supert {
+    display: flex;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,.1);
+  }
+  .supert-col {
+    flex: 1 1 auto;
+  }
+  .supert-row-data {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding-left: 24px;
+    padding-right: 14px;
+    border-bottom: 1px solid rgba(0,0,0,.1);
+  }
+  .supert-last {
+    height: 56px;
+  }
+  .supert-last.top {
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+  }
+</style>
+
 {{=data}}
 
 {{include 'core_button.html'}}

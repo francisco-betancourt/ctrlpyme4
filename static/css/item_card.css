@@ -56,6 +56,9 @@
   margin-top: -1px;
   margin-right: -1px;
 }
+.item-card .material-icons {
+  /*font-size: px;*/
+}
 .item-card .item-options button {
   border-bottom-right-radius: 0px;
   border-top-left-radius: 0px;

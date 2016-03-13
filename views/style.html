@@ -38,7 +38,7 @@
     background-color: {{=primary_color}};
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
   }
-  nav a, nav a:hover, nav a:focus, nav a:visited {
+  nav a, nav a:hover, nav a:focus, nav a:visited, nav a:target, nav a:active {
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
     text-decoration: none;
   }
@@ -65,13 +65,13 @@
     border-color: rgba(0,0,0,.3);
   }
 
-  .btn-primary {
+  .btn-primary, a.btn-primary {
     background-color: {{=accent_color}};
     color: {{=accent_color_text}};
     border-color: rgba(0,0,0,.3);
   }
 
-  .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  .btn-primary:hover, .btn-primary:focus, .btn-primary:active, a.btn-primary:hover, a.btn-primary:focus, a.btn-primary:active {
     background-color: {{=accent_color_dim}};
     color: {{=accent_color_text}};
     border-color: {{=accent_color_dim}};

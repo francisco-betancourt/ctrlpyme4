@@ -4,14 +4,14 @@
 
   <!-- main menu -->
   <section class="nav-left">
-    <div class="menu-element primary-color-text" id="close_search" hidden="hidden">{{=ICON('times')}}</div>
+    <div class="menu-element primary-color-text" id="close_search" hidden="hidden">{{=ICON('close')}}</div>
 
     <div id="m_nav_filler" class="menu-element" state="hidden">
-      <div class="menu-element hamburger">{{=ICON('bars')}}</div>
+      <div class="menu-element hamburger">{{=ICON('menu')}}</div>
       <div class="menu-element brand">{{=response.logo}}</div>
     </div>
 
-    <div class="menu-element primary-color-text hamburger" id="hamburger">{{=ICON('bars')}}</div>
+    <div class="menu-element primary-color-text hamburger" id="hamburger">{{=ICON('menu')}}</div>
     <div class="menu-element brand primary-color-text">{{=response.logo}}</div>
     <div id="main_menu_m" state="hidden">
       {{ for m_element in MENU_ELEMENTS('m'): }}
@@ -45,12 +45,12 @@
       {{ elif notifications_qty > 99: }}
         {{ notifications_qty = '99+' }}
       {{ pass }}
-      <div class="menu-element" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('bell')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
+      <div class="menu-element" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('notifications')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
     {{pass}}
 
     <!-- bag icon -->
     {{if include_bag:}}
-      <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping-bag')}}</div>
+      <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping_basket')}}</div>
     {{pass}}
 
     <!-- auth -->
@@ -72,10 +72,10 @@
           </div>
         {{ pass }}
       </div>
-      <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('caret-down', _class="add-on")}}
+      <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('arrow_drop_down', _class="add-on")}}
     </div>
-    <div class="menu-element" id="help_btn" onclick="toggle_container('help_container');">
-      {{=ICON('question-circle')}}
+    <div class="menu-element" id="help_menu_btn" onclick="show_help();">
+      {{=ICON('help')}}
     </div>
   </section>
 
