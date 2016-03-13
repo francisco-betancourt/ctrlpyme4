@@ -258,6 +258,12 @@ select {
 }
 
 
+.base-padding {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+
 
 
 .floating-container {
@@ -277,7 +283,7 @@ select {
   transform: translateX(100%);
 }
 
-#bag_container, #notifications_container {
+#bag_container, #notifications_container, #help_container {
   padding-top: 64px;
 }
 .bag-container {
