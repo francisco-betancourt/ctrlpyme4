@@ -640,5 +640,6 @@ def sale_extra_options(row):
 
 @auth.requires_membership("Sales invoices")
 def index():
+    redirect(URL('common', 'get_table', args='sale'))
     data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], options_function=lambda row: [], extra_options=sale_extra_options))
     return locals()

@@ -1,8 +1,6 @@
 @auth.requires_membership('Admin')
 def index():
-    data = super_table('labels_page_layout', ['name'], db.paper_size)
-
-    return locals()
+    redirect(URL('common', 'get_table', args='labels_page_layout'))
 
 
 @auth.requires_membership('Admin')

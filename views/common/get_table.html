@@ -1,8 +1,5 @@
 {{extend 'layout.html'}}
 
-<h1> {{=T('Offers')}} </h1>
-
-
 <style>
   .supert {
     background-color: white;
@@ -52,6 +49,10 @@
     color: rgba(0,0,0,.54);
     text-decoration: none;
   }
+  .st-option a {
+    margin-left: 15px;
+    cursor: pointer;
+  }
   .st-option i, .checkbox {
     font-size: 18px;
   }
@@ -97,6 +98,8 @@
     margin-left: 24px;
   }
 </style>
+
+<h1>{{=title}}</h1>
 
 {{=data}}
 

@@ -23,6 +23,10 @@ import math
 from gluon.storage import Storage
 
 
+def CB(selected=False, _id=""):
+    return INPUT(_id=_id, _type='checkbox'), LABEL(ICON('check_box_outline_blank', _class="checkbox", html_vars=dict(_value='false')), _for=_id)
+
+
 def discounts_list(discounts):
     ul = UL(_class="list-group")
 
@@ -47,10 +51,10 @@ def discounts_list(discounts):
     return ul
 
 
-def ICON(icon_name, _id="", _class="", m_icon_name="error_outline"):
+def ICON(icon_name, _id="", _class="", html_vars={}):
     # icon_name = icon_name.replace('-', '_')
     if USE_MATERIAL_ICONS:
-        return I(icon_name, _class="material-icons %s" % (_class), _id=_id)
+        return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
     return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)
 
 
@@ -111,15 +115,8 @@ def MENU_ELEMENTS(submenu_prefix = ''):
             yield res
 
 
-def pages_menu(query, page=0, ipp=10, distinct=None):
+def pages_menu_bare(query, page=0, ipp=10, distinct=None):
     """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
-
-    try:
-        page = int(page or 0)
-        ipp = int(ipp or 10)
-    except:
-        page = 0
-        ipp = 10
 
     start = page * ipp
     end = start + ipp
@@ -137,20 +134,29 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
     prev_page_vars['page'] = page - 1
     prev_page_vars['ipp'] = ipp
     prev_url = URL(request.controller, request.function, args=request.args, vars=prev_page_vars)
-
-    prev_disabled, next_disabled = '', ''
     if page == 0:
-        prev_disabled = 'disabled'
         prev_url = '#'
     if page == pages_count:
-        next_disabled = 'disabled'
         next_url = '#'
-    prev_link = LI(A(ICON('arrow_back'), _href=prev_url), _class="%s" % prev_disabled)
-    next_link = LI(A(ICON("arrow_forward"), _href=next_url), _class="%s" % next_disabled)
 
+    return prev_url, next_url, (start, end), pages_count
+
+
+def pages_menu(query, page=0, ipp=10, distinct=None):
+    try:
+        page = int(page or 0)
+        ipp = int(ipp or 10)
+    except:
+        page = 0
+        ipp = 10
+    prev_url, next_url, limits, pages_count = pages_menu_bare(query, page, ipp, distinct)
+
+    prev_disabled, next_disabled = '', ''
+    prev_link = LI(A(ICON('arrow_back'), _href=prev_url))
+    next_link = LI(A(ICON("arrow_forward"), _href=next_url))
     pages_menu = DIV(UL(prev_link, LI(ipp), next_link, _class="pager") )
 
-    return pages_menu, (start, end)
+    return pages_menu, limits
 
 
 def stock_info(item):

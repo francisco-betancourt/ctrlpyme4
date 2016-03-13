@@ -41,18 +41,10 @@ def update():
 def delete():
     return common_delete('store', request.args)
 
-def stores_options_function(row):
-    """ Returns a column with an edit, delete and csd options"""
-    td = TD()
-    td.append(option_btn('pencil', URL('update', args=row.id)))
-    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
-    td.append(option_btn('key', URL('seals',args=row.id)))
-    return td
 
 @auth.requires_membership('Admin')
 def index():
-    data = common_index('store', ['name'], dict(show_id=True,options_function=stores_options_function)
-    )
+    redirect(URL('common', 'get_table', args='store'))
     return locals()
 
 def read_certificate(form):
