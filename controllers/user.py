@@ -206,25 +206,20 @@ def ban():
     # redirection()
 
 
-def client_options_function(row):
-    td = TD()
-    td.append(option_btn('pencil', URL('get_client', args=row.id)))
-    ban_text = T('Ban')
-    if row.registration_key == 'blocked':
-        ban_text = T('Unban')
-    td.append(option_btn('ban', URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), ' ' + ban_text))
-
-    return td
-
-
 @auth.requires(auth.has_membership('Admin'))
 def clients():
     """ List of clients """
 
-    client_group = db(db.auth_group.role == 'Clients').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == client_group.id) & (db.auth_membership.user_id != auth.user.id)
-    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=client_options_function
-    )
+    title = T('clients')
+    def client_options(row):
+        edit_btn = OPTION_BTN('edit', URL('get_client', args=row.id))
+        icon_name = 'thumb_down'
+        if row.registration_key == 'blocked':
+            icon_name = 'thumb_up'
+        ban_btn = OPTION_BTN(icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))))
+        return edit_btn, ban_btn
+    query = (db.auth_user.is_client == True)
+    data = SUPERT(query, (db.auth_user.ALL), fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False)
     return locals()
 
 
@@ -232,10 +227,12 @@ def clients():
 def index():
     """ List of employees """
 
+    title = T('employees')
+    def employee_options(row):
+        return OPTION_BTN('edit', URL('get_employee', args=row.id)), OPTION_BTN('visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index'))) )
     employee_group = db(db.auth_group.role == 'Employee').select().first()
     query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id) & (db.auth_user.registration_key == '')
-    data = super_table('auth_user', ['first_name','last_name','email'], query, options_function=lambda row: TD(option_btn('pencil', URL('get_employee', args=row.id)), option_btn('eye-slash', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index')))) )
-    )
+    data = SUPERT(query, (db.auth_user.ALL), fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
     return locals()
 
 

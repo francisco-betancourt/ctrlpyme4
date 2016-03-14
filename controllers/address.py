@@ -41,5 +41,6 @@ def address_row(row, fields):
 def index():
     """ """
 
-    data = common_index('address', ['street', 'exterior', 'interior'], dict(row_function=address_row, custom_headers=['Address']))
+    title = T('addresses')
+    data = common_index('address', [{'fields': ['street', 'exterior', 'interior'], 'label_as': T('Address') }] )
     return locals()

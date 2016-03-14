@@ -1,6 +1,9 @@
 @auth.requires_membership('Admin')
 def index():
-    redirect(URL('common', 'get_table', args='paper_size'))
+    title = T('paper sizes')
+    data = SUPERT(db.paper_size, fields=[
+        'name', 'width', 'height'
+    ], options_enabled=False)
 
     return locals()
 

@@ -40,7 +40,7 @@ def index():
         raise HTTP(400)
 
     query = (db.trait.is_active == True) & (db.trait.id_trait_category == trait_category.id)
-    data = super_table('trait', ['trait_option'], query)
+    data = SUPERT(query, fields=['trait_option'])
 
     return locals()
 

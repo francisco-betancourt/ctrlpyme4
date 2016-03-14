@@ -31,8 +31,11 @@
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     {{ pass }}
     {{block page_css}} {{end}}
+    <link rel="stylesheet" href="{{=URL('static','css/supert.css')}}"/>
+    
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
     <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>

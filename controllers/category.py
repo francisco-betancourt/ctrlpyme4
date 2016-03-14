@@ -4,10 +4,6 @@
 
 
 
-def category_extra_options(row):
-    return [option_btn('', URL('get', args=row.id), 'View')]
-
-
 @auth.requires_membership('Items management')
 def create():
     redirect_url = URL('index')
@@ -74,7 +70,10 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
-    query = db.category.parent == None
+    def category_options(row):
+        update_btn, hide_btn = supert_default_options(row)
+        return update_btn, hide_btn, OPTION_BTN('details', URL('index', args=row.id))
+    query = db.category.parent == request.args(0)
     request.vars.orderby = 'name'
-    data = super_table('category', ['name'], query, extra_options=category_extra_options)
+    data = SUPERT(query, fields=['name'], options_func=category_options)
     return locals()

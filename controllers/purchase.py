@@ -486,18 +486,17 @@ def delete():
 
 
 def purchase_options(row):
-    td = TD()
+    buttons = ()
     # edit option
     if not row.is_done:
-        td.append(option_btn('pencil', URL('update', args=row.id)))
+        buttons += OPTION_BTN('edit', URL('update', args=row.id)),
     else:
-        td.append(option_btn('tags', URL('item', 'labels', vars=dict(id_purchase=row.id))))
-
-    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
-    return td
+        buttons += OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) )),
+    buttons += supert_default_options(row)[1],
+    return buttons
 
 
 @auth.requires_membership('Purchases')
 def index():
-    data = common_index('purchase', ['invoice_number', 'subtotal', 'total'], dict(options_function=purchase_options))
+    data = common_index('purchase', ['invoice_number', 'subtotal', 'total'], dict(options_func=purchase_options))
     return locals()

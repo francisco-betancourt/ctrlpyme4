@@ -26,5 +26,5 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
-    data = common_index('trait_category', ['name'], dict(extra_options=lambda row: [option_btn('', URL('get', args=row.id), 'View')]))
+    data = common_index('trait_category', ['name'], dict(options_func=lambda row: supert_default_options(row) + (OPTION_BTN('details', URL('get', args=row.id)),) ) )
     return locals()

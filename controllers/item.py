@@ -422,43 +422,26 @@ def delete():
 
 
 def item_options(row):
-    print row
-    td = DIV()
-    # edit button
+    buttons = ()
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
-        if row.is_bundle:
-            td.append(option_btn('pencil', URL('update', args=row.id, vars={'is_bundle': True})))
-        else:
-            td.append(option_btn('pencil', URL('update', args=row.id)))
+        _vars = {'is_bundle': True} if row.is_bundle else {}
+        buttons += OPTION_BTN('edit', URL('update', args=row.id, vars=_vars)),
     # hide button
     if auth.has_membership('Items management'):
-        td.append(hide_button(row))
-    td.append(option_btn('shopping-bag', onclick="add_bag_item(%s);" % row.id))
+        buttons += supert_default_options(row)[1],
+    buttons += OPTION_BTN('shopping_basket', _onclick="add_bag_item(%s);" % row.id),
 
-
-    return td
-
-
-def item_row(row, fields):
-    tr = TR()
-    # item name
-    td = TD()
-    if row.is_bundle:
-        td.append(I(_class="fa fa-cubes"))
-    td.append(row.name)
-    tr.append(td)
-
-    tr.append(TD(row.sku))
-    tr.append(TD(row.ean))
-    tr.append(TD(row.upc))
-
-    return tr
-
-
+    return buttons
 
 
 def index():
-    data = super_table('item', ['name', 'sku', 'ean', 'upc'], db.item.is_active == True, options_function=item_options, row_function=item_row)
+    data = SUPERT(db.item.is_active == True, fields=[
+        {
+            'fields': ['name', 'is_bundle'],
+            'custom_format': lambda row, fields: '%s %s' % (T('BUNDLE') if row.is_bundle else '', row.name),
+            'label_as': T('Name')
+        }, 'sku', 'ean', 'upc'
+    ], options_func=item_options)
 
     return locals()
 

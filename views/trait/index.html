@@ -8,7 +8,7 @@
 
   {{ =data }}
 {{else:}}
-  {{=T('No taxes found')}}
+  {{=T('No records found')}}
   {{if request.user_agent().is_mobile:}} {{=T('touch')}} {{else:}} {{=T('click')}} {{pass}}
   {{=T('the plus button to create one.')}}
 {{pass}}

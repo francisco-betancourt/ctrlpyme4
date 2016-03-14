@@ -1,7 +1,15 @@
 @auth.requires_membership('Admin')
 def index():
-    redirect(URL('common', 'get_table', args='labels_page_layout'))
+    title = T('labels page layouts')
+    data = SUPERT(db.labels_page_layout, fields=[
+        'name', {
+            'fields': ['label_cols', 'label_rows'],
+            'label_as': T('Cols x Rows'),
+            'custom_format': lambda row, fields: '%s x %s' % (row[fields[0]], row[fields[1]])
+        }
+    ])
 
+    return locals()
 
 @auth.requires_membership('Admin')
 def create():

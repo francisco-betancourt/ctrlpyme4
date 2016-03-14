@@ -118,18 +118,9 @@ def dates_custom_format(row, subfields):
 
 @auth.requires_membership('Offers')
 def index():
-    redirect(URL('common', 'table', args=request.controller))
-    data = supert((db.offer_group), fields=[
-        'name', 'id_store', 'starts_on', 'ends_on',
-        {
-            'fields': ['starts_on', 'ends_on'],
-            'label_as': T('Date interval'),
-            'custom_format': dates_custom_format
-        }
+    title = T('offer groups')
+    data = SUPERT(db.offer_group, fields=[
+        'name', 'id_store', 'starts_on', 'ends_on'
     ])
-
-    # data = super_table('offer_group', ['name'], (db.offer_group), options_function=lambda row : [
-    #         option_btn('edit', URL('update', args=row.id)),
-    #         option_btn('list', URL('fill', args=row.id))])
 
     return locals()

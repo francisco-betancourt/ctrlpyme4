@@ -44,8 +44,18 @@ def delete():
 
 @auth.requires_membership('Admin')
 def index():
-    redirect(URL('common', 'get_table', args='store'))
+    def store_options(row):
+        update_btn, hide_btn = supert_default_options(row)
+        return update_btn, hide_btn, OPTION_BTN('vpn_key', URL('seals', args=row.id))
+    title = T('stores')
+    data = SUPERT(db.store, fields=[
+        'name', {
+            'fields': ['id_address.street', 'id_address.exterior'],
+            'label_as': T('Address')
+        }
+    ], options_func=store_options)
     return locals()
+
 
 def read_certificate(form):
     from cgi import FieldStorage

@@ -621,25 +621,20 @@ def refund():
     return locals()
 
 
-def sale_row(row, fields):
-    tr = TR()
+def sale_row(row):
     # sale status
     last_log = db(db.sale_log.id_sale == row.id).select().last()
     sale_event = last_log.sale_event if last_log else None
-    tr.append(TD(T(sale_event or 'Unknown')))
-    for field in fields:
-        tr.append(TD(row[field]))
-    return tr
+    row.last_log = sale_event or T('Unknown')
 
 
-def sale_extra_options(row):
-    return [option_btn('', URL('ticket', args=row.id), action_name=T('ticket')),
-            option_btn('', URL('invoice', 'create'), action_name=T('Invoice'))]
+def sale_options(row):
+    return OPTION_BTN('receipt', URL('ticket', args=row.id)), OPTION_BTN('description', URL('invoice', 'create'))
 
 
 
 @auth.requires_membership("Sales invoices")
 def index():
-    redirect(URL('common', 'get_table', args='sale'))
-    data = common_index('sale', ['consecutive', 'subtotal', 'total'], dict(row_function=sale_row, custom_headers=['Status', 'Consecutive', 'Subtotal', 'Total'], options_function=lambda row: [], extra_options=sale_extra_options))
+    query = (db.sale_log.id_sale == db.sale.id)
+    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id))
     return locals()

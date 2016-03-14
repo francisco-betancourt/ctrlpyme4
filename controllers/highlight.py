@@ -19,5 +19,5 @@ def delete():
 
 @auth.requires_membership('Highlights')
 def index():
-    data = common_index('highlight', ['title'], super_table_vars=dict())
+    data = common_index('highlight', ['title'])
     return locals()
