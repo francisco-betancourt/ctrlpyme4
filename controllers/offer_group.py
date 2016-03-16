@@ -6,6 +6,12 @@
 def create():
     form = SQLFORM(db.offer_group)
     if form.process().accepted:
+        offer_group = db.offer_group(form.vars.id)
+        # only admin can create global offers
+        if not auth.has_membership('Admin') and offer_group.id_store == None:
+            offer_group.id_store = session.store
+            offer_group.update_record()
+
         redirect(URL('fill', args=form.vars.id))
     elif form.errors:
         response.flash = T('form has errors')
@@ -121,7 +127,9 @@ def index():
     def offer_options(row):
         return supert_default_options(row) + (OPTION_BTN('local_offer', URL('fill', args=row.id)), )
     title = T('offer groups')
-    offers_query = (db.offer_group.id_store == session.store) & (db.offer_group.is_active == True)
+    offers_query = (db.offer_group.is_active == True)
+    if not auth.has_membership('Admin'):
+        offers_query &= db.offer_group.id_store == session.store
     data = SUPERT(offers_query, fields=[
         'name', 'starts_on', 'ends_on'
     ], options_func=offer_options)

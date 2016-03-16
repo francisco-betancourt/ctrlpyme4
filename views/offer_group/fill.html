@@ -91,7 +91,7 @@
       $('#item_data>.item-name').text(data.name);
       target_id = data.id;
     }
-    setup_scanner(success_callback);
+    setup_scanner(success_callback, null, null, null, 'discount');
 
     $('#targets_toolbar button').click(function (event) {
       var el_target = $(event.target);

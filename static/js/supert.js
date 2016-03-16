@@ -7,8 +7,31 @@
   if (search_form) {
     search_form.addEventListener('submit', function (event) {
       event.preventDefault();
-      // window.location.href = ''
-    })
+      var s_term = document.getElementById('supert_search').value;
+      var splited_url = window.location.href.split('?');
+      var base_url = splited_url[0];
+      var url_vars = splited_url[1];
+      url_vars = url_vars.replace('#', '');
+      var new_vars = '';
+      var re = /term=.*(?=&)|term=.*$/;
+      if (url_vars) {
+        var vars = url_vars.split('&');
+        var term_found = false;
+        for (var i = 0; i < vars.length; i++) {
+          new_vars += vars[i].replace(re, 'term=' + s_term);
+
+          if (i < vars.length - 1) { new_vars += '&'; }
+          term_found = vars[i].search(re) >= 0;
+          if (term_found) { break }
+        }
+        if (!term_found) { new_vars += '&term=' + s_term; }
+        url_vars = new_vars;
+      } else {
+        url_vars = 'term=' + s_term;
+      }
+      url_vars = url_vars.replace(/&page=.*(?=&)|&page=.*$/, '');
+      window.location.href = base_url + '?' + url_vars;
+    });
   }
 
   function getCheckedCbs() {

@@ -299,5 +299,5 @@ def inventory_options(row):
 
 @auth.requires_membership('Inventories')
 def index():
-    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options))
+    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False))
     return locals()

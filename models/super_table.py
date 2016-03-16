@@ -31,10 +31,36 @@ def base_multifield_format(row, subfields):
     return data
 
 
-def parse_field(field, row, base_table_name, joined=False):
+def _search_query(field, term):
+    table_name, field = field.split('.')[:2]
+    if db[table_name][field].type == 'string':
+        return db[table_name][field].contains(term)
+    if db[table_name][field].type == 'integer':
+        try:
+            return db[table_name][field] == int(term)
+        except:
+            pass
+    else:
+        return None
+
+def search_query_from_field(field, term):
+    q = None
+    for subfield in field:
+        if not q:
+            q = _search_query(subfield, term)
+        else:
+            s = _search_query(subfield, term)
+            if s:
+                q |= s
+
+    return q
+
+
+def parse_field(field, base_table_name, joined=False, search_term=None):
     header = None
-    data = ''
+    new_field = ''
     orderby = '%s.%s' % (base_table_name, field) if not joined else str(field)
+    func = row_data_from_field
     if type(field) == dict:
         field = Storage(field)
         # we only accept an array of subfields
@@ -43,7 +69,8 @@ def parse_field(field, row, base_table_name, joined=False):
         # this is just in case the user does not define a label for the joined fields
         joined_field_names = ' '.join(field.fields) if joined else ' '.join(map(lambda field : base_table_name + '.' + field, field.fields))
         data_format = field.custom_format if field.custom_format else base_multifield_format
-        data = data_format(row, field.fields)
+        new_field = field.fields
+        func = data_format
         header = field.label_as if field.label_as else joined_field_names
         # set the orderby string to be the specified table and fields
         joined_field_names = joined_field_names.replace(' ', '+')
@@ -54,19 +81,27 @@ def parse_field(field, row, base_table_name, joined=False):
             header = db[table_name][field_name].label
         else:
             header = db[base_table_name][field.split('.')[0]].label
-        data = row_data_from_field(row, field)
-    return header, data, orderby
+        new_field = field
+    s_q = search_query_from_field(orderby.split('+'), search_term) if search_term else None
+    return Storage({
+        'field': new_field,
+        'header': header,
+        'orderby': orderby,
+        'search': s_q,
+        'format': func
+    })
 
 
-def sort_header(header):
+
+def sort_header(field):
     new_vars = Storage(request.vars)
-    content = header.value
+    content = field.header
     orderby = request.vars.orderby
     ascendant = request.vars.order == 'asc'
     icon = ''
     classes = ''
-    if orderby == header.orderby:
-        content = B(header.value)
+    if orderby == field.orderby:
+        content = B(field.header)
         icon_name = 'arrow_upward' if ascendant else 'arrow_downward'
         icon = ICON(icon_name, _class='st-header-icon')
         classes = 'selected'
@@ -74,7 +109,7 @@ def sort_header(header):
     else:
         ascendant = True
     new_vars.order = 'asc' if ascendant else 'dsc'
-    new_vars.orderby = header.orderby
+    new_vars.orderby = field.orderby
     url = URL(request.controller, request.function, args=request.args, vars=new_vars)
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
@@ -94,6 +129,38 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
 
     """
 
+    rows = None
+    try:
+        rows = db(query).select(select_fields, limitby=(0,1))
+    except:
+        rows = db(query).select(limitby=(0,1))
+    if not rows:
+        return None
+
+    joined = False
+    if base_table_name:
+        joined = type(rows.first()) == type(rows.first()[base_table_name])
+    if not joined:
+        base_table_name = rows.colnames[0].split('.')[0]
+
+    # normalize fields
+    search_term = request.vars.term
+    search_query = None
+    datas = []
+    new_fields = []
+    for index, field in enumerate(fields):
+        new_field = parse_field(field, base_table_name, joined, search_term)
+        new_fields.append(new_field)
+        if new_field.search:
+            if not search_query:
+                search_query = new_field.search
+            else:
+                search_query |= new_field.search
+        # if searchable and search_term:
+        datas.append([])
+    if search_query:
+        query = query & search_query
+
     # ordering
     try:
         orderby = None
@@ -106,9 +173,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
                 orderby |= orderparam
         select_args['orderby'] = orderby
     except:
-        import traceback as tb
-        tb.print_exc()
-        # pass
+        pass
 
     # limits
     distinct = db[base_table_name].id if base_table_name else None
@@ -122,41 +187,20 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         ipp = 10
     prev_url, next_url, limits, pages_count  = pages_menu_bare(query, page, ipp, distinct=distinct)
     select_args['limitby'] = limits
-
-    rows = None
     try:
         rows = db(query).select(select_fields, **select_args)
     except:
         rows = db(query).select(**select_args)
 
-    if not rows:
-        return None
-
-    headers = []
-    # for every header there will be one sub array so we will have a matrix where every row is like a column asociated with the header at the same index
-    datas = []
-    # we use this base name, when we dont have joins so we can get the table field labels
-    joined = False
-    if base_table_name:
-        joined = type(rows.first()) == type(rows.first()[base_table_name])
-    if not joined:
-        base_table_name = rows.colnames[0].split('.')[0]
-    headers_added = False
     for row in rows:
-        for index, field in enumerate(fields):
-            header, data, orderby = parse_field(field, row, base_table_name, joined)
-            # initialize data arrays if the haven't been initialized
-            if not headers_added:
-                headers.append(Storage(value=header, orderby=orderby))
-                datas.append([])
-            datas[index].append(data)
-        headers_added = True
+        for index, field in enumerate(new_fields):
+            datas[index].append(field.format(row, field.field))
 
-    # output format
+    # base_table
     table = DIV(_class="st-content")
-    for index, header in enumerate(headers):
+    for index, field in enumerate(new_fields):
         container = DIV(_class="st-col")
-        head = sort_header(header)
+        head = sort_header(field)
         container.append(DIV(head, _class="st-row-data st-last top"))
         for data in datas[index]:
             container.append(DIV(data, _class="st-row-data"))

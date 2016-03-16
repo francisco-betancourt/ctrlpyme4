@@ -64,7 +64,7 @@ def index():
     data = SUPERT(db.stock_transfer, fields=[
         'id_store_from.name', 'id_store_to.name', 'is_done'
         ], options_func=lambda row: [OPTION_BTN('receipt', URL('ticket', args=row.id))]
-        , selectable=False
+        , selectable=False, searchable=False
     )
 
     return locals()
