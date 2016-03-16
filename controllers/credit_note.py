@@ -28,7 +28,6 @@ def get():
 
 @auth.requires_membership('Sales returns')
 def index():
-    data = super_table('credit_note', ['subtotal', 'total'], ((db.credit_note.is_active == True)), options_function=lambda row: [option_btn('', URL('credit_note', 'get', args=row.id), T('View'))]
-    )
+    data = common_index('credit_note', ['subtotal', 'total'], supert_vars=dict(options_func=lambda row: OPTION_BTN('receipt', URL('credit_note', 'get', args=row.id)) ))
 
     return locals()

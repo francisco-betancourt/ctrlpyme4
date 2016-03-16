@@ -118,9 +118,12 @@ def dates_custom_format(row, subfields):
 
 @auth.requires_membership('Offers')
 def index():
+    def offer_options(row):
+        return supert_default_options(row) + (OPTION_BTN('local_offer', URL('fill', args=row.id)), )
     title = T('offer groups')
-    data = SUPERT(db.offer_group, fields=[
-        'name', 'id_store', 'starts_on', 'ends_on'
-    ])
+    offers_query = (db.offer_group.id_store == session.store) & (db.offer_group.is_active == True)
+    data = SUPERT(offers_query, fields=[
+        'name', 'starts_on', 'ends_on'
+    ], options_func=offer_options)
 
     return locals()

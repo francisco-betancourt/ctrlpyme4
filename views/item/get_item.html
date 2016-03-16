@@ -53,21 +53,21 @@
   {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
     <div class="btn-group">
       <button class="btn btn-default" onclick="update_item(current_item_id)">
-      {{=ICON('pencil')}}</button>
+      {{=ICON('edit')}}</button>
     </div>
     <div class="btn-group">
       <button class="btn btn-default" onclick="create_labels(current_item_id)">
-      {{=ICON('th')}}</button>
+      {{=ICON('label')}}</button>
     </div>
     <div class="btn-group">
       <button class="btn btn-default" onclick="add_item_images(current_item_id)">
-      {{=ICON('picture-o')}}</button>
+      {{=ICON('add_a_photo')}}</button>
     </div>
   {{pass}}
   {{if auth.has_membership('Analytics'): }}
     <div class="btn-group">
       <button class="btn btn-default" onclick="item_analysis(current_item_id)">
-      {{=ICON('line-chart')}}</button>
+      {{=ICON('show_chart')}}</button>
     </div>
   {{pass}}
 </div>

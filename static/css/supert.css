@@ -23,6 +23,21 @@
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
 }
+
+.st-card-header {
+  height: 64px;
+}
+#supert_search_btn {
+  margin-left: -1px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+#supert_search {
+  margin-right: -1px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
 a.st-header, a.st-header:hover, a.st-header:visited, .st-header {
   text-decoration: none;
   color: rgba(0,0,0,.54);

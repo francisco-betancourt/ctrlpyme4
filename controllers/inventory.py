@@ -289,16 +289,15 @@ def undo():
 
 
 def inventory_options(row):
-    td = TD()
+    buttons = ()
     # edit option
     if not row.is_done:
-        td.append(option_btn('pencil', URL('fill', args=row.id)))
-    td.append(option_btn('eye-slash', onclick='delete_rows("/%s", "", "")' % (row.id)))
-    return td
+        buttons += OPTION_BTN('edit', URL('fill', args=row.id)),
+    buttons += supert_default_options(row)[1],
+    return buttons
 
 
 @auth.requires_membership('Inventories')
 def index():
-    request.vars.orderby = 'id'
-    data = common_index('inventory', ['is_partial', 'is_done'], dict(options_function=inventory_options, show_id=True))
+    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options))
     return locals()

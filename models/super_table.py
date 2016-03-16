@@ -79,7 +79,7 @@ def sort_header(header):
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=True, searchable=True, base_table_name=None):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None):
     """
     about fields, fields is an array of <value> where every <value> is either
     a dict or a string.
@@ -161,13 +161,25 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         for data in datas[index]:
             container.append(DIV(data, _class="st-row-data"))
         table.append(container)
+
+    t_header = ''
+    t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
+    t_header_content = DIV(_class="st-card-header-content")
+    if searchable:
+        search_form = FORM(_id='supert_search_form', _class="form-inline")
+        search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
+        search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
+        t_header_content.append(search_form)
     if selectable:
+        selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
         checks = DIV(_class="st-col st-checks-col")
         checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
         for row in rows:
             row_id = row.id if not joined else row[base_table_name].id
             checks.append(DIV(CB(_id="cb_%s" % row_id), _class='st-row-data st-option st-check'))
         table.insert(0, checks)
+    t_header.append(t_header_content)
+
     # add options
     if options_enabled:
         options = DIV(_class="st-col")
@@ -182,6 +194,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(table, t_footer, _class="supert")
+    table = DIV(t_header, table, t_footer, _class="supert")
 
     return table

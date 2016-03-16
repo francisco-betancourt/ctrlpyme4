@@ -32,7 +32,7 @@
     {{ pass }}
     {{block page_css}} {{end}}
     <link rel="stylesheet" href="{{=URL('static','css/supert.css')}}"/>
-    
+
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
 
@@ -87,22 +87,9 @@
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
     {{pass}}
-     {{if session.info:}}
-       <div class="info-card panel panel-default noprint" id="info_card">
-         {{=INFO_CARD()}}
-       </div>
-      {{else:}}
-        <div class="info-card panel panel-default noprint" id="info_card" hidden>
-          <div class="panel-body">
-            <div><i class="fa fa-times close" id="info_close"></i></div>
-            <div id="info_card__text"></div>
-            <div id="info_card__btn_container">
-              <p></p>
-              <a id="info_card__btn" class="btn btn-block btn-default info-btn" href=""></a>
-            </div>
-          </div>
-        </div>
-     {{pass}}
+     <div class="info-card panel panel-default noprint" id="info_card" {{if not session.info:}} hidden {{pass}}>
+       {{=INFO_CARD()}}
+     </div>
     {{session.info = None}}
 
     <script>
@@ -178,7 +165,7 @@
       {{pass}}
 
       {{core_action = URL('create')}}
-      {{core_action_icon = 'plus'}}
+      {{core_action_icon = 'add'}}
       {{core_options = None}}
 
       {{context_sidebar = True}}
@@ -248,12 +235,14 @@
     </footer>
     {{end}}
     <!-- The javascript =============================== -->
+    <script src="{{=URL('static','js/supert.js')}}"></script>
     <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
     {{block page_js}}{{end page_js}}
     {{if response.google_analytics_id:}}
     <!-- Analytics ==================================== -->
     <script src="{{=URL('static','js/analytics.min.js')}}"></script>
+
 
     <script type="text/javascript">
       analytics.initialize({
@@ -299,38 +288,6 @@
         }
       }
 
-
-      var countChecked = function() {
-       var n = $( ".row_checkbox:checked" ).length;
-       // in this case we have to show the selection options
-       if (n > 0) {
-         $('#selection_menu').show();
-       }
-       else {
-         $('#selection_menu').hide();
-       }
-     };
-
-     $('.row_checkbox').click(function(event) {
-       countChecked();
-     });
-
-     $('#master_checkbox').click(function(event) {
-       if (event.target.checked) {
-         checkboxes = $('.row_checkbox');
-         $.each(checkboxes, function(i, element) {
-           element.checked = true;
-         });
-       }
-       else {
-         checkboxes = $('.row_checkbox');
-         $.each(checkboxes, function(i, element) {
-           element.checked = false;
-         });
-       }
-       countChecked();
-     });
-
      {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
 
      function delete_rows(ids, controller, vars) {
@@ -347,6 +304,32 @@
        });
        delete_rows(ids, "", "{{=vars_string}}");
      });
+
+
+    function change_cb_state(cb) {
+      var icon_text = 'check_box_outline_blank';
+      var cb_icon = document.querySelector('label[for="'+cb.id+'"]>i.material-icons');
+      cb_icon.classList.remove('accent-color-for-text');
+      if (cb.checked) {
+        icon_text = 'check_box';
+        cb_icon.classList.add('accent-color-for-text');
+      }
+      cb_icon.textContent = icon_text;
+    }
+    // custom checkbox
+    $('.cp-checkbox').each(function (index, el) {
+      el._change = function (value) {
+        this.checked = value;
+        change_cb_state(this);
+        // var evt = document.createEvent('HTMLEvents');
+        // evt.initEvent('change', false, true);
+        // this.dispatchEvent(evt);
+      }
+    })
+    $('.cp-checkbox').change( function (event) {
+     var target = event.target;
+     change_cb_state(target);
+    });
 
 
      {{ if request.vars._print: }}

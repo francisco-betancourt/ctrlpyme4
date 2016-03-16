@@ -24,7 +24,7 @@ from gluon.storage import Storage
 
 
 def CB(selected=False, _id=""):
-    return INPUT(_id=_id, _type='checkbox'), LABEL(ICON('check_box_outline_blank', _class="checkbox", html_vars=dict(_value='false')), _for=_id)
+    return INPUT(_id=_id, _type='checkbox', _class="cp-checkbox", _name=_id), LABEL(ICON('check_box_outline_blank', _class="checkbox", html_vars=dict(_value='false')), _for=_id)
 
 
 def discounts_list(discounts):
@@ -60,7 +60,11 @@ def ICON(icon_name, _id="", _class="", html_vars={}):
 
 def INFO_CARD():
     content = DIV(_class="panel-body")
-    content.append(DIV(ICON('times', _class="close", _id="info_close")))
+    content.append(DIV(ICON('close', _class="close", _id="info_close")))
+    hidden = False
+    if not session.info:
+        session.info = INFO(' ', ' ', '#', ' ')
+        hidden = True
     if type(session.info) == str:
         content.append(DIV(session.info, _id="info_card__text"))
     if type(session.info) == dict:
@@ -73,6 +77,8 @@ def INFO_CARD():
             link_text = btn_data['text'] if btn_data.has_key('text') else ''
             if href:
                 content.append(DIV(P(), A(link_text, _href=href, _target=target, _class="btn btn-default btn-block"), _id="info_card__btn_container"))
+    if hidden:
+        session.info = None
     return content
 
 
