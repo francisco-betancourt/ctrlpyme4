@@ -53,6 +53,11 @@
       <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping_basket')}}</div>
     {{pass}}
 
+    <!-- help -->
+    <!-- <div class="menu-element" id="help_menu_btn" onclick="show_help();">
+      {{=ICON('help_outline')}}
+    </div> -->
+
     <!-- auth -->
     <div class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
       <div class="submenu primary-color-dim" id="submenu_auth" hidden="hidden">
@@ -73,9 +78,6 @@
         {{ pass }}
       </div>
       <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('arrow_drop_down', _class="add-on")}}
-    </div>
-    <div class="menu-element" id="help_menu_btn" onclick="show_help();">
-      {{=ICON('help')}}
     </div>
   </section>
 

@@ -373,8 +373,6 @@ def index():
     return locals()
 
 
-import calendar
-
 @auth.requires_membership("Analytics")
 def get_calendar():
     today = date(request.now.year, request.now.month, request.now.day)
@@ -402,7 +400,7 @@ def get_calendar():
     ).select(orderby=db.account_payable.epd)
     for payable in accounts_payable:
         day = payable.epd.day
-        events[day].append(dict(name='Account payable'))
+        events[day].append(dict(name='Account payable', icon='money_off'))
     accounts_receivable = db(
         (db.payment.epd >= start_date)
         & (db.payment.epd < end_date)
@@ -410,7 +408,7 @@ def get_calendar():
     ).select(orderby=db.payment.epd)
     for receivable in accounts_receivable:
         day = receivable.epd.day
-        print day
-        events[day - 1].append(Storage(name='Account receivable'))
+        events[day - 1].append(Storage(name='Account receivable', icon='attach_money'))
 
+    events_script = SCRIPT('var events = %s' % json.dumps(events))
     return locals()

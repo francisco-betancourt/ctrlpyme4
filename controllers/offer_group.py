@@ -40,7 +40,6 @@ def add_discount():
     offer_group = db.offer_group(request.args(0))
     if not offer_group:
         raise HTTP(404)
-    print request.vars
 
     error = None
     msg = T('Discount added')
