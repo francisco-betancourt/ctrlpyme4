@@ -106,6 +106,10 @@ nav>section .menu-element.brand {
   font-size: 18px;
   padding-left: 0px;
 }
+nav>section .menu-element.brand>img {
+  max-width: 150px;
+  max-height: 52px;
+}
 
 nav>section .form-group {
   margin: 0px;

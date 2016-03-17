@@ -11,13 +11,14 @@
       var splited_url = window.location.href.split('?');
       var base_url = splited_url[0];
       var url_vars = splited_url[1];
-      url_vars = url_vars.replace('#', '');
       var new_vars = '';
       var re = /term=.*(?=&)|term=.*$/;
       if (url_vars) {
+        url_vars = url_vars.replace('#', '');
         var vars = url_vars.split('&');
         var term_found = false;
         for (var i = 0; i < vars.length; i++) {
+          if (!vars[i]) continue;
           new_vars += vars[i].replace(re, 'term=' + s_term);
 
           if (i < vars.length - 1) { new_vars += '&'; }

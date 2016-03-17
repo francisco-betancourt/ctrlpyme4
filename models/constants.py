@@ -80,6 +80,12 @@ WORKFLOW_DATA = [
 ]
 
 
+# sale events
+SALE_DEFERED = 'defered'
+SALE_DELIVERED = 'delivered'
+SALE_CREATED = 'created'
+
+
 #TODO move this to config
 EMAIL_SENDER = ''
 EMAIL_TLS = True

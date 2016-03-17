@@ -160,25 +160,6 @@ select {
 }
 
 
-#search {
-  /*background-color: rgba(0,0,0,.4);*/
-  /*color: #505050;*/
-}
-
-#search_form {
-  /*display: inline-block;
-  min-width: 100px;
-  width: 200px;*/
-}
-
-#search_form .search-icon {
-  /*background-color: rgba(0,0,0,.4);*/
-  border: none;
-  /*color: rgba(255,255,255,.7);*/
-
-}
-
-
 #common_modal {
   padding-right: 0px;
   z-index: 10000000;
@@ -195,11 +176,9 @@ select {
   transition: height .2s ease;
   overflow: hidden;
 }
-
 #current_bag>.panel-body>#barcode_scanner_container {
   margin-bottom: 30px;
 }
-
 #current_bag>.panel-body .list-group-item {
   border-radius: 0px;
   border: 1px solid #eee;
@@ -207,12 +186,9 @@ select {
 #current_bag>.panel-body .list-group-item:hover {
   background-color: transparent !important;
 }
-
-
 #current_bag>.panel-body .list-group-item:hover {
   background-color: white;
 }
-
 #current_bag>.panel-body .list-group-item:hover:not(.node-disabled) {
   background-color: white;
 }

@@ -25,9 +25,7 @@ response.google_analytics_id = None
 #########################################################################
 
 
-response.menu = [
-    (T('Home'), False, URL('default', 'index'), [])
-]
+response.menu = []
 
 # configuration menu
 if auth.has_membership('Admin'):

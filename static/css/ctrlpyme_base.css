@@ -78,10 +78,11 @@ nav {
 
 
 .label {
-  border: 1px solid;
   background-color: transparent;
-  padding: .4em .6em .3em;
+  padding: .4em 0px 0px ;
   /*padding: 4px 5px 2px 5px;*/
+  /*font-weight: lighter;*/
+  font-size: 12px;
 }
 
 

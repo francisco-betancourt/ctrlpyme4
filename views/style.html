@@ -14,8 +14,8 @@
   base_color_dim = dim_hex(BASE_COLOR)
   base_color_bright = bright_hex(BASE_COLOR)
 
-  danger_color = color_mix(primary_color, '#FF0000')
-  success_color = color_mix(primary_color, '#00BB00')
+  danger_color = '#B34554'
+  success_color = '#518C7B'
 
   dim_rgba = 'rgba(0,0,0,.03)'
 }}
@@ -31,7 +31,7 @@
   }*/
 
   a, a:hover, a:visited {
-    color: {{=primary_color_dim}};
+    color: {{=accent_color_dim}};
   }
 
   nav {
@@ -41,6 +41,9 @@
   nav a, nav a:hover, nav a:focus, nav a:visited, nav a:target, nav a:active {
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
     text-decoration: none;
+  }
+  nav a.brand {
+    color: {{=primary_color_text}};
   }
   nav .badge {
     background-color: {{=primary_color_bright}};
@@ -163,24 +166,21 @@
   .text-success {
     color: {{=success_color}};
   }
-
   .text-danger {
     color: {{=danger_color}};
   }
-
   .label-success {
     color: {{=success_color}};
     border-color: {{=success_color}};
   }
-
   .label-danger {
     color: {{=danger_color}};
     border-color: {{=danger_color}};
   }
 
   .form-control:focus {
-    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px {{=hex_to_css_rgba(primary_color, .4)}};
-    border-color: {{=primary_color_bright}};
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px {{=hex_to_css_rgba(accent_color, .4)}};
+    border-color: {{=accent_color_bright}};
   }
 
   option:checked {
@@ -259,6 +259,11 @@
 
   .shadow-1 {
     box-shadow: 0px 2px 4px rgba(0,0,0,.3);
+  }
+
+
+  .search-icon {
+    border-color: rgba(0,0,0,.2);
   }
 </style>
 

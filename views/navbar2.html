@@ -8,11 +8,17 @@
 
     <div id="m_nav_filler" class="menu-element" state="hidden">
       <div class="menu-element hamburger">{{=ICON('menu')}}</div>
-      <div class="menu-element brand">{{=response.logo}}</div>
+      <a href="{{=URL('default', 'index')}}" class="menu-element brand">{{=COMPANY_NAME}}</a>
     </div>
 
     <div class="menu-element primary-color-text hamburger" id="hamburger">{{=ICON('menu')}}</div>
-    <div class="menu-element brand primary-color-text">{{=response.logo}}</div>
+    <a href="{{=URL('default', 'index')}}" class="menu-element brand">
+      {{if COMPANY_LOGO_URL:}}
+        <img src="{{=URL('static', 'uploads/'+COMPANY_LOGO_URL )}}" alt="">
+      {{else:}}
+        {{=COMPANY_NAME}}
+      {{pass}}
+    </a>
     <div id="main_menu_m" state="hidden">
       {{ for m_element in MENU_ELEMENTS('m'): }}
         {{ =m_element.menu }}
