@@ -73,7 +73,6 @@ button.cp-fab:focus{
 
 
 #core_button {
-  /*width: 48px;*/
   box-shadow: 0px 2px 4px rgba(0,0,0,.5);
   border-radius: 6px;
   border-top-right-radius: 0px;
@@ -86,6 +85,7 @@ button.cp-fab:focus{
   margin: 0px;
   height: 64px;
   width: 64px;
+  margin-left: -1px;
 }
 
 #core_button button:focus {

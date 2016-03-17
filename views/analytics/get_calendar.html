@@ -8,11 +8,11 @@
 
 {{block left_sidebar}}
 {{if selected_day == today:}}
-  <h1>{{=T('Today')}}</h1>
+  <h1>{{=T('Events')}}</h1>
 {{else:}}
   <h1>{{=selected_day.strftime('%B %d, %Y')}}</h1>
 {{pass}}
-  <div id="events"></div>
+  <ul class="list-group" id="events"> </ul>
 {{end}}
 
 
@@ -27,6 +27,8 @@
     text-align: center;
     font-weight: bold;
     margin-bottom: 15px;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .calendar-day, .calendar-header {
     margin-top: -1px;
@@ -52,7 +54,7 @@
     /*color: white;*/
   }
   .calendar-day.selected {
-    background-color: {{=primary_color}};
+    background-color: {{=accent_color}};
     color: white;
     z-index: 100;
     /*color: white;*/
@@ -68,6 +70,9 @@
     align-items: flex-end;
     align-self: flex-end;
     font-size: 22px;
+  }
+  .day-events i {
+    font-size: 2vmax;
   }
 </style>
 
@@ -97,7 +102,10 @@
 
 
 <div id="proto_event" hidden="hidden" class="event-container">
-  <p class="event-name"></p>
+  <li class="list-group-item">
+    <span class="event-name"></span>
+    <span class="right"><a class="event-link" href="">{{=T('View')}}</a></span>
+  </li>
 </div>
 
 
@@ -128,8 +136,10 @@
         var clone = $('#proto_event').clone().show();
         clone.removeAttr('id');
         clone.find('.event-name').html(selected_day_events[index].name);
+        clone.find('.event-link').attr('href', selected_day_events[index].url);
         $('#events').append(clone);
       }
+      $('#events')[0].scrollIntoView();
     })
   </script>
 {{ pass }}

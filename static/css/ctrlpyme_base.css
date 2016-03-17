@@ -23,7 +23,6 @@ h1 {
   bottom: 0;
   width: 100%;
 }
-
 .footer>.container-fluid {
   padding-left: 0px;
   padding-right: 0px;
@@ -54,14 +53,6 @@ h1 {
     float: right;
 }
 
-
-
-nav {
-
-}
-
-
-
 *:focus {
     outline-style: none;
 }
@@ -70,26 +61,20 @@ nav {
   margin-top: 70px;
 }
 
-
 .pager>li {
   margin-left: 5px;
   margin-right: 5px;
 }
 
-
 .label {
   background-color: transparent;
   padding: .4em 0px 0px ;
-  /*padding: 4px 5px 2px 5px;*/
-  /*font-weight: lighter;*/
   font-size: 12px;
 }
-
 
 .btn.btn-primary {
   font-weight: bold;
 }
-
 
 .material-icons {
   font-family: 'Material Icons';

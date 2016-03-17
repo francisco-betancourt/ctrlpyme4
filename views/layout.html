@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/item_card.css')}}"/>
     <link rel="stylesheet" href="{{=URL('static','css/ticket.css')}}"/>
+    <link rel="stylesheet" href="{{=URL('static', 'css/navbar.css')}}">
     <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
     {{ if USE_MATERIAL_ICONS: }}
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -256,10 +257,10 @@
       function hide_container(container_id, left) {
         switch (container_id) {
           case 'bag_container':
-            $('#bag_btn').removeClass('accent-color-text');
+            $('#bag_btn').removeClass('selected-menu');
             break;
           case 'notifications_container':
-            $('#notifications_btn').removeClass('accent-color-text');
+            $('#notifications_btn').removeClass('selected-menu');
             break;
         };
         var v = left ? '-100%' : '100%';
@@ -269,10 +270,10 @@
       function show_container(container_id) {
         switch (container_id) {
           case 'bag_container':
-            $('#bag_btn').addClass('accent-color-text');
+            $('#bag_btn').addClass('selected-menu');
             break;
           case 'notifications_container':
-            $('#notifications_btn').addClass('accent-color-text');
+            $('#notifications_btn').addClass('selected-menu');
             break;
         };
         $('#' + container_id).attr('state', 'visible');

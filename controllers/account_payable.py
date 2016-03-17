@@ -14,19 +14,11 @@ def settle():
     session.info = T('Settled debt')
     redirect(URL('index'))
 
-@auth.requires_membership('Accounts payable')
-def account_row(row, fields):
-    #TODO show remaining days
-    tr = TR()
-    tr.append(
-        TD(
-            A(row.id_purchase.id, _href=URL('purchase', 'get', args=row.id_purchase.id), _target="_blank" )
-        )
-    )
-    return tr
-
 
 @auth.requires_membership('Accounts payable')
 def index():
-    data = super_table('account_payable', ['id_purchase'], db.account_payable.is_settled == False, row_function=account_row, options_function=lambda row : [option_btn('check', URL('settle', args=row.id), ' settle')])
+    def ar_options(row):
+        return OPTION_BTN('receipt', URL('purchase', 'get', args=row.id_purchase.id)), OPTION_BTN('done', URL('settle', args=row.id))
+    data = SUPERT(db.account_payable.is_settled == False,
+        fields=['id_purchase', 'epd'], options_func=ar_options)
     return locals()

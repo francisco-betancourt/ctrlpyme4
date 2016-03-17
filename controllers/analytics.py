@@ -391,6 +391,7 @@ def get_calendar():
     # get selected month events
     # events array
     events = [[] for day in range(0, calendar.monthrange(today.year, today.month)[1])]
+    events_added = [{} for day in range(0, calendar.monthrange(today.year, today.month)[1])]
     start_date, end_date = get_month_interval(today.year, today.month)
     # accounts payable
     accounts_payable = db(
@@ -399,16 +400,41 @@ def get_calendar():
         & (db.account_payable.is_settled == False)
     ).select(orderby=db.account_payable.epd)
     for payable in accounts_payable:
-        day = payable.epd.day
-        events[day].append(dict(name='Account payable', icon='money_off'))
+        day = payable.epd.day - 1
+        if not events_added[day].has_key('account_payable'):
+            events_added[day]['account_payable'] = dict(ids=[])
+        events_added[day]['account_payable']['ids'].append(str(payable.id))
+
     accounts_receivable = db(
         (db.payment.epd >= start_date)
         & (db.payment.epd < end_date)
         & (db.payment.is_settled == False)
     ).select(orderby=db.payment.epd)
     for receivable in accounts_receivable:
-        day = receivable.epd.day
-        events[day - 1].append(Storage(name='Account receivable', icon='attach_money'))
+        day = receivable.epd.day - 1
+        if not events_added[day].has_key('account_receivable'):
+            events_added[day]['account_receivable'] = dict(ids=[])
+        events_added[day]['account_receivable']['ids'].append(str(receivable.id))
+        # events[day - 1].append(Storage(name='Account receivable', icon='attach_money'))
+    keys = [
+        dict(key='account_payable', icon='money_off', name='Accounts payable'),
+        dict(key='account_receivable', icon='attach_money', name='Accounts receivable'),
+    ]
+    for index, _events in enumerate(events_added):
+        for _key in keys:
+            key = _key['key']
+            if _events.has_key(key):
+                ids_str = ','.join(_events[key]['ids'])
+                # print ids_str
+                event_name = str(T(_key['name']))
+                event_icon = _key['icon']
+                events[index].append(
+                    Storage(
+                        name=event_name,
+                        url=URL(key, 'index', vars=dict(ids=ids_str)),
+                        icon=event_icon
+                    )
+                )
 
     events_script = SCRIPT('var events = %s' % json.dumps(events))
     return locals()

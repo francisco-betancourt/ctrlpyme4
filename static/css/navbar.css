@@ -7,18 +7,13 @@ nav.the-nav {
 nav {
   display: flex;
   flex-direction: row;
-
   height: 64px;
   min-height: 64px;
-
   padding-left: 15px;
   padding-right: 15px;
-
   width: 100%;
   min-width: 100%;
-
-  box-shadow: 0px 2px 6px rgba(0,0,0,.5);
-
+  border-bottom: 1px solid;
   z-index: 10000;
 }
 
