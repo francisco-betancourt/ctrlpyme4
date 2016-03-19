@@ -18,7 +18,13 @@
       {{pass}}
     </a>
     <div id="main_menu_m" state="hidden">
-      {{ for m_element in MENU_ELEMENTS('m'): }}
+      {{ for m_element in MENU_ELEMENTS('m', response.menu): }}
+        {{ =m_element.menu }}
+        {{ if m_element.submenu: }}
+          {{ =m_element.submenu }}
+        {{ pass }}
+      {{pass}}
+      {{ for m_element in MENU_ELEMENTS("m_auth", menu=response.auth_menu): }}
         {{ =m_element.menu }}
         {{ if m_element.submenu: }}
           {{ =m_element.submenu }}
@@ -26,7 +32,7 @@
       {{pass}}
     </div>
     <div id="main_menu">
-      {{ for m_element in MENU_ELEMENTS(): }}
+      {{ for m_element in MENU_ELEMENTS(menu=response.menu): }}
         {{ if m_element.submenu: }}
           {{ m_element.menu.insert(0, m_element.submenu) }}
         {{ pass }}
@@ -63,25 +69,14 @@
     </div> -->
 
     <!-- auth -->
-    <div class="menu-element" id="auth_menu" onclick="toggle_submenu('auth');">
-      <div class="submenu primary-color-dim" id="submenu_auth" hidden="hidden">
-        {{ if auth.is_logged_in(): }}
-          <div class="menu-element">
-            <a href="{{=URL('user', 'profile')}}"> {{=T("Profile")}} </a>
-          </div>
-          <div class="menu-element">
-            <a href="{{=URL('default', 'user/logout')}}"> {{=T("Logout")}} </a>
-          </div>
-        {{ else: }}
-          <div class="menu-element">
-            <a href="{{=URL('default', 'user/retrieve_password')}}"> {{=T("Lost password")}} </a>
-          </div>
-          <div class="menu-element">
-            <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}"> {{=T("Login")}} </a>
-          </div>
+
+    <div id="auth_menu">
+      {{ for m_element in MENU_ELEMENTS("auth", menu=response.auth_menu): }}
+        {{ if m_element.submenu: }}
+          {{ m_element.menu.insert(0, m_element.submenu) }}
         {{ pass }}
-      </div>
-      <span class="auth-label">{{=auth.user.first_name if auth.is_logged_in() else T("Guest")}}</span> {{=ICON('arrow_drop_down', _class="add-on")}}
+        {{ =m_element.menu }}
+      {{pass}}
     </div>
   </section>
 
@@ -114,7 +109,7 @@
   }
 
   function close_search() {
-    $('#bag_btn, #auth_menu, #search_menu_btn, #hamburger, .brand').show();
+    $('#bag_btn, #search_menu_btn, #hamburger, .brand').show();
     $('#hamburger, #search_menu_btn').removeClass('hidden');
     $('#close_search').css('display', 'none');
     $('.submenu').hide();
@@ -161,7 +156,7 @@
   });
 
   $('#search_menu_btn').click(function (event) {
-    $('#bag_btn, #auth_menu, #search_menu_btn, .brand').hide();
+    $('#bag_btn, #search_menu_btn, .brand').hide();
     $('#hamburger, #search_menu_btn').addClass('hidden');
     $('#close_search').css('display', 'flex');
     $('.submenu').hide();

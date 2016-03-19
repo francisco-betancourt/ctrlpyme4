@@ -82,10 +82,10 @@ def INFO_CARD():
     return content
 
 
-def MENU_ELEMENTS(submenu_prefix = ''):
+def MENU_ELEMENTS(submenu_prefix = '', menu=response.menu):
     # elements = []
     i = 0
-    for menu_item in response.menu:
+    for menu_item in menu:
         res = Storage()
         menu_item_name = menu_item[0]
         url = ''
@@ -119,6 +119,8 @@ def MENU_ELEMENTS(submenu_prefix = ''):
             menu.append(DIV(menu_item_name, ICON('arrow_drop_down', _class="add-on"), _class="menu-text"))
             res.menu = menu
             yield res
+
+
 
 
 def pages_menu_bare(query, page=0, ipp=10, distinct=None):

@@ -10,7 +10,7 @@ nav {
   height: 64px;
   min-height: 64px;
   padding-left: 15px;
-  padding-right: 15px;
+  padding-right: 0px;
   width: 100%;
   min-width: 100%;
   border-bottom: 1px solid;
@@ -134,11 +134,9 @@ nav>section .form-group {
 #search_menu_btn, #close_search {
   display: none;
 }
-
 #search_menu_element {
   flex: auto;
 }
-
 #search_form {
   width: 100%;
 }
@@ -217,8 +215,9 @@ nav>section #main_menu_m .submenu {
 @media (max-width: 1100px) {
   nav {
     padding-left: 0px;
+    padding-right: 15px;
   }
-  #main_menu {
+  #main_menu, #auth_menu {
     display: none;
   }
   .brand, .hamburger {
@@ -258,7 +257,7 @@ nav>section #main_menu_m .submenu {
   #search_form {
     width: 100% !important;
   }
-  .brand, #bag_btn, #auth_menu {
+  .brand, #bag_btn {
     display: flex !important;
   }
   #search_menu_btn, #close_search {

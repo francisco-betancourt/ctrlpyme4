@@ -104,3 +104,20 @@ if auth.has_membership("Analytics"):
 
 if not auth.has_membership('Employee') and not auth.has_membership('Admin'):
     response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
+
+
+response.auth_menu = []
+if auth.is_logged_in():
+    response.auth_menu += [
+        (auth.user.first_name, False, None, [
+            (T('Profile'), False, URL('user', 'profile'), [ ]),
+            (T('Logout'), False, URL('default', 'user/logout'), [ ])
+        ])
+    ]
+else:
+    response.auth_menu += [
+        (T('guest'), False, None, [
+            (T('Lost password'), False, URL('default', 'user/retrieve_password'), [ ]),
+            (T('Login'), False, URL('default', 'user/login', vars=dict(_next=URL(request.controller, request.function, args=request.args, vars=request.vars) )), [ ])
+        ])
+    ]
