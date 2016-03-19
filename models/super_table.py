@@ -196,6 +196,53 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     return new_fields, datas
 
 
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options):
+    # base_table
+    table = DIV(_class="st-content")
+    for index, field in enumerate(fields):
+        container = DIV(_class="st-col")
+        head = sort_header(field)
+        container.append(DIV(head, _class="st-row-data st-last top"))
+        for data in datas:
+            container.append(DIV(data._values[index], _class="st-row-data"))
+        table.append(container)
+
+    t_header = ''
+    t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
+    t_header_content = DIV(_class="st-card-header-content")
+    if searchable:
+        search_form = FORM(_id='supert_search_form', _class="form-inline")
+        search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
+        search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
+        t_header_content.append(search_form)
+    if selectable:
+        selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
+        checks = DIV(_class="st-col st-checks-col")
+        checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
+        for data in datas:
+            checks.append(DIV(CB(_id="cb_%s" % data._id), _class='st-row-data st-option st-check'))
+        table.insert(0, checks)
+    t_header.append(t_header_content)
+
+    # add options
+    if options_enabled:
+        options = DIV(_class="st-col")
+        options.append(DIV(T('Options'), _class="st-row-data st-last top st-options st-header"))
+        for data in datas:
+            options.append(DIV(options_func(data._row), _class='st-row-data st-option'))
+        table.append(options)
+    t_footer = DIV(_class="st-row-data st-last bottom st-footer")
+    t_footer.append(DIV(T('Items per page')))
+    t_footer.append(DIV(ipp, _class="st-ipp"))
+    t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
+    t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
+
+    table = DIV(t_header, table, t_footer, _class="supert")
+
+    return table
+
+
+
 def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None):
 
     specified_base_table_name = base_table_name
@@ -233,47 +280,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True)
 
     # base_table
-    table = DIV(_class="st-content")
-    for index, field in enumerate(new_fields):
-        container = DIV(_class="st-col")
-        head = sort_header(field)
-        container.append(DIV(head, _class="st-row-data st-last top"))
-        for data in datas:
-            container.append(DIV(data._values[index], _class="st-row-data"))
-        table.append(container)
-
-    t_header = ''
-    t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
-    t_header_content = DIV(_class="st-card-header-content")
-    if searchable:
-        search_form = FORM(_id='supert_search_form', _class="form-inline")
-        search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
-        search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
-        t_header_content.append(search_form)
-    if selectable:
-        selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
-        checks = DIV(_class="st-col st-checks-col")
-        checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
-        for data in datas:
-            checks.append(DIV(CB(_id="cb_%s" % data._id), _class='st-row-data st-option st-check'))
-        table.insert(0, checks)
-    t_header.append(t_header_content)
-
-    # add options
-    if options_enabled:
-        options = DIV(_class="st-col")
-        options.append(DIV(T('Options'), _class="st-row-data st-last top st-options st-header"))
-        for data in datas:
-            row = data._row[base_table_name] if specified_base_table_name else data._row
-            options.append(DIV(options_func(row), _class='st-row-data st-option'))
-        table.append(options)
-    t_footer = DIV(_class="st-row-data st-last bottom st-footer")
-    t_footer.append(DIV(T('Items per page')))
-    t_footer.append(DIV(ipp, _class="st-ipp"))
-    t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
-    t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
-
-    table = DIV(t_header, table, t_footer, _class="supert")
+    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func)
 
     return table
 

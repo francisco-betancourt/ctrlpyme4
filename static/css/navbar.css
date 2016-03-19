@@ -91,11 +91,9 @@ nav>section .submenu>.menu-element {
   padding-left: 15px;
   padding-right: 15px;
 }
-
-nav>section .submenu#submenu_auth {
+nav>section .submenu#submenu_auth_0 {
   right: 0px;
 }
-
 
 nav>section .menu-element.brand {
   font-size: 18px;
