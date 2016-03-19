@@ -443,13 +443,20 @@ def item_options(row):
 
 
 def index():
-    data = SUPERT(db.item.is_active == True, fields=[
+    fields = [
         {
             'fields': ['name', 'is_bundle'],
             'custom_format': lambda row, fields: '%s %s' % (T('BUNDLE') if row.is_bundle else '', row.name),
             'label_as': T('Name')
         }, 'sku', 'ean', 'upc'
-    ], options_func=item_options)
+    ]
+    if EXTRA_FIELD_1_NAME:
+        fields.append({'fields': ['extra_data1'], 'label_as': EXTRA_FIELD_1_NAME})
+    if EXTRA_FIELD_2_NAME:
+        fields.append({'fields': ['extra_data2'], 'label_as': EXTRA_FIELD_2_NAME})
+    if EXTRA_FIELD_3_NAME:
+        fields.append({'fields': ['extra_data3'], 'label_as': EXTRA_FIELD_3_NAME})
+    data = SUPERT(db.item.is_active == True, fields=fields, options_func=item_options)
 
     return locals()
 
