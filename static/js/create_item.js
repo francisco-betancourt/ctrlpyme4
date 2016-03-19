@@ -112,9 +112,3 @@ $("#item_is_bundle").on('click', function(event) {
     $("#bundle_items_form_group").hide();
   }
 });
-
-
-// check for repeated barcodes
-$('#item_sku,#item_ean,#item_upc').change(function(event) {
-  console.log('barcode_change');
-});

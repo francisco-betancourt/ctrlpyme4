@@ -14,8 +14,6 @@
 
   <h3>{{=T('Income')}}: <span class="right">$ {{=DQ(income, True)}}</span></h3>
   <h3>{{=T('Expenses')}}: <span class="right">$ {{=DQ(expenses, True)}}</span> </h3>
-
-
 {{end}}
 
 
@@ -27,8 +25,9 @@
   Chart.defaults.global.showScale = false;
 
   var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  today_sales_data.datasets[0].fillColor = "{{=hex_to_css_rgba(primary_color, .7)}}";
-  today_sales_data.datasets[0].pointColor = "{{=primary_color_dim}}";
+  today_sales_data.datasets[0].fillColor = "{{=hex_to_css_rgba(accent_color, .7)}}";
+  today_sales_data.datasets[0].pointColor = "{{=accent_color_dim}}";
+  today_sales_data.datasets[0].strokeColor = "{{=accent_color_dim}}";
   var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5
   });
 

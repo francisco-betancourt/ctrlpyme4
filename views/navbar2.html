@@ -43,12 +43,12 @@
     <div class="menu-element" id="search_menu_btn" hidden="hidden">{{=ICON('search')}}</div>
 
     {{ notifications_qty = len(notifications) }}
-    {{if notifications:}}
-      {{ if notifications_qty == 0: }}
-        {{ notifications_qty = '' }}
-      {{ elif notifications_qty > 99: }}
-        {{ notifications_qty = '99+' }}
-      {{ pass }}
+    {{ if notifications_qty == 0: }}
+      {{ notifications_qty = '' }}
+    {{ elif notifications_qty > 99: }}
+      {{ notifications_qty = '99+' }}
+    {{ pass }}
+    {{if auth.user:}}
       <div class="menu-element" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('notifications')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
     {{pass}}
 

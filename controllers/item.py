@@ -146,17 +146,25 @@ def item_form(item=None, is_bundle=False):
     if auth.has_membership('Items prices'):
         fields = ['name', 'sku', 'ean', 'upc', 'id_brand', 'description', 'has_inventory', 'base_price', 'price2', 'price3', 'id_measure_unit', 'taxes', 'allow_fractions', 'is_returnable', 'reward_points']
 
+    # extra fields
+    name_change_script = ''
+    if EXTRA_FIELD_1_NAME:
+        fields.insert(3, 'extra_data1')
+        name_change_script += '$("#item_extra_data1__label").html("%s");' % EXTRA_FIELD_1_NAME
+    if EXTRA_FIELD_2_NAME:
+        fields.insert(3, 'extra_data2')
+        name_change_script += '$("#item_extra_data2__label").html("%s");' % EXTRA_FIELD_2_NAME
+    if EXTRA_FIELD_3_NAME:
+        fields.insert(3, 'extra_data3')
+        name_change_script += '$("#item_extra_data3__label").html("%s");' % EXTRA_FIELD_3_NAME
 
     form = SQLFORM(db.item, item, showid=False, fields=fields)
+    form.append(SCRIPT(name_change_script));
 
     # categories
-    categories = db(
-                    (db.category.is_active==True)
-                   ).select(orderby=~db.category.parent)
+    categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
     if categories:
-        # form.vars.categories_selected
         form[0].insert(4, categories_tree_html(categories, item))
-        # form.vars.traits_selected
         form[0].insert(5, trait_selector_html())
 
     if form.process().accepted:
@@ -172,12 +180,12 @@ def item_form(item=None, is_bundle=False):
 
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
         db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=l_categories)
-        response.flash = T('Item created')
+        session.flash = T('Item created') if not item else T('Item updated')
         # if the item is bundle, redirect to the bundle filling page
         if is_bundle and auth.has_membership('Items management'):
             redirect(URL('fill_bundle', args=form.vars.id))
         else:
-            redirection()
+            redirection(URL('index'))
             # redirect(URL('index'))
     elif form.errors:
         response.flash = 'form has errors'

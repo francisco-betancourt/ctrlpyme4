@@ -101,14 +101,12 @@
 </div>
 
 
-<div id="proto_event" hidden="hidden" class="event-container">
-  <li class="list-group-item">
+<template id="proto_event">
+  <ul class="event-container list-group-item" hidden="hidden">
     <span class="event-name"></span>
     <span class="right"><a class="event-link" href="">{{=T('View')}}</a></span>
-  </li>
-</div>
-
-
+  </ul>
+</template>
 
 
 
@@ -124,6 +122,7 @@
     resize_weeks();
     });
 
+    var t_event = document.querySelector('#proto_event');
     var selected_day = {{=selected_day.day}};
     $('.calendar-day:not(.empty)').click(function (event) {
       $('#events>.event-container').remove('*');
@@ -133,8 +132,7 @@
 
       var selected_day_events = events[selected_day - 1];
       for (var index in selected_day_events) {
-        var clone = $('#proto_event').clone().show();
-        clone.removeAttr('id');
+        var clone = $(document.importNode(t_event.content, true));
         clone.find('.event-name').html(selected_day_events[index].name);
         clone.find('.event-link').attr('href', selected_day_events[index].url);
         $('#events').append(clone);

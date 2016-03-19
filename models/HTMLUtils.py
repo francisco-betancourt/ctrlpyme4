@@ -272,11 +272,11 @@ def item_card(item):
         item_options.append(expand_btn)
         options_ul = UL(_class="dropdown-menu")
         if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
-            options_ul.append(LI(A(ICON('mode_edit'), ' ', T('Update'), _href=URL('item', 'update', args=item.id))))
-            options_ul.append(LI(A(ICON('label'), ' ', T('Print labels'), _href=URL('item', 'labels', args=item.id))))
-            options_ul.append(LI(A(ICON('add_a_photo'), ' ', T('Add images'), _href=URL('item_image', 'create', args=item.id))))
+            options_ul.append(LI(A(T('Update'), _href=URL('item', 'update', args=item.id))))
+            options_ul.append(LI(A(T('Print labels'), _href=URL('item', 'labels', args=item.id))))
+            options_ul.append(LI(A(T('Add images'), _href=URL('item_image', 'create', args=item.id))))
         if auth.has_membership('Analytics'):
-            options_ul.append(LI(A(ICON('show_chart'), ' ', T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
+            options_ul.append(LI(A(T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
         item_options.append(options_ul)
 
 
