@@ -129,6 +129,7 @@ def select_bag():
     if not bag:
         raise HTTP(404)
     session.current_bag = bag.id
+    print session.current_bag
     subtotal = 0
     taxes = 0
     total = 0
@@ -169,7 +170,9 @@ def add_bag_item():
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
 
-        item_stock_qty = DQ(item_stock(item, session.store, id_bag=session.current_bag)['quantity'])
+        item_stock_qty = item_stock(item, session.store, id_bag=session.current_bag)['quantity']
+        if item.has_inventory:
+            item_stock_qty = DQ(item_stock_qty)
         base_qty = base_qty = 1 if item_stock_qty >= 1 or allow_out_of_stock else item_stock_qty % 1 # modulo to consider fractionary items
         # if there is no stock notify the user
         if base_qty <= 0:

@@ -350,11 +350,10 @@
       set_bag_data(data);
 
       $('#active_bags').hide();
-
       $('#current_bag').show();
     })
-    .fail(function (res) {
-      console.log(res);
+    .fail(function (data) {
+      console.log('Could not load the bag');
     });
   }
 
@@ -366,6 +365,9 @@
     .done(function (res) {
       bag_item = res.bag_item;
       base_add_bag_item(bag_item, res);
+    })
+    .fail(function (res) {
+      console.log(res);
     })
   }
 
