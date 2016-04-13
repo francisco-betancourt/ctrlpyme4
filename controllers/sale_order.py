@@ -1,6 +1,48 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
+
+import stripe
+stripe.api_key = STRIPE_SK
+
+
+
+def get_valid_order_bag(bag_id):
+    bag = db.bag(bag_id)
+    if not bag:
+        raise HTTP(404)
+    if not bag.is_on_hold or db(db.sale_order.id_bag == bag.id).select().first():
+        raise HTTP(405)
+    if bag.created_by != auth.user.id:
+        raise HTTP(401)
+    return bag
+
+
+@auth.requires_membership('Clients')
+def order_complete():
+    bag = get_valid_order_bag(request.args(0))
+
+    bag.status = BAG_ORDER_COMPLETE
+    bag.update_record()
+
+    return dict(completed=True)
+
 
 @auth.requires_membership('Clients')
 def create():
@@ -8,19 +50,17 @@ def create():
         args [id_bag]
     """
 
-    bag = db.bag(request.args(0))
-    if not bag:
-        raise HTTP(404)
-    if not bag.is_on_hold or db(db.sale_order.id_bag == bag.id).select().first():
-        raise HTTP(405)
-    if bag.created_by != auth.user.id:
-        raise HTTP(401)
+    bag = get_valid_order_bag(request.args(0))
 
     stores = db(db.store.is_active == True).select()
 
     form = SQLFORM(db.sale_order, submit_button=T('Order'), formstyle="bootstrap")
     if form.process().accepted:
-        response.flash = 'form accepted'
+
+        # ch = stripe.Charge.retrieve("ch_17yQfiDYcKyoqST3J7pMK5xn")
+        # ch.description = '%s %s' % (T("Sale order"), form.vars.id)
+        # ch.save()
+
         sale_order = db.sale_order(form.vars.id)
         sale_order.id_client = auth.user.id
         sale_order.id_bag = bag.id
@@ -34,6 +74,34 @@ def create():
         response.flash = 'form has errors'
 
     return locals()
+
+
+def pay_and_order():
+    """ Charge the credit card """
+    bag = get_valid_order_bag(request.args(0))
+    if not bag.status == BAG_ORDER_COMPLETE: # commit the bag first
+        raise HTTP(400)
+    token = request.vars.stripeToken
+    if not token:
+        raise HTTP(400)
+
+    try:
+        # customer = stripe.Customer.create(
+        #     description="%s %s %s" % (auth.user.first_name, auth.user.last_name, auth.user.email),
+        #     source=token
+        # )
+        # print customer
+        charge = stripe.Charge.create(
+          amount=int(bag.total * 100),
+          currency="mxn",
+          source=token
+        )
+        # # return charge id
+        # return dict(charge_id=charge.id)
+    except stripe.error.CardError, e:
+        import traceback as tb
+        tb.print_exc()
+        return dict(error=T("Could not process payment"))
 
 
 def get():

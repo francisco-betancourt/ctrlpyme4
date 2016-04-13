@@ -4,10 +4,10 @@
 
 {{block left_sidebar}}
   <h1>{{=T('Review your order')}}</h1>
-  {{include "simple_client_bag.html"}}
+  {{include "bag_2.html"}}
 {{end}}
 
-<h2>Order information</h2>
+<h1>{{=T('Order information')}}</h1>
 
 <!-- store selection -->
 <h4>{{=T('Select the store where you will pick up your order')}}</h4>
@@ -34,6 +34,61 @@
 
 
 {{=form}}
+
+<script src="https://checkout.stripe.com/checkout.js"></script>
+
+<button id="customButton">Purchase</button>
+
+<script>
+  var handler = StripeCheckout.configure({
+    key: '{{=STRIPE_PK}}',
+    image: '{{=URL("default", "download", args=COMPANY_LOGO_URL) }}',
+    locale: 'auto',
+    token: function(token) {
+      $.ajax({
+        url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
+      })
+      .done(function (res) {
+        console.log('payment created ', res);
+        // submit form
+        // $('#sale_order_stripeToken').val(token);
+        // submit the form
+
+      })
+      .fail(function (res) {
+        console.log(res);
+      })
+    }
+  });
+
+  $('#customButton').on('click', function(e) {
+    // first block the bag
+    $.ajax({
+      url: "{{=URL('order_complete', args=bag.id, extension='json')}}"
+    })
+    .done(function (res) {
+      console.log(res);
+      if (res.completed) {
+        handler.open({
+          name: '{{=COMPANY_NAME}}',
+          description: '{{=bag.quantity.normalize()}} item(s)',
+          amount: {{=bag.total}} * 100,
+          currency: 'MXN',
+          email: "{{=auth.user.email}}"
+        });
+        e.preventDefault();
+      }
+    })
+    .fail(function (res) {
+      console.log(res);
+    })
+  });
+
+  // Close Checkout on page navigation
+  $(window).on('popstate', function() {
+    handler.close();
+  });
+</script>
 
 <script>
   $('#bag_container').show();

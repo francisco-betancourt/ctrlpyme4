@@ -2,6 +2,8 @@
 # only for development purposes
 
 
+# TODO create admin user
+
 
 # create payment methods
 db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)

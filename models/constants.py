@@ -92,6 +92,9 @@ BAG_FOR_ORDER = 2
 BAG_ORDER_COMPLETE = 3
 
 
+STRIPE_PK = 'pk_test_hnTYaSZRgCvUEqZzQmetY60l'
+STRIPE_SK = 'sk_test_j3rtOM8H4k0YNBk9F698ANzU'
+
 
 #TODO move this to config
 EMAIL_SENDER = ''

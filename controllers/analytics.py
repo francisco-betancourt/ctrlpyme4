@@ -351,8 +351,6 @@ def dashboard():
 
 
 
-
-
 @auth.requires_membership("Analytics")
 def index():
     if auth.has_membership('Admin'):
