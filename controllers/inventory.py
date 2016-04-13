@@ -5,6 +5,14 @@
 import json
 
 
+def is_valid_inventory(inventory):
+    if not inventory:
+        raise HTTP(404)
+    if inventory.is_done:
+        raise HTTP(405, T("Inventory is done"))
+    return True
+
+
 #TODO avoid inventory if there are pending sales
 @auth.requires_membership('Inventories')
 def create():
@@ -15,17 +23,11 @@ def create():
 
 @auth.requires_membership('Inventories')
 def fill():
-    """
-        args:
-            id_inventory
-    """
+    """ args [ id_inventory ] """
 
     inventory = db.inventory(request.args(0))
     is_partial = inventory.is_partial
-    if not inventory:
-        raise HTTP(404)
-    if inventory.is_done:
-        raise HTTP(405, "Inventory is done")
+    is_valid_inventory(inventory)
 
     # we use this list to send the inventory items in json format to the client, so it can rebuild the inventory items list
     json_inventory_items = []
@@ -49,10 +51,8 @@ def fill():
 @auth.requires_membership('Inventories')
 def modify_item():
     """ Allows the modification of the physical quantity
-        args
-            id_inventory_item
-        vars:
-            physical_qty
+        args [ id_inventory_item ]
+        vars: [ physical_qty ]
     """
 
     inventory_item = db.inventory_item(request.args(0))
@@ -104,7 +104,16 @@ def add_item():
 
 @auth.requires_membership('Inventories')
 def get():
-    pass
+    """ inventory details
+        args [ id_inventory ]
+    """
+
+    inventory = db.inventory(request.args(0))
+    if not inventory.is_done:
+        raise HTTP(405, T("Inventory is not done"))
+    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
+
+    return locals()
 
 
 @auth.requires_membership('Inventories')
@@ -252,12 +261,10 @@ def complete():
         else:
             redirect(URL('index'))
 
+
 @auth.requires_membership('Inventories')
 def report_missing_items():
-    """
-        args:
-            id_inventory
-    """
+    """ args: [id_inventory] """
 
     inventory = db.inventory(request.args(0))
     if not inventory:
@@ -293,11 +300,13 @@ def inventory_options(row):
     # edit option
     if not row.is_done:
         buttons += OPTION_BTN('edit', URL('fill', args=row.id)),
+    else:
+        buttons += OPTION_BTN('assignment', URL('get', args=row.id)),
     buttons += supert_default_options(row)[1],
     return buttons
 
 
 @auth.requires_membership('Inventories')
 def index():
-    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False))
+    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False, select_args=dict(orderby=~db.inventory.created_on)))
     return locals()

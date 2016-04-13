@@ -1,0 +1,56 @@
+{{ extend 'layout.html' }}
+
+
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'css/ctrlpyme_print.css')}}">
+{{end}}
+
+<style media="screen">
+  .highlight {
+    background-color: rgba(0,0,0, .1);
+  }
+  .item-name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  #inventory_table {
+    margin-top: 25px;
+    width: 100%;
+  }
+</style>
+
+
+<div class="default-sheet ">
+  <h1>
+    {{ if inventory.is_partial: }}
+      {{=T('Partial Inventory')}}
+    {{ else: }}
+      {{=T('Full Inventory')}}
+    {{ pass }}
+    {{ =inventory.id }}
+  </h1>
+
+  <h4>
+    {{=T('Created by')}}: {{=auth.user.first_name + ' ' + auth.user.last_name}} {{=T('On')}}: {{ =inventory.created_on.strftime('%A, %d %B %Y - %I:%M %p') }}
+  </h4>
+
+  <table id="inventory_table" class="table">
+    <thead>
+      <th>{{=T('Name')}}</th>
+      <th>{{=T('Barcode')}}</th>
+      <th>{{=T('System')}}</th>
+      <th>{{=T('Physical')}}</th>
+    </thead>
+
+    <tbody>
+      {{ for inventory_item in inventory_items: }}
+        <tr {{if inventory_item.system_qty != inventory_item.physical_qty:}} class="highlight" {{pass}}>
+          <td class="item-name">{{ = inventory_item.id_item.name }}</td>
+          <td>{{ = item_barcode(inventory_item.id_item) }}</td>
+          <td>{{ = inventory_item.system_qty }}</td>
+          <td>{{ = inventory_item.physical_qty }}</td>
+        </tr>
+      {{ pass }}
+    </tbody>
+  </table>
+</div>
