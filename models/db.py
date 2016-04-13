@@ -460,6 +460,7 @@ db.define_table("bag",
     , Field("total", "decimal(16,6)", default=0, label=T('Total'))
     , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
     , Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'))
+    , Field("status", "integer", default=BAG_ACTIVE, label=T('Status'))
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
@@ -538,7 +539,7 @@ db.define_table(
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
   , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=False, writable=False)
   , Field('id_store', 'reference store', label=T('Store'))
-  , Field('is_for_defered_sale', 'boolean', default=False, label=T('Is for defered sale'))
+  , Field('is_for_defered_sale', 'boolean', default=False, label=T('Is for defered sale'), readable=False, writable=False)
   , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=False, writable=False)
   , auth.signature
 )
