@@ -42,9 +42,9 @@
     <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
     <hr>
 
-    <button class="btn btn-primary btn-block sell_bag" onclick="sell_bag();">
+    <a class="btn btn-primary btn-block sell_bag" href="{{=URL('bag', 'complete')}}">
       {{=T('Complete')}}
-    </button>
+    </a>
     {{if auth.has_membership('Stock transfers'):}}
       <button class="btn btn-default btn-block transfer_bag" onclick="transfer_bag();">
         {{=T('Stock transfer')}}
@@ -411,20 +411,12 @@
   }
 
 
-  function sell_bag() {
-    window.location.href = "{{=URL('bag', 'complete')}}";
-  }
-
-
   function transfer_bag() {
     var r = confirm("{{=T('Confirm stock transfer?')}}");
-    if (r == true) {
-      window.location.href = "{{=URL('bag', 'stock_transfer')}}";
-    }
+    if (r == true) window.location.href = "{{=URL('bag', 'stock_transfer')}}";
   }
 
   $('#proto_bag_item').hide();
-
 
   $('.panel').find('.collapse_bag').on('click', function(event) {
     var el_bag_panel_body = $('#current_bag .panel-body');
@@ -436,6 +428,6 @@
     el_bag_panel_body.toggle();
   });
 
-  load_bag({{=session.current_bag}});
+  {{ if session.current_bag: }} load_bag({{=session.current_bag}}); {{ pass }}
 
 </script>

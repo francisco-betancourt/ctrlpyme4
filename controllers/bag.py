@@ -32,7 +32,9 @@ def money_format(value):
 
 
 def refresh_bag_data(id_bag):
-    bag = db.bag(id_bag)
+    bag = db(db.bag.id == id_bag).select(for_update=True).first()
+    if bag.status != BAG_ACTIVE:
+        return
 
     bag_items = db(db.bag_item.id_bag == bag.id).select()
 
@@ -94,7 +96,7 @@ def set_bag_item(bag_item, discounts=[]):
     item = bag_item.id_item
     # bag_item.name = item.name
 
-    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + bag_item.discount))
+    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + (bag_item.discount or 0) ))
     item.base_price -= item.base_price * discount_p
     bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
     bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
@@ -129,7 +131,6 @@ def select_bag():
     if not bag:
         raise HTTP(404)
     session.current_bag = bag.id
-    print session.current_bag
     subtotal = 0
     taxes = 0
     total = 0
@@ -280,9 +281,24 @@ def change_bag_item_sale_price():
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
-def complete():
-    bag = get_valid_bag(session.current_bag)
+def just_complete():
+    bag = get_valid_bag(request.args(0))
+    if not bag:
+        raise HTTP(404)
 
+    bag.completed = True
+    bag.status = BAG_COMPLETE
+    bag.update_record()
+    return dict(completed=True)
+
+
+@auth.requires(auth.has_membership('Sales bags')
+            or auth.has_membership('Clients')
+            )
+def complete():
+    """ Check bag consistency and set the its status based on the user role """
+
+    bag = get_valid_bag(session.current_bag)
     if not bag:
         raise HTTP(404)
 
@@ -295,22 +311,23 @@ def complete():
         redirection()
     check_bag_items_integrity(bag_items, True) # allow out of stock items
 
+    # clients create orders
     if auth.has_membership('Clients'):
+        bag.status = BAG_FOR_ORDER
         bag.is_on_hold = True
         bag.update_record()
         redirect(URL('sale_order', 'create', args=bag.id))
-    # _next = WORKFLOW_DATA[COMPANY_WORKFLOW].next(request.controller, request.function, auth.user)
-    # redirect(URL(_next, args=bag.id))
+
+    url = URL('ticket', args=bag.id)
     if auth.has_membership('Sales checkout'):
-        bag.completed = True
-        bag.update_record()
-        auto_bag_selection()
-        redirect(URL('sale', 'create', args=bag.id))
-    else:
-        bag.completed = True
-        bag.update_record()
-        auto_bag_selection()
-        redirect(URL('ticket', args=bag.id))
+        url = URL('sale', 'create', args=bag.id)
+    bag.status = BAG_COMPLETE
+    bag.completed = True
+    bag.update_record()
+    auto_bag_selection()
+    redirect(url)
+
+    # SALES_WORKFLOW.next(request.controller, request.function, args, vars)
 
 
 @auth.requires_membership('Stock transfers')

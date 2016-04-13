@@ -208,10 +208,10 @@
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
                 {{else:}}
-                  {{include 'bag.html'}}
+                  {{include 'bag_2.html'}}
                 {{pass}}
               {{elif auth.has_membership('Clients'):}}
-                {{include 'simple_client_bag.html'}}
+                {{include 'bag_2.html'}}
               {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>

@@ -86,6 +86,13 @@ SALE_DELIVERED = 'delivered'
 SALE_CREATED = 'created'
 
 
+BAG_ACTIVE = 0
+BAG_COMPLETE = 1
+BAG_FOR_ORDER = 2
+BAG_ORDER_COMPLETE = 3
+
+
+
 #TODO move this to config
 EMAIL_SENDER = ''
 EMAIL_TLS = True

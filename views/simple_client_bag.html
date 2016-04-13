@@ -25,8 +25,6 @@
 <p>{{=T('All prices includes taxes')}}</p>
 
 
-
-
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
     <h4><span class="item_name"></span>
@@ -48,30 +46,6 @@
     </div>
   </div>
 </div>
-
-
-<script>
-
-  function add_bag() {
-    $.ajax({
-      url: "{{=URL('bag', 'create', extension='json')}}"
-    })
-    .done(function (data) {
-      load_bag(data.bag);
-
-      // add the new bag to the active bags list
-      var bag_selector = document.createElement('a');
-      bag_selector.id = 'bag_selector_' + data.bag;
-      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
-      bag_selector.href = '#';
-      bag_selector.className = 'list-group-item';
-      $('#active_bags').append(bag_selector);
-      $('#bag_selector_' + data.bag).click(function(event) {
-        load_bag(data.bag);
-      });
-    })
-  }
-</script>
 
 
 <!-- Scanner script -->
@@ -155,10 +129,6 @@
 
 
 <script>
-  function show_active_bags() {
-    $('#active_bags').toggle();
-  }
-
   function load_bag(bag_id) {
     url = "{{=URL('bag', 'select_bag', extension='json')}}/" + bag_id;
 
@@ -192,31 +162,12 @@
     .done(function (res) {
       bag_item = res.bag_item;
       base_add_bag_item(bag_item, res);
-
-      set_bag_data(res)
+      set_bag_data(res);
+    })
+    .fail(function (res) {
+      console.log(res);
     })
   }
-
-
-  $('#add_bag_btn').on('click', function(event) {
-    $.ajax({
-      url: "{{=URL('bag', 'create', extension='json')}}"
-    })
-    .done(function (data) {
-      load_bag(data.bag);
-
-      // add the new bag to the active bags list
-      var bag_selector = document.createElement('a');
-      bag_selector.id = 'bag_selector_' + data.bag;
-      bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
-      bag_selector.href = '#';
-      bag_selector.className = 'list-group-item';
-      $('#active_bags').append(bag_selector);
-      $('#bag_selector_' + data.bag).click(function(event) {
-        load_bag(data.bag);
-      });
-    })
-  });
 
 
   function discard_bag() {
@@ -244,8 +195,7 @@
 
   $('#proto_bag_item').hide();
 
-  function collapse_bag() {
-  }
+  function collapse_bag() { }
 
 
   $('.panel').find('.collapse_bag').on('click', function(event) {
