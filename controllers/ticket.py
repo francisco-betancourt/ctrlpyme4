@@ -176,7 +176,7 @@ def credit_note_ticket(id_credit_note):
 
     return ticket_format(store_data, T('Credit note'),
         DIV(items_list, payments_data),
-        credit_note.code, P(T('credit_note footer')),
+        credit_note.code, P(T('')),
         date=credit_note.created_on
     )
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'en'}}"> <!--<![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'es'}}"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
     <!-- www.phpied.com/conditional-comments-block-downloads/ -->
@@ -215,7 +215,7 @@
               {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
-              <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
+              <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login ')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
             {{pass}}
           </div>
         </secction>

@@ -6,7 +6,7 @@ def update_main():
     if not settings:
         raise HTTP(404)
 
-    form = SQLFORM(db.settings, settings, showid=False)
+    form = SQLFORM(db.settings, settings, showid=False, submit_button=T('Save'))
     if form.process().accepted:
         response.flash = T('form accepted')
         redirect(URL('update_main'))

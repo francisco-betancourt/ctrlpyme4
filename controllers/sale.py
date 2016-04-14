@@ -629,7 +629,8 @@ def sale_row(row):
 
 
 def sale_options(row):
-    return OPTION_BTN('receipt', URL('ticket', args=row.id)), OPTION_BTN('description', URL('invoice', 'create'))
+    print row.sale.id
+    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id)), OPTION_BTN('description', URL('invoice', 'create'))
 
 
 
