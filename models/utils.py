@@ -254,22 +254,14 @@ def set_bag_item(bag_item, discounts=[]):
 
 
 def bag_selection_return_format(bag):
-    subtotal = 0
-    taxes = 0
-    total = 0
-    quantity = 0
     bag_items = []
     for bag_item in db(db.bag_item.id_bag == bag.id).select():
-        subtotal += bag_item.sale_price * bag_item.quantity
-        taxes += bag_item.sale_taxes * bag_item.quantity
-        total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
-        quantity += bag_item.quantity
         bag_item_modified = set_bag_item(bag_item)
         bag_items.append(bag_item_modified)
-    quantity = DQ(quantity, True, True)
-    subtotal = money_format(DQ(subtotal, True))
-    taxes = money_format(DQ(taxes, True))
-    total = money_format(DQ(total, True))
+    quantity = DQ(bag.quantity, True, True)
+    subtotal = money_format(DQ(bag.subtotal, True))
+    taxes = money_format(DQ(bag.taxes, True))
+    total = money_format(DQ(bag.total, True))
 
     return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
 

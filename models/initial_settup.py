@@ -51,4 +51,4 @@ for key in new_groups.iterkeys():
 
 
 # TODO create admin user
-db.auth_user.insert()
+# db.auth_user.insert()

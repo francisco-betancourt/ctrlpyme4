@@ -63,13 +63,19 @@ def create():
 
     stores = db(db.store.is_active == True).select()
 
-    form = SQLFORM(db.sale_order, submit_button=T('Order'), formstyle="bootstrap")
+    form = SQLFORM(db.sale_order, buttons=[], formstyle="bootstrap")
+    if not bag.is_paid:
+        form[0].insert(-1, BUTTON(T('Pay now'), _id="custom_button", _class="btn btn-primary" ))
+        form[0].insert(-1, INPUT(_value=T('Pay on store'), _type="submit", _class="btn" ))
+    else:
+        form[0].insert(-1, INPUT(_value=T('Order'), _type="submit", _class="btn btn-primary" ))
     if form.process().accepted:
-        ch = stripe.Charge.retrieve(bag.stripe_charge_id)
-        if not ch:
-            raise HTTP(500)
-        ch.description = '%s %s' % (T("Sale order"), form.vars.id)
-        ch.save()
+        if bag.stripe_charge_id:
+            ch = stripe.Charge.retrieve(bag.stripe_charge_id)
+            if not ch:
+                raise HTTP(500)
+            ch.description = '%s %s' % (T("Sale order"), form.vars.id)
+            ch.save()
 
         sale_order = db.sale_order(form.vars.id)
         sale_order.id_client = auth.user.id

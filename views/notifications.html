@@ -20,7 +20,10 @@
 
 <div id="notifications" class="panel panel-default">
   <div class="panel-heading">
-    <h3 style="display: flex; align-items: center; justify-content: space-between">{{=T('Notifications')}} <a href="{{=URL('analytics', 'get_calendar')}}" class="btn btn-primary right">{{=ICON('date_range')}}</a></h3>
+    <h3 style="display: flex; align-items: center; justify-content: space-between">{{=T('Notifications')}}
+      {{ if auth.has_membership('Employee'): }}
+        <a href="{{=URL('analytics', 'get_calendar')}}" class="btn btn-primary right">{{=ICON('date_range')}}</a></h3>
+      {{ pass }}
   </div>
   <div class="panel-body">
     {{if notifications:}}

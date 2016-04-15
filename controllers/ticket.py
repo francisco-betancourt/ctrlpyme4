@@ -215,9 +215,9 @@ def bag_ticket(id_bag):
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
-    totals = [ '%s : $ %s' % (T('subtotal'), sale.subtotal) ]
+    totals = [ '%s : $ %s' % (T('subtotal'), DQ(bag.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), sale.total) ]
+    totals += [ '%s : $ %s' % (T('total'), DQ(bag.total, True)) ]
     total_data = ticket_total_data(totals)
 
     return ticket_format(store_data, T('Bag'),

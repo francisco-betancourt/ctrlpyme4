@@ -144,7 +144,7 @@
       $('#bag_items_list').children().remove();
       $('#bag_id').text(bag.id);
 
-      if (bag.is_paid) {
+      if (bag.status != {{=BAG_ACTIVE}} ) {
         document.querySelector('#proto_bag_item input').setAttribute('disabled', 'disabled')
         $('#proto_bag_item .close').remove();
       }

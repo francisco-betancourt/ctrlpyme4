@@ -36,64 +36,67 @@
 
 {{=form}}
 
-<button id="customButton">Purchase</button>
-
 
 
 
 {{block page_js}}
-<script src="https://checkout.stripe.com/checkout.js"></script>
 
-<script>
-  var handler = StripeCheckout.configure({
-    key: '{{=STRIPE_PK}}',
-    image: '{{=URL("default", "download", args=COMPANY_LOGO_URL) }}',
-    locale: 'auto',
-    token: function(token) {
+{{ if not bag.is_paid: }}
+  <script src="https://checkout.stripe.com/checkout.js"></script>
+  <script>
+    var handler = StripeCheckout.configure({
+      key: '{{=STRIPE_PK}}',
+      image: '{{=URL("default", "download", args=COMPANY_LOGO_URL) }}',
+      locale: 'auto',
+      token: function(token) {
+        $.ajax({
+          url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
+        })
+        .done(function (res) {
+          // console.log('payment created ', res);
+          $('#stripe_charge_id').val(res.charge_id);
+          $('form').submit()
+        })
+        .fail(function (res) {
+          console.log(res);
+        })
+      }
+    });
+
+    $('#custom_button').on('click', function(e) {
+      e.preventDefault();
+      // first block the bag
       $.ajax({
-        url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
+        url: "{{=URL('order_complete', args=bag.id, extension='json')}}"
       })
       .done(function (res) {
-        // console.log('payment created ', res);
-        $('#stripe_charge_id').val(res.charge_id);
-        $('form').submit()
+        if (res.completed) {
+          document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
+          $('#current_bag .close').remove();
+
+          handler.open({
+            name: '{{=COMPANY_NAME}}',
+            description: '{{=bag.quantity.normalize()}} item(s)',
+            amount: {{=bag.total}} * 100,
+            currency: 'MXN',
+            email: "{{=auth.user.email}}"
+          });
+          e.preventDefault();
+        }
       })
       .fail(function (res) {
         console.log(res);
       })
-    }
-  });
+    });
 
-  $('#customButton').on('click', function(e) {
-    // first block the bag
-    $.ajax({
-      url: "{{=URL('order_complete', args=bag.id, extension='json')}}"
-    })
-    .done(function (res) {
-      if (res.completed) {
-        document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
-        $('#current_bag .close').remove();
+    // Close Checkout on page navigation
+    $(window).on('popstate', function() {
+      handler.close();
+    });
+  </script>
+{{ pass }}
 
-        handler.open({
-          name: '{{=COMPANY_NAME}}',
-          description: '{{=bag.quantity.normalize()}} item(s)',
-          amount: {{=bag.total}} * 100,
-          currency: 'MXN',
-          email: "{{=auth.user.email}}"
-        });
-        e.preventDefault();
-      }
-    })
-    .fail(function (res) {
-      console.log(res);
-    })
-  });
 
-  // Close Checkout on page navigation
-  $(window).on('popstate', function() {
-    handler.close();
-  });
-</script>
 <script>
   $('#bag_container').show();
   $('#bag_buttons').hide();
