@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
+
+from gluon.contrib.appconfig import AppConfig
+## once in production, remove reload=True to gain full speed
+CONF = AppConfig(reload=True)
+
 
 # constants definitions
 FLOW_BASIC = 0  # seller and manager
 FLOW_MULTIROLE = 1
-FLOW_CUSTOM = 2
+# reduce the common employe permissions to the mimimum
+FLOW_DICTATOR = 2
+FLOW_CUSTOM = 3
 
 
 
@@ -84,6 +107,7 @@ WORKFLOW_DATA = [
 SALE_DEFERED = 'defered'
 SALE_DELIVERED = 'delivered'
 SALE_CREATED = 'created'
+SALE_PAID = 'paid'
 
 
 BAG_ACTIVE = 0
@@ -92,12 +116,11 @@ BAG_FOR_ORDER = 2
 BAG_ORDER_COMPLETE = 3
 
 
-STRIPE_PK = 'pk_test_hnTYaSZRgCvUEqZzQmetY60l'
-STRIPE_SK = 'sk_test_j3rtOM8H4k0YNBk9F698ANzU'
+STRIPE_PK = CONF.take('stripe.public_key')
+STRIPE_SK = CONF.take('stripe.secure_key')
 
 
-#TODO move this to config
-EMAIL_SENDER = ''
+EMAIL_SENDER = CONF.take('smtp.sender')
+EMAIL_SERVER = CONF.take('smtp.server')
 EMAIL_TLS = True
-EMAIL_SERVER = 'smtp.mandrillapp.com:587'
-EMAIL_LOGIN = ''
+EMAIL_LOGIN = CONF.take('smtp.login')

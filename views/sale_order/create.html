@@ -53,7 +53,6 @@
           url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
         })
         .done(function (res) {
-          // console.log('payment created ', res);
           $('#stripe_charge_id').val(res.charge_id);
           $('form').submit()
         })
@@ -73,6 +72,8 @@
         if (res.completed) {
           document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
           $('#current_bag .close').remove();
+          document.getElementById('custom_button').setAttribute('disabled', 'disabled');
+          document.getElementById('pay_on_store_button').setAttribute('disabled', 'disabled');
 
           handler.open({
             name: '{{=COMPANY_NAME}}',

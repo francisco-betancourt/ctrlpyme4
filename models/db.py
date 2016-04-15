@@ -10,9 +10,9 @@
 # request.requires_https()
 
 ## app configuration made easy. Look inside private/appconfig.ini
-from gluon.contrib.appconfig import AppConfig
+# from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
-myconf = AppConfig(reload=True)
+# CONF = AppConfig(reload=True)
 
 import os
 
@@ -20,7 +20,7 @@ import os
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
     ## For production add lazy_tables=True for a huge boost in performance
-    db = DAL(myconf.take('db.uri'), pool_size=myconf.take('db.pool_size', cast=int), check_reserved=['all'],)
+    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'],)
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
@@ -35,8 +35,8 @@ else:
 ## none otherwise. a pattern can be 'controller/function.extension'
 # response.generic_patterns = ['*']
 ## choose a style for forms
-response.formstyle = myconf.take('forms.formstyle')  # or 'bootstrap3_stacked' or 'bootstrap2' or other
-response.form_label_separator = myconf.take('forms.separator')
+response.formstyle = CONF.take('forms.formstyle')  # or 'bootstrap3_stacked' or 'bootstrap2' or other
+response.form_label_separator = CONF.take('forms.separator')
 
 
 ## (optional) optimize handling of static files
@@ -79,9 +79,9 @@ auth.define_tables(username=False, signature=False)
 
 ## configure email
 mail = auth.settings.mailer
-mail.settings.server = 'logging' if request.is_local else myconf.take('smtp.sender')
-mail.settings.sender = myconf.take('smtp.sender')
-mail.settings.login = myconf.take('smtp.login')
+mail.settings.server = 'logging' if request.is_local else CONF.take('smtp.sender')
+mail.settings.sender = CONF.take('smtp.sender')
+mail.settings.login = CONF.take('smtp.login')
 
 ## configure auth policy
 auth.settings.registration_requires_verification = False
@@ -545,7 +545,9 @@ db.define_table(
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
   , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=False, writable=False)
   , Field('id_store', 'reference store', label=T('Store'))
+  # when the seller has sold out of stock items, the system creates a sale order for the defered sale
   , Field('is_for_defered_sale', 'boolean', default=False, label=T('Is for defered sale'), readable=False, writable=False)
+  , Field('code', default=None, label=T('Code'), readable=False, writable=False)
   , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=False, writable=False)
   , auth.signature
 )
@@ -614,6 +616,7 @@ db.define_table("payment",
     Field("epd", "date", label=T('Estimated payment date')),
     Field('settled_on', 'datetime', label=T('Settled on')),
     Field("wallet_code", default=None, label=T('Wallet code')),
+    Field("stripe_charge_id", default=None, label=T('stripe_charge_id')),
     Field("is_updatable", 'boolean', default=True, label=T('Is updatable')),
     auth.signature)
 

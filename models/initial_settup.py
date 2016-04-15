@@ -4,8 +4,12 @@
 
 # create payment methods
 db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
+db.payment_opt.update_or_insert(db.payment_opt.name == 'stripe', name='stripe', allow_change=False)
+
 db.settings.update_or_insert(db.settings.id_store == None, id_store=None)
+
 db.measure_unit.update_or_insert(db.measure_unit.name == 'unit', name='unit', symbol='u')
+
 db.brand.update_or_insert(db.brand.name == 'no brand', name='no brand')
 # db.payment_opt.update_or_insert(db.payment_opt.name == '', name='wallet', allow_change=False)
 # db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)

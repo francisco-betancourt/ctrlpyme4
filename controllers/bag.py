@@ -243,7 +243,6 @@ def complete():
 
     # clients create orders
     if auth.has_membership('Clients'):
-        bag.status = BAG_FOR_ORDER
         bag.is_on_hold = True
         bag.update_record()
         redirect(URL('sale_order', 'create', args=bag.id))

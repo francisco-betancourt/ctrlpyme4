@@ -63,6 +63,8 @@ def add_payment():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     # check if the payments total is lower than the total
     s = db.payment.amount.sum()
@@ -109,6 +111,8 @@ def update_payment():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     payment = db((db.payment.id == request.args(1))
                & (db.payment.id_sale == sale.id)).select().first()
@@ -216,7 +220,7 @@ def cancel():
     sale = db.sale(request.args(0))
     valid_sale(sale)
     # cannot cancel a defered sale, without credit note and all that stuff
-    if sale.is_defered:
+    if sale.is_defered or sale.id_bag.is_paid:
         raise HTTP(405)
 
     # return wallet payments
@@ -249,6 +253,8 @@ def update():
     payments = db(db.payment.id_sale == sale.id).select()
     payment_options = db(db.payment_opt.is_active == True).select()
 
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+
     return locals()
 
 
@@ -258,7 +264,7 @@ def set_sale_client():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
-    if sale.is_defered:
+    if sale.is_defered or sale.id_bag.is_paid:
         raise HTTP(405)
     client = db((db.auth_user.is_client == True)
                 & (db.auth_user.registration_key == '')
@@ -277,6 +283,15 @@ def set_sale_client():
     sale.update_record()
 
     return dict(wallet=wallet)
+
+
+
+@auth.requires_membership('Sales checkout')
+def select_bag():
+    """ args: [id_bag] """
+
+    bag = check_bag_owner(request.args(0))
+    return bag_selection_return_format(bag)
 
 
 @auth.requires_membership('Sales checkout')
@@ -299,7 +314,19 @@ def create():
         if bag_item.sale_price == apply_discount(discounts, original_price):
             print 'ok'
 
-    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=bag.id_store.id)
+    # bag was created by a client
+    id_store = bag.id_store.id if bag.id_store else session.store
+    id_client = bag.created_by.id if bag.created_by.is_client else None
+
+    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=id_store, id_client=id_client)
+
+    bag.created_by = auth.user.id
+    bag.id_store = session.store
+    bag.update_record()
+
+    if bag.is_paid:
+        stripe_payment_opt = db(db.payment_opt.name == 'stripe').select().first()
+        db.payment.insert(id_payment_opt=stripe_payment_opt.id, id_sale=new_sale, amount=bag.total, stripe_charge_id=bag.stripe_charge_id, is_updatable=False)
 
     redirect(URL('update', args=new_sale))
 
@@ -366,12 +393,12 @@ def complete():
     store.consecutive += 1;
     store.update_record()
     sale.update_record()
-    db.sale_log.insert(id_sale=sale.id, sale_event="paid")
+    db.sale_log.insert(id_sale=sale.id, sale_event=SALE_PAID)
 
     # if defered sale, remove sale order
     db(db.sale_order.id_sale == sale.id).delete()
 
-    # add reward points to the client's wallet
+    # add reward points to the client's wallet, we assume that the user has a wallet
     if sale.id_client:
         wallet = db.wallet(sale.id_client.id_wallet.id)
         wallet.balance += sale.reward_points
@@ -383,7 +410,7 @@ def complete():
     else:
         bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
         remove_stocks(bag_items)
-        db.sale_log.insert(id_sale=sale.id, sale_event="delivered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
         redirect(URL('ticket', args=sale.id, vars={'_print': True}))
 
 
@@ -392,6 +419,8 @@ def defer():
     """ args: [id_sale] """
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     payments = db(db.payment.id_sale == sale.id).select()
     verify_payments(payments, sale, False)
@@ -405,7 +434,7 @@ def defer():
     if not sale.is_defered:
         sale.is_defered = True
         sale.update_record()
-        db.sale_log.insert(id_sale=sale.id, sale_event="defered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DEFERED)
 
         # create sale order based on the
         db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
@@ -432,7 +461,7 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
-        db.sale_log.insert(id_sale=sale.id, sale_event="Delivered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
 
     return locals()
 
@@ -441,9 +470,7 @@ def deliver():
             or auth.has_membership('Sales checkout')
             )
 def get():
-    """
-        args: [sale_id]
-    """
+    """ args: [sale_id] """
 
     sale = db.sale(request.args(0))
     return dict(sale=sale)
@@ -458,21 +485,25 @@ def get_by_barcode():
         args: [barcode]
     """
 
-    try:
-        barcode = int(request.args(0))
+    barcode = int(request.args(0))
 
-        sale = db.sale(barcode)
-        if not sale:
-            raise HTTP(404)
-        if sale.is_invoiced:
-            raise HTTP(404)
-        return dict(sale=sale)
-    except:
+    sale = db.sale(barcode)
+    if not sale:
         raise HTTP(404)
+    if sale.is_invoiced:
+        raise HTTP(404)
+    return dict(sale=sale)
 
 
 @auth.requires_membership('Sales checkout')
 def scan_ticket():
+    """ Scan a bag ticket to create a sale """
+    return dict()
+
+
+@auth.requires_membership('Sales checkout')
+def scan_order_ticket():
+    """ Scan order ticket to create a sale """
     return dict()
 
 
@@ -498,7 +529,7 @@ def refund():
         raise HTTP(404)
 
     # check if the sale has been delivered
-    is_delivered = db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == "delivered")).select().first()
+    is_delivered = db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == SALE_DELIVERED)).select().first()
     if not is_delivered and not sale.is_defered:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))

@@ -66,9 +66,9 @@ def create():
     form = SQLFORM(db.sale_order, buttons=[], formstyle="bootstrap")
     if not bag.is_paid:
         form[0].insert(-1, BUTTON(T('Pay now'), _id="custom_button", _class="btn btn-primary" ))
-        form[0].insert(-1, INPUT(_value=T('Pay on store'), _type="submit", _class="btn" ))
+        form[0].insert(-1, INPUT(_value=T('Pay on store'), _type="submit", _class="btn", _id="pay_on_store_button"))
     else:
-        form[0].insert(-1, INPUT(_value=T('Order'), _type="submit", _class="btn btn-primary" ))
+        form[0].insert(-1, INPUT(_value=T('Order'), _type="submit", _class="btn btn-primary", _id="order_btn" ))
     if form.process().accepted:
         if bag.stripe_charge_id:
             ch = stripe.Charge.retrieve(bag.stripe_charge_id)
@@ -78,6 +78,7 @@ def create():
             ch.save()
 
         sale_order = db.sale_order(form.vars.id)
+        sale_order.code = "%s%s"%(sale_order.created_on.strftime('%d%H%m%M%y'), sale_order.id)
         sale_order.id_client = auth.user.id
         sale_order.id_bag = bag.id
         sale_order.update_record()
@@ -108,9 +109,9 @@ def pay_and_order():
     try:
         # save customer data
         user = db.auth_user(auth.user.id)
-        if not auth.user.stripe_customer_id:
+        if not user.stripe_customer_id:
             customer = stripe.Customer.create(
-                description="%s %s %s" % (auth.user.first_name, auth.user.last_name, auth.user.email),
+                description="%s %s %s" % (user.first_name, user.last_name, user.email),
                 source=token
             )
             user.stripe_customer_id = customer.id
@@ -159,6 +160,14 @@ def pay_and_order():
 
 def get():
     pass
+
+
+def get_by_code():
+    """ args [sale_order_code]  """
+    sale_order = db(db.sale_order.code == request.args(0)).select().first()
+    if not sale_order:
+        raise HTTP(404)
+    return locals()
 
 
 def validate_ready(form):

@@ -12,17 +12,19 @@
   <hr>
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
   {{ if not sale.is_defered: }}
-    <select name="" class="form-control" id="client_selector">
+    <select name="" class="form-control" id="client_selector" {{if sale.id_bag.is_paid: }} disabled {{pass}} >
       <option value=""></option>
       {{for client in clients:}}
         <option value="{{=client.id}}" {{if sale.id_client == client.id:}} selected="selected" {{pass}}>{{=client.first_name}} {{=client.last_name}} &lt{{=client.email}}&gt </option>
       {{pass}}
     </select>
 
-    <div id="client_wallet_data" hidden="hidden">
-      <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
-      <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
-    </div>
+    {{if sale.id_bag.is_paid: }}
+      <div id="client_wallet_data" hidden="hidden">
+        <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+        <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+      </div>
+    {{ pass }}
   {{ else: }}
     <p>{{ =sale.id_client }}</p>
   {{ pass }}
@@ -31,16 +33,27 @@
 
   <div>
     <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary btn-block">{{=T('Complete')}}</a>
+    {{ if not sale.id_bag.is_paid: }}
     <a href="{{=URL('defer', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Defer')}}</a>
-    {{ if not sale.is_defered: }}
+    {{pass}}
+    {{ if not sale.is_defered and not sale.id_bag.is_paid: }}
       <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
     {{ pass }}
   </div>
 {{end}}
 
 
+<h1>{{=T('Review')}}</h1>
+{{ for bag_item in bag_items: }}
+  <p> {{ =DQ(bag_item.quantity, True, True) }} x {{ =bag_item.id_item.name }} </p>
+{{ pass }}
+
 
 <h1>{{=T('Payments')}}</h1>
+
+{{ if sale.id_bag.is_paid: }}
+  {{ =T('Bag has been paid') }}
+{{ else: }}
 <div class="btn-toolbar" role="toolbar" aria-label="...">
   <div class="btn-group" role="group" aria-label="..." id="payment_options">
     {{for payment_opt in payment_options:}}
@@ -92,6 +105,7 @@
     </div>
   {{pass}}
 </div>
+{{ pass }}
 
 
 {{block page_js}}

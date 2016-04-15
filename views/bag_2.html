@@ -13,12 +13,14 @@
   <br>
   <!-- Active bags -->
   <div class="list-group" id="active_bags" hidden="hidden">
-    {{for bag in db((db.bag.is_active == True) & (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store) & (db.bag.status == BAG_ACTIVE)).select():}}
+    {{for bag in db( (db.bag.created_by == auth.user.id) & (db.bag.id_store == session.store) & (db.bag.status == BAG_ACTIVE)).select():}}
       <a href="#" class="list-group-item" onclick="load_bag({{=bag.id}});" id="bag_selector_{{=bag.id}}">
         {{=T('Bag')}} {{=bag.id}}
       </a>
     {{pass}}
   </div>
+
+  <a href="{{=URL('sale', 'scan_order_ticket')}}" class="btn btn-default btn-block">{{=T('Scan bag')}}</a>
 {{ pass }}
 
 
@@ -348,7 +350,7 @@
         })
       }
       function fail_callback(data, barcode) { }
-      setup_scanner(success_callback, fail_callback, requirement);
+      setup_scanner(success_callback, fail_callback, requirement, null, 'bag_scanner');
 
 
       function set_sale_price(_price_index, _bag_item_id, _target) {
