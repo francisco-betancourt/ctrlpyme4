@@ -22,5 +22,4 @@ def check_store_selected():
                 redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
                 )
 
-
 check_store_selected()

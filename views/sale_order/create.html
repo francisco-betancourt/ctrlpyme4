@@ -3,6 +3,7 @@
 {{extend 'layout.html'}}
 
 {{block left_sidebar}}
+  {{ load_bag_url = URL('select_bag', args=bag.id, extension='json') }}
   <h1>{{=T('Review your order')}}</h1>
   {{include "bag_2.html"}}
 {{end}}
@@ -35,9 +36,13 @@
 
 {{=form}}
 
-<script src="https://checkout.stripe.com/checkout.js"></script>
-
 <button id="customButton">Purchase</button>
+
+
+
+
+{{block page_js}}
+<script src="https://checkout.stripe.com/checkout.js"></script>
 
 <script>
   var handler = StripeCheckout.configure({
@@ -49,11 +54,9 @@
         url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
       })
       .done(function (res) {
-        console.log('payment created ', res);
-        // submit form
-        // $('#sale_order_stripeToken').val(token);
-        // submit the form
-
+        // console.log('payment created ', res);
+        $('#stripe_charge_id').val(res.charge_id);
+        $('form').submit()
       })
       .fail(function (res) {
         console.log(res);
@@ -67,8 +70,10 @@
       url: "{{=URL('order_complete', args=bag.id, extension='json')}}"
     })
     .done(function (res) {
-      console.log(res);
       if (res.completed) {
+        document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
+        $('#current_bag .close').remove();
+
         handler.open({
           name: '{{=COMPANY_NAME}}',
           description: '{{=bag.quantity.normalize()}} item(s)',
@@ -89,15 +94,14 @@
     handler.close();
   });
 </script>
-
 <script>
   $('#bag_container').show();
-
   $('#bag_buttons').hide();
-
   $('#sale_order_id_store__row').hide();
+  // $('#current_bag input')[0].attr('disabled', 'true');
 
   function set_store(store_id) {
     $('#sale_order_id_store').val(store_id)
   }
 </script>
+{{pass}}

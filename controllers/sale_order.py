@@ -35,6 +35,14 @@ def get_valid_order_bag(bag_id):
 
 
 @auth.requires_membership('Clients')
+def select_bag():
+    """ args: [id_bag] """
+
+    bag = check_bag_owner(request.args(0))
+    return bag_selection_return_format(bag)
+
+
+@auth.requires_membership('Clients')
 def order_complete():
     bag = get_valid_order_bag(request.args(0))
 
@@ -50,16 +58,18 @@ def create():
         args [id_bag]
     """
 
+
     bag = get_valid_order_bag(request.args(0))
 
     stores = db(db.store.is_active == True).select()
 
     form = SQLFORM(db.sale_order, submit_button=T('Order'), formstyle="bootstrap")
     if form.process().accepted:
-
-        # ch = stripe.Charge.retrieve("ch_17yQfiDYcKyoqST3J7pMK5xn")
-        # ch.description = '%s %s' % (T("Sale order"), form.vars.id)
-        # ch.save()
+        ch = stripe.Charge.retrieve(bag.stripe_charge_id)
+        if not ch:
+            raise HTTP(500)
+        ch.description = '%s %s' % (T("Sale order"), form.vars.id)
+        ch.save()
 
         sale_order = db.sale_order(form.vars.id)
         sale_order.id_client = auth.user.id
@@ -68,10 +78,12 @@ def create():
         session.info = {'text': T("You're order has been created, we will notify you when it's ready"), 'button': {'text': 'View ticket', 'ref': URL('bag', 'ticket', args=bag.id), 'target': 'blank'}
         }
         bag.completed = True
+        bag.status = BAG_COMPLETE
         bag.update_record()
         redirect(URL('default', 'index'))
     elif form.errors:
-        response.flash = 'form has errors'
+        if form.errors.id_store:
+            response.flash = T('Please select a store')
 
     return locals()
 
@@ -85,23 +97,58 @@ def pay_and_order():
     if not token:
         raise HTTP(400)
 
+    error = None
+    is_stripe_error = True
     try:
-        # customer = stripe.Customer.create(
-        #     description="%s %s %s" % (auth.user.first_name, auth.user.last_name, auth.user.email),
-        #     source=token
-        # )
-        # print customer
+        # save customer data
+        user = db.auth_user(auth.user.id)
+        if not auth.user.stripe_customer_id:
+            customer = stripe.Customer.create(
+                description="%s %s %s" % (auth.user.first_name, auth.user.last_name, auth.user.email),
+                source=token
+            )
+            user.stripe_customer_id = customer.id
+            user.update_record()
+        # charge customer
         charge = stripe.Charge.create(
           amount=int(bag.total * 100),
           currency="mxn",
-          source=token
+          customer=user.stripe_customer_id
         )
-        # # return charge id
-        # return dict(charge_id=charge.id)
+        bag.is_paid = True
+        bag.stripe_charge_id = charge.id
+        bag.update_record()
+        request.vars.stripe_charge_id = charge.id
+        return dict(charge_id=charge.id)
     except stripe.error.CardError, e:
+        error = e
+    except stripe.error.RateLimitError, e:
+        # Too many requests made to the API too quickly
+        error = e
+    except stripe.error.InvalidRequestError, e:
+        # Invalid parameters were supplied to Stripe's API
+        error = e
+    except stripe.error.AuthenticationError, e:
+        # Authentication with Stripe's API failed
+        # (maybe you changed API keys recently)
+        error = e
+    except stripe.error.APIConnectionError, e:
+        # Network communication with Stripe failed
+        error = e
+    except stripe.error.StripeError, e:
+        # Display a very generic error to the user, and maybe send
+        # yourself an email
+        error = e
+    except Exception, e:
         import traceback as tb
         tb.print_exc()
-        return dict(error=T("Could not process payment"))
+        is_stripe_error = False
+        error = e
+    bag.status = BAG_ACTIVE
+    bag.update_record()
+    if is_stripe_error:
+        error = error.json_body['error']
+    return dict(error=error)
 
 
 def get():

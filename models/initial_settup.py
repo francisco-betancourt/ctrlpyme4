@@ -2,9 +2,6 @@
 # only for development purposes
 
 
-# TODO create admin user
-
-
 # create payment methods
 db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
 db.settings.update_or_insert(db.settings.id_store == None, id_store=None)
@@ -51,3 +48,7 @@ for key in new_groups.iterkeys():
     if db(db.auth_group.role == key).select().first():
         continue
     auth.add_group(key, new_groups[key])
+
+
+# TODO create admin user
+db.auth_user.insert()

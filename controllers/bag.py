@@ -27,10 +27,6 @@ from math import floor
 allow_out_of_stock = True
 
 
-def money_format(value):
-    return '$ ' + str(value)
-
-
 def refresh_bag_data(id_bag):
     bag = db(db.bag.id == id_bag).select(for_update=True).first()
     if bag.status != BAG_ACTIVE:
@@ -69,8 +65,7 @@ def modify_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
-    if not get_valid_bag(bag_item.id_bag):
-        raise HTTP(403)
+    is_modifiable_bag(bag_item.id_bag)
     if not bag_item:
         raise HTTP(404)
 
@@ -91,30 +86,6 @@ def modify_bag_item():
     return dict(status='ok', bag_item=bag_item, **bag_data)
 
 
-def set_bag_item(bag_item, discounts=[]):
-    """ modifies bag item data, in order to display it properly, this method does not modify the database """
-    item = bag_item.id_item
-    # bag_item.name = item.name
-
-    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + (bag_item.discount or 0) ))
-    item.base_price -= item.base_price * discount_p
-    bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
-    bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
-    bag_item.price2 = money_format(DQ(item.price2 - item.price2 * discount_p, True)) if item.price2 else 0
-    bag_item.price3 = money_format(DQ(item.price3 - item.price3 * discount_p, True)) if item.price3 else 0
-    bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0, True))
-
-    bag_item.measure_unit = item.id_measure_unit.symbol
-
-    bag_item.barcode = item_barcode(item)
-    stocks = item_stock(item, session.store)
-    bag_item.has_inventory = item.has_inventory
-    bag_item.stock = stocks['quantity'] if stocks else 0
-    bag_item.discount_percentage = int(discount_p * D(100.0))
-
-    return bag_item
-
-
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
@@ -124,45 +95,30 @@ def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
         args: [bag_id]
+        vars: [ignore_state]
 
     """
 
-    bag = get_valid_bag(request.args(0))
+    bag = None
+    try:
+        bag = is_modifiable_bag(request.args(0))
+    except:
+        bag = auto_bag_selection()
     if not bag:
         raise HTTP(404)
     session.current_bag = bag.id
-    subtotal = 0
-    taxes = 0
-    total = 0
-    quantity = 0
-    bag_items = []
-    try:
-        for bag_item in db(db.bag_item.id_bag == bag.id).select():
-            subtotal += bag_item.sale_price * bag_item.quantity
-            taxes += bag_item.sale_taxes * bag_item.quantity
-            total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
-            quantity += bag_item.quantity
-            bag_item_modified = set_bag_item(bag_item)
-            bag_items.append(bag_item_modified)
-        quantity = DQ(quantity, True, True)
-        subtotal = money_format(DQ(subtotal, True))
-        taxes = money_format(DQ(taxes, True))
-        total = money_format(DQ(total, True))
-
-        return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
-    except:
-        import traceback
-        traceback.print_exc();
+    return bag_selection_return_format(bag)
 
 
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
 def add_bag_item():
-    """ args: [ id_item ] """
+    """ Creates a bag item with id_item = id_item for the current session bag
+        args: [ id_item ] """
 
     item = db.item(request.args(0))
-    bag = get_valid_bag(session.current_bag)
+    bag = is_modifiable_bag(session.current_bag)
     id_bag = bag.id if bag else None
     if not item or not id_bag:
         raise HTTP(404)
@@ -214,8 +170,7 @@ def delete_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
-    if not get_valid_bag(bag_item.id_bag):
-        raise HTTP(401)
+    is_modifiable_bag(bag_item.id_bag)
     db(db.bag_item.id == request.args(0)).delete()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
     return dict(status="ok", **bag_data)
@@ -223,22 +178,14 @@ def delete_bag_item():
 
 @auth.requires_membership('Sales bags')
 def discard_bag():
-    try:
-        bag = get_valid_bag(session.current_bag)
-        if not bag:
-            raise HTTP(401)
-        removed_bag = session.current_bag
-        if not bag:
-            raise HTTP(404)
-        db(db.bag_item.id_bag == bag.id).delete()
-        db(db.bag.id == bag.id).delete()
+    bag = is_modifiable_bag(session.current_bag)
+    removed_bag = session.current_bag
+    db(db.bag_item.id_bag == bag.id).delete()
+    db(db.bag.id == bag.id).delete()
 
-        auto_bag_selection()
+    auto_bag_selection()
 
-        return dict(other_bag=db.bag(session.current_bag), removed=removed_bag)
-    except:
-        import traceback
-        traceback.print_exc()
+    return dict(other_bag=db.bag(session.current_bag), removed=removed_bag)
 
 
 @auth.requires_membership('Sales bags')
@@ -252,8 +199,7 @@ def change_bag_item_sale_price():
         access = True
     if not (price_index or bag_item or access_code or access):
         raise HTTP(400)
-    if not get_valid_bag(bag_item.id_bag):
-        raise HTTP(401)
+    is_modifiable_bag(bag_item.id_bag)
     user = db((db.auth_user.access_code == access_code)).select().first() if access_code else None
     is_vip_seller = auth.has_membership(None, user.id, role='VIP seller') or auth.has_membership(None, user.id, role='Admin') or auth.has_membership(None, user.id, role='Manager') if user else access
     if is_vip_seller:
@@ -281,26 +227,10 @@ def change_bag_item_sale_price():
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
-def just_complete():
-    bag = get_valid_bag(request.args(0))
-    if not bag:
-        raise HTTP(404)
-
-    bag.completed = True
-    bag.status = BAG_COMPLETE
-    bag.update_record()
-    return dict(completed=True)
-
-
-@auth.requires(auth.has_membership('Sales bags')
-            or auth.has_membership('Clients')
-            )
 def complete():
     """ Check bag consistency and set the its status based on the user role """
 
-    bag = get_valid_bag(session.current_bag)
-    if not bag:
-        raise HTTP(404)
+    bag = is_modifiable_bag(session.current_bag)
 
     # check if all the bag items are consistent
     bag_items = db(db.bag_item.id_bag == bag.id).select()
@@ -334,10 +264,7 @@ def complete():
 def stock_transfer():
     """ """
 
-    bag = get_valid_bag(session.current_bag)
-
-    if not bag:
-        raise HTTP(404)
+    bag = is_modifiable_bag(session.current_bag)
 
     # check if all the bag items are consistent
     bag_items = db(db.bag_item.id_bag == bag.id).select()
@@ -369,13 +296,9 @@ def ticket():
             or auth.has_membership('Manager')
             )
 def get():
-    """
-        args: bag_id
-    """
+    """ args: [bag_id] """
 
-    bag = db((db.bag.completed == True) & (db.bag.id == request.args(0)) & (db.bag.id_store == session.store)).select().first()
-    if not bag:
-        raise HTTP(404)
+    bag = is_complete_bag(request.args(0))
     return dict(bag=bag)
 
 

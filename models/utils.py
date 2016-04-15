@@ -187,11 +187,101 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
         redirection()
 
 
-def get_valid_bag(id_bag, completed=False):
+def check_bag_owner(id_bag):
+    query = (db.bag.id == id_bag)
+    query &= db.bag.created_by == auth.user.id
+    if not auth.user.is_client:
+        query &= db.bag.id_store == session.store
+    bag = db(query).select().first()
+    if not bag:
+        raise HTTP(403)
+    return bag
+
+
+def is_modifiable_bag(id_bag):
+    """ if the bag is not modifiable then this function will raise an exception (HTTP 403 status code), the function will return the bag in other case. Conditions for a bag to be modifiable:
+
+        * must be owned by the user who wants to update
+        * must have status BAG_ACTIVE
+        * must not be paid
+        * must belong to the current user store, if the user is a employee
+    """
+    query = (db.bag.id == id_bag)
+    query &= db.bag.created_by == auth.user.id
+    query &= db.bag.status == BAG_ACTIVE
+    query &= db.bag.is_paid == False
+    if not auth.user.is_client:
+        query &= db.bag.id_store == session.store
+    bag = db(query).select().first()
+    if not bag:
+        raise HTTP(403)
+    return bag
+
+
+def is_complete_bag(id_bag):
+    bag = db((db.bag.status == BAG_COMPLETE) & (db.bag.id == id_bag) & (db.bag.id_store == session.store)).select().first()
+    if not bag:
+        raise HTTP(404)
+    return dict(bag=bag)
+
+
+def money_format(value):
+    return '$ ' + str(value)
+
+
+def set_bag_item(bag_item, discounts=[]):
+    """ modifies bag item data, in order to display it properly, this method does not modify the database """
+    item = bag_item.id_item
+    # bag_item.name = item.name
+
+    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + (bag_item.discount or 0) ))
+    item.base_price -= item.base_price * discount_p
+    bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
+    bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
+    bag_item.price2 = money_format(DQ(item.price2 - item.price2 * discount_p, True)) if item.price2 else 0
+    bag_item.price3 = money_format(DQ(item.price3 - item.price3 * discount_p, True)) if item.price3 else 0
+    bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0, True))
+
+    bag_item.measure_unit = item.id_measure_unit.symbol
+
+    bag_item.barcode = item_barcode(item)
+    stocks = item_stock(item, session.store)
+    bag_item.has_inventory = item.has_inventory
+    bag_item.stock = stocks['quantity'] if stocks else 0
+    bag_item.discount_percentage = int(discount_p * D(100.0))
+
+    return bag_item
+
+
+def bag_selection_return_format(bag):
+    subtotal = 0
+    taxes = 0
+    total = 0
+    quantity = 0
+    bag_items = []
+    for bag_item in db(db.bag_item.id_bag == bag.id).select():
+        subtotal += bag_item.sale_price * bag_item.quantity
+        taxes += bag_item.sale_taxes * bag_item.quantity
+        total += (bag_item.sale_price + bag_item.sale_taxes) * bag_item.quantity
+        quantity += bag_item.quantity
+        bag_item_modified = set_bag_item(bag_item)
+        bag_items.append(bag_item_modified)
+    quantity = DQ(quantity, True, True)
+    subtotal = money_format(DQ(subtotal, True))
+    taxes = money_format(DQ(taxes, True))
+    total = money_format(DQ(total, True))
+
+    return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
+
+
+def get_valid_bag(id_bag, completed=False, for_review=False):
+    """ """
     try:
         query = (db.bag.id == id_bag)
         query &= db.bag.created_by == auth.user.id
         query &= db.bag.completed == completed
+        if not for_review:
+            query &= db.bag.status == BAG_COMPLETE if completed else db.bag.status == BAG_ACTIVE
         if not auth.user.is_client:
             query &= db.bag.id_store == session.store
         bag = db(query).select().first()
@@ -427,7 +517,7 @@ def auto_bag_selection():
         return
     # Automatic bag creation
     # check if theres a current bag
-    bag_query = (db.bag.created_by == auth.user.id) & (db.bag.completed == False)
+    bag_query = (db.bag.created_by == auth.user.id) & (db.bag.status != BAG_COMPLETE) & (db.bag.is_paid == False)
     # if the user is employee then select bags by store
     if not auth.user.is_client:
         bag_query &= (db.bag.id_store == session.store)

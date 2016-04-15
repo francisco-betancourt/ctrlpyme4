@@ -71,6 +71,7 @@ auth.settings.extra_fields['auth_user'] = [
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
       , Field('access_card_index', 'integer', readable=False, writable=False)
       , Field('is_client', 'boolean', default=False, readable=False, writable=False)
+      , Field('stripe_customer_id', default=None, readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -238,6 +239,8 @@ db.define_table("store",
     Field("id_address", "reference address", label=T('Address')),
     Field("name", "string", default=None, label=T('Name')),
     Field("consecutive", "integer", default=1, readable=False, writable=False),
+    Field('map_url', default=None, label=T('Map url')),
+
     #Fields required for CFDI Invoice
     Field('certificate',type='upload',autodelete=True,readable=False,writable=False,
 		uploadfolder=request.folder+'/private/',label=T("Certificate")+"(.cer)"),
@@ -461,9 +464,12 @@ db.define_table("bag",
     , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
     , Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'))
     , Field("status", "integer", default=BAG_ACTIVE, label=T('Status'))
+    , Field("is_paid", "boolean", default=False, label=T('Paid'))
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
+    # used when the bag has been paid using stripe
+    , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
     , auth.signature)
 
 
