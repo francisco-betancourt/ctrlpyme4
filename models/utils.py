@@ -28,9 +28,7 @@ from gluon.storage import Storage
 
 
 def INFO(text, btn_text=None, btn_url=None, btn_target=None):
-    d = {
-        'text': text
-    }
+    d = { 'text': text }
     if btn_text and btn_url:
         d['btn'] = {
             'text': btn_text,
@@ -266,14 +264,13 @@ def bag_selection_return_format(bag):
     return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
 
 
-def get_valid_bag(id_bag, completed=False, for_review=False):
+def get_valid_bag(id_bag, completed=False):
     """ """
     try:
         query = (db.bag.id == id_bag)
         query &= db.bag.created_by == auth.user.id
-        query &= db.bag.completed == completed
-        if not for_review:
-            query &= db.bag.status == BAG_COMPLETE if completed else db.bag.status == BAG_ACTIVE
+        # query &= db.bag.completed == completed
+        query &= db.bag.status == BAG_COMPLETE if completed else db.bag.status == BAG_ACTIVE
         if not auth.user.is_client:
             query &= db.bag.id_store == session.store
         bag = db(query).select().first()

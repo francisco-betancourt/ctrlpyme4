@@ -63,7 +63,7 @@ def scan_for_receive():
 def index():
     data = SUPERT(db.stock_transfer, fields=[
         'id_store_from.name', 'id_store_to.name', 'is_done'
-        ], options_func=lambda row: [OPTION_BTN('receipt', URL('ticket', args=row.id))]
+        ], options_func=lambda row: [OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket'))]
         , selectable=False, searchable=False
     )
 

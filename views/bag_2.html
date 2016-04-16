@@ -2,6 +2,8 @@
 {{ user_is_employee = auth.has_membership('Employee') }}
 {{ # employess only, bag selector and add bag button }}
 {{ if user_is_employee: }}
+  <a href="{{=URL('sale', 'scan_order_ticket')}}" class="btn btn-default btn-block" id="scan_order_btn">{{=T('Scan order')}}</a>
+
   <div class="btn-group btn-group-justified" role="group" aria-label="...">
     <div class="btn-group" role="group">
       <button class="btn btn-primary btn-block" id="add_bag_btn">{{=T('Add Bag')}}</button>
@@ -20,7 +22,6 @@
     {{pass}}
   </div>
 
-  <a href="{{=URL('sale', 'scan_order_ticket')}}" class="btn btn-default btn-block">{{=T('Scan bag')}}</a>
 {{ pass }}
 
 

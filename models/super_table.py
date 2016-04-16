@@ -24,16 +24,16 @@
 from gluon.storage import Storage
 
 
-def OPTION_BTN(icon_name='', url='#', text='', _onclick=''):
+def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title=''):
     if _onclick:
-        return A(ICON(icon_name), text, _onclick=_onclick)
+        return A(ICON(icon_name), text, _onclick=_onclick, _title=title)
     else:
-        return A(ICON(icon_name), text, _href=url)
+        return A(ICON(icon_name), text, _href=url, _title=title)
 
 
 def supert_default_options(row):
-    update_btn = OPTION_BTN('edit', URL(request.controller, 'update', args=row.id))
-    hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id))
+    update_btn = OPTION_BTN('edit', URL(request.controller, 'update', args=row.id), title=T('edit'))
+    hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id), title=T('hide'))
     return update_btn, hide_btn
 
 
@@ -227,7 +227,13 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         head = sort_header(field)
         container.append(DIV(head, _class="st-row-data st-last top"))
         for data in datas:
-            container.append(DIV(data._values[index], _class="st-row-data"))
+            current_data = data._values[index]
+            # say localized YES or NO instead of True False
+            if type(current_data) == bool:
+                current_data = T('yes') if current_data else T('no')
+            if current_data is None or current_data.strip() == 'None':
+                current_data = ''
+            container.append(DIV(current_data, _class="st-row-data"))
         table.append(container)
 
     t_header = ''

@@ -292,7 +292,7 @@
      {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
 
      function delete_rows(ids, controller, vars) {
-       if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
+       if(confirm('{{=T("Are you sure you want to hide the selected elements?")}}')) {
          var delete_url = '{{=URL("delete")}}' + ids + '?' + vars;
          window.location.href = delete_url;
        }

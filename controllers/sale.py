@@ -399,7 +399,7 @@ def complete():
     db(db.sale_order.id_sale == sale.id).delete()
 
     # add reward points to the client's wallet, we assume that the user has a wallet
-    if sale.id_client:
+    if sale.id_client and sale.id_client.id_wallet:
         wallet = db.wallet(sale.id_client.id_wallet.id)
         wallet.balance += sale.reward_points
         wallet.update_record()

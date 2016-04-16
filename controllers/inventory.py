@@ -299,9 +299,9 @@ def inventory_options(row):
     buttons = ()
     # edit option
     if not row.is_done:
-        buttons += OPTION_BTN('edit', URL('fill', args=row.id)),
+        buttons += OPTION_BTN('edit', URL('fill', args=row.id), title=T('edit')),
     else:
-        buttons += OPTION_BTN('assignment', URL('get', args=row.id)),
+        buttons += OPTION_BTN('assignment', URL('get', args=row.id), title=T('details')),
     buttons += supert_default_options(row)[1],
     return buttons
 

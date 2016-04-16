@@ -118,9 +118,3 @@ BAG_ORDER_COMPLETE = 3
 
 STRIPE_PK = CONF.take('stripe.public_key')
 STRIPE_SK = CONF.take('stripe.secure_key')
-
-
-EMAIL_SENDER = CONF.take('smtp.sender')
-EMAIL_SERVER = CONF.take('smtp.server')
-EMAIL_TLS = True
-EMAIL_LOGIN = CONF.take('smtp.login')

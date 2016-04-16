@@ -192,9 +192,9 @@ def sale_ticket(id_sale):
 
     payments = db(db.payment.id_sale == sale.id).select()
     payments_data = ticket_payments_data(payments, sale.is_defered)
-    totals = [ '%s : $ %s' % (T('subtotal'), sale.subtotal) ]
+    totals = [ '%s : $ %s' % (T('subtotal'), DQ(sale.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), sale.total) ]
+    totals += [ '%s : $ %s' % (T('total'), DQ(sale.total, True)) ]
     total_data = ticket_total_data(totals)
 
     return ticket_format(store_data, T('Sale'),
@@ -215,9 +215,9 @@ def bag_ticket(id_bag):
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
-    totals = [ '%s : $ %s' % (T('subtotal'), DQ(bag.subtotal, True)) ]
+    totals = [ '%s : $ %s' % (T('subtotal'), bag.subtotal, True) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), DQ(bag.total, True)) ]
+    totals += [ '%s : $ %s' % (T('total'), bag.total, True) ]
     total_data = ticket_total_data(totals)
 
     return ticket_format(store_data, T('Bag'),
