@@ -55,7 +55,7 @@ if main_settings:
     if main_settings.company_slogan:
         COMPANY_SLOGAN = main_settings.company_slogan
     if main_settings.company_logo:
-        COMPANY_LOGO_URL = main_settings.company_logo
+        COMPANY_LOGO_URL = URL('static', 'uploads/'+main_settings.company_logo)
     # if main_settings.workflow:
     #     COMPANY_WORKFLOW = main_settings.workflow
     if main_settings.extra_field_1:
@@ -101,7 +101,6 @@ BASE_BRANDED_EMAIL = """
       </tbody>
     </table>
 """ % (URL('static', 'uploads/' + COMPANY_LOGO_URL, host=True), COMPANY_NAME)
-print BASE_BRANDED_EMAIL
 
 ORDER_EMAIL_CONTENT = '''
     <tr> <td colspan=3><h3>Order {code}</h3></td> </tr>

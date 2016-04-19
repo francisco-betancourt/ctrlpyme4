@@ -42,15 +42,9 @@ def ticket_item_list(items, concept=''):
         QTY  CONCEPT                                           PRICE
         --   <concept>                                         $ --
     """
-    items_list = DIV(_id="items_list")
-    # headers
-    items_list.append(DIV(
-        SPAN(T('QTY'), _class="qty"),
-        SPAN(T('CONCEPT'), _class="name"),
-        SPAN(T('PRICE'), _class="price"),
-        _class="item"
-    ))
-    items_list.append(HR())
+    items_list = TBODY()
+
+    # items_list.append(HR())
     subtotal = D(0)
     disable_taxes_list = False
     taxes = {}
@@ -58,9 +52,9 @@ def ticket_item_list(items, concept=''):
     total = D(0)
     items = [] if not items else items
     if concept:
-        items_list.append(DIV(
-            SPAN('--', _class="qty"), SPAN(concept, _class="name"),
-            SPAN('$ --', _class="price"),
+        items_list.append(TR(
+            TD('--', _class="qty"), TD(concept, _class="name"),
+            TD('$ --', _class="price"),
             _class="item"
         ))
     else:
@@ -70,7 +64,7 @@ def ticket_item_list(items, concept=''):
             # TODO find a better way to identify if the list contains bag items or credit note items
             try:
                 item.product_name
-            except:
+            except AttributeError:
                 bag_item = item.id_bag_item
             if not bag_item:
                 continue
@@ -94,12 +88,23 @@ def ticket_item_list(items, concept=''):
             item_quantity = DQ(item.quantity, True, normalize=True)
             item_price = DQ(item_price, True)
 
-            items_list.append(DIV(
-                SPAN(item_quantity, _class="qty"),
-                SPAN(item_name, _class="name"),
-                SPAN('$ %s' % item_price, _class="price"),
+            items_list.append(TR(
+                TD(item_quantity, _class="qty"),
+                TD(item_name, _class="name"),
+                TD('$ %s' % item_price, _class="price"),
                 _class="item"
             ))
+
+    items_list = TABLE(
+        THEAD(TR(
+            TH(T('QTY'), _class="qty"),
+            TH(T('CONCEPT'), _class="name"),
+            TH(T('PRICE'), _class="price"),
+            _class="item"
+        )),
+        items_list,
+        _id="items_list"
+    )
 
     if disable_taxes_list:
         taxes = {}
@@ -145,7 +150,7 @@ def ticket_payments_data(payments, include_payment_date=False):
 
 def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None):
     return DIV(
-        DIV(_class="logo"), P(title), P(COMPANY_NAME), P(date),
+        P(IMG(_class="logo", _src=COMPANY_LOGO_URL), P(title), P(COMPANY_NAME)), P(date),
         store_data,
         content,
         DIV(_id="barcode"),

@@ -312,7 +312,7 @@ def create():
         discounts = item_discounts(bag_item.id_item)
         original_price = bag_item.sale_price + bag_item.discount
         if bag_item.sale_price == apply_discount(discounts, original_price):
-            print 'ok'
+            pass
 
     # bag was created by a client
     id_store = bag.id_store.id if bag.id_store else session.store
@@ -660,8 +660,7 @@ def sale_row(row):
 
 
 def sale_options(row):
-    print row.sale.id
-    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id)), OPTION_BTN('description', URL('invoice', 'create'))
+    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
 
 
 

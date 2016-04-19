@@ -481,6 +481,8 @@ db.define_table("bag_item",
     Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
     Field("discount", "decimal(16,6)", default=0, label=T('Discount')),
+    # list of item taxes at bag time, this string is something like
+    # TAX:10,OTHER_TAX:20,  and it is created when the bag item is created
     Field("item_taxes", default=None, label=T('Item taxes'), readable=False, writable=False),
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
