@@ -240,7 +240,7 @@ def item_card(item):
       & (db.item.is_active == True)
     ).select(db.item_image.ALL)
     if images:
-        bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().md)
+        bg_style = "background-image: url(%s);" % URL('static','uploads/'+ images.first().md)
     else:
         bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 

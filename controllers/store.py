@@ -1,9 +1,25 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def create():
     """ args: [id_address] """
     address = db.address(request.args(0))
@@ -21,7 +37,7 @@ def create():
     return dict(form=form)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def get():
     store = db.store(request.args(0))
     if not store:
@@ -32,17 +48,17 @@ def get():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def update():
     return common_update('store', request.args, _vars=request.vars)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def delete():
     return common_delete('store', request.args)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def index():
     def store_options(row):
         update_btn, hide_btn = supert_default_options(row)
@@ -97,7 +113,7 @@ def read_certificate(form):
     form.vars.certificate_base64=b64encode(cert_file)
     form.vars.certpem_base64=b64encode(cert_pem)
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def seals():
     store = db.store(request.args(0))
     if not store:

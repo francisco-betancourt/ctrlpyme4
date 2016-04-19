@@ -19,6 +19,8 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+precheck()
+
 import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
@@ -460,7 +462,7 @@ def get():
 
 
     purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
-    purchase_items_table = super_table('stock_item', ['id_item', 'purchase_qty', 'price', 'taxes'], db.stock_item.id_purchase == purchase.id, options_enabled=False, row_function=stock_item_row)
+    purchase_items_table = SUPERT(db.stock_item.id_purchase == purchase.id, fields=['id_item', 'purchase_qty', 'price', 'taxes'], options_enabled=False, searchable=False)
 
     return locals()
 

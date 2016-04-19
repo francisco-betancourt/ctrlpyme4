@@ -11,6 +11,9 @@
 from datetime import date
 
 def index():
+
+    print "DEFAULT"
+
     # best sellers this month
     start_date = date(request.now.year, request.now.month, 1)
     end_date = date(request.now.year, request.now.month + 1, 1)

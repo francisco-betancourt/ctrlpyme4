@@ -18,6 +18,9 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+precheck()
+
+
 @auth.requires_membership('Stock transfers')
 def ticket():
     redirect( URL( 'ticket', 'get', vars=dict(id_stock_transfer=request.args(0)) ) )

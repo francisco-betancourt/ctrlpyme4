@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+precheck()
+
 
 import json
 from uuid import uuid4

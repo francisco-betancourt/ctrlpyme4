@@ -18,9 +18,12 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+
+precheck()
+
+
 import stripe
 stripe.api_key = STRIPE_SK
-
 
 
 def get_valid_order_bag(bag_id):

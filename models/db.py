@@ -14,7 +14,9 @@
 ## once in production, remove reload=True to gain full speed
 # CONF = AppConfig(reload=True)
 
+
 import os
+print "DB HELLO"
 
 
 if not request.env.web2py_runtime_gae:
@@ -186,7 +188,7 @@ db.define_table(
 
 db.define_table("brand",
     Field("name", "string", default=None, label=T('Name')),
-    Field("logo", "upload", default=None, label=T('Logo')),
+    Field("logo", "upload", default=None, label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     auth.signature)
 
 db.define_table("trait_category",
@@ -281,7 +283,7 @@ db.define_table(
     , Field('title', label=T('Title'))
     , Field('description', label=T('Description'))
     , Field('url', label=T('URL'))
-    , Field('bg_image', 'upload', label=T('Image'))
+    , Field('bg_image', 'upload', label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     , auth.signature
 )
 db.highlight.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
@@ -351,7 +353,7 @@ db.define_table("category",
     Field("name", "string", default=None, label=T('Name')),
     Field("description", "text", default=None, label=T('Description')),
     Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
-    Field("icon", "upload", default=None, label=T('Icon')),
+    Field("icon", "upload", default=None, label=T('Icon'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field("parent", "reference category", label=T('Parent category'), readable=False, writable=False),
     Field("trait_category1", "reference trait_category", label=T('Trait')+" 1"),
     Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
@@ -389,7 +391,6 @@ db.define_table("item",
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail')),
     Field("reward_points", "integer", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
@@ -643,7 +644,7 @@ db.define_table(
     , Field("starts_on", "datetime", default=None, label=T('Starts on'))
     , Field("ends_on", "datetime", default=None, label=T('Ends on'))
     , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
-    , Field('bg_image', 'upload', label=T('Background image'))
+    , Field('bg_image', 'upload', label=T('Background image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     , auth.signature
 )
 db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))

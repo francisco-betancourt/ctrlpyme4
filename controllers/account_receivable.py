@@ -19,6 +19,8 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+precheck()
+
 @auth.requires_membership('Accounts receivable')
 def settle():
     """ args: [id_account_receivable] """

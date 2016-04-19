@@ -18,7 +18,7 @@
   <h1>{{=T('Highlights')}}</h1>
   <div class="highlights">
     {{for highlight in highlights:}}
-      <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=highlight.bg_image)}})">
+      <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/'+highlight.bg_image)}})">
         <div class="data">
           <h2>{{=highlight.title}}</h2>
           <h4>{{=highlight.description}}</h4>
