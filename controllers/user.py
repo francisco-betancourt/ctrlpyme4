@@ -91,6 +91,27 @@ def get():
 
 
 @auth.requires_membership('Admin')
+def rand_employee_password():
+    """ sets a random password for the specified user (only employees)
+        args [employee_id]
+    """
+    if auth.has_membership(None, request.args(0), 'Employee'):
+        employee = db.auth_user(request.args(0))
+        if not employee:
+            raise HTTP(404)
+        new_password = auth.random_password()
+        session.info = T('password set, the new password should be in the employee email')
+        content = '<html> %s: <h2>%s</h2></html>' % (T('Your new password is'), new_password)
+        subject = '[%s]: %s' % (COMPANY_NAME, T('Your password has been changed'))
+        r = db(db.auth_user.id == employee.id).validate_and_update(password=new_password)
+        if r.errors:
+            raise HTTP(500)
+        r = mail.send(to=[employee.email], subject=subject, message=content)
+
+        redirect(URL('user', 'get_employee', args=employee.id))
+
+
+@auth.requires_membership('Admin')
 def get_employee():
     """
         args: [id_user]
