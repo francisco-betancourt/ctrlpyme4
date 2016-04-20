@@ -16,8 +16,6 @@
 
 
 import os
-print "DB HELLO"
-
 
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
@@ -465,12 +463,15 @@ db.define_table("bag",
     , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
     , Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'))
     , Field("status", "integer", default=BAG_ACTIVE, label=T('Status'))
+    , Field("is_sold", "boolean", default=False, label=T('Is sold'))
     , Field("is_paid", "boolean", default=False, label=T('Paid'))
+    # used when the bag has been paid using stripe
+    , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
+
+    # deprecated soon
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
-    # used when the bag has been paid using stripe
-    , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
     , auth.signature)
 
 

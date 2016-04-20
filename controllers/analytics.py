@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-if auth.has_membership('Admin'):
+if not auth.has_membership('Admin'):
     precheck()
 
 import calendar
@@ -57,6 +57,20 @@ def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
     return payments
 
 
+def get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
+    """ Return paid bags not related with sales """
+
+    paid_bags = db(
+        (db.bag.is_sold == False)
+        & (db.bag.is_paid == True)
+        & (db.bag.created_on >= start_date)
+        & (db.bag.created_on <= end_date)
+    ).select()
+
+    for paid_bag in paid_bags:
+        yield Storage(amount=paid_bag.total, change_amount=0, created_on=paid_bag.created_on)
+
+
 def get_day_sales_data(day, id_store):
     if not day:
         day = date(request.now.year, request.now.month, request.now.day)
@@ -67,7 +81,9 @@ def get_day_sales_data(day, id_store):
     data = [0 for i in range(24)]
 
     # income
-    payments = get_payments_in_range(start_date, end_date, id_store)
+    payments = get_payments_in_range(start_date, end_date, id_store).as_list()
+    for bag_pay in get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
+        payments.append(bag_pay)
     income = 0
     for payment in payments:
         income += payment.amount - payment.change_amount
@@ -176,8 +192,13 @@ def day_report_data(year, month, day):
         sales_data['datasets'][0]['data'].append(0)
 
     # income
-    payments = get_payments_in_range(start_date, end_date, session.store)
+    payments = get_payments_in_range(start_date, end_date, session.store).as_list()
     income = 0
+
+    # get paid bags
+    for paid_bag in get_paid_bags_in_range_as_payments(start_date, end_date, session.store):
+        payments.append(paid_bag)
+
     for payment in payments:
         income += payment.amount - payment.change_amount
         index = payment.created_on.hour
@@ -336,7 +357,7 @@ def dashboard():
         store.c_color = random_color_mix(PRIMARY_COLOR)
         store.c_label = store.name
         # select this month payments
-        payments = get_payments_in_range(start_date, end_date, store.id)
+        payments = get_payments_in_range(start_date, end_date, store.id).as_list()
         store.c_value = 0
         for payment in payments:
             store.c_value += payment.amount - payment.change_amount

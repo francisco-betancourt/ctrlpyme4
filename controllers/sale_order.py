@@ -89,28 +89,25 @@ def create():
         }
         bag.completed = True
         bag.status = BAG_COMPLETE
+        bag.id_store = sale_order.id_store
         bag.update_record()
 
+        # email
         subject = T('Thank you for your order')
         order_concept = T('Your order has been processed')
         if bag.is_paid:
             subject = T('Thank you for your purchase')
             order_concept = T('Your purchase has been processed')
-
-
         items_list = ''
         for bag_item in db(db.bag_item.id_bag == bag.id).select():
             items_list += str(TR( TD(),
                 TD('%s x %s' % (DQ(bag_item.quantity, True, True), bag_item.product_name)),
                 TD('$ %s' % DQ(bag_item.sale_price, True))
             ))
-
         subject = '[%s]: %s' % (COMPANY_NAME, subject)
         email_msg = ORDER_EMAIL_CONTENT.format(code=sale_order.code, user_name='%s %s' % (auth.user.first_name, auth.user.last_name), items=items_list, total=str(DQ(bag.total, True)), order_concept=order_concept )
-
         email_msg = BASE_BRANDED_EMAIL.format(content=email_msg)
         email_msg = '<html>' + email_msg + '</html>'
-
         # send receipt email
         r = mail.send(to=[auth.user.email], subject=subject, message=email_msg)
 

@@ -324,6 +324,7 @@ def create():
 
     bag.created_by = auth.user.id
     bag.id_store = session.store
+    bag.is_sold = True
     bag.update_record()
 
     if bag.is_paid:
