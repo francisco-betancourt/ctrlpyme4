@@ -18,27 +18,26 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
-@auth.has_membership('Config')
-@auth.has_membership('Config')
+@auth.requires_membership('Config')
 def create():
     return common_create('tax')
 
 
-@auth.has_membership('Config')
+@auth.requires_membership('Config')
 def get():
     pass
 
-@auth.has_membership('Config')
+@auth.requires_membership('Config')
 def update():
     return common_update('tax', request.args)
 
 
-@auth.has_membership('Config')
+@auth.requires_membership('Config')
 def delete():
     common_delete('tax', request.args)
 
 
-@auth.has_membership('Config')
+@auth.requires_membership('Config')
 def index():
     data = common_index('tax', ['name', 'percentage', 'symbol'])
 

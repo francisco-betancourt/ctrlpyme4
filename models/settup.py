@@ -1,5 +1,6 @@
 # Redirect the user to the store selection on controllers that requires it
 
+# deprecated
 def check_store_selected():
     if auth.user and not auth.user.is_client:
         if request.controller == 'analytics' and auth.has_membership('Admin'):

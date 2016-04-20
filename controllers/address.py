@@ -18,7 +18,7 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def create():
     form = SQLFORM(db.address)
     if form.process().accepted:
@@ -31,21 +31,21 @@ def create():
     return dict(form=form)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def get():
     pass
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def update():
     return common_update('address',request.args)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def delete():
     common_delete('address',request.args)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def address_row(row, fields):
     address = ""
     for field in fields:
@@ -53,7 +53,7 @@ def address_row(row, fields):
     return TR(TD(address))
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Config')
 def index():
     """ """
 

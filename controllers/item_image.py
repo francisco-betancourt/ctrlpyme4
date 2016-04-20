@@ -26,6 +26,7 @@ sizes = [(48, 48), (250, 250), (500, 500), (1000, 1000)]
 sizes_names = ['thumb', 'sm', 'md', 'lg']
 
 
+@auth.requires_membership('Items info')
 def create():
     """ args: [id_item] """
 
@@ -79,6 +80,7 @@ def create():
     return locals()
 
 
+@auth.requires_membership('Items info')
 def delete():
     """
         args: [item_image_id]
