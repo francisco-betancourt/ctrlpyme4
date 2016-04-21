@@ -50,6 +50,7 @@ def create():
 
     form = SQLFORM(db.product_loss, buttons=[INPUT(_type='submit', _value=T('Commit'), _class="btn btn-primary"), A(T('Cancel'), _class='btn btn-default', _href=URL('default', 'index')) ], _id="product_loss_form", formstyle='bootstrap3_inline')
     form.vars.id_bag = bag.id
+    form.vars.id_store = bag.id_store.id
 
     if form.process().accepted:
         bag.status = BAG_COMPLETE
@@ -59,5 +60,30 @@ def create():
         redirection()
     elif form.errors:
         session.info = T('Form has errors')
+
+    return locals()
+
+
+@auth.requires_membership('Product loss')
+def get():
+    """
+        args [product_loss_id]
+    """
+    product_loss = db.product_loss(request.args(0))
+    if not product_loss:
+        session.info = T('Product loss') + ' ' + T('not found')
+        redirection()
+
+    data = bag_supert(product_loss.id_bag.id)
+
+    return locals()
+
+
+@auth.requires_membership('Product loss')
+def index():
+    def options(row):
+        return OPTION_BTN('info', URL('get', args=row.id), title=T('details'))
+    query = (db.product_loss.id_store == session.store)
+    data = SUPERT(query, fields=['id_store.name', 'created_on', {'fields': ['created_by.first_name', 'created_by.last_name'], 'label_as': T('Created by')}, 'notes'], options_func=options)
 
     return locals()

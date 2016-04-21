@@ -62,6 +62,10 @@ if auth.has_membership("Items info"):
             , (T('Transfers'), False, URL('stock_transfer', 'index'), None)
             , (T('Offers'), False, URL('offer_group', 'index'), None)
         ]
+        if auth.has_membership('Product loss'):
+            submenu.append(
+                (T('Product losses'), False, URL('product_loss', 'index'), None)
+            )
         response.menu += [
              (T('Items'), False, None, submenu)
         ]

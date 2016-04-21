@@ -479,6 +479,7 @@ db.define_table("bag_item",
 
 db.define_table(
   'product_loss'
+  , Field('id_store', 'reference store', label=T('Store'), readable=False, writable=False)
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
   , Field('notes', 'text', label=T('Notes'))
   , auth.signature

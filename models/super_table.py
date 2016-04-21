@@ -149,6 +149,12 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         fields: []
         label_as: name of the grouped fields
         custom_format: function applied to every row fields group
+        example:
+        {
+           'fields': ['somefield', 'somefield.innerfield'],
+           'label_as': 'Label',
+           'custom_format': lambda row, fields: "%s" % row.field)
+        }
     using a dict will group the specified fields into a single one.
     """
 

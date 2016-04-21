@@ -79,7 +79,7 @@
 <div class="calendar-view">
   {{ for day_name in day_names: }}
     <div class="calendar-header">
-      {{ =day_name }}
+      {{ =T(day_name) }}
     </div>
   {{ pass }}
   {{ for week in month_calendar: }}

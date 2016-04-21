@@ -68,13 +68,13 @@ def get_notifications():
         accounts_r = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
-                title=T("Accounts receivable"), description=T('Accounts receivable unsettled'), url=URL('account_receivable', 'index')
+                title=T("Accounts receivable"), description=T('Accounts receivable')+' '+T('unsettled'), url=URL('account_receivable', 'index')
             ))
     if auth.has_membership('Accounts receivable'):
         accounts_p = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
-                title=T("Accounts payable"), description=T('Accounts payable unsettled'), url=URL('account_payable', 'index')
+                title=T("Accounts payable"), description=T('Accounts payable')+' '+T('unsettled'), url=URL('account_payable', 'index')
             ))
 
     return notifications

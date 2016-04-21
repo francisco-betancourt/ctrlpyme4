@@ -376,6 +376,14 @@ def default_row_function(row, fields):
     return tr
 
 
+def bag_supert(id_bag):
+    query = (db.bag_item.id_bag == id_bag)
+    return SUPERT(query, fields=['product_name', {
+        'fields':['quantity'],
+        'custom_format': lambda r, f : DQ(r.quantity, True, True),
+        'label_as': T('Quantity')
+        }], options_enabled=False, searchable=False)
+
 
 def hide_button(row):
     """" Returns a button that calls the delete_row javascript function """
