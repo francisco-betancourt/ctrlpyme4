@@ -51,10 +51,11 @@ new_groups = {
 }
 
 
-for key in new_groups.iterkeys():
-    if db(db.auth_group.role == key).select().first():
-        continue
-    auth.add_group(key, new_groups[key])
+def create_groups():
+    for key in new_groups.iterkeys():
+        if db(db.auth_group.role == key).select().first():
+            continue
+        auth.add_group(key, new_groups[key])
 
 
 # TODO create admin user

@@ -169,6 +169,34 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None, max_date=N
         return dict(stocks=None, quantity=0)
 
 
+
+def refresh_bag_data(id_bag):
+    bag = db(db.bag.id == id_bag).select(for_update=True).first()
+    if bag.status != BAG_ACTIVE:
+        return
+
+    bag_items = db(db.bag_item.id_bag == bag.id).select()
+
+    subtotal = D(0)
+    taxes = D(0)
+    total = D(0)
+    quantity = D(0)
+    reward_points = 0
+    for bag_item in bag_items:
+        subtotal += bag_item.sale_price * bag_item.quantity
+        taxes += bag_item.sale_taxes * bag_item.quantity
+        total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
+        quantity += bag_item.quantity
+        reward_points += bag_item.id_item.reward_points or 0
+    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
+    subtotal = money_format(DQ(subtotal, True))
+    taxes = money_format(DQ(taxes, True))
+    total = money_format(DQ(total, True))
+    quantity = DQ(quantity, True, True)
+
+    return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
+
+
 def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
     """ verify item stocks and remove unnecessary items """
     out_of_stock_items = []
@@ -265,7 +293,7 @@ def bag_selection_return_format(bag):
 
 
 def get_valid_bag(id_bag, completed=False):
-    """ """
+    """ Return a bag if theres a bag white the specified id, and that bag was created by the currently logged in user, and if the user is employee then it check if the bag belongs to the current store """
     try:
         query = (db.bag.id == id_bag)
         query &= db.bag.created_by == auth.user.id
@@ -432,7 +460,7 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
 def search_query(table_name, fields, terms):
     query = (db[table_name].id < 0)
     for field in fields:
-        print db[table_name][field]
+        pass
         # query |= (db[table_name][field].contains(terms))
 
 
@@ -532,6 +560,7 @@ def valid_account(payment):
 
 
 def _remove_stocks(item, quantity, sale_date):
+    """ remove the specified item quantity from available stocks """
     if not item.has_inventory:
         return 0, 0
     if not quantity:
@@ -558,6 +587,7 @@ def _remove_stocks(item, quantity, sale_date):
 
 
 def remove_stocks(bag_items):
+    """ Remove stocks for all the bag items specified """
     for bag_item in bag_items:
         #TODO:50 implement stock removal for bag items with serial number
         if bag_item.id_item.has_serial_number:

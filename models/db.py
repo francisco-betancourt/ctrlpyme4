@@ -173,6 +173,7 @@ class IS_BARCODE_AVAILABLE(object):
 
 """ database class object creation (initialization) """
 
+# deprecated
 db.define_table(
     "company_config"
     , Field('param_name', label=T("Name"), writable=False)
@@ -206,6 +207,7 @@ db.define_table("tax",
     format='%(name)s')
 
 
+# probabily deprecated
 db.define_table(
     "company"
     , Field('name', 'string', default=None, label=T('Name'))
@@ -295,11 +297,14 @@ db.define_table(
   , Field('company_name', label=T('Name'))
   , Field('company_slogan', label=T('Slogan'))
   , Field('company_logo', 'upload', label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
+
   , Field('extra_field_1', label=T('Extra field') + '1')
   , Field('extra_field_2', label=T('Extra field') + '2')
   , Field('extra_field_3', label=T('Extra field') + '3')
 
+  # true if the store only allows whitelisted clients
   , Field('clients_whitelist', 'boolean', label=T('Use clients whitelist'), default=True, readable=False, writable=False)
+
   , Field('ticket_footer', label=T('Ticket footer'))
 
   , Field('primary_color', label=T('Primary color'))
@@ -412,27 +417,6 @@ db.define_table(
 )
 
 
-
-
-
-
-db.define_table(
-    'store_role'
-    , Field('id_user', "reference auth_user", label=T('user'))
-    , Field('id_store', "reference store", label=T('store'))
-    , Field('id_role', "reference auth_group", label=T('role'))
-)
-
-db.define_table("store_config",
-    Field("id_store", "reference store", label=T('Store'), writable=False),
-    Field("param_name", "string", default=None, label=T('Parameter name'), writable=False),
-    Field("param_value", "string", default=None, label=T('Parameter value')),
-    Field("param_type", "string", default=None, label=T('Parameter type'), writable=False),
-    Field("is_public", "boolean", default=False, label=T('Is Public')),
-    auth.signature)
-db.store_config.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_address)s %(name)s')
-
-
 db.define_table("supplier",
     Field("business_name", "string", default=None, label=T('Business Name')),
     Field("tax_id", "string", default=None, label=T('Tax ID')),
@@ -491,6 +475,14 @@ db.define_table("bag_item",
     Field("sale_code", "string", default=None, label=T('Sale code')),
     Field("serial_number", "string", default=None, label=T('Serial number')),
     auth.signature)
+
+
+db.define_table(
+  'product_loss'
+  , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
+  , Field('notes', 'text', label=T('Notes'))
+  , auth.signature
+)
 
 
 db.define_table(

@@ -27,33 +27,6 @@ from math import floor
 allow_out_of_stock = True
 
 
-def refresh_bag_data(id_bag):
-    bag = db(db.bag.id == id_bag).select(for_update=True).first()
-    if bag.status != BAG_ACTIVE:
-        return
-
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
-
-    subtotal = D(0)
-    taxes = D(0)
-    total = D(0)
-    quantity = D(0)
-    reward_points = 0
-    for bag_item in bag_items:
-        subtotal += bag_item.sale_price * bag_item.quantity
-        taxes += bag_item.sale_taxes * bag_item.quantity
-        total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
-        quantity += bag_item.quantity
-        reward_points += bag_item.id_item.reward_points or 0
-    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
-    subtotal = money_format(DQ(subtotal, True))
-    taxes = money_format(DQ(taxes, True))
-    total = money_format(DQ(total, True))
-    quantity = DQ(quantity, True, True)
-
-    return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
-
-
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
@@ -80,6 +53,7 @@ def modify_bag_item():
         diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
         if qty + diff < bag_item.quantity - old_qty:
             bag_item.quantity = max(old_qty, qty + old_qty)
+    bag_item.quantity = max(0, bag_item.quantity)
 
     bag_item.update_record()
     bag_data = refresh_bag_data(bag_item.id_bag.id)

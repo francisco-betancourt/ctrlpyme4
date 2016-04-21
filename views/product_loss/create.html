@@ -1,0 +1,18 @@
+{{left_sidebar_enabled = True}}
+{{ extend "layout.html" }}
+
+{{block left_sidebar}}
+<h1>{{=T('Review')}}</h1>
+{{include "bag.html"}}
+{{end}}
+
+
+<h1>{{=T('New')}} {{=T('Product loss')}}</h1>
+{{=form}}
+
+
+<script>
+  document.getElementById('product_loss_form').addEventListener('submit', function(event) {
+    lock_bag();
+  })
+</script>

@@ -5,7 +5,7 @@
 {{block left_sidebar}}
   {{ load_bag_url = URL('select_bag', args=bag.id, extension='json') }}
   <h1>{{=T('Review your order')}}</h1>
-  {{include "bag_2.html"}}
+  {{include "bag.html"}}
 {{end}}
 
 <h1>{{=T('Order information')}}</h1>
