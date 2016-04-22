@@ -18,6 +18,7 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+from constants import STRIPE_SK, STRIPE_PK
 
 precheck()
 

@@ -22,6 +22,9 @@
 
 
 from gluon.storage import Storage
+# from gluon.html import *
+# from gluon import current, URL
+# from html_utils import ICON, pages_menu_bare
 
 
 def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title=''):
@@ -32,6 +35,9 @@ def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title=''):
 
 
 def supert_default_options(row):
+    T = current.T
+
+    request = current.request
     update_btn = OPTION_BTN('edit', URL(request.controller, 'update', args=row.id), title=T('edit'))
     hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id), title=T('hide'))
     return update_btn, hide_btn
@@ -55,6 +61,7 @@ def base_multifield_format(row, subfields):
 
 
 def _search_query(field, term):
+    db = current.db
     table_name, field = field.split('.')[:2]
     if db[table_name][field].type == 'string':
         return db[table_name][field].contains(term)
@@ -80,6 +87,7 @@ def search_query_from_field(field, term):
 
 
 def parse_field(field, base_table_name, joined=False, search_term=None):
+    db = current.db
     header = None
     new_field = ''
     orderby = '%s.%s' % (base_table_name, field) if not joined else str(field)
@@ -117,6 +125,8 @@ def parse_field(field, base_table_name, joined=False, search_term=None):
 
 
 def sort_header(field):
+    request = current.request
+
     new_vars = Storage(request.vars)
     content = field.header
     orderby = request.vars.orderby
@@ -157,6 +167,7 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         }
     using a dict will group the specified fields into a single one.
     """
+    db = current.db
 
     # this query is used to get table or tables name(s), since this value is not specified, and only a query is given
     rows = None
@@ -214,7 +225,11 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         rows = db(query).select(**select_args)
 
     for row in rows:
-        row_id = row.id if not joined else row[base_table_name].id
+        row_id = None
+        if not joined:
+            row_id = row['id']
+        else:
+            row_id = row[base_table_name].id
         values = []
         for index, field in enumerate(new_fields):
             values.append(field.format(row, field.field))
@@ -224,6 +239,8 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
 
 
 def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options):
+    T = current.T
+
     # base_table
     table = DIV(_class="st-content")
     for index, field in enumerate(fields):
@@ -285,6 +302,8 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         ipp: the number of items per page
         ids: list of comma separated ids to apply the table to a subset of items
     """
+    request = current.request
+    db = current.db
 
     specified_base_table_name = base_table_name
     # normalize fields

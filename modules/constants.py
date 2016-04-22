@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+from gluon import current
+from gluon import URL
 from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
 CONF = AppConfig(reload=True)
@@ -75,8 +77,10 @@ class Workflow:
                 return self._flow[key]['invalid']
 
 
-WORKFLOW_DATA = [
-    Workflow(
+def get_workflows():
+    T = current.T
+
+    return [Workflow(
         [
             AccessCard({
                 'name': T('Seller'),
@@ -99,8 +103,9 @@ WORKFLOW_DATA = [
                 },
             }
         }
-    )
-]
+    )]
+
+WORKFLOW_DATA = get_workflows()
 
 
 # sale events

@@ -200,9 +200,9 @@ def day_report_data(year, month, day):
         payments.append(paid_bag)
 
     for payment in payments:
-        income += payment.amount - payment.change_amount
-        index = payment.created_on.hour
-        sales_data['datasets'][0]['data'][index] += float(payment.amount - payment.change_amount)
+        income += payment['amount'] - payment['change_amount']
+        index = payment['created_on'].hour
+        sales_data['datasets'][0]['data'][index] += float(payment['amount'] - payment['change_amount'])
     sales_data = json.dumps(sales_data)
 
     # expenses

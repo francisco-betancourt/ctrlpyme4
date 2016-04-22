@@ -1,10 +1,11 @@
 # settings list
 
 from datetime import timedelta
+from constants import FLOW_BASIC
 
 COMPANY_NAME = 'CtrlPyME'
 COMPANY_SLOGAN = 'Press Ctrl + PyME to begin.'
-COMPANY_LOGO_URL = ''
+COMPANY_LOGO_URL = URL('static', 'images/ctrlPyME_logo.svg')
 
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC

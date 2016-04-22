@@ -20,7 +20,11 @@
 
 
 import math
+from gluon import *
+from gluon.html import *
 from gluon.storage import Storage
+from item_utils import item_stock, item_taxes, fix_item_price
+from common_utils import INFO, DQ
 
 
 def CB(selected=False, _id=""):
@@ -53,12 +57,11 @@ def discounts_list(discounts):
 
 def ICON(icon_name, _id="", _class="", html_vars={}):
     # icon_name = icon_name.replace('-', '_')
-    if USE_MATERIAL_ICONS:
-        return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
-    return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)
+    return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
 
 
 def INFO_CARD():
+    session = current.session
     content = DIV(_class="panel-body")
     content.append(DIV(ICON('close', _class="close", _id="info_close")))
     hidden = False
@@ -82,7 +85,7 @@ def INFO_CARD():
     return content
 
 
-def MENU_ELEMENTS(submenu_prefix = '', menu=response.menu):
+def MENU_ELEMENTS(submenu_prefix = '', menu=current.response.menu):
     # elements = []
     i = 0
     for menu_item in menu:
@@ -126,6 +129,9 @@ def MENU_ELEMENTS(submenu_prefix = '', menu=response.menu):
 def pages_menu_bare(query, page=0, ipp=10, distinct=None):
     """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
 
+    request = current.request
+    db = current.db
+
     start = page * ipp
     end = start + ipp
     total_rows_count = db(query).count(distinct=distinct)
@@ -168,6 +174,8 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
 
 
 def stock_info(item):
+    auth = current.auth
+    T = current.T
     available = True
     stock = 0
 
@@ -214,6 +222,10 @@ def create_item_options(item):
 
 def item_card(item):
     """ """
+    session = current.session
+    auth = current.auth
+    db = current.db
+    T = current.T
 
     available = "Not available"
     available_class = "label label-danger"

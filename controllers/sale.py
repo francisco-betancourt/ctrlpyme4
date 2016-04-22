@@ -24,6 +24,8 @@ precheck()
 import json
 from uuid import uuid4
 from datetime import date, timedelta
+from item_utils import item_discounts, apply_discount, item_stock, remove_stocks
+from constants import *
 
 
 def ticket():
@@ -325,6 +327,7 @@ def create():
     bag.created_by = auth.user.id
     bag.id_store = session.store
     bag.is_sold = True
+    bag.status = BAG_COMPLETE
     bag.update_record()
 
     if bag.is_paid:

@@ -9,25 +9,14 @@
 #########################################################################
 
 from datetime import date
+from item_utils import get_popular_items
 
 def index():
     # best sellers this month
     start_date = date(request.now.year, request.now.month, 1)
     end_date = date(request.now.year, request.now.month + 1, 1)
-    best_sellers = db(
-        (db.sale.id_bag == db.bag.id)
-        & (db.bag_item.id_bag == db.bag.id)
-        & (db.bag_item.quantity)
-    )
-    popular_items_rows = db((db.sale.id_bag == db.bag.id)
-                          & (db.bag_item.id_bag == db.bag.id)
-                          & (db.bag_item.id_item == db.item.id)
-                          & (db.sale.is_done == True)
-                          & (db.item.id > 0)
-                          ).select(orderby=db.bag_item.quantity, limitby=(0,10))
-    popular_items = []
-    for pitem in popular_items_rows:
-        popular_items.append(pitem.bag_item.id_item)
+    pop_items = get_popular_items(start_date, end_date)
+    popular_items = [d[0] for d in pop_items[:10]]
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 

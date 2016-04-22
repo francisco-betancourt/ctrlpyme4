@@ -22,6 +22,8 @@
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
+from bag_utils import *
+from item_utils import item_stock, discount_data
 
 
 allow_out_of_stock = True
@@ -69,10 +71,7 @@ def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
         args: [bag_id]
-        vars: [ignore_state]
-
     """
-
     bag = None
     try:
         bag = is_modifiable_bag(request.args(0))
