@@ -260,6 +260,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_header = ''
     t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
     t_header_content = DIV(_class="st-card-header-content")
+    # add search field
     if searchable:
         search_form = FORM(_id='supert_search_form', _class="form-inline")
         search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
@@ -287,7 +288,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert")
+    table = DIV(t_header, table, t_footer, _class="supert table-responsive")
 
     return table
 
