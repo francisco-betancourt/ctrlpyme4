@@ -10,6 +10,11 @@
   <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
 
   <hr>
+    <p>{{=T('remaining')}}: <span class="right">
+      $ <span id="remaining">{{=DQ(remaining, True)}}</span></span>
+    </p>
+  <hr>
+
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
   {{ if not sale.is_defered: }}
     <select name="" class="form-control" id="client_selector" {{if sale.id_bag.is_paid: }} disabled {{pass}} >
@@ -19,7 +24,7 @@
       {{pass}}
     </select>
 
-    {{if sale.id_bag.is_paid: }}
+    {{if not sale.id_bag.is_paid: }}
       <div id="client_wallet_data" hidden="hidden">
         <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
         <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
@@ -185,7 +190,14 @@
   });
 
 
+  function refresh_remaining(payments_total) {
+    new_remaining = {{=sale.total}} - payments_total;
+    $('#remaining').text(new_remaining.toFixed(2));
+  }
+
+
   function post_update(res) {
+    refresh_remaining(res.payments_total);
     if (res.updated) {
       for (var index in res.updated) {
         var payment = res.updated[index];
@@ -202,7 +214,6 @@
     e_payment.attr('id', 'payment_' + payment.id);
     e_payment.show()
     e_payment.find('.amount').val(payment.amount);
-    console.log(payment);
     if (!payment.is_updatable) {
       e_payment.find('.amount').attr('disabled', 'disabled');
     }
@@ -261,15 +272,17 @@
       url: "{{=URL('add_payment', args=sale.id, extension='json')}}/" + selected_payment_opt_id
     })
     .done(function (res) {
-      info_card("{{=T('Payment added')}}")
+      info_card("{{=T('Payment added')}}");
       clone_proto_payment(res.payment);
       $('#payments_' + res.payment.id_payment_opt).show();
+      refresh_remaining(res.payments_total);
     })
     .fail(function (res) {
       info_card("{{=T('Unable to add payment!')}}");
     })
   });
 
+  // errors
   {{for payment in payments:}}
     $('#payments_{{=payment.id_payment_opt.id}}').show();
     clone_proto_payment({
@@ -284,8 +297,6 @@
         error: "{{=T('This payment requires a 4 digits account')}}"
       {{ pass }}
     });
-
-    // errors
 
   {{pass}}
 

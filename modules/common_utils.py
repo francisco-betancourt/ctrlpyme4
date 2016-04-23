@@ -265,7 +265,7 @@ def precheck():
     session = current.session
     request = current.request
     db = current.db
-    
+
     if auth.user and not auth.user.is_client:
         # select the first store if theres only one
         if not session.store:

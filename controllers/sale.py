@@ -80,6 +80,11 @@ def add_payment():
     if not payment_opt:
         raise HTTP(404)
 
+    # do not accept stripe payment opt
+    if payment_opt.name == 'stripe':
+        raise HTTP(405)
+
+
     # only accept credit payments for registered clients
     if payment_opt.credit_days > 0 and not sale.id_client:
         raise HTTP(405)
@@ -103,7 +108,7 @@ def add_payment():
     else:
         raise HTTP(405)
 
-    return dict(payment_opt=payment_opt, payment=new_payment)
+    return dict(payment_opt=payment_opt, payment=new_payment, payments_total=payments_total)
 
 
 @auth.requires_membership('Sales checkout')
@@ -130,7 +135,7 @@ def update_payment():
         if sale.is_defered:
             payment.is_updatable = False
             payment.update_record()
-        raise HTTP(405)
+            raise HTTP(405)
 
     try:
         new_amount = D(request.vars.amount or payment.amount)
@@ -181,12 +186,14 @@ def update_payment():
          wallet_code = None
     else:
         if payment.wallet_code:
-            # return wallet funds
-            if request.vars.delete:
+            # return wallet funds, if the wallet payment is removed or the wallet code is changed
+            if request.vars.delete or wallet_code != payment.wallet_code:
                 wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
                 if wallet:
                     wallet.balance += payment.amount
                     wallet.update_record()
+        else:
+            new_amount = 0
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
@@ -213,7 +220,10 @@ def update_payment():
     elif payment.is_updatable:
         payment.delete_record()
 
-    return dict(updated=extra_updated_payments)
+    payments_data = get_payments_data(sale.id)
+    payments_total = payments_data[0] - payments_data[1]
+
+    return dict(updated=extra_updated_payments, payments_total=payments_total)
 
 
 
@@ -255,9 +265,14 @@ def update():
     clients = db(db.auth_user.is_client == True).select()
 
     payments = db(db.payment.id_sale == sale.id).select()
-    payment_options = db(db.payment_opt.is_active == True).select()
+    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select()
 
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+
+    payments_total = 0
+    for payment in payments:
+        payments_total += payment.amount - payment.change_amount
+    remaining = sale.total - payments_total
 
     return locals()
 
@@ -351,10 +366,10 @@ def verify_payments(payments, sale, check_total=True):
             redirect(URL('update', args=sale.id))
 
         payments_total += payment.amount - payment.change_amount
-        if not valid_account(payment):
-            bad_payments = True
         if payment.amount <= 0:
             payment.delete_record()
+        elif not valid_account(payment):
+            bad_payments = True
     if payments_total < sale.total and check_total:
         session.info = T('Payments amount is lower than the total')
         redirect(URL('update', args=sale.id))
