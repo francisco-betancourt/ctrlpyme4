@@ -271,8 +271,12 @@ def update():
 
     payments_total = 0
     for payment in payments:
+        if payment.amount <= 0:
+            payment.delete_record()
+            continue
         payments_total += payment.amount - payment.change_amount
     remaining = sale.total - payments_total
+    payments = db(db.payment.id_sale == sale.id).select()
 
     return locals()
 
