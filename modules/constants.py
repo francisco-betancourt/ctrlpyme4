@@ -121,5 +121,9 @@ BAG_FOR_ORDER = 2
 BAG_ORDER_COMPLETE = 3
 
 
+# cache names
+CACHED_POPULAR_ITEMS = 0
+
+
 STRIPE_PK = CONF.take('stripe.public_key')
 STRIPE_SK = CONF.take('stripe.secure_key')

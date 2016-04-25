@@ -101,7 +101,7 @@
         {{if is_wallet(payment_opt):}}
           <div class="input-group">
             <span class="input-group-addon">{{=T('Code')}}</span>
-            <input type="text" name="wallet_code" class="form-control wallet_code" dissabled>
+            <input type="text" name="wallet_code" class="form-control wallet_code" disabled>
           </div>
         {{pass}}
         {{=ICON('times', _class="delete")}}
@@ -201,8 +201,8 @@
     if (res.updated) {
       for (var index in res.updated) {
         var payment = res.updated[index];
-        $('#payment_' + payment.id).find('.amount').val(payment.amount);
-        $('#payment_' + payment.id).find('.change').val(payment.change_amount);
+        $('#payment_' + payment.id).find('.amount').val(payment.amount.toFixed(2));
+        $('#payment_' + payment.id).find('.change').val(payment.change_amount.toFixed(2));
         $('#payment_' + payment.id).find('.wallet_code').val(payment.wallet_code);
       }
     }

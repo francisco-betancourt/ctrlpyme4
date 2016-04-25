@@ -120,6 +120,7 @@ def update_payment():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    # cant modify payments for bag paid online
     if sale.id_bag.is_paid:
         raise HTTP(405)
 
@@ -130,7 +131,7 @@ def update_payment():
     if not payment.is_updatable:
         raise HTTP(405)
 
-    # Accept updates for 7 minutes
+    # Accept updates for certain amount of time (7 minutes) when the sale has been defered, this prevents sellers to modify previous sale payments
     if (request.now - payment.created_on).seconds / 60.0 / 7.0 > 1:
         if sale.is_defered:
             payment.is_updatable = False
@@ -149,6 +150,7 @@ def update_payment():
     if request.vars.delete:
         new_amount = 0
 
+    # since calling this function, could cause modification to other payments, we have to store the modified payments, so the client can render the changes
     extra_updated_payments = []
     total, change, payments = get_payments_data(sale.id)
     new_total = total - change - (payment.amount - payment.change_amount) + new_amount
@@ -169,15 +171,13 @@ def update_payment():
                 new_change = other_payment.change_amount - new_remaining
                 remaining -= new_remaining
                 other_payment.change_amount = new_change
-                # other_payment.amount += new_remaining
                 other_payment.update_record()
-                other_payment.amount = str(DQ(other_payment.amount, True))
-                other_payment.change_amount = str(DQ(other_payment.change_amount, True))
                 extra_updated_payments.append(other_payment)
 
     change = max(0, new_total - sale.total)
     account = request.vars.account
     wallet_code = request.vars.wallet_code
+    # fix payment info
     if not payment.id_payment_opt.allow_change:
         change = 0
     if not payment.id_payment_opt.requires_account:
@@ -212,14 +212,12 @@ def update_payment():
     payment.account = account
     payment.wallet_code = wallet_code
     payment.update_record()
-
-    payment.amount = str(DQ(payment.amount, True))
-    payment.change_amount = str(DQ(payment.change_amount, True))
     if not request.vars.delete:
         extra_updated_payments.append(payment)
     elif payment.is_updatable:
         payment.delete_record()
 
+    # get the total payments data
     payments_data = get_payments_data(sale.id)
     payments_total = payments_data[0] - payments_data[1]
 
@@ -257,7 +255,8 @@ def cancel():
 
 @auth.requires_membership('Sales checkout')
 def update():
-    """ args: [id_sale] """
+    """ This is the main interface to modify sale data, and its payments
+        args: [id_sale] """
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
@@ -269,6 +268,7 @@ def update():
 
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
+    # remove 0 amount payments and calculate the payments total
     payments_total = 0
     for payment in payments:
         if payment.amount <= 0:
@@ -283,10 +283,12 @@ def update():
 
 @auth.requires_membership('Sales checkout')
 def set_sale_client():
-    """ args: [id_sale, id_client] """
+    """ set the specified sale client
+        args: [id_sale, id_client] """
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    # we cannot modify defered sale or online purchased bag
     if sale.is_defered or sale.id_bag.is_paid:
         raise HTTP(405)
     client = db((db.auth_user.is_client == True)
@@ -294,9 +296,19 @@ def set_sale_client():
                 & (db.auth_user.id == request.args(1))
                 ).select().first()
     wallet = None
-    #TODO remove credit payments if the user is None
+    #TODO remove credit payments if the client is None
     if not client:
         sale.id_client = None
+    # the user changed the sale client
+    # elif client != sale.id_client:
+    #     # refund wallet
+    #     wallet = db.wallet(sale.id_client.id_wallet.id)
+    #     payments_sum = db.payment.amount.sum()
+    #     payments_amount = db(
+    #         (db.payment.wallet_code == wallet.wallet_code)
+    #         & (db.payment.id_sale == sale.id)
+    #     ).select(payments_sum).first()[payments_sum]
+    #     print payments_amount
     else:
         sale.id_client = client.id
         if client.id_wallet:

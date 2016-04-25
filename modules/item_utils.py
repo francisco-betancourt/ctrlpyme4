@@ -192,32 +192,32 @@ def fix_item_quantity(item, quantity):
         return remove_fractions(quantity)
 
 
-def get_popular_items(start_date=None, end_date=None, id_store=None):
-    db = current.db
-
-    """ Naive method to get the most bagged items """
-    q_sum = db.bag_item.quantity.sum()
-    data = []
-    for item in db(db.item.is_active == True).select():
-        query = db.bag_item.id_bag == db.bag.id
-        query &= db.bag_item.id_item == item.id
-        if start_date:
-            query &= db.bag_item.created_on >= start_date
-        if end_date:
-            query &= db.bag_item.created_on <= end_date
-        if id_store:
-            query &= db.bag.id_store == id_store
-        counter = db(query).select(q_sum).first()[q_sum] or 0
-        data.append((item, counter))
-    data.sort(key=lambda tup: tup[1], reverse=True)
-    return data
+# def get_popular_items(start_date=None, end_date=None, id_store=None):
+#     db = current.db
+#
+#     """ Naive method to get the most bagged items """
+#     q_sum = db.bag_item.quantity.sum()
+#     data = []
+#     for item in db(db.item.is_active == True).select():
+#         query = db.bag_item.id_bag == db.bag.id
+#         query &= db.bag_item.id_item == item.id
+#         if start_date:
+#             query &= db.bag_item.created_on >= start_date
+#         if end_date:
+#             query &= db.bag_item.created_on <= end_date
+#         if id_store:
+#             query &= db.bag.id_store == id_store
+#         counter = db(query).select(q_sum).first()[q_sum] or 0
+#         data.append((item, counter))
+#     data.sort(key=lambda tup: tup[1], reverse=True)
+#     return data
 
 
 
 def _remove_stocks(item, quantity, sale_date):
     """ remove the specified item quantity from available stocks """
     session = current.session
-    
+
     if not item.has_inventory:
         return 0, 0
     if not quantity:

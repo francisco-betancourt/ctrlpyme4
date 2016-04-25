@@ -323,6 +323,11 @@ db.define_table(
   , Field('base_color', label=T('Base color'))
   , Field('base_color_text', label=T('Base color text'))
 
+  # some chached data
+  # the mount of time in minutes that the cached data will be available
+  , Field('cached_data_timeout', 'integer', default=120, readable=False, writable=False)
+  , Field('cached_popular_items', readable=False, writable=False)
+
   , auth.signature
 )
 hex_match = IS_MATCH('#[0-9a-fA-F]{6}', error_message=T('not hex'))
@@ -333,6 +338,14 @@ db.settings.accent_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+
+
+db.define_table(
+    'cached_data'
+    , Field('name', 'integer', readable=False, writable=False)
+    , Field('val', readable=False, writable=False)
+    , auth.signature
+)
 
 
 db.define_table(
@@ -616,12 +629,13 @@ db.define_table("payment",
     Field("id_bag", "reference bag", label=T('bag')),
     Field("amount", "decimal(16,6)", default=0, label=T('Amount')),
     Field("account", "string", default=None, label=T('Account')),
+    # reference to the wallet
+    Field("wallet_code", default=None, label=T('Wallet code')),
     Field("change_amount", "decimal(16,6)", default=0, label=T('Change amount')),
     # only applicable if payment opt has credit days
     Field('is_settled', 'boolean', default=True, label=T('Is settled')),
     Field("epd", "date", label=T('Estimated payment date')),
     Field('settled_on', 'datetime', label=T('Settled on')),
-    Field("wallet_code", default=None, label=T('Wallet code')),
     Field("stripe_charge_id", default=None, label=T('stripe_charge_id')),
     Field("is_updatable", 'boolean', default=True, label=T('Is updatable')),
     auth.signature)

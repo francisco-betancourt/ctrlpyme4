@@ -11,12 +11,49 @@
 from datetime import date
 from item_utils import get_popular_items
 
+
+def get_popular_items(start_date, end_date, amount=10, id_store=None):
+    """ Naive method to get the most bagged items """
+
+    # first of all, check the cached data
+    cached = db(db.cached_data.name == CACHED_POPULAR_ITEMS).select().first()
+    if cached:
+        cache_lifetime = request.now - cached.modified_on
+        # recalculate after 2 hours
+        if cache_lifetime < timedelta(minutes=120):
+            ids = map(int, cached.val.split(','))
+            return db(db.item.id.belongs(ids)).select()
+    else:
+        cached_id = db.cached_data.insert(name=CACHED_POPULAR_ITEMS)
+        cached = db.cached_data(cached_id)
+
+    q_sum = db.bag_item.quantity.sum()
+    data = []
+    for item in db(db.item.is_active == True).select():
+        query = db.bag_item.id_bag == db.bag.id
+        query &= db.bag_item.id_item == item.id
+        if start_date:
+            query &= db.bag_item.created_on >= start_date
+        if end_date:
+            query &= db.bag_item.created_on <= end_date
+        if id_store:
+            query &= db.bag.id_store == id_store
+        counter = db(query).select(q_sum).first()[q_sum] or 0
+        data.append((item, counter))
+    data.sort(key=lambda tup: tup[1], reverse=True)
+    data = data[:amount]
+    data = [d[0] for d in data] # remove counter
+    # update chache
+    cached.val = ','.join(map(lambda x: str(x.id), data))
+    cached.update_record()
+    return data
+
+
 def index():
     # best sellers this month
     start_date = date(request.now.year, request.now.month, 1)
     end_date = date(request.now.year, request.now.month + 1, 1)
-    pop_items = get_popular_items(start_date, end_date)
-    popular_items = [d[0] for d in pop_items[:10]]
+    popular_items = get_popular_items(start_date, end_date)
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 
