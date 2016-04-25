@@ -5,7 +5,7 @@
   <h1>{{=T('Working on full Inventory')}} {{=inventory.id}}</h1>
 {{pass}}
 
-{{include "barcode_scanner.html"}}
+<div id="inventory_scanner_container"></div>
 
 <table class="table">
   <thead>
@@ -99,5 +99,6 @@
     alert("{{=T('Barcode not found')}}");
   }
 
-  setup_scanner(success_callback, fail_callback, null, null, 'inventory');
+  var scanner = create_scanner('inventory', $('#inventory_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, null, null);
 </script>

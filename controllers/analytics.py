@@ -86,11 +86,12 @@ def get_day_sales_data(day, id_store):
         payments.append(bag_pay)
     income = 0
     for payment in payments:
-        income += payment.amount - payment.change_amount
-        index = payment.created_on.hour
-        data[index] += float(payment.amount - payment.change_amount)
+        income += payment['amount'] - payment['change_amount']
+        index = payment['created_on'].hour
+        data[index] += float(payment['amount'] - payment['change_amount'])
 
     return data
+
 
 
 @auth.requires_membership("Analytics")
@@ -118,16 +119,18 @@ def cash_out():
     start_date = datetime(s_date.year, s_date.month, s_date.day, 0)
     end_date = start_date + CASH_OUT_INTERVAL
 
+    # check if the cash out is in a valid interval
     if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
         raise HTTP(405)
 
     payment_opts = db(db.payment_opt.is_active == True).select()
+    payment_opts_ref = {}
     # will be used to create a payments chart
-    payment_opt_data = {}
     for payment_opt in payment_opts:
-        payment_opt_data[str(payment_opt.id)] = {
-            "color": random_color_mix(PRIMARY_COLOR), "label": payment_opt.name, "value": 0
-        }
+        payment_opt.c_value = 0
+        payment_opt.c_label = payment_opt.name
+        payment_opt.c_color = random_color_mix(PRIMARY_COLOR)
+        payment_opts_ref[str(payment_opt.id)] = payment_opt
 
     sales = db((db.sale.id == db.sale_log.id_sale)
                 & ((db.sale_log.sale_event == 'paid')
@@ -313,23 +316,10 @@ def dataset_format(label, data, f_color):
     return {
         'label': label,
         'data': data,
-        'fillColor': hex_to_css_rgba(fill_color, .4),
-        'strokeColor': fill_color,
-        'pointColor': fill_color,
+        'backgroundColor': hex_to_css_rgba(fill_color, .4),
+        'borderColor': fill_color,
+        'pointBorderColor': fill_color,
     }
-
-
-def pie_data_format(records):
-    data = []
-    for record in records:
-        f_color = record.c_color if record.c_color else random_color_mix(PRIMARY_COLOR)
-        data.append(dict(
-            value=record.c_value,
-            label=record.c_label,
-            color=f_color
-        ))
-    return data
-
 
 
 @auth.requires_membership('Admin')
@@ -360,7 +350,7 @@ def dashboard():
         payments = get_payments_in_range(start_date, end_date, store.id).as_list()
         store.c_value = 0
         for payment in payments:
-            store.c_value += payment.amount - payment.change_amount
+            store.c_value += payment['amount'] - payment['change_amount']
         store.c_value = str(DQ(store.c_value, True))
         sales_data['datasets'].append(
             dataset_format(store.name, get_day_sales_data(None, store.id), store.c_color)
@@ -378,7 +368,7 @@ def dashboard():
                 & (db.stock_item.created_on < current_max_stock_date)
                 ).select(stocks_sum).first()[stocks_sum]
             stocks_qty_data.append(float(current_items or 0))
-            # select next month assuming that the end date is the las month of the current year
+            # select next month assuming that the end date is the last month of the current year
             current_max_stock_date = date(current_max_stock_date.year, current_max_stock_date.month + 1, 1)
         items_data['datasets'].append(dataset_format(store.name, stocks_qty_data, store.c_color))
 

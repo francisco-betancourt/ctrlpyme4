@@ -32,6 +32,7 @@ def CB(selected=False, _id=""):
 
 
 def discounts_list(discounts):
+    T = current.T
     ul = UL(_class="list-group")
 
     for discount in discounts:

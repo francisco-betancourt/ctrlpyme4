@@ -25,10 +25,13 @@
   Chart.defaults.global.showScale = false;
 
   var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  today_sales_data.datasets[0].fillColor = "{{=hex_to_css_rgba(accent_color, .7)}}";
-  today_sales_data.datasets[0].pointColor = "{{=accent_color_dim}}";
-  today_sales_data.datasets[0].strokeColor = "{{=accent_color_dim}}";
-  var myLineChart = new Chart(ctx).Line(today_sales_data, { pointHitDetectionRadius: 5
+  today_sales_data.datasets[0].backgroundColor = "{{=hex_to_css_rgba(accent_color, .7)}}";
+  today_sales_data.datasets[0].pointBorderColor = "{{=accent_color_dim}}";
+  today_sales_data.datasets[0].borderColor = "{{=accent_color_dim}}";
+  today_sales_data.datasets[0].label = "{{=T('today')}}";
+  var myLineChart = new Chart(ctx, {
+    type: 'line', data: today_sales_data,
+    pointHitDetectionRadius: 5
   });
 
 </script>

@@ -246,6 +246,21 @@ def color_mix(hex1, hex2):
     return rgb_to_hex(r, g, b)
 
 
+def pie_data_format(records):
+    data = {'labels': [], 'datasets': [
+        {
+            'data': [],
+            'backgroundColor': []
+        }
+    ]}
+    for record in records:
+        f_color = record.c_color if record.c_color else random_color_mix(PRIMARY_COLOR)
+        data['labels'].append(record.c_label)
+        data['datasets'][0]['data'].append(record.c_value)
+        data['datasets'][0]['backgroundColor'].append(f_color)
+    return data
+
+
 
 def current_url():
     request = current.request

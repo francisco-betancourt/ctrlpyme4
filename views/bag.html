@@ -49,7 +49,6 @@
     {{ # barcode is only available for employees }}
     {{ if user_is_employee: }}
       <div id='barcode_scanner_container' style="padding-left: 15px; padding-right: 15px;">
-        {{include 'barcode_scanner.html'}}
       </div>
     {{ pass }}
 
@@ -379,7 +378,10 @@
         })
       }
       function fail_callback(data, barcode) { }
-      setup_scanner(success_callback, fail_callback, requirement, null, 'bag_scanner');
+
+      var container = $('#barcode_scanner_container');
+      var scanner = create_scanner('bag_scanner', container);
+      setup_scanner(scanner, success_callback, fail_callback, requirement, null);
 
 
       function set_sale_price(_price_index, _bag_item_id, _target) {

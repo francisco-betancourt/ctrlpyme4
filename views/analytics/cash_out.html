@@ -61,16 +61,16 @@
               <h4 class="right"> $ {{=DQ(sale.total, True)}} </h4>
             </div>
               <div class="progress sale-progress noprint">
-                {{for payment_key in sale.payments.iterkeys(): }}
-                  {{ payment_opt = payment_opt_data[payment_key] }}
-                  {{ payment = sale.payments[payment_key]}}
-                  {{ hex = payment_opt["color"] }}
+                {{for _key in sale.payments.iterkeys(): }}
+                  {{ payment_opt = payment_opts_ref[_key] }}
+                  {{ payment = sale.payments[_key] }}
+                  {{ hex = payment_opt.c_color }}
 
                   {{payment_amount = payment.amount - payment.change_amount}}
                   {{p = payment.amount / (sale.payments_total + sale.change) * DQ(100, True)}}
                   <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
-                    <span>{{=payment_opt['label']}}: {{=DQ(payment.amount, True)}}</span>
-                    {{ payment_opt['value'] += DQ(payment_amount, True) }}
+                    <span>{{=payment_opt.c_label}}: {{=DQ(payment.amount, True)}}</span>
+                    {{ payment_opt.c_value += DQ(payment_amount, True) }}
                   </div>
                   {{p = sale.change / (sale.payments_total + sale.change) * DQ(100, True)}}
                   <div class="progress-bar" style="width: {{=p}}%; background-color: #333; font-size: 14px;">
@@ -86,9 +86,9 @@
     <div class="print">
       <h5><span class="right">{{=T('Total')}} : $ {{=total}}</span></h5><br>
       <hr>
-      {{for payment_opt in payment_opt_data.itervalues(): }}
-        {{ if payment_opt['value']: }}
-          <h5><span class="right">{{=payment_opt['label']}} : $ {{=payment_opt['value']}}</span></h5><br>
+      {{for payment_opt in payment_opts: }}
+        {{ if payment_opt.c_value: }}
+          <h5><span class="right">{{=payment_opt.c_label}} : $ {{=payment_opt.c_value}}</span></h5><br>
         {{pass}}
       {{pass}}
       <hr>
@@ -101,11 +101,11 @@
 
 
     {{block page_js}}
-      {{=SCRIPT("var payment_opt_distrib = %s" % json(payment_opt_data) )}}
+      {{=SCRIPT("var payment_opt_distrib = %s" % json(pie_data_format(payment_opts)) )}}
       <script src="{{=URL('static', 'js/Chart.js')}}" charset="utf-8"></script>
       <script type="text/javascript">
         var ctx = document.getElementById("payment_opt_distrib").getContext("2d");
-        var myDoughnutChart = new Chart(ctx).Pie(payment_opt_distrib, null);
+        new Chart(ctx, {type: 'pie', data: payment_opt_distrib});
 
         $('.cash-out-update').change(function (event) {
           info_card("{{=T('Saving...')}}");
