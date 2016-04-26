@@ -19,6 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 from constants import STRIPE_SK, STRIPE_PK
+from bag_utils import check_bag_owner, bag_selection_return_format
 
 precheck()
 
@@ -47,6 +48,19 @@ def select_bag():
 
 
 @auth.requires_membership('Clients')
+def activate_bag():
+    """ Reactivate a bag that has been BAG_ORDER_COMPLETED but not paid
+        args: [id_bag] """
+
+    bag = check_bag_owner(request.args(0))
+    if not bag.status == BAG_ORDER_COMPLETE or bag.is_paid or bag.is_sold:
+        raise HTTP(405)
+    bag.status = BAG_ACTIVE
+    bag.update_record()
+    return dict()
+
+
+@auth.requires_membership('Clients')
 def order_complete():
     bag = get_valid_order_bag(request.args(0))
 
@@ -67,7 +81,7 @@ def create():
 
     stores = db(db.store.is_active == True).select()
 
-    form = SQLFORM(db.sale_order, buttons=[], formstyle="bootstrap")
+    form = SQLFORM(db.sale_order, buttons=[], formstyle="bootstrap", _id="order_form")
     if not bag.is_paid:
         form[0].insert(-1, BUTTON(T('Pay now'), _id="custom_button", _class="btn btn-primary" ))
         form[0].insert(-1, INPUT(_value=T('Pay on store'), _type="submit", _class="btn", _id="pay_on_store_button"))
@@ -93,6 +107,7 @@ def create():
         bag.id_store = sale_order.id_store
         bag.update_record()
 
+
         # email
         subject = T('Thank you for your order')
         order_concept = T('Your order has been processed')
@@ -111,6 +126,7 @@ def create():
         email_msg = '<html>' + email_msg + '</html>'
         # send receipt email
         r = mail.send(to=[auth.user.email], subject=subject, message=email_msg)
+
 
         redirect(URL('default', 'index'))
     elif form.errors:

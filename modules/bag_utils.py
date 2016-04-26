@@ -56,6 +56,10 @@ def auto_bag_selection():
     if not current_bag:
         new_bag_id = db.bag.insert(created_by=auth.user.id, completed=False, id_store=session.store)
         current_bag = db.bag(new_bag_id)
+    # in this case the user almost paid a bag but something happened and the bag state was left as BAG_ORDER_COMPLETE, so we have to set it as active
+    if current_bag.status == BAG_ORDER_COMPLETE and not current_bag.is_paid and not current_bag.is_sold:
+        current_bag.status = BAG_ACTIVE
+        current_bag.update_record()
 
     session.current_bag = current_bag.id
     return current_bag
@@ -110,6 +114,7 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
 
 
 def check_bag_owner(id_bag):
+    """ checks if the specified bag belongs to the current user """
     db = current.db
     auth = current.auth
 

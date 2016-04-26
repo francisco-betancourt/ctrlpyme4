@@ -92,16 +92,17 @@
 
 {{ if not user_is_employee: }}
   <p>{{=T('All prices includes taxes')}}</p>
+  <p>* {{=T('Discounts only applicable when paid online')}}</p>
 {{ pass }}
 
 
 <div id="proto_bag_item" class="list-group-item" hidden="hidden">
   <div>
-    <h4><span class="item_name"></span> <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}}</span>
+    <h4><span class="item_name"></span> <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}}*</span>
       {{=ICON("close", _class="right close")}}
     </h4>
     <p><span class="item_stock"></span></p>
-    <p><span class="item_price base_price"></span></p>
+    <p>$ <span class="item_price base_price"></span></p>
     {{ # multiprice only available for employees }}
     {{ if user_is_employee: }}
       <p> <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
@@ -276,7 +277,7 @@
         url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
       })
       .done(function (data) {
-        new_item.find('.item_qty').val(data.bag_item.quantity)
+        new_item.find('.item_qty').val(data.bag_item.quantity);
         set_bag_data(data)
       })
     });

@@ -59,8 +59,36 @@
         .fail(function (res) {
           console.log(res);
         })
+      },
+      closed: function () {
+        $.ajax({
+          url: "{{=URL('activate_bag', args=bag.id, extension='json')}}"
+        })
+        .done(function (res) {
+          order_unlock();
+        })
+        .fail(function (res) {
+          console.log(res);
+        });
       }
     });
+
+    $('#pay_on_store_button').on('click', function(e) {
+      e.preventDefault();
+      var r = confirm("{{=T('Discounts will not be applied')}} \n\n {{=T('Your new total will be')}}: ");
+      if (r == true) { $('#order_form').submit(); }
+    })
+
+    function order_lock() {
+      lock_bag();
+      document.getElementById('custom_button').setAttribute('disabled', 'disabled');
+      document.getElementById('pay_on_store_button').setAttribute('disabled', 'disabled');
+    }
+    function order_unlock() {
+      unlock_bag();
+      document.getElementById('custom_button').removeAttribute('disabled');
+      document.getElementById('pay_on_store_button').removeAttribute('disabled');
+    }
 
     $('#custom_button').on('click', function(e) {
       e.preventDefault();
@@ -70,10 +98,7 @@
       })
       .done(function (res) {
         if (res.completed) {
-          document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
-          $('#current_bag .close').remove();
-          document.getElementById('custom_button').setAttribute('disabled', 'disabled');
-          document.getElementById('pay_on_store_button').setAttribute('disabled', 'disabled');
+          order_lock();
 
           handler.open({
             name: '{{=COMPANY_NAME}}',
