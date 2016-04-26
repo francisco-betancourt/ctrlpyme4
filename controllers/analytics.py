@@ -391,12 +391,24 @@ def index():
     expenses = day_data['expenses']
     today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    employees_query = ((db.auth_membership.group_id == db.auth_group.id)
-                    & (db.auth_user.id == db.auth_membership.user_id)
-                    & (db.auth_user.registration_key == '')
-                    & (db.auth_membership.user_id == db.auth_user.id)
-                    & (db.auth_group.role == 'Sales checkout'))
-    employees_data = SUPERT(employees_query, (db.auth_user.ALL), fields=[dict(fields=['first_name', 'last_name'], label_as=T('Name')), 'email'], options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id)))
+    store_group = db(db.auth_group.role == 'Store %s' % session.store).select().first()
+    checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
+    # query the employees with current store membership
+    store_employees_ids = [r.id for r in db(
+          (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_membership.group_id == store_group.id)
+    ).select(db.auth_user.id, cache=(cache.ram,3600), cacheable=True)]
+    # employees with store membership and checkout membership
+    employees_query = (
+        (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_user.id.belongs(store_employees_ids))
+        & (db.auth_membership.group_id == checkout_group.id)
+    )
+    employees_data = SUPERT(employees_query, db.auth_user.ALL,
+        fields=[dict(fields=['first_name', 'last_name'],
+        label_as=T('Name')), 'email'],
+        options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id), title=T('cash out'))
+    )
 
     return locals()
 
