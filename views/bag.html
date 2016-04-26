@@ -58,10 +58,11 @@
 
   <div class="panel-footer">
     {{ if user_is_employee: }}
-      <p> <span>{{=T('Subtotal')}}</span> <span class="right subtotal">00</span> </p>
-      <p> <span>{{=T('Taxes')}}</span> <span class="right taxes">00</span> </p>
+      <p> <span>{{=T('Subtotal')}}</span> <span class="right">$ <span class="subtotal">00</span></span> </p>
+      <p> <span>{{=T('Taxes')}}</span> <span class="right">00$ <span class="taxes">00</span></span> </p>
     {{ pass }}
-    <p> <span>{{=T('Total')}}</span> <span class="right total">00</span> </p>
+    <p> <span>{{=T('Total')}}</span> <span class="right">$ <span class="total">00</span></span> </p>
+    <p> <span>{{=T('Total without discounts')}}</span> <span class="right">$ <span class="no-discount-total">00</span></span> </p>
 
     {{ if not bag_only_items_list: }}
     <div id="bag_buttons">
@@ -106,9 +107,9 @@
     {{ # multiprice only available for employees }}
     {{ if user_is_employee: }}
       <p> <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
-          <a type="button" class="btn btn-default item_price"></a>
-          <a type="button" class="btn btn-default price2"></a>
-          <a type="button" class="btn btn-default price3"></a>
+          <a type="button" class="btn btn-default">$ <span class="item_price"></span></a>
+          <a type="button" class="btn btn-default">$ <span class="price2"></span></a>
+          <a type="button" class="btn btn-default">$ <span class="price3"></span></a>
         </div> </p>
     {{ pass }}
     <div class="input-group">
@@ -136,11 +137,20 @@
 
 <script type="text/javascript">
   function set_bag_data(data) {
-    $('#current_bag .subtotal').text(data.subtotal);
-    $('#current_bag .taxes').text(data.taxes);
-    $('#current_bag .total').text(data.total);
+    $('#current_bag .subtotal').text(parseFloat(data.subtotal).toFixed(2));
+    $('#current_bag .taxes').text(parseFloat(data.taxes).toFixed(2));
+    var total = parseFloat(data.total).toFixed(2);
+    var total_no_discounts = parseFloat(data.real_total).toFixed(2);
+    $('#current_bag .total').text(total);
+    if (total != total_no_discounts) {
+      $('#current_bag .no-discount-total').text(total_no_discounts);
+    }
+    else {
+      $('#current_bag .no-discount-total').parent().parent().remove();
+    }
 
     $('#current_bag .bag_quantity').text(data.quantity);
+    console.log()
   }
 
   var price_index = null;

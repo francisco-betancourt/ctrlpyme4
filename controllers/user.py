@@ -19,14 +19,6 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-def client_order_options(row):
-    td = TD()
-
-    # view ticket
-    td.append(option_btn('', URL('bag', 'ticket', args=row.id_bag.id), action_name=T('View ticket')))
-    return td
-
-
 @auth.requires_membership('Employee')
 def employee_profile():
     return dict()
@@ -41,9 +33,10 @@ def profile():
 
 @auth.requires_membership('Clients')
 def client_profile():
-    orders = db(db.sale_order.id_client == auth.user.id).select()
-    orders_data = None
-    orders_data = super_table('sale_order', ['is_ready'], (db.sale_order.id_client == auth.user.id), options_function=client_order_options, show_id=True, selectable=False)
+    orders_data = SUPERT(db.sale_order.id_client == auth.user.id,
+        fields=['id', 'is_ready'], searchable=False,
+        options_func=lambda r: OPTION_BTN('receipt', URL('ticket', 'get', vars=dict(id_bag=r.id_bag.id)), title=T('ticket') )
+    )
     wallet_balance = 0
     if auth.user.id_wallet:
         wallet_balance = db.wallet(auth.user.id_wallet).balance

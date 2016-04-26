@@ -57,7 +57,7 @@ def auto_bag_selection():
         new_bag_id = db.bag.insert(created_by=auth.user.id, completed=False, id_store=session.store)
         current_bag = db.bag(new_bag_id)
     # in this case the user almost paid a bag but something happened and the bag state was left as BAG_ORDER_COMPLETE, so we have to set it as active
-    if current_bag.status == BAG_ORDER_COMPLETE and not current_bag.is_paid and not current_bag.is_sold:
+    if current_bag.status == BAG_ORDER_COMPLETE and not current_bag.is_paid and not current_bag.is_sold and auth.user.is_client:
         current_bag.status = BAG_ACTIVE
         current_bag.update_record()
 
@@ -86,9 +86,9 @@ def refresh_bag_data(id_bag):
         quantity += bag_item.quantity
         reward_points += bag_item.id_item.reward_points or 0
     bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
-    subtotal = money_format(DQ(subtotal, True))
-    taxes = money_format(DQ(taxes, True))
-    total = money_format(DQ(total, True))
+    # subtotal = money_format(DQ(subtotal, True))
+    # taxes = money_format(DQ(taxes, True))
+    # total = money_format(DQ(total, True))
     quantity = DQ(quantity, True, True)
 
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
@@ -162,20 +162,39 @@ def is_complete_bag(id_bag):
     return dict(bag=bag)
 
 
+def bag_item_taxes(bag_item, price):
+    """ calculates the bag items taxes using the bag item taxes string """
+    total = 0
+    try:
+        for tax_percentage in map(lambda x : int(x.split(':')[1]), bag_item.item_taxes.split(',')):
+            total += (price or 0) * D((tax_percentage or 0) / 100.0)
+        return DQ(total)
+    except:
+        return D(0)
+
+
 def set_bag_item(bag_item, discounts=[]):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
     session = current.session
 
     item = bag_item.id_item
-    # bag_item.name = item.name
 
-    discount_p = DQ(1.0) - (bag_item.sale_price / (bag_item.sale_price + (bag_item.discount or 0) ))
+    # stores the price without discounts
+    real_price = bag_item.sale_price + (bag_item.discount or 0)
+    # discount percentage
+    discount_p = DQ(1.0) - bag_item.sale_price / real_price
     item.base_price -= item.base_price * discount_p
+
     bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
     bag_item.base_price = money_format(DQ(item.base_price, True)) if item.base_price else 0
     bag_item.price2 = money_format(DQ(item.price2 - item.price2 * discount_p, True)) if item.price2 else 0
     bag_item.price3 = money_format(DQ(item.price3 - item.price3 * discount_p, True)) if item.price3 else 0
     bag_item.sale_price = money_format(DQ(bag_item.sale_price or 0, True))
+
+
+    # add taxes without discounts
+    real_price += bag_item_taxes(bag_item, real_price)
+    bag_item.price_no_discount = real_price
 
     bag_item.measure_unit = item.id_measure_unit.symbol
 
@@ -184,6 +203,7 @@ def set_bag_item(bag_item, discounts=[]):
     bag_item.has_inventory = item.has_inventory
     bag_item.stock = stocks['quantity'] if stocks else 0
     bag_item.discount_percentage = int(discount_p * D(100.0))
+    bag_item.real_price = bag_item.sale_price
 
     return bag_item
 
@@ -192,15 +212,14 @@ def bag_selection_return_format(bag):
     db = current.db
 
     bag_items = []
+    real_total = 0
     for bag_item in db(db.bag_item.id_bag == bag.id).select():
         bag_item_modified = set_bag_item(bag_item)
         bag_items.append(bag_item_modified)
+        real_total += bag_item.price_no_discount
     quantity = DQ(bag.quantity, True, True)
-    subtotal = money_format(DQ(bag.subtotal, True))
-    taxes = money_format(DQ(bag.taxes, True))
-    total = money_format(DQ(bag.total, True))
 
-    return dict(bag=bag, bag_items=bag_items, subtotal=subtotal, total=total, taxes=taxes, quantity=quantity)
+    return dict(bag=bag, bag_items=bag_items, subtotal=bag.subtotal, total=bag.total, taxes=bag.taxes, quantity=quantity, real_total=real_total)
 
 
 def get_valid_bag(id_bag, completed=False):

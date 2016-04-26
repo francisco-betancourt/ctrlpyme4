@@ -75,8 +75,8 @@
 
     $('#pay_on_store_button').on('click', function(e) {
       e.preventDefault();
-      var r = confirm("{{=T('Discounts will not be applied')}} \n\n {{=T('Your new total will be')}}: ");
-      if (r == true) { $('#order_form').submit(); }
+      var r = confirm("{{=T('Discounts will not be applied')}} ({{=T('Total without discounts will be the total to pay')}}) ");
+      if (r) { $('#order_form').submit(); }
     })
 
     function order_lock() {

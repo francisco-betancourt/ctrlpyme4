@@ -19,6 +19,9 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+from bag_utils import get_valid_bag, check_bag_owner
+
+
 def ticket_store_data(store):
     store_data = P()
     if store:
@@ -212,7 +215,7 @@ def bag_ticket(id_bag):
     if not (auth.has_membership('Sales bags') or auth.has_membership('Clients')):
         raise HTTP(404)
 
-    bag = get_valid_bag(id_bag, True)
+    bag = check_bag_owner(id_bag)
     if not bag:
         raise HTTP(404)
     store_data = ticket_store_data(bag.id_store)
@@ -220,9 +223,9 @@ def bag_ticket(id_bag):
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
-    totals = [ '%s : $ %s' % (T('subtotal'), bag.subtotal, True) ]
+    totals = [ '%s : $ %s' % (T('subtotal'), DQ(bag.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), bag.total, True) ]
+    totals += [ '%s : $ %s' % (T('total'), DQ(bag.total, True)) ]
     total_data = ticket_total_data(totals)
 
     return ticket_format(store_data, T('Bag'),

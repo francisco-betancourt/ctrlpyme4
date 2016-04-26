@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 from constants import STRIPE_SK, STRIPE_PK
-from bag_utils import check_bag_owner, bag_selection_return_format
+from bag_utils import check_bag_owner, bag_selection_return_format, bag_item_taxes
 
 precheck()
 
@@ -102,6 +102,24 @@ def create():
         sale_order.update_record()
         session.info = {'text': T("You're order has been created, we will notify you when it's ready"), 'button': {'text': 'View ticket', 'ref': URL('bag', 'ticket', args=bag.id), 'target': 'blank'}
         }
+        # remove discounts if the bag was not paid
+        if not bag.is_paid:
+            bag_subtotal, bag_taxes, bag_total = 0, 0, 0
+            bag_items = db(db.bag_item.id_bag == bag.id).select()
+            for bag_item in bag_items:
+                bag_item.sale_price = bag_item.sale_price + bag_item.discount
+                bag_item.discount = 0
+                # recalculate bag item taxes
+                bag_item.sale_taxes = bag_item_taxes(bag_item, bag_item.sale_price)
+                bag_item.update_record()
+                bag_subtotal += bag_item.sale_price
+                bag_taxes += bag_item.sale_taxes
+                bag_total += bag_item.sale_price + bag_item.sale_taxes
+            # we also need to update bag data
+            bag.subtotal = bag_subtotal
+            bag.taxes = bag_taxes
+            bag.total = bag_total
+
         bag.completed = True
         bag.status = BAG_COMPLETE
         bag.id_store = sale_order.id_store

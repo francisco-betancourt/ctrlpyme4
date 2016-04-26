@@ -344,6 +344,10 @@ def item_images(id_item):
 def filter_menu(filter_data):
     """ """
 
+    T = current.T
+    db = current.db
+    request = current.request
+
     tablename = filter_data['tablename']
     sort_options = SELECT(_class="form-control")
     for sort_option in filter_data['sortby']:
@@ -363,6 +367,8 @@ def filter_menu(filter_data):
 
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
+    T = current.T
+    
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
     button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn', _onclick=click_action)
     return button
@@ -422,6 +428,10 @@ def super_table(table, fields, query, row_function=default_row_function,
 
         This function will use the database table field labels as table headers.
     """
+
+    request = current.request
+    db = current.db
+    T = current.T
 
     orderby_field = request.vars.orderby
     if not orderby_field:

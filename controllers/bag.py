@@ -108,6 +108,7 @@ def add_bag_item():
         if base_qty <= 0:
             return dict(status="out of stock")
 
+        # create item taxes string, the string contains the tax name and its percentage, see db.py > bag_item table for more info
         if not bag_item:
             item_taxes_str = ''
             for tax in item.taxes:
