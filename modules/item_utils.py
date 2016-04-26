@@ -192,7 +192,7 @@ def fix_item_quantity(item, quantity):
         return remove_fractions(quantity)
 
 
-# def get_popular_items(start_date=None, end_date=None, id_store=None):
+# def get_popular_items(start_date=None, end_date=None, amount=10, id_store=None):
 #     db = current.db
 #
 #     """ Naive method to get the most bagged items """
@@ -210,6 +210,8 @@ def fix_item_quantity(item, quantity):
 #         counter = db(query).select(q_sum).first()[q_sum] or 0
 #         data.append((item, counter))
 #     data.sort(key=lambda tup: tup[1], reverse=True)
+#     data = data[:amount]
+#     data = [d[0] for d in data[:amount]] # remove counter
 #     return data
 
 

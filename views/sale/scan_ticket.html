@@ -1,9 +1,7 @@
 {{extend 'layout.html'}}
 
 <h1>{{=T('Scan Bag ticket')}}</h1>
-
-{{include 'barcode_scanner.html'}}
-
+<div id="ticket_scanner_container"></div>
 
 {{block page_js}}
 <script>
@@ -15,6 +13,7 @@
     window.location.href = "{{=URL('sale', 'create')}}/" + barcode;
   }
 
-  setup_scanner(success_callback, fail_callback, null, "{{=URL('bag', 'get', extension='json')}}/");
+  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, null, "{{=URL('bag', 'get', extension='json')}}/");
 </script>
 {{end}}

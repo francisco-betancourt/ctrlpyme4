@@ -148,6 +148,9 @@ def is_modifiable_bag(id_bag):
 
 
 def is_complete_bag(id_bag):
+    db = current.db
+    session = current.session
+
     bag = db((db.bag.status == BAG_COMPLETE) & (db.bag.id == id_bag) & (db.bag.id_store == session.store)).select().first()
     if not bag:
         raise HTTP(404)
@@ -157,7 +160,7 @@ def is_complete_bag(id_bag):
 def set_bag_item(bag_item, discounts=[]):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
     session = current.session
-    
+
     item = bag_item.id_item
     # bag_item.name = item.name
 

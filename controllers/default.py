@@ -9,7 +9,6 @@
 #########################################################################
 
 from datetime import date
-from item_utils import get_popular_items
 
 
 def get_popular_items(start_date, end_date, amount=10, id_store=None):
