@@ -20,6 +20,8 @@
 
 precheck()
 
+from item_utils import remove_stocks
+
 
 @auth.requires_membership('Stock transfers')
 def ticket():

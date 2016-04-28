@@ -23,7 +23,7 @@ from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
 from bag_utils import *
-from item_utils import item_stock, discount_data
+from item_utils import item_stock, discount_data, remove_stocks
 
 
 allow_out_of_stock = True
@@ -251,7 +251,7 @@ def stock_transfer():
 
     # create stock transfer record
     new_stock_transfer_id = db.stock_transfer.insert(id_store_from=bag.id_store.id, id_bag=bag.id)
-    bag.completed = True
+    bag.status = BAG_COMPLETE
     bag.update_record()
     remove_stocks(bag_items)
 

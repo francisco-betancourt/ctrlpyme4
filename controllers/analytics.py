@@ -301,13 +301,6 @@ def item_analysis():
         (db.sale.id_store == session.store) &
         (db.bag_item.id_item == item.id)
     ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
-    # sales = db(
-    #     # (db.bundle_item.id_bundle == db.item.id)
-    #     (db.bag_item.id_bag == db.bag.id)
-    #     & (db.sale.id_bag == db.bag.id)
-    #     & (db.sale.id_store == session.store)
-    #     & (db.bag_item.id_item == item.id)
-    # ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
     stock_transfers = db(
         # (db.bundle_item.id_bundle == db.item.id)
         (db.bag_item.id_bag == db.bag.id)
