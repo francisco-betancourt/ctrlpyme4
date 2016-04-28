@@ -458,7 +458,7 @@ def item_options(row):
     return buttons
 
 
-@auth.requires_membership('Employee')
+@auth.requires(auth.has_membership('Employee') or auth.has_membership('Admin'))
 def index():
     fields = [
         {

@@ -51,6 +51,8 @@
       } else {
         url_vars = 'term=' + s_term;
       }
+      if (base_url.slice(-1) == '#')
+        base_url = base_url.slice(0, -1);
       url_vars = url_vars.replace(/&page=.*(?=&)|&page=.*$/, '');
       window.location.href = base_url + '?' + url_vars;
     });

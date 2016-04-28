@@ -49,7 +49,7 @@ BASE_COLOR_TEXT = '#444'
 USE_MATERIAL_ICONS = True
 
 
-main_settings = db(db.settings.id_store == None).select(cache=(cache.ram, 3600), cacheable=True).first()
+main_settings = db(db.settings.id_store == None).select().first()
 if main_settings:
     if main_settings.company_name:
         COMPANY_NAME = main_settings.company_name

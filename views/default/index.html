@@ -14,6 +14,7 @@
 
 
 {{block header}}
+{{ if highlights or offers: }}
 <div class="highlights_container">
   <h1>{{=T('Highlights')}}</h1>
   <div class="highlights">
@@ -37,6 +38,7 @@
     {{pass}}
   </div>
 </div>
+{{ pass }}
 
 
 <script>
@@ -50,12 +52,14 @@
 
 
 
+{{ if popular_items: }}
 <h2>{{=T('Popular items')}}</h2>
 <div class="items-container no-wrap">
   {{for popular_item in popular_items:}}
     {{=item_card(popular_item)}}
   {{pass}}
 </div>
+{{ pass }}
 
 <h2>{{=T('New items')}}</h2>
 <div class="items-container no-wrap">
@@ -63,6 +67,8 @@
     {{=item_card(new_item)}}
   {{pass}}
 </div>
+
+<!-- <h2>{{=T('Stores')}}</h2> -->
 
 
 <script>

@@ -305,7 +305,7 @@ db.define_table(
   , Field('id_store', 'reference store', default=None, readable=False, writable=False)
   , Field('company_name', label=T('Name'))
   , Field('company_slogan', label=T('Slogan'))
-  , Field('company_logo', 'upload', label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
+  , Field('company_logo', 'upload', label=T('Logo'), default=None, uploadfolder=os.path.join(request.folder, 'static/uploads'))
 
   , Field('extra_field_1', label=T('Extra field') + '1')
   , Field('extra_field_2', label=T('Extra field') + '2')

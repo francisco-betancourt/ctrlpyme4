@@ -20,7 +20,10 @@ def get_popular_items(start_date, end_date, amount=10, id_store=None):
         cache_lifetime = request.now - cached.modified_on
         # recalculate after 2 hours
         if cache_lifetime < timedelta(minutes=120):
-            ids = map(int, cached.val.split(','))
+            try:
+                ids = map(int, cached.val.split(','))
+            except:
+                return []
             return db(db.item.id.belongs(ids)).select(orderby='<random>')
     else:
         cached_id = db.cached_data.insert(name=CACHED_POPULAR_ITEMS)
