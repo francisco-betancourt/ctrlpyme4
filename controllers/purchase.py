@@ -479,9 +479,9 @@ def update():
     redirect(URL('fill', args=request.args))
 
 
-@auth.requires_membership('Purchases')
-def delete():
-    return common_delete('purchase', request.args)
+# @auth.requires_membership('Purchases')
+# def delete():
+#     return common_delete('purchase', request.args)
 
 
 def purchase_options(row):
@@ -490,8 +490,9 @@ def purchase_options(row):
     if not row.is_done:
         buttons += OPTION_BTN('edit', URL('update', args=row.id), title=T('edit')),
     else:
+        buttons += OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
         buttons += OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
-    buttons += supert_default_options(row)[1],
+    # buttons += supert_default_options(row)[1],
     return buttons
 
 

@@ -107,6 +107,11 @@ def update():
     return common_update('offer_group', request.args)
 
 
+@auth.requires_membership('Offers')
+def delete():
+    return common_delete('offer_group', request.args)
+
+
 def get():
     """ args: [id_offer_group]"""
 
