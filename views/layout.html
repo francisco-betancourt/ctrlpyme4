@@ -339,6 +339,11 @@
     });
 
 
+    {{ if session.ticket_url: }}
+      var other_window = window.open("{{=session.ticket_url}}", '1', resizable=1);
+      {{ session.ticket_url = None }}
+    {{ pass }}
+    {{ pass }}
      {{ if request.vars._print: }}
       window.print();
       // window.print();

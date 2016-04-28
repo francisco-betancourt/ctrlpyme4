@@ -13,7 +13,7 @@
 {{=pages}}
 
 {{block left_sidebar}}
-<h3>{{=T('Categories')}}</h3>
+<h1>{{=T('Categories')}}</h1>
 <div id="categories_tree"></div>
 
 {{if filter_data:}}
@@ -37,13 +37,9 @@
     levels: 1
   });
 
-
-
-
   $('#categories_tree').on('nodeSelected', function(event, data) {
     window.location.href = "{{=URL('browse')}}?category=" + data.category_id
   });
-
 
   // when the category is not visible, we have
   var selected_node = $('#categories_tree').treeview('getSelected')[0];

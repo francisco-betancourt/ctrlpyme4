@@ -27,7 +27,7 @@
       </div>
     {{pass}}
     {{for offer in offers:}}
-      <div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer.bg_image)}})">
+      <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/' + offer.bg_image)}})">
         <div class="data">
           <h2>{{=offer.name}}</h2>
           <p>{{=offer.starts_on.strftime('%a %d %B %Y')}} -  {{=offer.ends_on.strftime('%a %d %B %Y')}}</p>

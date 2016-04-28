@@ -37,6 +37,8 @@ def item_barcode(item):
 def get_wavg_days_in_shelf(item, id_store=None):
     db = current.db
     q = (db.bag_item.id_bag == db.bag.id) & (db.bag_item.id_item == item)  & (db.bag_item.wavg_days_in_shelf != None)
+    if id_store:
+        q &= db.bag.id_store == id_store
     days = db(q).select(db.bag_item.wavg_days_in_shelf)
     if not days:
         return None

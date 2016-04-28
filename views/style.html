@@ -111,18 +111,18 @@
   .list-group-item {
     background-color: {{=base_color_bright}} !important;
   }
-
   .list-group-item:hover:not(.node-disabled) {
-    background-color: {{=dim_rgba}} !important;
+    background-color: {{=base_color_dim}} !important;
+    color: {{=base_color_text}};
   }
-
   /* treeview node */
   .node-selected {
-    background-color: {{=primary_color}} !important;
+    background-color: {{=accent_color}} !important;
+    color: {{=accent_color_text}} !important;
   }
-
   .node-selected:hover:not(.node-disabled) {
-    background-color: {{=primary_color_dim}} !important;
+    background-color: {{=accent_color_dim}} !important;
+    color: {{=accent_color_text}};
   }
 
 

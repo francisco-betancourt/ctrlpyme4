@@ -38,5 +38,5 @@ def settle():
 
 @auth.requires_membership('Accounts receivable')
 def index():
-    data = SUPERT(db.payment.is_settled == False, fields=['id_sale.consecutive', 'epd', 'amount'],  options_func=lambda row : [OPTION_BTN('receipt', URL('sale', 'ticket', args=row.id_sale.id)), OPTION_BTN('done', URL('settle', args=row.id))])
+    data = SUPERT(db.payment.is_settled == False, fields=['id_sale.consecutive', 'epd', 'amount'],  options_func=lambda row : [OPTION_BTN('receipt', URL('sale', 'ticket', args=row.id_sale.id), title=T('ticket')), OPTION_BTN('done', URL('settle', args=row.id), title=T('settle') )])
     return locals()

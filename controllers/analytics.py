@@ -278,6 +278,8 @@ def stocks_table(item):
     return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on, search_enabled=False)
 
 
+from item_utils import get_wavg_days_in_shelf
+
 @auth.requires_membership("Analytics")
 def item_analysis():
     """
@@ -305,6 +307,8 @@ def item_analysis():
         & (db.stock_transfer.id_store_from == session.store)
         & (db.bag_item.id_item == item.id)
     ).select(db.stock_transfer.ALL, db.bag_item.ALL, orderby=~db.stock_transfer.created_on)
+
+    wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 
     return locals()
 

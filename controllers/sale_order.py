@@ -151,6 +151,7 @@ def create():
         if form.errors.id_store:
             response.flash = T('Please select a store')
 
+    show_total_without_discounts = True
     return locals()
 
 

@@ -23,7 +23,7 @@ import math
 from gluon import *
 from gluon.html import *
 from gluon.storage import Storage
-from item_utils import item_stock, item_taxes, fix_item_price
+from item_utils import item_stock, item_taxes, fix_item_price, fix_item_quantity
 from common_utils import INFO, DQ
 
 
@@ -177,6 +177,8 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
 def stock_info(item):
     auth = current.auth
     T = current.T
+    session = current.session
+
     available = True
     stock = 0
 
@@ -368,7 +370,7 @@ def filter_menu(filter_data):
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
     T = current.T
-    
+
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
     button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn', _onclick=click_action)
     return button

@@ -46,9 +46,9 @@
 
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
-<p></p>
 
 {{if auth.has_membership('Employee'):}}
+<hr>
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
   {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
     <div class="btn-group">

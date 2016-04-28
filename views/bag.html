@@ -9,6 +9,11 @@
 {{ except NameError: }}
 {{   bag_only_items_list = False }}
 {{ pass }}
+{{ try: }}
+{{   show_total_without_discounts }}
+{{ except NameError: }}
+{{   show_total_without_discounts = False }}
+{{ pass }}
 
 
 {{ user_is_employee = auth.has_membership('Employee') }}
@@ -59,10 +64,12 @@
   <div class="panel-footer">
     {{ if user_is_employee: }}
       <p> <span>{{=T('Subtotal')}}</span> <span class="right">$ <span class="subtotal">00</span></span> </p>
-      <p> <span>{{=T('Taxes')}}</span> <span class="right">00$ <span class="taxes">00</span></span> </p>
+      <p> <span>{{=T('Taxes')}}</span> <span class="right">$ <span class="taxes">00</span></span> </p>
     {{ pass }}
     <p> <span>{{=T('Total')}}</span> <span class="right">$ <span class="total">00</span></span> </p>
+    {{ if show_total_without_discounts: }}
     <p> <span>{{=T('Total without discounts')}}</span> <span class="right">$ <span class="no-discount-total">00</span></span> </p>
+    {{ pass }}
 
     {{ if not bag_only_items_list: }}
     <div id="bag_buttons">

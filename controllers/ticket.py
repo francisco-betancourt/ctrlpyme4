@@ -253,6 +253,16 @@ def stock_transfer_ticket(id_stock_transfer):
 
 
 def get():
+    """ simply redirect the user to the ticket view """
+
+    session.ticket_url = URL('show_ticket', vars=request.vars)
+    url = URL('default', 'index')
+    if request.env.http_referer:
+        url = request.env.http_referer
+    redirect( url )
+
+
+def show_ticket():
     """ vars: [id_credit_note, id_sale, id_bag] """
 
     ticket_html = None
