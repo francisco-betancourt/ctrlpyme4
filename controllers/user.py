@@ -66,15 +66,17 @@ def create_client():
 
 @auth.requires_membership('Admin')
 def create():
+    """ Create employee """
+
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         employee_group = db(db.auth_group.role == 'Employee').select().first()
         if employee_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=employee_group.id)
-        response.flash = T('Employee created')
+        response.flash = T('Employee') + ' ' + T('created')
         redirect(URL('get_employee', args=form.vars.id))
     elif form.errors:
-        response.flash = T('Error in form')
+        response.flash = T('Errors in form')
     return dict(form=form)
 
 
@@ -260,6 +262,12 @@ def index():
 def post_login():
     if auth.has_membership('Clients') or auth.user.is_client:
         auto_bag_selection()
+    # if auth.has_membership('Employee'):
+    #     employee_stores = db(
+    #         (db.auth_membership.id_user == auth.user.id)
+    #         & (db.auth_membership.is_for_store == True)
+    #     )
+
     redirection()
 
 

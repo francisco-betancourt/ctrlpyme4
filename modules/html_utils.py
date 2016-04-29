@@ -300,11 +300,12 @@ def item_card(item):
     # concatenate all the item traits, this string will be appended to the item name
     traits_str = ''
     traits_ids = ''
-    for trait in item.traits:
-        traits_ids += str(trait.id)
-        traits_str += trait.trait_option + ' '
-        if trait != item.traits[-1]:
-            traits_ids += ','
+    if item.traits:
+        for trait in item.traits:
+            traits_ids += str(trait.id)
+            traits_str += trait.trait_option + ' '
+            if trait != item.traits[-1]:
+                traits_ids += ','
     item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
     item_name = item.name + ' ' + traits_str
 

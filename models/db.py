@@ -123,6 +123,8 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # #TODO:60 move validators to a module
 # validators
 class IS_BARCODE_AVAILABLE(object):
+    """ checks if the object barcode has been already used """
+
     def __init__(self, db, barcode='', error_message=T('Barcode already used')):
         self.db = db;
         self.barcode = barcode
@@ -135,13 +137,14 @@ class IS_BARCODE_AVAILABLE(object):
             return (value, None)
 
         barcodes = None
+        # update case
         if self.record_id:
             barcodes = self.db((self.db.item.id != self.record_id)
                                & ((self.db.item.sku == self.barcode)
                                 | (self.db.item.ean == self.barcode)
                                 | (self.db.item.upc == self.barcode))
                              ).select()
-            # print barcodes.first().id
+        # creation case
         else:
             barcodes = self.db((self.db.item.sku == self.barcode)
                              | (self.db.item.ean == self.barcode)
@@ -239,6 +242,7 @@ db.define_table("address",
     Field("city", "string", default=None, label=T('City')),
     Field("municipality", "string", default=None, label=T('Municipality')),
     Field("state_province", "string", default=None, label=T('State or Province')),
+    Field("postal_code", "string", default=None, label=T('Postal code')),
     Field("country", "string", default=None, label=T('Country')),
     Field("reference", "string", default=None, label=T('Address Reference')),
     auth.signature,
@@ -251,6 +255,7 @@ db.define_table("store",
     Field("name", "string", default=None, label=T('Name')),
     Field("consecutive", "integer", default=1, readable=False, writable=False),
     Field('map_url', default=None, label=T('Map url')),
+    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
 
     #Fields required for CFDI Invoice
     Field('certificate',type='upload',autodelete=True,readable=False,writable=False,
@@ -314,7 +319,7 @@ db.define_table(
   # true if the store only allows whitelisted clients
   , Field('clients_whitelist', 'boolean', label=T('Use clients whitelist'), default=True, readable=False, writable=False)
 
-  , Field('ticket_footer', label=T('Ticket footer'))
+  , Field('ticket_footer', 'text', label=T('Ticket footer'))
 
   , Field('primary_color', label=T('Primary color'))
   , Field('primary_color_text', label=T('Primary color text'))

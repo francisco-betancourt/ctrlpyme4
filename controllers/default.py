@@ -8,7 +8,7 @@
 ## - download is for downloading files uploaded in the db (does streaming)
 #########################################################################
 
-from datetime import date
+from datetime import date, datetime
 
 
 def get_popular_items(start_date, end_date, amount=10, id_store=None):
@@ -47,6 +47,7 @@ def get_popular_items(start_date, end_date, amount=10, id_store=None):
     data = [d[0] for d in data] # remove counter
     # update chache
     cached.val = ','.join(map(lambda x: str(x.id), data))
+    cached.modified_on = request.now
     cached.update_record()
     return data
 

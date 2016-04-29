@@ -58,5 +58,7 @@ def index():
     """ """
 
     title = T('addresses')
-    data = common_index('address', [{'fields': ['street', 'exterior', 'interior'], 'label_as': T('Address') }] )
+    data = common_index('address', [
+        {'fields': ['street', 'exterior', 'interior'], 'label_as': T('Address') }, 'neighborhood', 'postal_code', 'municipality', 'state_province'
+    ] )
     return locals()

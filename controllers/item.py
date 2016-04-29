@@ -366,7 +366,7 @@ def get_item():
         base_trait_category_set = []
         trait_options = {}
 
-        if multiple_items:
+        if multiple_items and item.traits:
             other_items = items
             for trait in item.traits:
                 base_trait_category_set.append(trait.id_trait_category)
