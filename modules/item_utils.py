@@ -48,6 +48,11 @@ def get_wavg_days_in_shelf(item, id_store=None):
     return avg_days_in_shelf / len(days)
 
 
+def item_url(_name, _id):
+    url_name = "%s%s" % (urlify_string(_name), _id)
+    return url_name
+
+
 def item_taxes(item, price):
     total = 0
     for tax in item.taxes:

@@ -5,7 +5,7 @@ from constants import FLOW_BASIC
 
 COMPANY_NAME = 'CtrlPyME'
 COMPANY_SLOGAN = 'Press Ctrl + PyME to begin.'
-COMPANY_LOGO_URL = URL('static', 'images/ctrlPyME_logo.svg')
+COMPANY_LOGO_URL = URL('static', 'images/ctrlPyME_logo.png')
 
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC

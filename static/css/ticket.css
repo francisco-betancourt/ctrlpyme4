@@ -44,3 +44,12 @@
 #barcode {
   margin: auto;
 }
+
+
+.right p {
+  text-align: right;
+}
+
+.ticket .head {
+  font-size: 18px;
+}

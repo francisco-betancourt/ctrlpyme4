@@ -153,12 +153,13 @@ def ticket_payments_data(payments, include_payment_date=False):
 
 def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None):
     return DIV(
-        P(IMG(_class="logo", _src=COMPANY_LOGO_URL), P(title), P(COMPANY_NAME)), P(date),
-        store_data,
+        P(IMG(_class="logo", _src=COMPANY_LOGO_URL)),
+        DIV(P(title), P(COMPANY_NAME), P(date), _class="right head"),
         content,
-        DIV(_id="barcode"),
-        P(TICKET_FOOTER, _id="ticket_footer"),
+        store_data,
+        P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
         DIV(footer),
+        DIV(_id="barcode"),
         SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"
@@ -207,7 +208,7 @@ def sale_ticket(id_sale):
 
     return ticket_format(store_data, T('Sale'),
         DIV(items_list, total_data, payments_data),
-        "%010d" % sale.id, P(T('Sale footer')), date=sale.modified_on
+        "%010d" % sale.id, '', date=sale.modified_on
     )
 
 
@@ -230,7 +231,7 @@ def bag_ticket(id_bag):
 
     return ticket_format(store_data, T('Bag'),
         DIV(items_list, total_data),
-        "%010d" % bag.id, P(T('Bag footer')), date=bag.modified_on
+        "%010d" % bag.id, '', date=bag.modified_on
     )
 
 

@@ -194,8 +194,10 @@ def item_form(item=None, is_bundle=False):
         # add the traits
         traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
 
-        url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
-        db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=l_categories)
+        db.item(form.vars.id).update_record(
+            url_name=item_url(form.vars.name, form.vars.id),
+            is_bundle=is_bundle, traits=traits, categories=l_categories
+        )
         session.flash = T('Item created') if not item else T('Item updated')
         # if the item is bundle, redirect to the bundle filling page
         if is_bundle and auth.has_membership('Items management'):

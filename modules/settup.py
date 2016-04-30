@@ -1,14 +1,21 @@
+from gluon import current
 
 
 def create_payment_methods():
+    db = current.db
+
     db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
     db.payment_opt.update_or_insert(db.payment_opt.name == 'stripe', name='stripe', allow_change=False)
 
 
 def create_locale_setting():
+    db = current.db
+    T = current.T
+
     """ creates some locale default settings """
     db.measure_unit.update_or_insert(db.measure_unit.name == T('unit'), name=T('unit'), symbol='u')
     db.brand.update_or_insert(db.brand.name == T('no brand'), name=T('no brand'))
+    db.payment_opt.update_or_insert(db.payment_opt.name == T('cash'), name=T('cash'), allow_change=True)
 
 
 
@@ -54,11 +61,13 @@ def create_groups():
 
 
 def settup():
+    db = current.db
+
     # create default settings
     db.settings.update_or_insert(db.settings.id_store == None, id_store=None)
 
-    create_payment_methods()
     create_locale_setting()
+    create_payment_methods()
     create_payment_methods()
 
     # create admin user

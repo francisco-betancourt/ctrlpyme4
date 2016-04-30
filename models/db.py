@@ -143,14 +143,13 @@ class IS_BARCODE_AVAILABLE(object):
                                & ((self.db.item.sku == self.barcode)
                                 | (self.db.item.ean == self.barcode)
                                 | (self.db.item.upc == self.barcode))
-                             ).select()
+                             ).select().first()
         # creation case
         else:
             barcodes = self.db((self.db.item.sku == self.barcode)
                              | (self.db.item.ean == self.barcode)
                              | (self.db.item.upc == self.barcode)
-                             ).select()
-
+                             ).select().first()
         if not barcodes:
             return (value, None)
         else:
@@ -385,6 +384,8 @@ db.define_table("category",
     Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
     Field("icon", "upload", default=None, label=T('Icon'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field("parent", "reference category", label=T('Parent category'), readable=False, writable=False),
+    # used to group items and provide the group with custom traits. categories with this attribute can not have parent nor children, and does not show in the categories, tree, it
+    # Field("is_ghost", 'boolean', default=False, readable=False, writable=False),
     Field("trait_category1", "reference trait_category", label=T('Trait')+" 1"),
     Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
     Field("trait_category3", "reference trait_category", label=T('Trait')+" 3"),
@@ -425,7 +426,7 @@ db.define_table("item",
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
-db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
+db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
 db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
 
