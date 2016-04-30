@@ -531,6 +531,7 @@
 'No Payment Options Found, click the plus button to create one': 'No Payment Options Found, click the plus button to create one',
 'No purchases found': 'No purchases found',
 'No records found': 'No se han encontrado registros',
+'No records founds': 'No records founds',
 'No sales reported': 'No se han reportado ventas',
 'No stores found': 'No existen tiendas',
 'No taxes found': 'No existen impuestos',
