@@ -95,6 +95,8 @@ BAG_ORDER_COMPLETE = 3
 STRIPE_PK = 'pk_test_hnTYaSZRgCvUEqZzQmetY60l'
 STRIPE_SK = 'sk_test_j3rtOM8H4k0YNBk9F698ANzU'
 
+TAX_TRANSFER=1
+TAX_RETAIN=2
 
 #TODO move this to config
 EMAIL_SENDER = ''

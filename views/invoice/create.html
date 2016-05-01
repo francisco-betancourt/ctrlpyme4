@@ -1,0 +1,35 @@
+{{extend 'layout.html'}}
+
+{{
+div_items=DIV(DIV(T('Item'),_class='st-row-data st-last top'),_class="st-col")
+div_qty=DIV(DIV(T('Quantity'),_class='st-row-data st-last top'),_class="st-col")
+div_price=DIV(DIV(T('Price'),_class='st-row-data st-last top'),_class="st-col")
+}}
+
+{{for key,item in items_con.iteritems():
+  qty=0
+  for i in item:
+    print i.bag_item.quantity
+    qty+=i.bag_item.quantity
+  pass
+  if not item[0].bag_item.id_item.allow_fractions:
+     qty=DQ(qty,normalize=True)
+  else:
+     qty=DQ(qty,True)
+  pass
+  div_items.append(DIV(item[0].bag_item.id_item.name,_class="st-row-data"))
+  div_qty.append(DIV(qty,_class="st-row-data"))
+  div_price.append(DIV(item[0].bag_item.sale_price,_class="st-row-data"))
+pass}}
+
+<h1>{{=T('Create Invoice')}}</h1>
+
+<div class="supert">
+  <div class="st-content">
+    {{=div_qty}}
+    {{=div_items}}
+    {{=div_price}}
+  </div>
+</div>
+
+{{=items}}
