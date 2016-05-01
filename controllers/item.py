@@ -1,10 +1,26 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 import json
 from gluon.storage import Storage
-
+from item_utils  import *
 
 
 def categories_tree_html(categories, item=None):
@@ -178,8 +194,10 @@ def item_form(item=None, is_bundle=False):
         # add the traits
         traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
 
-        url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
-        db.item(form.vars.id).update_record(url_name=url_name, is_bundle=is_bundle, traits=traits, categories=l_categories)
+        db.item(form.vars.id).update_record(
+            url_name=item_url(form.vars.name, form.vars.id),
+            is_bundle=is_bundle, traits=traits, categories=l_categories
+        )
         session.flash = T('Item created') if not item else T('Item updated')
         # if the item is bundle, redirect to the bundle filling page
         if is_bundle and auth.has_membership('Items management'):
@@ -320,7 +338,7 @@ def get_item():
         item_name = request.vars.name
 
         # when traits are specified, only one item with the specified name and traits should match
-                # this is the first item
+        # this is the first item
         item = None
         if request.vars.traits:
             traits = request.vars.traits.split(',')
@@ -350,7 +368,7 @@ def get_item():
         base_trait_category_set = []
         trait_options = {}
 
-        if multiple_items:
+        if multiple_items and item.traits:
             other_items = items
             for trait in item.traits:
                 base_trait_category_set.append(trait.id_trait_category)
@@ -433,15 +451,16 @@ def item_options(row):
     buttons = ()
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
         _vars = {'is_bundle': True} if row.is_bundle else {}
-        buttons += OPTION_BTN('edit', URL('update', args=row.id, vars=_vars)),
+        buttons += OPTION_BTN('edit', URL('update', args=row.id, vars=_vars), title=T('edit')),
     # hide button
     if auth.has_membership('Items management'):
         buttons += supert_default_options(row)[1],
-    buttons += OPTION_BTN('shopping_basket', _onclick="add_bag_item(%s);" % row.id),
+    buttons += OPTION_BTN('shopping_basket', _onclick="add_bag_item(%s);" % row.id, title=T('add to bag')),
 
     return buttons
 
 
+@auth.requires(auth.has_membership('Employee') or auth.has_membership('Admin'))
 def index():
     fields = [
         {

@@ -1,0 +1,18 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Scan order ticket')}}</h1>
+<div id="ticket_scanner_container"></div>
+
+
+<script>
+  function order_fail_callback(data, barcode) {
+    alert("{{=T('Nothing found')}}");
+  }
+
+  function order_success_callback(data, barcode) {
+    window.location.href = "{{=URL('sale', 'create')}}/" + data.sale_order.id_bag;
+  }
+
+  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
+  setup_scanner(scanner, order_success_callback, order_fail_callback, null, "{{=URL('sale_order', 'get_by_code', extension='json')}}/", 'sale_order');
+</script>

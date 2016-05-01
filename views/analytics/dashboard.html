@@ -54,13 +54,17 @@
 
 <script>
   var ctx = $("#stores_income").get(0).getContext("2d");
-  var myPieChart = new Chart(ctx).Pie(stores_income_data, {});
+  var myPieChart = new Chart(ctx, {type: 'pie', data: stores_income_data});
   ctx = $("#today_sales").get(0).getContext("2d");
-  new Chart(ctx).Line(stores_sales_data, {
+  new Chart(ctx, {
+    type: 'line',
+    data: stores_sales_data,
     multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%>$ <%= value %>"
   });
   ctx = $("#stores_items").get(0).getContext("2d");
-  new Chart(ctx).Line(stores_items_data, {
+  new Chart(ctx, {
+    type: 'line',
+    data: stores_items_data,
     multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%> <%= value %>"
   });
 

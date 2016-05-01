@@ -19,6 +19,9 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+from bag_utils import get_valid_bag, check_bag_owner
+
+
 def ticket_store_data(store):
     store_data = P()
     if store:
@@ -42,15 +45,9 @@ def ticket_item_list(items, concept=''):
         QTY  CONCEPT                                           PRICE
         --   <concept>                                         $ --
     """
-    items_list = DIV(_id="items_list")
-    # headers
-    items_list.append(DIV(
-        SPAN(T('QTY'), _class="qty"),
-        SPAN(T('CONCEPT'), _class="name"),
-        SPAN(T('PRICE'), _class="price"),
-        _class="item"
-    ))
-    items_list.append(HR())
+    items_list = TBODY()
+
+    # items_list.append(HR())
     subtotal = D(0)
     disable_taxes_list = False
     taxes = {}
@@ -58,9 +55,9 @@ def ticket_item_list(items, concept=''):
     total = D(0)
     items = [] if not items else items
     if concept:
-        items_list.append(DIV(
-            SPAN('--', _class="qty"), SPAN(concept, _class="name"),
-            SPAN('$ --', _class="price"),
+        items_list.append(TR(
+            TD('--', _class="qty"), TD(concept, _class="name"),
+            TD('$ --', _class="price"),
             _class="item"
         ))
     else:
@@ -70,7 +67,7 @@ def ticket_item_list(items, concept=''):
             # TODO find a better way to identify if the list contains bag items or credit note items
             try:
                 item.product_name
-            except:
+            except AttributeError:
                 bag_item = item.id_bag_item
             if not bag_item:
                 continue
@@ -94,12 +91,23 @@ def ticket_item_list(items, concept=''):
             item_quantity = DQ(item.quantity, True, normalize=True)
             item_price = DQ(item_price, True)
 
-            items_list.append(DIV(
-                SPAN(item_quantity, _class="qty"),
-                SPAN(item_name, _class="name"),
-                SPAN('$ %s' % item_price, _class="price"),
+            items_list.append(TR(
+                TD(item_quantity, _class="qty"),
+                TD(item_name, _class="name"),
+                TD('$ %s' % item_price, _class="price"),
                 _class="item"
             ))
+
+    items_list = TABLE(
+        THEAD(TR(
+            TH(T('QTY'), _class="qty"),
+            TH(T('CONCEPT'), _class="name"),
+            TH(T('PRICE'), _class="price"),
+            _class="item"
+        )),
+        items_list,
+        _id="items_list"
+    )
 
     if disable_taxes_list:
         taxes = {}
@@ -145,12 +153,13 @@ def ticket_payments_data(payments, include_payment_date=False):
 
 def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None):
     return DIV(
-        DIV(_class="logo"), P(title), P(COMPANY_NAME), P(date),
-        store_data,
+        P(IMG(_class="logo", _src=COMPANY_LOGO_URL)),
+        DIV(P(title), P(COMPANY_NAME), P(date), _class="right head"),
         content,
-        DIV(_id="barcode"),
-        P(TICKET_FOOTER, _id="ticket_footer"),
+        store_data,
+        P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
         DIV(footer),
+        DIV(_id="barcode"),
         SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"
@@ -192,14 +201,14 @@ def sale_ticket(id_sale):
 
     payments = db(db.payment.id_sale == sale.id).select()
     payments_data = ticket_payments_data(payments, sale.is_defered)
-    totals = [ '%s : $ %s' % (T('subtotal'), sale.subtotal) ]
+    totals = [ '%s : $ %s' % (T('subtotal'), DQ(sale.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), sale.total) ]
+    totals += [ '%s : $ %s' % (T('total'), DQ(sale.total, True)) ]
     total_data = ticket_total_data(totals)
 
     return ticket_format(store_data, T('Sale'),
         DIV(items_list, total_data, payments_data),
-        "%010d" % sale.id, P(T('Sale footer')), date=sale.modified_on
+        "%010d" % sale.id, '', date=sale.modified_on
     )
 
 
@@ -207,7 +216,7 @@ def bag_ticket(id_bag):
     if not (auth.has_membership('Sales bags') or auth.has_membership('Clients')):
         raise HTTP(404)
 
-    bag = get_valid_bag(id_bag, True)
+    bag = check_bag_owner(id_bag)
     if not bag:
         raise HTTP(404)
     store_data = ticket_store_data(bag.id_store)
@@ -222,7 +231,7 @@ def bag_ticket(id_bag):
 
     return ticket_format(store_data, T('Bag'),
         DIV(items_list, total_data),
-        "%010d" % bag.id, P(T('Bag footer')), date=bag.modified_on
+        "%010d" % bag.id, '', date=bag.modified_on
     )
 
 
@@ -245,6 +254,16 @@ def stock_transfer_ticket(id_stock_transfer):
 
 
 def get():
+    """ simply redirect the user to the ticket view """
+
+    session.ticket_url = URL('show_ticket', vars=request.vars)
+    url = URL('default', 'index')
+    if request.env.http_referer:
+        url = request.env.http_referer
+    redirect( url )
+
+
+def show_ticket():
     """ vars: [id_credit_note, id_sale, id_bag] """
 
     ticket_html = None

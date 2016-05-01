@@ -20,7 +20,11 @@
 
 
 import math
+from gluon import *
+from gluon.html import *
 from gluon.storage import Storage
+from item_utils import item_stock, item_taxes, fix_item_price, fix_item_quantity
+from common_utils import INFO, DQ
 
 
 def CB(selected=False, _id=""):
@@ -28,6 +32,7 @@ def CB(selected=False, _id=""):
 
 
 def discounts_list(discounts):
+    T = current.T
     ul = UL(_class="list-group")
 
     for discount in discounts:
@@ -53,12 +58,11 @@ def discounts_list(discounts):
 
 def ICON(icon_name, _id="", _class="", html_vars={}):
     # icon_name = icon_name.replace('-', '_')
-    if USE_MATERIAL_ICONS:
-        return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
-    return I(_class="fa fa-%s %s" % (icon_name, _class), _id=_id)
+    return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
 
 
 def INFO_CARD():
+    session = current.session
     content = DIV(_class="panel-body")
     content.append(DIV(ICON('close', _class="close", _id="info_close")))
     hidden = False
@@ -82,7 +86,7 @@ def INFO_CARD():
     return content
 
 
-def MENU_ELEMENTS(submenu_prefix = '', menu=response.menu):
+def MENU_ELEMENTS(submenu_prefix = '', menu=current.response.menu):
     # elements = []
     i = 0
     for menu_item in menu:
@@ -126,6 +130,9 @@ def MENU_ELEMENTS(submenu_prefix = '', menu=response.menu):
 def pages_menu_bare(query, page=0, ipp=10, distinct=None):
     """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
 
+    request = current.request
+    db = current.db
+
     start = page * ipp
     end = start + ipp
     total_rows_count = db(query).count(distinct=distinct)
@@ -168,6 +175,10 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
 
 
 def stock_info(item):
+    auth = current.auth
+    T = current.T
+    session = current.session
+
     available = True
     stock = 0
 
@@ -214,6 +225,10 @@ def create_item_options(item):
 
 def item_card(item):
     """ """
+    session = current.session
+    auth = current.auth
+    db = current.db
+    T = current.T
 
     available = "Not available"
     available_class = "label label-danger"
@@ -240,7 +255,7 @@ def item_card(item):
       & (db.item.is_active == True)
     ).select(db.item_image.ALL)
     if images:
-        bg_style = "background-image: url(%s);" % URL('default','download', args=images.first().md)
+        bg_style = "background-image: url(%s);" % URL('static','uploads/'+ images.first().md)
     else:
         bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 
@@ -285,13 +300,18 @@ def item_card(item):
     # concatenate all the item traits, this string will be appended to the item name
     traits_str = ''
     traits_ids = ''
-    for trait in item.traits:
-        traits_ids += str(trait.id)
-        traits_str += trait.trait_option + ' '
-        if trait != item.traits[-1]:
-            traits_ids += ','
-    item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
-    item_name = item.name + ' ' + traits_str
+    item_url = URL('item', 'get_item', args=item.id)
+    item_name = item.name + ' - ' + item.description[:10]
+    if len(item.description) > 10:
+        item_name += '...'
+    if item.traits:
+        for trait in item.traits:
+            traits_ids += str(trait.id)
+            traits_str += trait.trait_option + ' '
+            if trait != item.traits[-1]:
+                traits_ids += ','
+        item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
+        item_name = item.name + ' ' + traits_str
 
     return DIV(
         A('', _class="panel-heading", _style=bg_style, _href=item_url),
@@ -331,6 +351,10 @@ def item_images(id_item):
 def filter_menu(filter_data):
     """ """
 
+    T = current.T
+    db = current.db
+    request = current.request
+
     tablename = filter_data['tablename']
     sort_options = SELECT(_class="form-control")
     for sort_option in filter_data['sortby']:
@@ -350,6 +374,8 @@ def filter_menu(filter_data):
 
 
 def option_btn(icon_name, action_url=None, action_name='', onclick=None):
+    T = current.T
+
     click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
     button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn', _onclick=click_action)
     return button
@@ -376,6 +402,14 @@ def default_row_function(row, fields):
     return tr
 
 
+def bag_supert(id_bag):
+    query = (db.bag_item.id_bag == id_bag)
+    return SUPERT(query, fields=['product_name', {
+        'fields':['quantity'],
+        'custom_format': lambda r, f : DQ(r.quantity, True, True),
+        'label_as': T('Quantity')
+        }], options_enabled=False, searchable=False)
+
 
 def hide_button(row):
     """" Returns a button that calls the delete_row javascript function """
@@ -401,6 +435,10 @@ def super_table(table, fields, query, row_function=default_row_function,
 
         This function will use the database table field labels as table headers.
     """
+
+    request = current.request
+    db = current.db
+    T = current.T
 
     orderby_field = request.vars.orderby
     if not orderby_field:

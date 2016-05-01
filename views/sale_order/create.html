@@ -5,7 +5,7 @@
 {{block left_sidebar}}
   {{ load_bag_url = URL('select_bag', args=bag.id, extension='json') }}
   <h1>{{=T('Review your order')}}</h1>
-  {{include "bag_2.html"}}
+  {{include "bag.html"}}
 {{end}}
 
 <h1>{{=T('Order information')}}</h1>
@@ -53,15 +53,42 @@
           url: "{{=URL('pay_and_order', args=bag.id, extension='json')}}?stripeToken=" + token.id
         })
         .done(function (res) {
-          // console.log('payment created ', res);
           $('#stripe_charge_id').val(res.charge_id);
           $('form').submit()
         })
         .fail(function (res) {
           console.log(res);
         })
+      },
+      closed: function () {
+        $.ajax({
+          url: "{{=URL('activate_bag', args=bag.id, extension='json')}}"
+        })
+        .done(function (res) {
+          order_unlock();
+        })
+        .fail(function (res) {
+          console.log(res);
+        });
       }
     });
+
+    $('#pay_on_store_button').on('click', function(e) {
+      e.preventDefault();
+      var r = confirm("{{=T('Discounts will not be applied')}} ({{=T('Total without discounts will be the total to pay')}}) ");
+      if (r) { $('#order_form').submit(); }
+    })
+
+    function order_lock() {
+      lock_bag();
+      document.getElementById('custom_button').setAttribute('disabled', 'disabled');
+      document.getElementById('pay_on_store_button').setAttribute('disabled', 'disabled');
+    }
+    function order_unlock() {
+      unlock_bag();
+      document.getElementById('custom_button').removeAttribute('disabled');
+      document.getElementById('pay_on_store_button').removeAttribute('disabled');
+    }
 
     $('#custom_button').on('click', function(e) {
       e.preventDefault();
@@ -71,8 +98,7 @@
       })
       .done(function (res) {
         if (res.completed) {
-          document.querySelector('#current_bag input').setAttribute('disabled', 'disabled');
-          $('#current_bag .close').remove();
+          order_lock();
 
           handler.open({
             name: '{{=COMPANY_NAME}}',

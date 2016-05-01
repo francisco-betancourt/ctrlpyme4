@@ -4,13 +4,24 @@
 {{block left_sidebar}}
 <div class="panel panel-default">
   <div class="panel-body">
-<h1>{{=item.name}}</h1>
+<h2>{{=item.name}}</h2>
+<hr>
 <h4 id="item_info">
   <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
       {{if auth.has_membership('Employee') and item_barcode(item):}}
-    <span class="barcode">{{=item_barcode(item)}}</span>
-   {{pass}}
+        <span class="barcode">{{=item_barcode(item)}}</span>
+      {{pass}}
 </h4>
+
+<b>{{=T('In')}}</b>
+{{for category in item.categories:}}
+  <span class="category-label">
+    <a href="{{=URL('browse', vars=dict(category=category.id))}}">
+      {{=category.name}}
+    </a>
+    {{ if category.id != item.categories[-1].id: }} , {{ pass }}
+  </span>
+{{pass}}
 
 <div class="main-item-image">
   {{if images:}}
@@ -46,9 +57,9 @@
 
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
-<p></p>
 
 {{if auth.has_membership('Employee'):}}
+<hr>
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
   {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
     <div class="btn-group">

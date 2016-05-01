@@ -11,22 +11,22 @@
       <div class="input-group-addon">%</div>
     </div>
   </div>
-  <div class="form-group">
+  <!-- <div class="form-group">
     <label for="discount_code">{{=T('Code')}}</label>
     <input id="discount_code" class="form-control">
-  </div>
+  </div> -->
   <div class="form-group">
     <label>
       <input type="checkbox" id="discount_is_combinable">
       {{=T('Is combinable')}}
     </label>
   </div>
-  <div class="form-group">
+  <!-- <div class="form-group">
     <label>
       <input type="checkbox" id="discount_is_coupon">
       {{=T('Is coupon')}}
     </label>
-  </div>
+  </div> -->
 
 
   <h3>{{=T('Target')}}</h3>
@@ -45,7 +45,7 @@
 
 
   <div id="target_id_item">
-    {{include 'barcode_scanner.html'}}
+    <div class="scanner_container"></div>
     <div id="item_data">
       <p class="item-name"></p>
     </div>
@@ -91,7 +91,8 @@
       $('#item_data>.item-name').text(data.name);
       target_id = data.id;
     }
-    setup_scanner(success_callback, null, null, null, 'discount');
+    var scanner = create_scanner('discount', $('#target_id_item>.scanner_container'));
+    setup_scanner(scanner, success_callback, null, null, null);
 
     $('#targets_toolbar button').click(function (event) {
       var el_target = $(event.target);

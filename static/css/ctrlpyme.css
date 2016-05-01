@@ -170,6 +170,9 @@ select {
 }
 
 
+#scan_order_btn {
+  margin-bottom: 10px;
+}
 #current_bag>.panel-body {
   padding-left: 0px;
   padding-right: 0px;

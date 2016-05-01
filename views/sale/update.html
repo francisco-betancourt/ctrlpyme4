@@ -10,19 +10,26 @@
   <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
 
   <hr>
+    <p>{{=T('remaining')}}: <span class="right">
+      $ <span id="remaining">{{=DQ(remaining, True)}}</span></span>
+    </p>
+  <hr>
+
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
   {{ if not sale.is_defered: }}
-    <select name="" class="form-control" id="client_selector">
+    <select name="" class="form-control" id="client_selector" {{if sale.id_bag.is_paid: }} disabled {{pass}} >
       <option value=""></option>
       {{for client in clients:}}
         <option value="{{=client.id}}" {{if sale.id_client == client.id:}} selected="selected" {{pass}}>{{=client.first_name}} {{=client.last_name}} &lt{{=client.email}}&gt </option>
       {{pass}}
     </select>
 
-    <div id="client_wallet_data" hidden="hidden">
-      <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
-      <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
-    </div>
+    {{if not sale.id_bag.is_paid: }}
+      <div id="client_wallet_data" hidden="hidden">
+        <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+        <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+      </div>
+    {{ pass }}
   {{ else: }}
     <p>{{ =sale.id_client }}</p>
   {{ pass }}
@@ -31,16 +38,27 @@
 
   <div>
     <a href="{{=URL('complete', args=sale.id)}}" class="btn btn-primary btn-block">{{=T('Complete')}}</a>
+    {{ if not sale.id_bag.is_paid: }}
     <a href="{{=URL('defer', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Defer')}}</a>
-    {{ if not sale.is_defered: }}
+    {{pass}}
+    {{ if not sale.is_defered and not sale.id_bag.is_paid: }}
       <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
     {{ pass }}
   </div>
 {{end}}
 
 
+<h1>{{=T('Review')}}</h1>
+{{ for bag_item in bag_items: }}
+  <p> {{ =DQ(bag_item.quantity, True, True) }} x {{ =bag_item.id_item.name }} </p>
+{{ pass }}
+
 
 <h1>{{=T('Payments')}}</h1>
+
+{{ if sale.id_bag.is_paid: }}
+  {{ =T('Bag has been paid') }}
+{{ else: }}
 <div class="btn-toolbar" role="toolbar" aria-label="...">
   <div class="btn-group" role="group" aria-label="..." id="payment_options">
     {{for payment_opt in payment_options:}}
@@ -83,7 +101,7 @@
         {{if is_wallet(payment_opt):}}
           <div class="input-group">
             <span class="input-group-addon">{{=T('Code')}}</span>
-            <input type="text" name="wallet_code" class="form-control wallet_code" dissabled>
+            <input type="text" name="wallet_code" class="form-control wallet_code" disabled>
           </div>
         {{pass}}
         {{=ICON('times', _class="delete")}}
@@ -92,6 +110,7 @@
     </div>
   {{pass}}
 </div>
+{{ pass }}
 
 
 {{block page_js}}
@@ -171,12 +190,19 @@
   });
 
 
+  function refresh_remaining(payments_total) {
+    new_remaining = {{=sale.total}} - payments_total;
+    $('#remaining').text(new_remaining.toFixed(2));
+  }
+
+
   function post_update(res) {
+    refresh_remaining(res.payments_total);
     if (res.updated) {
       for (var index in res.updated) {
         var payment = res.updated[index];
-        $('#payment_' + payment.id).find('.amount').val(payment.amount);
-        $('#payment_' + payment.id).find('.change').val(payment.change_amount);
+        $('#payment_' + payment.id).find('.amount').val(payment.amount.toFixed(2));
+        $('#payment_' + payment.id).find('.change').val(payment.change_amount.toFixed(2));
         $('#payment_' + payment.id).find('.wallet_code').val(payment.wallet_code);
       }
     }
@@ -188,7 +214,6 @@
     e_payment.attr('id', 'payment_' + payment.id);
     e_payment.show()
     e_payment.find('.amount').val(payment.amount);
-    console.log(payment);
     if (!payment.is_updatable) {
       e_payment.find('.amount').attr('disabled', 'disabled');
     }
@@ -247,15 +272,17 @@
       url: "{{=URL('add_payment', args=sale.id, extension='json')}}/" + selected_payment_opt_id
     })
     .done(function (res) {
-      info_card("{{=T('Payment added')}}")
+      info_card("{{=T('Payment added')}}");
       clone_proto_payment(res.payment);
       $('#payments_' + res.payment.id_payment_opt).show();
+      refresh_remaining(res.payments_total);
     })
     .fail(function (res) {
       info_card("{{=T('Unable to add payment!')}}");
     })
   });
 
+  // errors
   {{for payment in payments:}}
     $('#payments_{{=payment.id_payment_opt.id}}').show();
     clone_proto_payment({
@@ -270,8 +297,6 @@
         error: "{{=T('This payment requires a 4 digits account')}}"
       {{ pass }}
     });
-
-    // errors
 
   {{pass}}
 

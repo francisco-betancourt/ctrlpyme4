@@ -18,10 +18,14 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+precheck()
+
 
 import json
 from uuid import uuid4
 from datetime import date, timedelta
+from item_utils import item_discounts, apply_discount, item_stock, remove_stocks
+from constants import *
 
 
 def ticket():
@@ -63,6 +67,8 @@ def add_payment():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     # check if the payments total is lower than the total
     s = db.payment.amount.sum()
@@ -73,6 +79,11 @@ def add_payment():
     payment_opt = db.payment_opt(request.args(1))
     if not payment_opt:
         raise HTTP(404)
+
+    # do not accept stripe payment opt
+    if payment_opt.name == 'stripe':
+        raise HTTP(405)
+
 
     # only accept credit payments for registered clients
     if payment_opt.credit_days > 0 and not sale.id_client:
@@ -97,7 +108,7 @@ def add_payment():
     else:
         raise HTTP(405)
 
-    return dict(payment_opt=payment_opt, payment=new_payment)
+    return dict(payment_opt=payment_opt, payment=new_payment, payments_total=payments_total)
 
 
 @auth.requires_membership('Sales checkout')
@@ -109,6 +120,9 @@ def update_payment():
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    # cant modify payments for bag paid online
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     payment = db((db.payment.id == request.args(1))
                & (db.payment.id_sale == sale.id)).select().first()
@@ -117,12 +131,12 @@ def update_payment():
     if not payment.is_updatable:
         raise HTTP(405)
 
-    # Accept updates for 7 minutes
+    # Accept updates for certain amount of time (7 minutes) when the sale has been defered, this prevents sellers to modify previous sale payments
     if (request.now - payment.created_on).seconds / 60.0 / 7.0 > 1:
         if sale.is_defered:
             payment.is_updatable = False
             payment.update_record()
-        raise HTTP(405)
+            raise HTTP(405)
 
     try:
         new_amount = D(request.vars.amount or payment.amount)
@@ -136,6 +150,7 @@ def update_payment():
     if request.vars.delete:
         new_amount = 0
 
+    # since calling this function, could cause modification to other payments, we have to store the modified payments, so the client can render the changes
     extra_updated_payments = []
     total, change, payments = get_payments_data(sale.id)
     new_total = total - change - (payment.amount - payment.change_amount) + new_amount
@@ -156,15 +171,13 @@ def update_payment():
                 new_change = other_payment.change_amount - new_remaining
                 remaining -= new_remaining
                 other_payment.change_amount = new_change
-                # other_payment.amount += new_remaining
                 other_payment.update_record()
-                other_payment.amount = str(DQ(other_payment.amount, True))
-                other_payment.change_amount = str(DQ(other_payment.change_amount, True))
                 extra_updated_payments.append(other_payment)
 
     change = max(0, new_total - sale.total)
     account = request.vars.account
     wallet_code = request.vars.wallet_code
+    # fix payment info
     if not payment.id_payment_opt.allow_change:
         change = 0
     if not payment.id_payment_opt.requires_account:
@@ -173,12 +186,14 @@ def update_payment():
          wallet_code = None
     else:
         if payment.wallet_code:
-            # return wallet funds
-            if request.vars.delete:
+            # return wallet funds, if the wallet payment is removed or the wallet code is changed
+            if request.vars.delete or wallet_code != payment.wallet_code:
                 wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
                 if wallet:
                     wallet.balance += payment.amount
                     wallet.update_record()
+        else:
+            new_amount = 0
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
@@ -197,15 +212,16 @@ def update_payment():
     payment.account = account
     payment.wallet_code = wallet_code
     payment.update_record()
-
-    payment.amount = str(DQ(payment.amount, True))
-    payment.change_amount = str(DQ(payment.change_amount, True))
     if not request.vars.delete:
         extra_updated_payments.append(payment)
     elif payment.is_updatable:
         payment.delete_record()
 
-    return dict(updated=extra_updated_payments)
+    # get the total payments data
+    payments_data = get_payments_data(sale.id)
+    payments_total = payments_data[0] - payments_data[1]
+
+    return dict(updated=extra_updated_payments, payments_total=payments_total)
 
 
 
@@ -216,7 +232,7 @@ def cancel():
     sale = db.sale(request.args(0))
     valid_sale(sale)
     # cannot cancel a defered sale, without credit note and all that stuff
-    if sale.is_defered:
+    if sale.is_defered or sale.id_bag.is_paid:
         raise HTTP(405)
 
     # return wallet payments
@@ -239,7 +255,8 @@ def cancel():
 
 @auth.requires_membership('Sales checkout')
 def update():
-    """ args: [id_sale] """
+    """ This is the main interface to modify sale data, and its payments
+        args: [id_sale] """
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
@@ -247,27 +264,51 @@ def update():
     clients = db(db.auth_user.is_client == True).select()
 
     payments = db(db.payment.id_sale == sale.id).select()
-    payment_options = db(db.payment_opt.is_active == True).select()
+    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select()
+
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+
+    # remove 0 amount payments and calculate the payments total
+    payments_total = 0
+    for payment in payments:
+        if payment.amount <= 0:
+            payment.delete_record()
+            continue
+        payments_total += payment.amount - payment.change_amount
+    remaining = sale.total - payments_total
+    payments = db(db.payment.id_sale == sale.id).select()
 
     return locals()
 
 
 @auth.requires_membership('Sales checkout')
 def set_sale_client():
-    """ args: [id_sale, id_client] """
+    """ set the specified sale client
+        args: [id_sale, id_client] """
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
-    if sale.is_defered:
+    # we cannot modify defered sale or online purchased bag
+    if sale.is_defered or sale.id_bag.is_paid:
         raise HTTP(405)
     client = db((db.auth_user.is_client == True)
                 & (db.auth_user.registration_key == '')
                 & (db.auth_user.id == request.args(1))
                 ).select().first()
     wallet = None
-    #TODO remove credit payments if the user is None
+    #TODO remove credit payments if the client is None
     if not client:
         sale.id_client = None
+    # the user changed the sale client
+    # elif client != sale.id_client:
+    #     # refund wallet
+    #     wallet = db.wallet(sale.id_client.id_wallet.id)
+    #     payments_sum = db.payment.amount.sum()
+    #     payments_amount = db(
+    #         (db.payment.wallet_code == wallet.wallet_code)
+    #         & (db.payment.id_sale == sale.id)
+    #     ).select(payments_sum).first()[payments_sum]
+    #     print payments_amount
     else:
         sale.id_client = client.id
         if client.id_wallet:
@@ -277,6 +318,15 @@ def set_sale_client():
     sale.update_record()
 
     return dict(wallet=wallet)
+
+
+
+@auth.requires_membership('Sales checkout')
+def select_bag():
+    """ args: [id_bag] """
+
+    bag = check_bag_owner(request.args(0))
+    return bag_selection_return_format(bag)
 
 
 @auth.requires_membership('Sales checkout')
@@ -297,9 +347,23 @@ def create():
         discounts = item_discounts(bag_item.id_item)
         original_price = bag_item.sale_price + bag_item.discount
         if bag_item.sale_price == apply_discount(discounts, original_price):
-            print 'ok'
+            pass
 
-    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=bag.id_store.id)
+    # bag was created by a client
+    id_store = bag.id_store.id if bag.id_store else session.store
+    id_client = bag.created_by.id if bag.created_by.is_client else None
+
+    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=id_store, id_client=id_client)
+
+    bag.created_by = auth.user.id
+    bag.id_store = session.store
+    bag.is_sold = True
+    bag.status = BAG_COMPLETE
+    bag.update_record()
+
+    if bag.is_paid:
+        stripe_payment_opt = db(db.payment_opt.name == 'stripe').select().first()
+        db.payment.insert(id_payment_opt=stripe_payment_opt.id, id_sale=new_sale, amount=bag.total, stripe_charge_id=bag.stripe_charge_id, is_updatable=False)
 
     redirect(URL('update', args=new_sale))
 
@@ -318,10 +382,10 @@ def verify_payments(payments, sale, check_total=True):
             redirect(URL('update', args=sale.id))
 
         payments_total += payment.amount - payment.change_amount
-        if not valid_account(payment):
-            bad_payments = True
         if payment.amount <= 0:
             payment.delete_record()
+        elif not valid_account(payment):
+            bad_payments = True
     if payments_total < sale.total and check_total:
         session.info = T('Payments amount is lower than the total')
         redirect(URL('update', args=sale.id))
@@ -366,13 +430,13 @@ def complete():
     store.consecutive += 1;
     store.update_record()
     sale.update_record()
-    db.sale_log.insert(id_sale=sale.id, sale_event="paid")
+    db.sale_log.insert(id_sale=sale.id, sale_event=SALE_PAID)
 
     # if defered sale, remove sale order
     db(db.sale_order.id_sale == sale.id).delete()
 
-    # add reward points to the client's wallet
-    if sale.id_client:
+    # add reward points to the client's wallet, we assume that the user has a wallet
+    if sale.id_client and sale.id_client.id_wallet:
         wallet = db.wallet(sale.id_client.id_wallet.id)
         wallet.balance += sale.reward_points
         wallet.update_record()
@@ -383,7 +447,7 @@ def complete():
     else:
         bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
         remove_stocks(bag_items)
-        db.sale_log.insert(id_sale=sale.id, sale_event="delivered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
         redirect(URL('ticket', args=sale.id, vars={'_print': True}))
 
 
@@ -392,6 +456,8 @@ def defer():
     """ args: [id_sale] """
     sale = db.sale(request.args(0))
     valid_sale(sale)
+    if sale.id_bag.is_paid:
+        raise HTTP(405)
 
     payments = db(db.payment.id_sale == sale.id).select()
     verify_payments(payments, sale, False)
@@ -405,7 +471,7 @@ def defer():
     if not sale.is_defered:
         sale.is_defered = True
         sale.update_record()
-        db.sale_log.insert(id_sale=sale.id, sale_event="defered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DEFERED)
 
         # create sale order based on the
         db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
@@ -432,7 +498,7 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
-        db.sale_log.insert(id_sale=sale.id, sale_event="Delivered")
+        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
 
     return locals()
 
@@ -441,9 +507,7 @@ def deliver():
             or auth.has_membership('Sales checkout')
             )
 def get():
-    """
-        args: [sale_id]
-    """
+    """ args: [sale_id] """
 
     sale = db.sale(request.args(0))
     return dict(sale=sale)
@@ -458,21 +522,25 @@ def get_by_barcode():
         args: [barcode]
     """
 
-    try:
-        barcode = int(request.args(0))
+    barcode = int(request.args(0))
 
-        sale = db.sale(barcode)
-        if not sale:
-            raise HTTP(404)
-        if sale.is_invoiced:
-            raise HTTP(404)
-        return dict(sale=sale)
-    except:
+    sale = db.sale(barcode)
+    if not sale:
         raise HTTP(404)
+    if sale.is_invoiced:
+        raise HTTP(404)
+    return dict(sale=sale)
 
 
 @auth.requires_membership('Sales checkout')
 def scan_ticket():
+    """ Scan a bag ticket to create a sale """
+    return dict()
+
+
+@auth.requires_membership('Sales checkout')
+def scan_order_ticket():
+    """ Scan order ticket to create a sale """
     return dict()
 
 
@@ -498,7 +566,7 @@ def refund():
         raise HTTP(404)
 
     # check if the sale has been delivered
-    is_delivered = db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == "delivered")).select().first()
+    is_delivered = db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == SALE_DELIVERED)).select().first()
     if not is_delivered and not sale.is_defered:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
@@ -629,13 +697,12 @@ def sale_row(row):
 
 
 def sale_options(row):
-    print row.sale.id
-    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id)), OPTION_BTN('description', URL('invoice', 'create'))
+    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
 
 
 
 @auth.requires_membership("Sales invoices")
 def index():
     query = (db.sale_log.id_sale == db.sale.id) & (db.sale.id_store == session.store)
-    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id))
+    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id))
     return locals()

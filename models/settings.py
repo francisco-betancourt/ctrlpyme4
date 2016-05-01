@@ -1,10 +1,11 @@
 # settings list
 
 from datetime import timedelta
+from constants import FLOW_BASIC
 
 COMPANY_NAME = 'CtrlPyME'
 COMPANY_SLOGAN = 'Press Ctrl + PyME to begin.'
-COMPANY_LOGO_URL = ''
+COMPANY_LOGO_URL = URL('static', 'images/ctrlPyME_logo.png')
 
 # the workflow determines how the employees will interact with the application
 COMPANY_WORKFLOW = FLOW_BASIC
@@ -55,7 +56,7 @@ if main_settings:
     if main_settings.company_slogan:
         COMPANY_SLOGAN = main_settings.company_slogan
     if main_settings.company_logo:
-        COMPANY_LOGO_URL = main_settings.company_logo
+        COMPANY_LOGO_URL = URL('static', 'uploads/'+main_settings.company_logo)
     # if main_settings.workflow:
     #     COMPANY_WORKFLOW = main_settings.workflow
     if main_settings.extra_field_1:
@@ -87,3 +88,30 @@ if main_settings:
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS
 LABEL_HEIGHT = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (LABEL_ROWS - 1))) / LABEL_ROWS
+
+
+
+
+
+BASE_BRANDED_EMAIL = """
+    <table>
+      <tbody>
+        <tr> <td><img src="%s" alt=""></td> <td colspan=2><h2>%s</h2></td> </tr>
+        {content}
+        <tr><td colspan=3>LEGAL thing</td></tr>
+      </tbody>
+    </table>
+""" % (URL('static', 'uploads/' + COMPANY_LOGO_URL, host=True), COMPANY_NAME)
+
+ORDER_EMAIL_CONTENT = '''
+    <tr> <td colspan=3><h3>Order {code}</h3></td> </tr>
+    <tr> <td colspan=3><h3>Thank you {user_name}</h3></td> </tr>
+    <tr><td colspan=3>{order_concept} </td></tr>
+    <tr></tr>
+
+    <tr><td colspan=3>'''+ T('Details') +'''</td></tr>
+    {items}
+
+    <tr> <td></td> <td>'''+ T('Total') +'''</td> <td>$ {total}</td> </tr>
+
+    <tr><td colspan=3>'''+ T('You can check your orders in') +'<a href="'+ URL('user', 'client_profile') +'"></td></tr>'

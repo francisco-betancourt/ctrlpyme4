@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
-
-
-# def client_order_row(row, fields):
-#     tr = TR()
-#     # sale status
-#     last_log = db(db.sale_log.id_sale == row.id).select().last()
-#     sale_event = last_log.sale_event if last_log else None
-#     tr.append(TD(T(sale_event or 'Unknown')))
-#     for field in fields:
-#         tr.append(TD(row[field]))
-#     return tr
-
-def client_order_options(row):
-    td = TD()
-
-    # view ticket
-    td.append(option_btn('', URL('bag', 'ticket', args=row.id_bag.id), action_name=T('View ticket')))
-    return td
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
 @auth.requires_membership('Employee')
@@ -35,9 +33,10 @@ def profile():
 
 @auth.requires_membership('Clients')
 def client_profile():
-    orders = db(db.sale_order.id_client == auth.user.id).select()
-    orders_data = None
-    orders_data = super_table('sale_order', ['is_ready'], (db.sale_order.id_client == auth.user.id), options_function=client_order_options, show_id=True, selectable=False)
+    orders_data = SUPERT(db.sale_order.id_client == auth.user.id,
+        fields=['id', 'is_ready'], searchable=False,
+        options_func=lambda r: OPTION_BTN('receipt', URL('ticket', 'get', vars=dict(id_bag=r.id_bag.id)), title=T('ticket') )
+    )
     wallet_balance = 0
     if auth.user.id_wallet:
         wallet_balance = db.wallet(auth.user.id_wallet).balance
@@ -67,21 +66,44 @@ def create_client():
 
 @auth.requires_membership('Admin')
 def create():
+    """ Create employee """
+
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         employee_group = db(db.auth_group.role == 'Employee').select().first()
         if employee_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=employee_group.id)
-        response.flash = T('Employee created')
+        response.flash = T('Employee') + ' ' + T('created')
         redirect(URL('get_employee', args=form.vars.id))
     elif form.errors:
-        response.flash = T('Error in form')
+        response.flash = T('Errors in form')
     return dict(form=form)
 
 
 @auth.requires_membership('Admin')
 def get():
     pass
+
+
+@auth.requires_membership('Admin')
+def rand_employee_password():
+    """ sets a random password for the specified user (only employees)
+        args [employee_id]
+    """
+    if auth.has_membership(None, request.args(0), 'Employee'):
+        employee = db.auth_user(request.args(0))
+        if not employee:
+            raise HTTP(404)
+        new_password = auth.random_password()
+        session.info = T('password set, the new password should be in the employee email')
+        content = '<html> %s: <h2>%s</h2></html>' % (T('Your new password is'), new_password)
+        subject = '[%s]: %s' % (COMPANY_NAME, T('Your password has been changed'))
+        r = db(db.auth_user.id == employee.id).validate_and_update(password=new_password)
+        if r.errors:
+            raise HTTP(500)
+        r = mail.send(to=[employee.email], subject=subject, message=content)
+
+        redirect(URL('user', 'get_employee', args=employee.id))
 
 
 @auth.requires_membership('Admin')
@@ -240,6 +262,12 @@ def index():
 def post_login():
     if auth.has_membership('Clients') or auth.user.is_client:
         auto_bag_selection()
+    # if auth.has_membership('Employee'):
+    #     employee_stores = db(
+    #         (db.auth_membership.id_user == auth.user.id)
+    #         & (db.auth_membership.is_for_store == True)
+    #     )
+
     redirection()
 
 

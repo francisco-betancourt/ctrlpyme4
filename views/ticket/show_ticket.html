@@ -1,0 +1,11 @@
+{{extend 'basic_layout.html'}}
+
+{{=ticket}}
+
+<script>
+  $('body').keyup(function (event) {
+    if (event.charCode == 0) {
+      window.close();
+    }
+  });
+</script>

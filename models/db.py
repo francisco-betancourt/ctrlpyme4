@@ -10,17 +10,19 @@
 # request.requires_https()
 
 ## app configuration made easy. Look inside private/appconfig.ini
-from gluon.contrib.appconfig import AppConfig
+# from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
-myconf = AppConfig(reload=True)
+# CONF = AppConfig(reload=True)
+
+from gluon.custom_import import track_changes; track_changes(True)
+from constants import CONF, BAG_ACTIVE
 
 import os
-
 
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
     ## For production add lazy_tables=True for a huge boost in performance
-    db = DAL(myconf.take('db.uri'), pool_size=myconf.take('db.pool_size', cast=int), check_reserved=['all'],)
+    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'],)
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
@@ -35,8 +37,8 @@ else:
 ## none otherwise. a pattern can be 'controller/function.extension'
 # response.generic_patterns = ['*']
 ## choose a style for forms
-response.formstyle = myconf.take('forms.formstyle')  # or 'bootstrap3_stacked' or 'bootstrap2' or other
-response.form_label_separator = myconf.take('forms.separator')
+response.formstyle = CONF.take('forms.formstyle')  # or 'bootstrap3_stacked' or 'bootstrap2' or other
+response.form_label_separator = CONF.take('forms.separator')
 
 
 ## (optional) optimize handling of static files
@@ -60,6 +62,13 @@ auth = Auth(db)
 service = Service()
 plugins = PluginManager()
 
+
+# set current db and auth
+from gluon import current
+current.db = db
+current.auth = auth
+
+
 db.define_table(
   'wallet'
   , Field('wallet_code', notnull=True, label=T('Wallet code'), writable=False, readable=False)
@@ -79,9 +88,9 @@ auth.define_tables(username=False, signature=False)
 
 ## configure email
 mail = auth.settings.mailer
-mail.settings.server = 'logging' if request.is_local else myconf.take('smtp.sender')
-mail.settings.sender = myconf.take('smtp.sender')
-mail.settings.login = myconf.take('smtp.login')
+mail.settings.server = CONF.take('smtp.server')
+mail.settings.sender = CONF.take('smtp.sender')
+mail.settings.login = CONF.take('smtp.login')
 
 ## configure auth policy
 auth.settings.registration_requires_verification = False
@@ -114,6 +123,8 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # #TODO:60 move validators to a module
 # validators
 class IS_BARCODE_AVAILABLE(object):
+    """ checks if the object barcode has been already used """
+
     def __init__(self, db, barcode='', error_message=T('Barcode already used')):
         self.db = db;
         self.barcode = barcode
@@ -126,19 +137,19 @@ class IS_BARCODE_AVAILABLE(object):
             return (value, None)
 
         barcodes = None
+        # update case
         if self.record_id:
             barcodes = self.db((self.db.item.id != self.record_id)
                                & ((self.db.item.sku == self.barcode)
                                 | (self.db.item.ean == self.barcode)
                                 | (self.db.item.upc == self.barcode))
-                             ).select()
-            # print barcodes.first().id
+                             ).select().first()
+        # creation case
         else:
             barcodes = self.db((self.db.item.sku == self.barcode)
                              | (self.db.item.ean == self.barcode)
                              | (self.db.item.upc == self.barcode)
-                             ).select()
-
+                             ).select().first()
         if not barcodes:
             return (value, None)
         else:
@@ -173,6 +184,7 @@ class IS_BARCODE_AVAILABLE(object):
 
 """ database class object creation (initialization) """
 
+# deprecated
 db.define_table(
     "company_config"
     , Field('param_name', label=T("Name"), writable=False)
@@ -186,7 +198,7 @@ db.define_table(
 
 db.define_table("brand",
     Field("name", "string", default=None, label=T('Name')),
-    Field("logo", "upload", default=None, label=T('Logo')),
+    Field("logo", "upload", default=None, label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     auth.signature)
 
 db.define_table("trait_category",
@@ -207,6 +219,7 @@ db.define_table("tax",
     format='%(name)s')
 
 
+# probabily deprecated
 db.define_table(
     "company"
     , Field('name', 'string', default=None, label=T('Name'))
@@ -229,6 +242,7 @@ db.define_table("address",
     Field("city", "string", default=None, label=T('City')),
     Field("municipality", "string", default=None, label=T('Municipality')),
     Field("state_province", "string", default=None, label=T('State or Province')),
+    Field("postal_code", "string", default=None, label=T('Postal code')),
     Field("country", "string", default=None, label=T('Country')),
     Field("reference", "string", default=None, label=T('Address Reference')),
     auth.signature,
@@ -241,6 +255,7 @@ db.define_table("store",
     Field("name", "string", default=None, label=T('Name')),
     Field("consecutive", "integer", default=1, readable=False, writable=False),
     Field('map_url', default=None, label=T('Map url')),
+    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
 
     #Fields required for CFDI Invoice
     Field('certificate',type='upload',autodelete=True,readable=False,writable=False,
@@ -282,7 +297,7 @@ db.define_table(
     , Field('title', label=T('Title'))
     , Field('description', label=T('Description'))
     , Field('url', label=T('URL'))
-    , Field('bg_image', 'upload', label=T('Image'))
+    , Field('bg_image', 'upload', label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     , auth.signature
 )
 db.highlight.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
@@ -295,13 +310,16 @@ db.define_table(
   , Field('id_store', 'reference store', default=None, readable=False, writable=False)
   , Field('company_name', label=T('Name'))
   , Field('company_slogan', label=T('Slogan'))
-  , Field('company_logo', 'upload', label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
+  , Field('company_logo', 'upload', label=T('Logo'), default=None, uploadfolder=os.path.join(request.folder, 'static/uploads'))
+
   , Field('extra_field_1', label=T('Extra field') + '1')
   , Field('extra_field_2', label=T('Extra field') + '2')
   , Field('extra_field_3', label=T('Extra field') + '3')
 
+  # true if the store only allows whitelisted clients
   , Field('clients_whitelist', 'boolean', label=T('Use clients whitelist'), default=True, readable=False, writable=False)
-  , Field('ticket_footer', label=T('Ticket footer'))
+
+  , Field('ticket_footer', 'text', label=T('Ticket footer'))
 
   , Field('primary_color', label=T('Primary color'))
   , Field('primary_color_text', label=T('Primary color text'))
@@ -309,6 +327,11 @@ db.define_table(
   , Field('accent_color_text', label=T('Accent color text'))
   , Field('base_color', label=T('Base color'))
   , Field('base_color_text', label=T('Base color text'))
+
+  # some chached data
+  # the mount of time in minutes that the cached data will be available
+  , Field('cached_data_timeout', 'integer', default=120, readable=False, writable=False)
+  , Field('cached_popular_items', readable=False, writable=False)
 
   , auth.signature
 )
@@ -320,6 +343,14 @@ db.settings.accent_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+
+
+db.define_table(
+    'cached_data'
+    , Field('name', 'integer', readable=False, writable=False)
+    , Field('val', readable=False, writable=False)
+    , auth.signature
+)
 
 
 db.define_table(
@@ -352,8 +383,10 @@ db.define_table("category",
     Field("name", "string", default=None, label=T('Name')),
     Field("description", "text", default=None, label=T('Description')),
     Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
-    Field("icon", "upload", default=None, label=T('Icon')),
+    Field("icon", "upload", default=None, label=T('Icon'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field("parent", "reference category", label=T('Parent category'), readable=False, writable=False),
+    # used to group items and provide the group with custom traits. categories with this attribute can not have parent nor children, and does not show in the categories, tree, it
+    # Field("is_ghost", 'boolean', default=False, readable=False, writable=False),
     Field("trait_category1", "reference trait_category", label=T('Trait')+" 1"),
     Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
     Field("trait_category3", "reference trait_category", label=T('Trait')+" 3"),
@@ -390,12 +423,11 @@ db.define_table("item",
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
-    Field("thumb", "upload", default=None, label=T('Thumbnail')),
     Field("reward_points", "integer", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
-db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s %(logo)s')
+db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
 db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
 
@@ -412,27 +444,6 @@ db.define_table(
   , Field('quantity', 'decimal(16,6)')
   , auth.signature
 )
-
-
-
-
-
-
-db.define_table(
-    'store_role'
-    , Field('id_user', "reference auth_user", label=T('user'))
-    , Field('id_store', "reference store", label=T('store'))
-    , Field('id_role', "reference auth_group", label=T('role'))
-)
-
-db.define_table("store_config",
-    Field("id_store", "reference store", label=T('Store'), writable=False),
-    Field("param_name", "string", default=None, label=T('Parameter name'), writable=False),
-    Field("param_value", "string", default=None, label=T('Parameter value')),
-    Field("param_type", "string", default=None, label=T('Parameter type'), writable=False),
-    Field("is_public", "boolean", default=False, label=T('Is Public')),
-    auth.signature)
-db.store_config.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_address)s %(name)s')
 
 
 db.define_table("supplier",
@@ -465,12 +476,15 @@ db.define_table("bag",
     , Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Point'))
     , Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'))
     , Field("status", "integer", default=BAG_ACTIVE, label=T('Status'))
+    , Field("is_sold", "boolean", default=False, label=T('Is sold'))
     , Field("is_paid", "boolean", default=False, label=T('Paid'))
+    # used when the bag has been paid using stripe
+    , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
+
+    # deprecated soon
     , Field("completed", "boolean", default=False, label=T('Completed'))
     # this state is used to specify that the bag is being processed by the system
     , Field("is_on_hold", "boolean", default=False, label=T('On hold'))
-    # used when the bag has been paid using stripe
-    , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
     , auth.signature)
 
 
@@ -480,14 +494,27 @@ db.define_table("bag_item",
     Field("quantity", "decimal(16,6)", default=1, label=T('Quantity')),
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
+    # price minus discount
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
     Field("discount", "decimal(16,6)", default=0, label=T('Discount')),
+    # list of item taxes at bag time, this string is something like
+    # TAX:10,OTHER_TAX:20,  and it is created when the bag item is created
     Field("item_taxes", default=None, label=T('Item taxes'), readable=False, writable=False),
+    # holds the actual taxes quantity based on the items taxes list
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
     Field("sale_code", "string", default=None, label=T('Sale code')),
     Field("serial_number", "string", default=None, label=T('Serial number')),
     auth.signature)
+
+
+db.define_table(
+  'product_loss'
+  , Field('id_store', 'reference store', label=T('Store'), readable=False, writable=False)
+  , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
+  , Field('notes', 'text', label=T('Notes'))
+  , auth.signature
+)
 
 
 db.define_table(
@@ -546,7 +573,9 @@ db.define_table(
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
   , Field('id_sale', 'reference sale', default=None, label=T('Sale'), readable=False, writable=False)
   , Field('id_store', 'reference store', label=T('Store'))
+  # when the seller has sold out of stock items, the system creates a sale order for the defered sale
   , Field('is_for_defered_sale', 'boolean', default=False, label=T('Is for defered sale'), readable=False, writable=False)
+  , Field('code', default=None, label=T('Code'), readable=False, writable=False)
   , Field('is_ready', 'boolean', default=False, label=T('Ready'), readable=False, writable=False)
   , auth.signature
 )
@@ -609,12 +638,14 @@ db.define_table("payment",
     Field("id_bag", "reference bag", label=T('bag')),
     Field("amount", "decimal(16,6)", default=0, label=T('Amount')),
     Field("account", "string", default=None, label=T('Account')),
+    # reference to the wallet
+    Field("wallet_code", default=None, label=T('Wallet code')),
     Field("change_amount", "decimal(16,6)", default=0, label=T('Change amount')),
     # only applicable if payment opt has credit days
     Field('is_settled', 'boolean', default=True, label=T('Is settled')),
     Field("epd", "date", label=T('Estimated payment date')),
     Field('settled_on', 'datetime', label=T('Settled on')),
-    Field("wallet_code", default=None, label=T('Wallet code')),
+    Field("stripe_charge_id", default=None, label=T('stripe_charge_id')),
     Field("is_updatable", 'boolean', default=True, label=T('Is updatable')),
     auth.signature)
 
@@ -639,7 +670,7 @@ db.define_table(
     , Field("starts_on", "datetime", default=None, label=T('Starts on'))
     , Field("ends_on", "datetime", default=None, label=T('Ends on'))
     , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
-    , Field('bg_image', 'upload', label=T('Background image'))
+    , Field('bg_image', 'upload', label=T('Background image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     , auth.signature
 )
 db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))

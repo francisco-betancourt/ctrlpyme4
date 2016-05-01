@@ -19,6 +19,8 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 #
 
+precheck()
+
 @auth.requires_membership('Sales returns')
 def get():
     """ args: [id_credit_note] """

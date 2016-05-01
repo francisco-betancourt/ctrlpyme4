@@ -20,6 +20,8 @@
     {{pass}}
   </ul>
 
+  <a href="{{=URL('user', 'rand_employee_password', args=employee.id)}}" class="btn btn-default btn-block">{{=T('reset password')}}</a>
+
 
 {{end}}
 
@@ -60,16 +62,16 @@
 
     url = "{{=URL('user', 'set_access_card', args=employee.id, extension='json')}}/" + group_name
 
-    info_card('Saving...');
+    info_card('{{=T("Saving")}}...');
 
     $.ajax({
       url: url
     })
     .done(function (res) {
-      info_card('Saved', null, "success");
+      info_card('{{=T("Saved")}}', null, "success");
     })
     .fail(function (res) {
-      info_card('Failed', null, "error");
+      info_card('{{=T("Failed")}}', null, "error");
     });
   });
 
@@ -87,10 +89,10 @@
       url: url
     })
     .done(function (res) {
-      info_card('Saved', null, "success");
+      info_card('{{=T("Saved")}}', null, "success");
     })
     .fail(function (res) {
-      info_card('Failed', null, "error");
+      info_card('{{=T("Failed")}}', null, "error");
     });
   });
 

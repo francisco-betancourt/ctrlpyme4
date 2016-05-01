@@ -19,6 +19,8 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+precheck()
+
 import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
@@ -29,8 +31,7 @@ from datetime import date, timedelta, datetime
 @auth.requires_membership('Purchases')
 def create():
     """
-        vars:
-            is_xml: if true, then the form will accept an xml file
+        vars: is_xml: if true, then the form will accept an xml file
     """
 
     is_xml = request.vars.is_xml == 'True'
@@ -42,23 +43,21 @@ def create():
             Emisor('PAE981007MS6','REGIMEN GENERAL DE LEY PERSONAS MORALES','PROYECCION Y ADMINISTRACION EMPRESARIAL DE MEXICO SA DE CV',
                 domicilioFiscal=DomicilioFiscal('AV. JUAREZ','PUEBLA','PUEBLA','72160',noExterior="2915",colonia="LA PAZ", localidad="PUEBLA")),
             Receptor('NOPO870528FH5','NORIEGA PLANAS OCTAVIO'))
-        print c
         form = SQLFORM(db.purchase, fields=['purchase_xml'])
 
         return dict(form=form)
 
 
-@auth.requires_membership('Purchases')
-def create_from_xml():
-    """
-        vars:
-            is_xml: if true, then the form will accept an xml file
-    """
-
-    is_xml = request.vars.is_xml == 'True'
-    new_purchase_id = db.purchase.insert(id_store=session.store)
-    if not is_xml:
-        redirect(URL('fill', args=new_purchase_id))
+# @auth.requires_membership('Purchases')
+# def create_from_xml():
+#     """
+#         vars: is_xml: if true, then the form will accept an xml file
+#     """
+#
+#     is_xml = request.vars.is_xml == 'True'
+#     new_purchase_id = db.purchase.insert(id_store=session.store)
+#     if not is_xml:
+#         redirect(URL('fill', args=new_purchase_id))
 
 
 @auth.requires_membership('Purchases')
@@ -339,8 +338,8 @@ def update_value():
     if field_name in valid_fields:
         params = {field_name: request.vars[field_name]}
         r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
-        if r.errors:
-            print r.errors
+        # if r.errors:
+        #     print r.errors
         purchase = db.purchase(request.args(0))
         return {field_name: purchase[field_name]}
     return locals()
@@ -463,7 +462,7 @@ def get():
 
 
     purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
-    purchase_items_table = super_table('stock_item', ['id_item', 'purchase_qty', 'price', 'taxes'], db.stock_item.id_purchase == purchase.id, options_enabled=False, row_function=stock_item_row)
+    purchase_items_table = SUPERT(db.stock_item.id_purchase == purchase.id, fields=['id_item', 'purchase_qty', 'price', 'taxes'], options_enabled=False, searchable=False)
 
     return locals()
 
@@ -480,19 +479,20 @@ def update():
     redirect(URL('fill', args=request.args))
 
 
-@auth.requires_membership('Purchases')
-def delete():
-    return common_delete('purchase', request.args)
+# @auth.requires_membership('Purchases')
+# def delete():
+#     return common_delete('purchase', request.args)
 
 
 def purchase_options(row):
     buttons = ()
     # edit option
     if not row.is_done:
-        buttons += OPTION_BTN('edit', URL('update', args=row.id)),
+        buttons += OPTION_BTN('edit', URL('update', args=row.id), title=T('edit')),
     else:
-        buttons += OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) )),
-    buttons += supert_default_options(row)[1],
+        buttons += OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
+        buttons += OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
+    # buttons += supert_default_options(row)[1],
     return buttons
 
 

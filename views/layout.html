@@ -18,6 +18,7 @@
     <meta name="application-name" content="{{=request.application}}">
     <!-- Speaking of Google, don't forget to set your site up:
          http://google.com/webmasters -->
+    <link rel="manifest" href="{{ =URL('static', 'manifest.json') }}">
     <meta name="google-site-verification" content="">
     <!-- include stylesheets -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
@@ -36,6 +37,8 @@
 
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+
+    <link rel="manifest" href="{{=URL('static', 'manifest.json')}}">
 
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
@@ -118,6 +121,9 @@
 
 
     {{include "navbar2.html"}}
+
+    {{# barcode scanner temaplte and functions }}
+    {{include 'barcode_scanner.html'}}
 
 
     <!-- Masthead ===================================== -->
@@ -208,10 +214,10 @@
                   <h2>{{=T('Bag')}}</h2>
                   {{=T("Sorry you can't sell")}}
                 {{else:}}
-                  {{include 'bag_2.html'}}
+                  {{include 'bag.html'}}
                 {{pass}}
               {{elif auth.has_membership('Clients'):}}
-                {{include 'bag_2.html'}}
+                {{include 'bag.html'}}
               {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
@@ -227,7 +233,8 @@
     {{block footer}} <!-- this is default footer -->
     <footer class="footer">
       <div class="container-fluid">
-        <div class="copyright pull-left">{{=T('Copyright')}} &#169; {{=request.now.year}}</div>
+        <div class="copyright pull-left">{{=T('Copyright')}} &#169; {{=request.now.year}}
+          <a href="http://www.ctrlpyme.com" target='_blank'>CtrlPyME</a></div>
           <div id="poweredBy" class="pull-right">
             {{=T('Powered by')}}
             <a href="http://www.web2py.com/">web2py</a>
@@ -292,7 +299,7 @@
      {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
 
      function delete_rows(ids, controller, vars) {
-       if(confirm('{{=T("Are you sure you want to delete the selected elements?")}}')) {
+       if(confirm('{{=T("Are you sure you want to hide the selected elements?")}}')) {
          var delete_url = '{{=URL("delete")}}' + ids + '?' + vars;
          window.location.href = delete_url;
        }
@@ -333,6 +340,11 @@
     });
 
 
+    {{ if session.ticket_url: }}
+      var other_window = window.open("{{=session.ticket_url}}", '1', resizable=1);
+      {{ session.ticket_url = None }}
+    {{ pass }}
+    {{ pass }}
      {{ if request.vars._print: }}
       window.print();
       // window.print();

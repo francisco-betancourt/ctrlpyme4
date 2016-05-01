@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
 
@@ -72,7 +88,7 @@ def delete():
 def index():
     def category_options(row):
         update_btn, hide_btn = supert_default_options(row)
-        return update_btn, hide_btn, OPTION_BTN('details', URL('index', args=row.id))
+        return update_btn, hide_btn, OPTION_BTN('details', URL('index', args=row.id), title=T('subcategories'))
     query = db.category.parent == request.args(0)
     request.vars.orderby = 'name'
     data = SUPERT(query, fields=['name'], options_func=category_options)

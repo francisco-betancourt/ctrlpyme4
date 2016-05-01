@@ -9,7 +9,18 @@
   text-align: center;
 }
 
+.ticket .logo {
+  width: 80px;
+  margin-bottom: 20px;
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+}
+
+.ticket th {
+  text-align: left;
+}
 .ticket #items_list {
+  width: 100%
 }
 
 #items_list .item>.qty {
@@ -32,4 +43,13 @@
 
 #barcode {
   margin: auto;
+}
+
+
+.right p {
+  text-align: right;
+}
+
+.ticket .head {
+  font-size: 18px;
 }

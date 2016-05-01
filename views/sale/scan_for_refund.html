@@ -1,9 +1,10 @@
 {{extend 'layout.html'}}
 
-<h1>{{=T('Scan Sale ticket')}}</h1>
+<h1>{{=T('Scan')}} {{=T('Sale ticket')}}</h1>
+<div id="ticket_scanner_container"></div>
 
-{{include 'barcode_scanner.html'}}
 
+{{block page_js}}
 <script>
   function fail_callback(data, barcode) {
     alert(data.msg);
@@ -13,8 +14,7 @@
     window.location.href = "{{=URL('sale', 'refund')}}/" + data.sale.id;
   }
 
-
-  setup_scanner(success_callback, fail_callback, null, "{{=URL('get', extension='json')}}/");
-
-  console.log();
+  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, null, "{{=URL('get', extension='json')}}/");
 </script>
+{{end}}

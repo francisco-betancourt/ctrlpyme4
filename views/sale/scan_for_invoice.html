@@ -2,7 +2,7 @@
 <h1>{{=T("Scan tickets for invoice")}}</h1>
 <h4>{{=T("Scan sale tickets to create an invoice")}}</h4>
 
-{{include "barcode_scanner.html"}}
+<div id="ticket_scanner_container"></div>
 
 <div id="sales_list"></div>
 
@@ -49,7 +49,8 @@
     }
   }
 
-  setup_scanner(success_callback, fail_callback, requirement, "{{=URL('sale', 'get_by_barcode', extension='json')}}/", 'sales')
+  var scanner = create_scanner('sales', $('#ticket_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, requirement, "{{=URL('sale', 'get_by_barcode', extension='json')}}/");
 
   $('#create_btn').click(function (event) {
     window.location.href = "{{=URL('invoice', 'create')}}?sales=" + sales_list;

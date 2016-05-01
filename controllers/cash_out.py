@@ -15,8 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+precheck()
+
 from datetime import timedelta
 
+
+@auth.requires_membership('Cash out')
 def create():
     """ args: [id_seller] """
 
@@ -39,6 +44,7 @@ def create():
     redirect(URL('analytics', 'cash_out', vars=dict( id_cash_out=new_cash_out_id) ))
 
 
+@auth.requires_membership('Cash out')
 def update():
     """ args: [id_cash_out]
         vars: [target <cash, notes>, value ]
@@ -57,6 +63,7 @@ def update():
         return dict(target=request.vars.target, value=value)
 
 
+@auth.requires_membership('Cash out')
 def done():
     """ args: [id_cash_out] """
 

@@ -12,7 +12,7 @@
     <div class="menu-element primary-color-text hamburger" id="hamburger">{{=ICON('menu')}}</div>
     <a href="{{=URL('default', 'index')}}" class="menu-element brand">
       {{if COMPANY_LOGO_URL:}}
-        <img src="{{=URL('static', 'uploads/'+COMPANY_LOGO_URL )}}" alt="">
+        <img src="{{=COMPANY_LOGO_URL}}" alt="">
       {{else:}}
         {{=COMPANY_NAME}}
       {{pass}}

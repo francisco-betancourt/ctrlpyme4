@@ -1,0 +1,8 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Product losses')}}</h1>
+{{if data:}}
+  {{=data}}
+{{else:}}
+  {{=T('No records found')}}
+{{pass}}

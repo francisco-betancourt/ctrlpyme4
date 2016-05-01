@@ -1,7 +1,26 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Daniel J. Ramirez
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+
+if not auth.has_membership('Admin'):
+    precheck()
 
 import calendar
 from datetime import timedelta, datetime, date
@@ -38,6 +57,20 @@ def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
     return payments
 
 
+def get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
+    """ Return paid bags not related with sales """
+
+    paid_bags = db(
+        (db.bag.is_sold == False)
+        & (db.bag.is_paid == True)
+        & (db.bag.created_on >= start_date)
+        & (db.bag.created_on <= end_date)
+    ).select()
+
+    for paid_bag in paid_bags:
+        yield Storage(amount=paid_bag.total, change_amount=0, created_on=paid_bag.created_on)
+
+
 def get_day_sales_data(day, id_store):
     if not day:
         day = date(request.now.year, request.now.month, request.now.day)
@@ -48,14 +81,17 @@ def get_day_sales_data(day, id_store):
     data = [0 for i in range(24)]
 
     # income
-    payments = get_payments_in_range(start_date, end_date, id_store)
+    payments = get_payments_in_range(start_date, end_date, id_store).as_list()
+    for bag_pay in get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
+        payments.append(bag_pay)
     income = 0
     for payment in payments:
-        income += payment.amount - payment.change_amount
-        index = payment.created_on.hour
-        data[index] += float(payment.amount - payment.change_amount)
+        income += payment['amount'] - payment['change_amount']
+        index = payment['created_on'].hour
+        data[index] += float(payment['amount'] - payment['change_amount'])
 
     return data
+
 
 
 @auth.requires_membership("Analytics")
@@ -83,16 +119,18 @@ def cash_out():
     start_date = datetime(s_date.year, s_date.month, s_date.day, 0)
     end_date = start_date + CASH_OUT_INTERVAL
 
+    # check if the cash out is in a valid interval
     if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
         raise HTTP(405)
 
     payment_opts = db(db.payment_opt.is_active == True).select()
+    payment_opts_ref = {}
     # will be used to create a payments chart
-    payment_opt_data = {}
     for payment_opt in payment_opts:
-        payment_opt_data[str(payment_opt.id)] = {
-            "color": random_color_mix(PRIMARY_COLOR), "label": payment_opt.name, "value": 0
-        }
+        payment_opt.c_value = 0
+        payment_opt.c_label = payment_opt.name
+        payment_opt.c_color = random_color_mix(PRIMARY_COLOR)
+        payment_opts_ref[str(payment_opt.id)] = payment_opt
 
     sales = db((db.sale.id == db.sale_log.id_sale)
                 & ((db.sale_log.sale_event == 'paid')
@@ -157,12 +195,17 @@ def day_report_data(year, month, day):
         sales_data['datasets'][0]['data'].append(0)
 
     # income
-    payments = get_payments_in_range(start_date, end_date, session.store)
+    payments = get_payments_in_range(start_date, end_date, session.store).as_list()
     income = 0
+
+    # get paid bags
+    for paid_bag in get_paid_bags_in_range_as_payments(start_date, end_date, session.store):
+        payments.append(paid_bag)
+
     for payment in payments:
-        income += payment.amount - payment.change_amount
-        index = payment.created_on.hour
-        sales_data['datasets'][0]['data'][index] += float(payment.amount - payment.change_amount)
+        income += payment['amount'] - payment['change_amount']
+        index = payment['created_on'].hour
+        sales_data['datasets'][0]['data'][index] += float(payment['amount'] - payment['change_amount'])
     sales_data = json.dumps(sales_data)
 
     # expenses
@@ -235,6 +278,8 @@ def stocks_table(item):
     return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on, search_enabled=False)
 
 
+from item_utils import get_wavg_days_in_shelf
+
 @auth.requires_membership("Analytics")
 def item_analysis():
     """
@@ -249,11 +294,12 @@ def item_analysis():
     stocks = stocks_table(item)
 
     sales = db(
-        # (db.bundle_item.id_bundle == db.item.id)
-        (db.bag_item.id_bag == db.bag.id)
-        & (db.sale.id_bag == db.bag.id)
-        & (db.sale.id_store == session.store)
-        & (db.bag_item.id_item == item.id)
+        (db.bag_item.id_bag == db.bag.id) &
+        (db.sale.id_bag == db.bag.id) &
+        (db.sale_log.id_sale == db.sale.id) &
+        (db.sale_log.sale_event == SALE_DELIVERED) &
+        (db.sale.id_store == session.store) &
+        (db.bag_item.id_item == item.id)
     ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
     stock_transfers = db(
         # (db.bundle_item.id_bundle == db.item.id)
@@ -262,6 +308,8 @@ def item_analysis():
         & (db.stock_transfer.id_store_from == session.store)
         & (db.bag_item.id_item == item.id)
     ).select(db.stock_transfer.ALL, db.bag_item.ALL, orderby=~db.stock_transfer.created_on)
+
+    wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 
     return locals()
 
@@ -273,23 +321,10 @@ def dataset_format(label, data, f_color):
     return {
         'label': label,
         'data': data,
-        'fillColor': hex_to_css_rgba(fill_color, .4),
-        'strokeColor': fill_color,
-        'pointColor': fill_color,
+        'backgroundColor': hex_to_css_rgba(fill_color, .4),
+        'borderColor': fill_color,
+        'pointBorderColor': fill_color,
     }
-
-
-def pie_data_format(records):
-    data = []
-    for record in records:
-        f_color = record.c_color if record.c_color else random_color_mix(PRIMARY_COLOR)
-        data.append(dict(
-            value=record.c_value,
-            label=record.c_label,
-            color=f_color
-        ))
-    return data
-
 
 
 @auth.requires_membership('Admin')
@@ -317,10 +352,10 @@ def dashboard():
         store.c_color = random_color_mix(PRIMARY_COLOR)
         store.c_label = store.name
         # select this month payments
-        payments = get_payments_in_range(start_date, end_date, store.id)
+        payments = get_payments_in_range(start_date, end_date, store.id).as_list()
         store.c_value = 0
         for payment in payments:
-            store.c_value += payment.amount - payment.change_amount
+            store.c_value += payment['amount'] - payment['change_amount']
         store.c_value = str(DQ(store.c_value, True))
         sales_data['datasets'].append(
             dataset_format(store.name, get_day_sales_data(None, store.id), store.c_color)
@@ -338,7 +373,7 @@ def dashboard():
                 & (db.stock_item.created_on < current_max_stock_date)
                 ).select(stocks_sum).first()[stocks_sum]
             stocks_qty_data.append(float(current_items or 0))
-            # select next month assuming that the end date is the las month of the current year
+            # select next month assuming that the end date is the last month of the current year
             current_max_stock_date = date(current_max_stock_date.year, current_max_stock_date.month + 1, 1)
         items_data['datasets'].append(dataset_format(store.name, stocks_qty_data, store.c_color))
 
@@ -361,12 +396,24 @@ def index():
     expenses = day_data['expenses']
     today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    employees_query = ((db.auth_membership.group_id == db.auth_group.id)
-                    & (db.auth_user.id == db.auth_membership.user_id)
-                    & (db.auth_user.registration_key == '')
-                    & (db.auth_membership.user_id == db.auth_user.id)
-                    & (db.auth_group.role == 'Sales checkout'))
-    employees_data = SUPERT(employees_query, (db.auth_user.ALL), fields=[dict(fields=['first_name', 'last_name'], label_as=T('Name')), 'email'], options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id)))
+    store_group = db(db.auth_group.role == 'Store %s' % session.store).select().first()
+    checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
+    # query the employees with current store membership
+    store_employees_ids = [r.id for r in db(
+          (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_membership.group_id == store_group.id)
+    ).select(db.auth_user.id, cache=(cache.ram,3600), cacheable=True)]
+    # employees with store membership and checkout membership
+    employees_query = (
+        (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_user.id.belongs(store_employees_ids))
+        & (db.auth_membership.group_id == checkout_group.id)
+    )
+    employees_data = SUPERT(employees_query, db.auth_user.ALL,
+        fields=[dict(fields=['first_name', 'last_name'],
+        label_as=T('Name')), 'email'],
+        options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id), title=T('cash out'))
+    )
 
     return locals()
 

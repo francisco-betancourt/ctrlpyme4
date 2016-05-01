@@ -1,11 +1,12 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Scan stock transfer ticket')}}</h1>
-{{include 'barcode_scanner.html'}}
+<div id="ticket_scanner_container"></div>
 
 <script>
   function requirement(barcode) {
     window.location.href = "{{=URL('receive')}}/" + barcode;
   }
 
-  setup_scanner(null, null, requirement, 'a', 'transfer');
+  var scanner = create_scanner('transfer', $('#ticket_scanner_container'));
+  setup_scanner(scanner, null, null, requirement, 'a');
 </script>

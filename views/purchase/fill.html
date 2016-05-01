@@ -17,7 +17,7 @@
 
 <h1>{{=T('Add')}} Items</h1>
 {{=stock_items_script}}
-{{include "barcode_scanner.html"}}
+<div id="purchase_scanner_container"></div>
 {{new_item_js_url = URL('static', 'js/create_item.js')}}
 
 <div>
@@ -303,7 +303,6 @@
 
   function requirement(barcode) {
     var el_item = $('#items_list').find('#item_' + barcode);
-    console.log(el_item);
     if (el_item.length) {
       return false;
     }
@@ -312,7 +311,8 @@
     }
   }
 
-  setup_scanner(success_callback, fail_callback, requirement, null, 'purchases');
+  var scanner = create_scanner('purchase', $('#purchase_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, requirement, null);
 
 
   // purchase_items is a javascript variable sended by the server. in the purchase_items_form

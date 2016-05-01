@@ -22,36 +22,11 @@
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
+from bag_utils import *
+from item_utils import item_stock, discount_data, remove_stocks
 
 
 allow_out_of_stock = True
-
-
-def refresh_bag_data(id_bag):
-    bag = db(db.bag.id == id_bag).select(for_update=True).first()
-    if bag.status != BAG_ACTIVE:
-        return
-
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
-
-    subtotal = D(0)
-    taxes = D(0)
-    total = D(0)
-    quantity = D(0)
-    reward_points = 0
-    for bag_item in bag_items:
-        subtotal += bag_item.sale_price * bag_item.quantity
-        taxes += bag_item.sale_taxes * bag_item.quantity
-        total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
-        quantity += bag_item.quantity
-        reward_points += bag_item.id_item.reward_points or 0
-    bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
-    subtotal = money_format(DQ(subtotal, True))
-    taxes = money_format(DQ(taxes, True))
-    total = money_format(DQ(total, True))
-    quantity = DQ(quantity, True, True)
-
-    return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
 
 
 @auth.requires(auth.has_membership('Sales bags')
@@ -80,6 +55,7 @@ def modify_bag_item():
         diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
         if qty + diff < bag_item.quantity - old_qty:
             bag_item.quantity = max(old_qty, qty + old_qty)
+    bag_item.quantity = max(0, bag_item.quantity)
 
     bag_item.update_record()
     bag_data = refresh_bag_data(bag_item.id_bag.id)
@@ -95,10 +71,7 @@ def select_bag():
     """ Set the specified bag as the current bag. The current bag will be available as session.current_bag
 
         args: [bag_id]
-        vars: [ignore_state]
-
     """
-
     bag = None
     try:
         bag = is_modifiable_bag(request.args(0))
@@ -135,6 +108,7 @@ def add_bag_item():
         if base_qty <= 0:
             return dict(status="out of stock")
 
+        # create item taxes string, the string contains the tax name and its percentage, see db.py > bag_item table for more info
         if not bag_item:
             item_taxes_str = ''
             for tax in item.taxes:
@@ -243,7 +217,6 @@ def complete():
 
     # clients create orders
     if auth.has_membership('Clients'):
-        bag.status = BAG_FOR_ORDER
         bag.is_on_hold = True
         bag.update_record()
         redirect(URL('sale_order', 'create', args=bag.id))
@@ -278,7 +251,7 @@ def stock_transfer():
 
     # create stock transfer record
     new_stock_transfer_id = db.stock_transfer.insert(id_store_from=bag.id_store.id, id_bag=bag.id)
-    bag.completed = True
+    bag.status = BAG_COMPLETE
     bag.update_record()
     remove_stocks(bag_items)
 
