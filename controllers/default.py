@@ -68,6 +68,8 @@ def index():
               & (db.offer_group.ends_on > request.now)
               ).select()
 
+    stores = db(db.store.is_active == True).select()
+
     return locals()
 
 

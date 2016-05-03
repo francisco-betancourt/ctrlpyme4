@@ -40,13 +40,6 @@
 </div>
 {{ pass }}
 
-
-<script>
-  $('.highlight').each(function (i, e) {
-    $(e).css('min-width', Math.min(window.innerWidth - 30, 400) + 'px');
-  })
-</script>
-
 {{end}}
 
 
@@ -68,8 +61,27 @@
   {{pass}}
 </div>
 
-<!-- <h2>{{=T('Stores')}}</h2> -->
+{{ if stores: }}
+<div class="highlights_container">
+  <h2>{{=T('Stores')}}</h2>
+  <div class="highlights">
+    {{for store in stores:}}
+      <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/%s' % store.image) }})">
+        <div class="data">
+          <h2>{{=store.name}}</h2>
+          <h4>{{=full_address(store.id_address)}}</h4>
+          <a href="{{=store.map_url}}" class="btn btn-block" target="blank"> {{=T('Check map')}} </a>
+        </div>
+      </div>
+    {{pass}}
+  </div>
+</div>
+{{ pass }}
 
-
+{{block page_js:}}
 <script>
+  $('.highlight').each(function (i, e) {
+    $(e).css('min-width', Math.min(window.innerWidth - 30, 400) + 'px');
+  })
 </script>
+{{end}}

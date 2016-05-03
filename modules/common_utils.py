@@ -261,6 +261,9 @@ def pie_data_format(records):
     return data
 
 
+def full_address(address):
+    return "%s %s %s %s %s %s %s %s" % (address.street, address.exterior, address.interior, address.neighborhood, address.city, address.municipality, address.state_province, address.postal_code)
+
 
 def current_url():
     request = current.request
