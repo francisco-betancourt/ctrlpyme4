@@ -334,7 +334,7 @@ def get_item():
     same_traits = False
     multiple_items = False
     query = (db.item.id == request.args(0))
-    if not auth.is_logged_in() or (auth.user and auth.user.is_client()):
+    if not auth.is_logged_in() or (auth.user and auth.user.is_client):
         query &= db.item.is_active == True
     item = db(query).select().first()
     if not item:

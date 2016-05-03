@@ -143,7 +143,7 @@
 'Cannot compile: there are errors in your app.        Debug it, correct errors and try again.': 'No se puede compilar: hay errores en su aplicación. Depure, corrija errores y vuelva a intentarlo.',
 'cannot create file': 'no es posible crear archivo',
 'cannot upload file "%(filename)s"': 'no es posible subir archivo "%(filename)s"',
-'cash': 'cash',
+'cash': 'efectivo',
 'Cash out': 'Corte de caja',
 'cash out': 'corte de caja',
 'Cash out done': 'Cash out done',
