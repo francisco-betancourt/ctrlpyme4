@@ -301,7 +301,7 @@ def get():
         args:
             item_id: the item that will be retrieved
     """
-    item = db.item(request.args(0))
+    item = db((db.item.id == request.args(0)) & (db.item.is_active == True) ).select().first()
     if not item:
         raise HTTP(404)
     return locals()
@@ -317,7 +317,7 @@ def get_by_brand():
     brand = db.brand(request.args(0))
     if not brand:
         raise HTTP(404)
-    query = (db.item.id_brand == brand.id)
+    query = ((db.item.id_brand == brand.id) & (db.item.is_active == True))
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(orderby=db.item.name, groupby=db.item.name, limitby=limits)
 
@@ -333,7 +333,10 @@ def get_item():
 
     same_traits = False
     multiple_items = False
-    item = db.item(request.args(0))
+    query = (db.item.id == request.args(0))
+    if not auth.is_logged_in() or (auth.user and auth.user.is_client()):
+        query &= db.item.is_active == True
+    item = db(query).select().first()
     if not item:
         item_name = request.vars.name
 
@@ -495,7 +498,7 @@ def browse():
     query = (db.item.is_active == True)
 
     if category:
-        query &= (db.item.categories.contains(category.id))
+        query &= db.item.categories.contains(category.id)
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(groupby=db.item.name, limitby=limits)
