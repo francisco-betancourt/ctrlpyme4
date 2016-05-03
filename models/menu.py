@@ -28,11 +28,10 @@ response.google_analytics_id = None
 response.menu = []
 
 # configuration menu
-if auth.has_membership('Admin'):
-    response.menu += [(T('Configuration'),False,None, [
-         (T('Settings'), False, URL('settings', 'update_main'), None)
-        , (T('Paper sizes'), False, URL('paper_size', 'index'), None)
-        , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)
+config_menu_items = []
+if auth.has_membership('Config'):
+    config_menu_items += [
+        (T('Settings'), False, URL('settings', 'update_main'), None)
         , (T('Stores'), False, URL('store', 'index'), None)
         , (T('Employees'), False, URL('user', 'index'), None)
         , (T('Clients'), False, URL('user', 'clients'), None)
@@ -40,16 +39,15 @@ if auth.has_membership('Admin'):
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
+    ]
+if auth.has_membership('Safe config') or auth.has_membership('Config'):
+    config_menu_items += [
+        (T('Paper sizes'), False, URL('paper_size', 'index'), None)
+        , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)
         , (T('Highlights'), False, URL('highlight', 'index'), None)
-    ])]
-if auth.has_membership('Manager') and not auth.has_membership('Admin'):
-    response.menu += [(T('Configuration'),False,None, [
-        # (T('Paper sizes'), False, URL('paper_size', 'index'), None)
-        # , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)
-        # , (T('Addresses'), False, URL('address', 'index'), None)
-        (T('Highlights'), False, URL('highlight', 'index'), None)
-    ])]
+    ]
 
+    response.menu += [(T('Configuration'),False,None, config_menu_items)]
 
 # items menu
 if auth.has_membership("Items info"):

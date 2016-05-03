@@ -51,7 +51,7 @@ def valid_sale(sale):
         raise HTTP(404)
     if sale.is_done:
         session.info = {
-            'text': 'Sale has been paid',
+            'text': T('Sale has been paid'),
             'btn': {'text': T('View ticket'), 'target': '_blank' , 'href': URL('sale', 'ticket', args=sale.id)}
         }
         redirect(URL('default', 'index'))
@@ -264,7 +264,7 @@ def update():
     clients = db(db.auth_user.is_client == True).select()
 
     payments = db(db.payment.id_sale == sale.id).select()
-    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select()
+    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select(orderby=~db.payment_opt.allow_change)
 
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
