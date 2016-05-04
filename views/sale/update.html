@@ -144,10 +144,10 @@
       else {
         $('#client_wallet_data').hide();
       }
-      info_card("{{=T('Saved')}}");
+      info_card("{{=T('Saved')}}", null, 'success');
     })
     .fail(function (res) {
-      info_card("{{=T('Something went wrong')}}");
+      info_card("{{=T('Something went wrong')}}", null, 'error');
     });
   });
 
@@ -165,15 +165,15 @@
         url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + res.payment.id + '?wallet_code=' + client_wallet_code
       })
       .done(function (res) {
-        info_card("{{=T('Payment added')}}");
+        info_card("{{=T('Payment added')}}", null, 'success');
         post_update(res);
       })
       .fail(function (res) {
-        info_card("{{=T('Something went wrong')}}")
+        info_card("{{=T('Something went wrong')}}", null, 'error')
       });
     })
     .fail(function (res) {
-      info_card("{{=T('Something went wrong')}}");
+      info_card("{{=T('Something went wrong')}}", null, 'error');
     });
   });
 
@@ -231,7 +231,7 @@
         url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + payment.id + '?delete=True'
       })
       .done(function (res) {
-        info_card("{{=T('Payment removed')}}");
+        info_card("{{=T('Payment removed')}}", null, 'success');
         $('#payment_' + payment.id).remove();
         if ($('#payments_list_' + payment.id_payment_opt).children().length == 0) {
           $('#payments_' + payment.id_payment_opt).hide();
@@ -239,7 +239,7 @@
         post_update(res);
       })
       .fail(function (res) {
-        info_card("{{=T('Something went wrong')}}");
+        info_card("{{=T('Something went wrong')}}", null, 'error');
       });
     });
 
@@ -255,12 +255,12 @@
         url: "{{=URL('update_payment', args=sale.id, extension='json')}}/" + payment.id + '?' + field + '=' + value
       })
       .done(function (res) {
-        info_card("{{=T('Saved')}}")
+        info_card("{{=T('Saved')}}", null, 'success')
 
         post_update(res);
       })
       .fail(function (res) {
-        info_card("{{=T('Something went wrong')}}")
+        info_card("{{=T('Something went wrong')}}", null, 'error')
       })
     });
   }
@@ -272,13 +272,13 @@
       url: "{{=URL('add_payment', args=sale.id, extension='json')}}/" + selected_payment_opt_id
     })
     .done(function (res) {
-      info_card("{{=T('Payment added')}}");
+      info_card("{{=T('Payment added')}}", null, 'success');
       clone_proto_payment(res.payment);
       $('#payments_' + res.payment.id_payment_opt).show();
       refresh_remaining(res.payments_total);
     })
     .fail(function (res) {
-      info_card("{{=T('Unable to add payment!')}}");
+      info_card("{{=T('Unable to add payment!')}}", null, 'error');
     })
   });
 

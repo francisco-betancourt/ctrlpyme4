@@ -115,14 +115,14 @@
             url: "{{=URL('cash_out', 'update', args=cash_out.id, extension='json')}}?target=" + target.attr('target') + '&value=' + target.val()
           })
           .done(function (res) {
-            info_card("{{=T('Saved')}}");
+            info_card("{{=T('Saved')}}", null, 'success');
             if (res.target) {
               $('#cash_out_' + res.target).text(res.value);
               target.val(res.value);
             }
           })
           .fail(function (res) {
-            info_card("{{=T('Error')}}");
+            info_card("{{=T('Error')}}", null, 'error');
           })
         });
       </script>

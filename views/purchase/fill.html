@@ -101,10 +101,10 @@
       for (k in res) {
         $('#purchase_' + k).val(res[k]);
       }
-      info_card("{{=T('Saved')}}");
+      info_card("{{=T('Saved')}}", null, 'success');
     })
     .fail(function (res) {
-      info_card("{{=T('Could not save changes')}}");
+      info_card("{{=T('Could not save changes')}}", null, 'error');
     });
   });
 
