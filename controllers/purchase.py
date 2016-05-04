@@ -174,7 +174,7 @@ def add_stock_item():
 def update_items_total(purchase):
     items_total = 0
     for s_item in db(db.stock_item.id_purchase == purchase.id).select():
-        items_total += s_item.price * s_item.purchase_qty
+        items_total += s_item.price or 0 * s_item.purchase_qty or 0
     purchase.items_total = items_total
     purchase.update_record()
 
@@ -223,10 +223,7 @@ def postprocess_stock_item(stock_item):
 def modify_stock_item():
     """ This functions allows the modification of a stock item, by specifying the modified fields via url arguments.
 
-        args:
-            stock_item_id
-            param_name
-            param_value
+        args: [stock_item_id, param_name, param_value]
     """
 
     stock_item = db.stock_item(request.args(0))
