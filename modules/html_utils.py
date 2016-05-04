@@ -327,7 +327,7 @@ def item_card(item):
             item_price_html,
             _class="panel-body"
         ),
-        _class="panel panel-default item-card"
+        _class="panel panel-default item-card shadow-1"
     )
 
 

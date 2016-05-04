@@ -490,15 +490,21 @@ def items_list(query, page, ipp=10):
 
 def browse():
     """ Item browser
-        vars: {category, sort}
+        vars: {category, sort, categories, is_service}
     """
 
     category = db.category(request.vars.category)
+    is_service = request.vars.is_service == 'yes'
+
+    title = T('Items')
 
     query = (db.item.is_active == True)
 
     if category:
         query &= db.item.categories.contains(category.id)
+    if is_service:
+        title = T('Services')
+        query &= db.item.has_inventory == False
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(groupby=db.item.name, limitby=limits)
