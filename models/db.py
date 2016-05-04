@@ -617,11 +617,11 @@ db.define_table("stock_item",
     # to simplify queries
     Field("id_store", "reference store", label=T('Store')),
     Field("id_item", "reference item", label=T('Item')),
-    Field("purchase_qty", "decimal(16,6)", default=None, label=T('Purchase quantity')),
+    Field("purchase_qty", "decimal(16,6)", default=1, label=T('Purchase quantity')),
     Field("stock_qty", "decimal(16,6)", default=0, label=T('Stock quantity')),
     # the buy price
-    Field("price", "decimal(16,6)", default=None, label=T('Price')),
-    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
+    Field("price", "decimal(16,6)", default=0, label=T('Price')),
+    Field("taxes", "decimal(16,6)", default=0, label=T('Taxes')),
     Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
     # base sale price, this will update the item base price when the purchase is applied
     Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
@@ -657,7 +657,7 @@ db.define_table("item_image",
     Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
     Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
 )
-db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
+db.item_image.image.requires = IS_IMAGE(extensions=('jpg', 'jpeg', 'png'))
 
 
 db.define_table(

@@ -149,8 +149,8 @@
   .accent-color-for-text {
     color: {{=accent_color}};
   }
-  .accent-color-text, .accent-color-text * {
-    color: {{=accent_color_text}};
+  .accent-color-text, .accent-color-text>* {
+    color: {{=accent_color_text}} !important;
   }
   .base-color {
     background-color: {{=base_color}};

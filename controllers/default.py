@@ -60,6 +60,10 @@ def index():
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 
+    services = db((db.item.is_active == True) & (db.item.has_inventory == False)).select(orderby='<random>', limitby=(0, 10))
+
+    rand_categories = db((db.category.is_active == True)).select(orderby='<random>', limitby=(0, 10))
+
     highlights = db((db.highlight.id_store == session.store)
                   | (db.highlight.id_store == None)
                   ).select()

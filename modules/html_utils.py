@@ -301,9 +301,7 @@ def item_card(item):
     traits_str = ''
     traits_ids = ''
     item_url = URL('item', 'get_item', args=item.id)
-    item_name = item.name + ' - ' + item.description[:10]
-    if len(item.description) > 10:
-        item_name += '...'
+    item_name = item.name
     if item.traits:
         for trait in item.traits:
             traits_ids += str(trait.id)
@@ -312,6 +310,10 @@ def item_card(item):
                 traits_ids += ','
         item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
         item_name = item.name + ' ' + traits_str
+    elif item.description:
+        item_name += ' - ' + item.description[:10]
+        if len(item.description) > 10:
+            item_name += '...'
 
     return DIV(
         A('', _class="panel-heading", _style=bg_style, _href=item_url),
