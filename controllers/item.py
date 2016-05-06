@@ -319,7 +319,7 @@ def get_by_brand():
         raise HTTP(404)
     query = ((db.item.id_brand == brand.id) & (db.item.is_active == True))
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(orderby=db.item.name, groupby=db.item.name, limitby=limits)
+    items = db(query).select(orderby=db.item.name, limitby=limits)
 
     return locals();
 
@@ -507,7 +507,7 @@ def browse():
         query &= db.item.has_inventory == False
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(groupby=db.item.name, limitby=limits)
+    items = db(query).select(limitby=limits)
 
     selected_categories = [category.id] if category else []
     categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))
