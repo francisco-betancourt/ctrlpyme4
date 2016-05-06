@@ -91,7 +91,7 @@
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
     {{pass}}
-     <div id="info_card" {{if not session.info:}} hidden {{pass}}>
+     <div id="info_card" class="info-card panel panel-default noprint" {{if not session.info:}} hidden {{pass}}>
        {{=INFO_CARD()}}
      </div>
     {{session.info = None}}

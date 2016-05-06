@@ -21,6 +21,10 @@
   padding-right: 16px;
   padding-top: 8px;
 }
+.items-container-full>hr {
+  margin-left: -16px;
+  margin-right: -16px;
+}
 
 .item-card {
   position: relative;

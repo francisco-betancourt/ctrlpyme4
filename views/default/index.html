@@ -13,10 +13,10 @@
 </style>
 
 
-{{block header}}
+{{ main_bg_color = accent_color_bright }}
 {{ if highlights or offers: }}
-<div class="highlights_container">
-  <h1>{{=T('Highlights')}}</h1>
+<div class="items-container-full" style="background-color: {{=main_bg_color}}; overflow: auto">
+  <h2 class="section-header accent-color-text">{{=ICON('local_offer')}} {{=T('Highlights')}}</h2>
   <div class="highlights">
     {{for highlight in highlights:}}
       <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/'+highlight.bg_image)}})">
@@ -40,14 +40,9 @@
 </div>
 {{ pass }}
 
-{{end}}
-
-
-
-
 {{ if popular_items: }}
-  <div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full accent-color-text">
-    <h2 class="section-header">{{=ICON('star')}} {{=T('Popular items')}}</h2>
+  <div style="background-color: {{=main_bg_color}}" class="items-container-full">
+    <h2 class="section-header accent-color-text">{{=ICON('star')}} {{=T('Popular items')}}</h2>
     <div class="items-container no-wrap">
       {{for popular_item in popular_items:}}
         {{=item_card(popular_item)}}
@@ -86,15 +81,17 @@
 {{ pass }}
 
 {{ if stores: }}
-<div class="highlights_container">
-  <h2>{{=T('Stores')}}</h2>
+<div class="items-container-full base-color-dim">
+  <h2 class="section-header">{{=ICON('store')}} {{=T('Stores')}}</h2>
   <div class="highlights">
     {{for store in stores:}}
       <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/%s' % store.image) }})">
         <div class="data">
           <h2>{{=store.name}}</h2>
           <h4>{{=full_address(store.id_address)}}</h4>
-          <a href="{{=store.map_url}}" class="btn btn-block" target="blank"> {{=T('Check map')}} </a>
+          {{ if store.map_url: }}
+            <a href="{{=store.map_url}}" class="btn btn-block" target="blank"> {{=T('Check map')}} </a>
+          {{ pass }}
         </div>
       </div>
     {{pass}}
