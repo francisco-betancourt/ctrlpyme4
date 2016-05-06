@@ -22,7 +22,8 @@ import os
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
     ## For production add lazy_tables=True for a huge boost in performance
-    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'],)
+    migrate = CONF.take('db.migrate', cast=int) == 1
+    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'], migrate=migrate, migrate_enabled=migrate)
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
