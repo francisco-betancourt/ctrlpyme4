@@ -17,6 +17,9 @@
 #
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
+from bag_utils import get_valid_bag
+from bag_utils import refresh_bag_data
+from item_utils import remove_stocks
 
 
 @auth.requires_membership('Product loss')
@@ -62,6 +65,15 @@ def create():
         session.info = T('Form has errors')
 
     return locals()
+
+
+def bag_supert(id_bag):
+    query = (db.bag_item.id_bag == id_bag)
+    return SUPERT(query, fields=['product_name', {
+        'fields':['quantity'],
+        'custom_format': lambda r, f : DQ(r.quantity, True, True),
+        'label_as': T('Quantity')
+        }], options_enabled=False, searchable=False)
 
 
 @auth.requires_membership('Product loss')

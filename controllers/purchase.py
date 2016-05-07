@@ -170,7 +170,7 @@ def add_stock_item():
 def update_items_total(purchase):
     items_total = 0
     for s_item in db(db.stock_item.id_purchase == purchase.id).select():
-        items_total += s_item.price or 0 * s_item.purchase_qty or 0
+        items_total += (s_item.price or 0) * (s_item.purchase_qty or 0)
     purchase.items_total = items_total
     purchase.update_record()
 

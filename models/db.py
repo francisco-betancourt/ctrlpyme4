@@ -357,21 +357,21 @@ db.define_table(
 db.define_table(
     'paper_size'
     , Field('name', label=T('Name'), unique=True)
-    , Field('width', 'decimal(4,4)', label=T('Paper width'))
-    , Field('height', 'decimal(4,4)', label=T('Paper height'))
+    , Field('width', 'decimal(16,6)', label=T('Paper width'))
+    , Field('height', 'decimal(16,6)', label=T('Paper height'))
 )
 
 db.define_table(
     'labels_page_layout'
     , Field('name', label=T('Name'))
     , Field('id_paper_size', 'reference paper_size', label=T("Paper size"))
-    , Field('margin_top', 'decimal(4,4)', label=T('Paper margin top'))
-    , Field('margin_right', 'decimal(4,4)', label=T('Paper margin right'))
-    , Field('margin_bottom', 'decimal(4,4)', label=T('Paper margin bottom'))
-    , Field('margin_left', 'decimal(4,4)', label=T('Paper margin left'))
+    , Field('margin_top', 'decimal(16,6)', label=T('Paper margin top'))
+    , Field('margin_right', 'decimal(16,6)', label=T('Paper margin right'))
+    , Field('margin_bottom', 'decimal(16,6)', label=T('Paper margin bottom'))
+    , Field('margin_left', 'decimal(16,6)', label=T('Paper margin left'))
 
-    , Field('space_x', 'decimal(4,4)', label=T('Labels') + ':' + T('left spacing'))
-    , Field('space_y', 'decimal(4,4)', label=T('Labels') + ':' + T('bottom spacing'))
+    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ':' + T('left spacing'))
+    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ':' + T('bottom spacing'))
     , Field('label_cols', 'integer', label=T('Labels columns'))
     , Field('label_rows', 'integer', label=T('Labels rows'))
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))

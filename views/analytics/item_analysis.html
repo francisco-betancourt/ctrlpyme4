@@ -48,7 +48,15 @@
         <td><a href="{{=URL('stock_transfer', 'ticket', args=transfer.stock_transfer.id)}}">{{=T('Stock transfer')}} {{=transfer.stock_transfer.id}}</a></td>
         <td>{{=DQ(transfer.bag_item.quantity, normalize=True)}}</td>
         <td>{{=transfer.stock_transfer.created_on.strftime('%d %b %Y, %H:%M')}}</td>
-        <td>{{=transfer.stock_transfer.created_by.first_name + ' ' + sale.sale.created_by.last_name}}</td>
+        <td>{{=transfer.stock_transfer.created_by.first_name + ' ' + transfer.stock_transfer.created_by.last_name}}</td>
+      </tr>
+    {{pass}}
+    {{for row in product_losses:}}
+      <tr>
+        <td><a href="{{=URL('product_loss', 'get', args=row.product_loss.id)}}">{{=T('Product loss')}} {{=row.product_loss.id}}</a></td>
+        <td>{{=DQ(row.bag_item.quantity, normalize=True)}}</td>
+        <td>{{=row.product_loss.created_on.strftime('%d %b %Y, %H:%M')}}</td>
+        <td>{{=row.product_loss.created_by.first_name + ' ' + row.product_loss.created_by.last_name}}</td>
       </tr>
     {{pass}}
   </tbody>
