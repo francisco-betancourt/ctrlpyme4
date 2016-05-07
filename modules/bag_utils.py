@@ -117,6 +117,7 @@ def check_bag_owner(id_bag):
     """ checks if the specified bag belongs to the current user """
     db = current.db
     auth = current.auth
+    session = current.session
 
     query = (db.bag.id == id_bag)
     query &= db.bag.created_by == auth.user.id
