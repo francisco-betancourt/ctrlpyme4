@@ -414,6 +414,8 @@ def get_item():
     stock = stock_info(item)
     images = db(db.item_image.id_item == item.id).select()
 
+    page_title = item.name
+
     return locals()
 
 
