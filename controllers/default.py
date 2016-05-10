@@ -9,6 +9,7 @@
 #########################################################################
 
 from datetime import date, datetime
+import random
 
 
 def index():
@@ -22,6 +23,7 @@ def index():
         & (db.bag_item.created_on <= end_date)
     ).select(db.item.ALL, db.bag_item.quantity.sum(), groupby=db.item.id, limitby=(0, 10), orderby=~db.bag_item.quantity.sum())
     popular_items = [v.item for v in values]
+    random.shuffle(popular_items)
 
     new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 

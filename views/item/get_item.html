@@ -25,20 +25,6 @@
   {{pass}}
 {{ pass }}
 
-<div class="main-item-image">
-  {{if images:}}
-    <img width="100%" src="{{=URL('static', 'uploads/'+images.first().lg)}}" alt="" id="item_image">
-
-    <div id="thumbs">
-      {{for image in images:}}
-        <img src="{{=URL('static', 'uploads/' + image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
-      {{pass}}
-    </div>
-  {{else:}}
-    <img width="100%" src="{{=URL('static', 'images/no_image.svg')}}" alt="" id="item_image">
-  {{pass}}
-</div>
-{{pass}}
 
 
 {{if discounts:}}
@@ -82,6 +68,23 @@
       <button class="btn btn-default" onclick="item_analysis(current_item_id)">
       {{=ICON('show_chart')}}</button>
     </div>
+  {{pass}}
+</div>
+{{pass}}
+
+<hr>
+
+<div class="main-item-image">
+  {{if images:}}
+    <img width="100%" src="{{=URL('static', 'uploads/'+images.first().lg)}}" alt="" id="item_image">
+
+    <div id="thumbs">
+      {{for image in images:}}
+        <img src="{{=URL('static', 'uploads/' + image.thumb)}}" alt="" onclick="show_image('{{=image.lg}}');" class="img-thumb">
+      {{pass}}
+    </div>
+  {{else:}}
+    <img width="100%" src="{{=URL('static', 'images/no_image.svg')}}" alt="" id="item_image">
   {{pass}}
 </div>
 {{pass}}
