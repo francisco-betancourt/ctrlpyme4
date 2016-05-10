@@ -20,6 +20,9 @@ def create_locale_setting():
 
 
 def create_groups():
+    db = current.db
+    auth = current.auth
+
     # create groups
     new_groups = {
           "Admin": "Allows company configuration, by itself it can not sell or perform any POS operations"
@@ -51,6 +54,7 @@ def create_groups():
         , 'Highlights': 'Create an edit highlighted things'
 
         , 'Config': 'App configuration'
+        , 'Safe config': 'Non critical app configuration '
         , 'Product loss': 'Create product losses'
         , 'Cash out': 'Create cash outs'
     }
@@ -69,6 +73,8 @@ def settup():
     create_locale_setting()
     create_payment_methods()
     create_payment_methods()
+
+    create_groups()
 
     # create admin user
     # user_id = db.auth_user.validate_and_insert(

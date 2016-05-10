@@ -102,7 +102,7 @@
 
     {{block page_js}}
       {{=SCRIPT("var payment_opt_distrib = %s" % json(pie_data_format(payment_opts)) )}}
-      <script src="{{=URL('static', 'js/Chart.js')}}" charset="utf-8"></script>
+      <script src="{{=URL('static', 'js/chartjs/Chart.min.js')}}" charset="utf-8"></script>
       <script type="text/javascript">
         var ctx = document.getElementById("payment_opt_distrib").getContext("2d");
         new Chart(ctx, {type: 'pie', data: payment_opt_distrib});
@@ -115,14 +115,14 @@
             url: "{{=URL('cash_out', 'update', args=cash_out.id, extension='json')}}?target=" + target.attr('target') + '&value=' + target.val()
           })
           .done(function (res) {
-            info_card("{{=T('Saved')}}");
+            info_card("{{=T('Saved')}}", null, 'success');
             if (res.target) {
               $('#cash_out_' + res.target).text(res.value);
               target.val(res.value);
             }
           })
           .fail(function (res) {
-            info_card("{{=T('Error')}}");
+            info_card("{{=T('Error')}}", null, 'error');
           })
         });
       </script>

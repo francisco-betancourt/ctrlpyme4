@@ -22,6 +22,8 @@ precheck()
 
 import json
 
+from item_utils import active_item
+
 
 def is_valid_inventory(inventory):
     if not inventory:
@@ -90,15 +92,13 @@ def modify_item():
 @auth.requires_membership('Inventories')
 def add_item():
     """
-        args
-            id_inventory
-            id_item
+        args [id_inventory, id_item]
     """
 
     inventory = db.inventory(request.args(0))
     if inventory.is_done:
-        raise HTTP(405, "Inventory is done")
-    item = db.item(request.args(1))
+        raise HTTP(405, T("Inventory is done"))
+    item = active_item(request.args(1))
     if not inventory or not item:
         raise HTTP(404)
     if not item.has_inventory:

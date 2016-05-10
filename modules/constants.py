@@ -90,7 +90,7 @@ def get_workflows():
             AccessCard({
                 'name': T('Manager'),
                 'description': T('Manager employees can create inventories, make purchases, change item prices, sell items at diferent prices, create invoices, make cash outs and view analytic data'),
-                'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss'
+                'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss', 'Safe config'
                 ]
             })
         ],

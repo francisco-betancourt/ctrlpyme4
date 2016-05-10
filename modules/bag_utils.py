@@ -117,6 +117,7 @@ def check_bag_owner(id_bag):
     """ checks if the specified bag belongs to the current user """
     db = current.db
     auth = current.auth
+    session = current.session
 
     query = (db.bag.id == id_bag)
     query &= db.bag.created_by == auth.user.id
@@ -223,7 +224,11 @@ def bag_selection_return_format(bag):
 
 
 def get_valid_bag(id_bag, completed=False):
-    """ Return a bag if theres a bag white the specified id, and that bag was created by the currently logged in user, and if the user is employee then it check if the bag belongs to the current store """
+    """ Return a bag if theres a bag with the specified id, and that bag was created by the currently logged in user, and if the user is employee then it check if the bag belongs to the current store """
+    db = current.db
+    auth = current.auth
+    session = current.session
+    
     try:
         query = (db.bag.id == id_bag)
         query &= db.bag.created_by == auth.user.id

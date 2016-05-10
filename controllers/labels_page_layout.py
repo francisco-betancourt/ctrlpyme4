@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def index():
     title = T('labels page layouts')
     data = SUPERT(db.labels_page_layout, fields=[
@@ -32,16 +32,16 @@ def index():
 
     return locals()
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def create():
     return common_create('labels_page_layout')
 
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def update():
     return common_update('labels_page_layout', request.args)
 
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def delete():
     return common_delete('labels_page_layout', request.args)

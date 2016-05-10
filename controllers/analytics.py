@@ -308,6 +308,13 @@ def item_analysis():
         & (db.stock_transfer.id_store_from == session.store)
         & (db.bag_item.id_item == item.id)
     ).select(db.stock_transfer.ALL, db.bag_item.ALL, orderby=~db.stock_transfer.created_on)
+    product_losses = db(
+        # (db.bundle_item.id_bundle == db.item.id)
+        (db.bag_item.id_bag == db.bag.id)
+        & (db.product_loss.id_bag == db.bag.id)
+        & (db.product_loss.id_store == session.store)
+        & (db.bag_item.id_item == item.id)
+    ).select(db.product_loss.ALL, db.bag_item.ALL, orderby=~db.product_loss.created_on)
 
     wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 

@@ -39,10 +39,6 @@ def create():
     if not is_xml:
         redirect(URL('fill', args=new_purchase_id))
     else:
-        c=Comprobante('MIIEaDCCA1CgAwIBAgIUMDAw8g==...', '00001000000301608037', 'Pago en una sola exhibición', datetime(2015,9,7,16,20,50), 'Efectivo', 'Cuernavaca, Morelos',
-            Emisor('PAE981007MS6','REGIMEN GENERAL DE LEY PERSONAS MORALES','PROYECCION Y ADMINISTRACION EMPRESARIAL DE MEXICO SA DE CV',
-                domicilioFiscal=DomicilioFiscal('AV. JUAREZ','PUEBLA','PUEBLA','72160',noExterior="2915",colonia="LA PAZ", localidad="PUEBLA")),
-            Receptor('NOPO870528FH5','NORIEGA PLANAS OCTAVIO'))
         form = SQLFORM(db.purchase, fields=['purchase_xml'])
 
         return dict(form=form)
@@ -174,7 +170,7 @@ def add_stock_item():
 def update_items_total(purchase):
     items_total = 0
     for s_item in db(db.stock_item.id_purchase == purchase.id).select():
-        items_total += s_item.price * s_item.purchase_qty
+        items_total += (s_item.price or 0) * (s_item.purchase_qty or 0)
     purchase.items_total = items_total
     purchase.update_record()
 
@@ -223,10 +219,7 @@ def postprocess_stock_item(stock_item):
 def modify_stock_item():
     """ This functions allows the modification of a stock item, by specifying the modified fields via url arguments.
 
-        args:
-            stock_item_id
-            param_name
-            param_value
+        args: [stock_item_id, param_name, param_value]
     """
 
     stock_item = db.stock_item(request.args(0))
@@ -244,6 +237,9 @@ def modify_stock_item():
         if param_name in ['purchase_qty', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
             stock_item[param_name] = param_value
             stock_item = postprocess_stock_item(stock_item)
+            # item base price should not be 0
+            if stock_item.base_price <= D(0):
+                stock_item.base_price = stock_item.id_item.base_price or D(1)
             stock_item.update_record()
 
         update_items_total(purchase)
@@ -338,8 +334,6 @@ def update_value():
     if field_name in valid_fields:
         params = {field_name: request.vars[field_name]}
         r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
-        # if r.errors:
-        #     print r.errors
         purchase = db.purchase(request.args(0))
         return {field_name: purchase[field_name]}
     return locals()
@@ -348,8 +342,7 @@ def update_value():
 @auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
-    args:
-        purchase_id
+    args: [purchase_id]
 
     """
 
@@ -415,9 +408,11 @@ def commit():
         stock_item.update_record()
         # update the item prices
         item = db.item(stock_item.id_item)
-        item.base_price = stock_item.base_price
-        item.price2 = stock_item.price2
-        item.price3 = stock_item.price3
+        # base price should not be 0
+        if stock_item.base_price > 0:
+            item.base_price = stock_item.base_price
+            item.price2 = stock_item.price2
+            item.price3 = stock_item.price3
         item.update_record()
     purchase.is_done = True
     purchase.update_record()
@@ -432,7 +427,7 @@ def commit():
         'btn': dict(href=URL('item', 'labels', vars=dict(id_purchase=purchase.id)), text=T('Print labels'))
     }
 
-    redirection(URL('index'))
+    redirect(URL('index'))
     # redirect()
 
 

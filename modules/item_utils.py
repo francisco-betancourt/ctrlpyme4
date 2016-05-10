@@ -199,6 +199,11 @@ def fix_item_quantity(item, quantity):
         return remove_fractions(quantity)
 
 
+def active_item(item_id):
+    db = current.db
+    return db((db.item.id == item_id) & (db.item.is_active == True)).select().first()
+
+
 # def get_popular_items(start_date=None, end_date=None, amount=10, id_store=None):
 #     db = current.db
 #

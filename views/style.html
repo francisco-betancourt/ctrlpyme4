@@ -38,7 +38,9 @@
     background-color: {{=primary_color}};
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
     border-color: {{=hex_to_css_rgba(primary_color, .2)}};
-    box-shadow: 0px 4px 8px rgba(0,0,0,.1);
+    box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+      0 1px 10px 0 rgba(0, 0, 0, 0.12),
+      0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
   nav a, nav a:hover, nav a:focus, nav a:visited, nav a:target, nav a:active {
     color: {{=hex_to_css_rgba(primary_color_text, .7)}};
@@ -149,11 +151,14 @@
   .accent-color-for-text {
     color: {{=accent_color}};
   }
-  .accent-color-text, .accent-color-text * {
-    color: {{=accent_color_text}};
+  .accent-color-text, .accent-color-text>* {
+    color: {{=accent_color_text}} !important;
   }
   .base-color {
     background-color: {{=base_color}};
+  }
+  .base-color-dim {
+    background-color: {{=base_color_dim}};
   }
   .base-color-text, .base-color-text *, .base-color-text *:hover, .base-color-text *:active, .base-color-text *:focus {
     color: {{=base_color_text}};
@@ -228,11 +233,13 @@
     border-color: black;
     box-shadow: 0px 4px 4px rgba(0,0,0,.4);
   }
-
   .info-card .btn.btn-default {
     background-color: #1B1B1B;
     color: white;
     border-color: black;
+  }
+  .info-card.success {
+    color: #33E66A;
   }
 
 
@@ -261,7 +268,14 @@
 
 
   .shadow-1 {
-    box-shadow: 0px 2px 4px rgba(0,0,0,.3);
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,.14),
+      0 3px 1px -2px rgba(0,0,0,.2),
+      0 1px 5px 0 rgba(0,0,0,.12);
+  }
+  .shadow-2 {
+    box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+      0 1px 10px 0 rgba(0, 0, 0, 0.12),
+      0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
 
   .search-icon {

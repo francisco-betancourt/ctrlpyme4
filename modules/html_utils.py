@@ -301,9 +301,7 @@ def item_card(item):
     traits_str = ''
     traits_ids = ''
     item_url = URL('item', 'get_item', args=item.id)
-    item_name = item.name + ' - ' + item.description[:10]
-    if len(item.description) > 10:
-        item_name += '...'
+    item_name = item.name
     if item.traits:
         for trait in item.traits:
             traits_ids += str(trait.id)
@@ -312,6 +310,10 @@ def item_card(item):
                 traits_ids += ','
         item_url = URL('item', 'get_item', vars=dict(name=item.name, traits=traits_ids))
         item_name = item.name + ' ' + traits_str
+    elif item.description:
+        item_name += ' - ' + item.description[:10]
+        if len(item.description) > 10:
+            item_name += '...'
 
     return DIV(
         A('', _class="panel-heading", _style=bg_style, _href=item_url),
@@ -325,7 +327,7 @@ def item_card(item):
             item_price_html,
             _class="panel-body"
         ),
-        _class="panel panel-default item-card"
+        _class="panel panel-default item-card shadow-1"
     )
 
 
@@ -402,15 +404,6 @@ def default_row_function(row, fields):
     return tr
 
 
-def bag_supert(id_bag):
-    query = (db.bag_item.id_bag == id_bag)
-    return SUPERT(query, fields=['product_name', {
-        'fields':['quantity'],
-        'custom_format': lambda r, f : DQ(r.quantity, True, True),
-        'label_as': T('Quantity')
-        }], options_enabled=False, searchable=False)
-
-
 def hide_button(row):
     """" Returns a button that calls the delete_row javascript function """
 
@@ -465,7 +458,8 @@ def super_table(table, fields, query, row_function=default_row_function,
     if paginate:
         pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
     else:
-        limits = (0, -1)
+        # TODO fix this
+        limits = (0, 100)
 
     orderby = db[table][orderby_field] if not orderby else orderby
 

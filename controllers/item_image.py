@@ -46,35 +46,39 @@ def create():
     )
     form.id_item = item.id
 
-    if form.process().accepted:
-        item_image = db.item_image(form.vars.id)
-        item_image.id_item = item.id
-        img_path = os.path.join(request.folder, 'static/uploads/', item_image.image)
-        img = Image.open(img_path)
-        outfile = os.path.splitext(img_path)[0]
-        img_width, img_height = img.size
+    try:
+        if form.process().accepted:
+            item_image = db.item_image(form.vars.id)
+            item_image.id_item = item.id
+            img_path = os.path.join(request.folder, 'static/uploads/', item_image.image)
+            img = Image.open(img_path)
+            outfile = os.path.splitext(img_path)[0]
+            img_width, img_height = img.size
 
-        i = 0
-        for size in sizes:
-            try:
-                img = Image.open(img_path)
+            i = 0
+            for size in sizes:
+                try:
+                    img = Image.open(img_path)
+                    new_file_name = outfile
+                    new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
+                    img.thumbnail(size, Image.ANTIALIAS)
+                    img.save(new_file_name, 'JPEG')
+                    img_file = open(new_file_name)
+                    item_image[sizes_names[i]] = img_file
+                    i += 1
+                except IOError:
+                    import traceback as tb
+                    tb.print_exc()
+            item_image.update_record()
+            i = 0
+            for size in sizes:
                 new_file_name = outfile
                 new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
-                img.thumbnail(size, Image.ANTIALIAS)
-                img.save(new_file_name, 'JPEG')
-                img_file = open(new_file_name)
-                item_image[sizes_names[i]] = img_file
+                os.remove(new_file_name)
                 i += 1
-            except IOError:
-                import traceback as tb
-                tb.print_exc()
-        item_image.update_record()
-        i = 0
-        for size in sizes:
-            new_file_name = outfile
-            new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
-            os.remove(new_file_name)
-            i += 1
+            redirect(URL(request.function, args=request.args))
+    except IOError:
+        session.info = T('Filename too long')
         redirect(URL(request.function, args=request.args))
 
     return locals()

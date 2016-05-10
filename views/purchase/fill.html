@@ -101,10 +101,10 @@
       for (k in res) {
         $('#purchase_' + k).val(res[k]);
       }
-      info_card("{{=T('Saved')}}");
+      info_card("{{=T('Saved')}}", null, 'success');
     })
     .fail(function (res) {
-      info_card("{{=T('Could not save changes')}}");
+      info_card("{{=T('Could not save changes')}}", null, 'error');
     });
   });
 
@@ -141,11 +141,13 @@
   function call_stock_item_modifier(stock_item_id, param_name, param_value, barcode) {
     if (!param_value) {return false}
     // $('#item_' + barcode).addClass('bg-warning');
+    info_card("{{=T('Saving')}}...");
     $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
       url: '{{=URL("modify_stock_item", extension="json")}}/' + stock_item_id + '/' + param_name + '/' + param_value
     })
     .done(function(res) {
+      info_card("{{=T('Saved')}}", null, "success");
       refresh_stock_item(res);
 
       $('#item_' + barcode).css('background-color', '#DFF0D8');

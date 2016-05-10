@@ -90,7 +90,9 @@ def add_bag_item():
     """ Creates a bag item with id_item = id_item for the current session bag
         args: [ id_item ] """
 
-    item = db.item(request.args(0))
+    item = db(
+        (db.item.id == request.args(0)) & (db.item.is_active == True)
+    ).select().first()
     bag = is_modifiable_bag(session.current_bag)
     id_bag = bag.id if bag else None
     if not item or not id_bag:
@@ -139,8 +141,7 @@ def add_bag_item():
             )
 def delete_bag_item():
     """
-        args:
-            id_bag_item
+        args:[ id_bag_item]
     """
 
     bag_item = db.bag_item(request.args(0))

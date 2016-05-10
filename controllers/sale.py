@@ -51,7 +51,7 @@ def valid_sale(sale):
         raise HTTP(404)
     if sale.is_done:
         session.info = {
-            'text': 'Sale has been paid',
+            'text': T('Sale has been paid'),
             'btn': {'text': T('View ticket'), 'target': '_blank' , 'href': URL('sale', 'ticket', args=sale.id)}
         }
         redirect(URL('default', 'index'))
@@ -264,7 +264,7 @@ def update():
     clients = db(db.auth_user.is_client == True).select()
 
     payments = db(db.payment.id_sale == sale.id).select()
-    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select()
+    payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select(orderby=~db.payment_opt.allow_change)
 
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
 
@@ -704,5 +704,5 @@ def sale_options(row):
 @auth.requires_membership("Sales invoices")
 def index():
     query = (db.sale_log.id_sale == db.sale.id) & (db.sale.id_store == session.store)
-    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id))
+    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id|db.sale_log.id, distinct=db.sale.id))
     return locals()

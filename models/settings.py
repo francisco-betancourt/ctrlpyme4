@@ -48,6 +48,8 @@ BASE_COLOR_TEXT = '#444'
 
 USE_MATERIAL_ICONS = True
 
+ENABLE_STRIPE = False
+
 
 main_settings = db(db.settings.id_store == None).select().first()
 if main_settings:

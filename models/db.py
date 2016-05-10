@@ -22,7 +22,9 @@ import os
 if not request.env.web2py_runtime_gae:
     ## if NOT running on Google App Engine use SQLite or other DB
     ## For production add lazy_tables=True for a huge boost in performance
-    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'],)
+    migrate = CONF.take('db.migrate', cast=int) == 1
+    lazy_tables = CONF.take('db.lazy_tables', cast=int) == 1
+    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'], migrate=migrate, migrate_enabled=migrate, lazy_tables=lazy_tables)
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
@@ -357,21 +359,21 @@ db.define_table(
 db.define_table(
     'paper_size'
     , Field('name', label=T('Name'), unique=True)
-    , Field('width', 'decimal(4,4)', label=T('Paper width'))
-    , Field('height', 'decimal(4,4)', label=T('Paper height'))
+    , Field('width', 'decimal(16,6)', label=T('Paper width'))
+    , Field('height', 'decimal(16,6)', label=T('Paper height'))
 )
 
 db.define_table(
     'labels_page_layout'
     , Field('name', label=T('Name'))
     , Field('id_paper_size', 'reference paper_size', label=T("Paper size"))
-    , Field('margin_top', 'decimal(4,4)', label=T('Paper margin top'))
-    , Field('margin_right', 'decimal(4,4)', label=T('Paper margin right'))
-    , Field('margin_bottom', 'decimal(4,4)', label=T('Paper margin bottom'))
-    , Field('margin_left', 'decimal(4,4)', label=T('Paper margin left'))
+    , Field('margin_top', 'decimal(16,6)', label=T('Paper margin top'))
+    , Field('margin_right', 'decimal(16,6)', label=T('Paper margin right'))
+    , Field('margin_bottom', 'decimal(16,6)', label=T('Paper margin bottom'))
+    , Field('margin_left', 'decimal(16,6)', label=T('Paper margin left'))
 
-    , Field('space_x', 'decimal(4,4)', label=T('Labels') + ':' + T('left spacing'))
-    , Field('space_y', 'decimal(4,4)', label=T('Labels') + ':' + T('bottom spacing'))
+    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ':' + T('left spacing'))
+    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ':' + T('bottom spacing'))
     , Field('label_cols', 'integer', label=T('Labels columns'))
     , Field('label_rows', 'integer', label=T('Labels rows'))
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
@@ -619,14 +621,14 @@ db.define_table("stock_item",
     # to simplify queries
     Field("id_store", "reference store", label=T('Store')),
     Field("id_item", "reference item", label=T('Item')),
-    Field("purchase_qty", "decimal(16,6)", default=None, label=T('Purchase quantity')),
+    Field("purchase_qty", "decimal(16,6)", default=1, label=T('Purchase quantity')),
     Field("stock_qty", "decimal(16,6)", default=0, label=T('Stock quantity')),
     # the buy price
-    Field("price", "decimal(16,6)", default=None, label=T('Price')),
-    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes')),
+    Field("price", "decimal(16,6)", default=0, label=T('Price')),
+    Field("taxes", "decimal(16,6)", default=0, label=T('Taxes')),
     Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
     # base sale price, this will update the item base price when the purchase is applied
-    Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
+    Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=0, label=T('Price') + '2'),
     Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
     auth.signature)
@@ -659,7 +661,7 @@ db.define_table("item_image",
     Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
     Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
 )
-db.item_image.image.requires = IS_IMAGE(extensions=('jpeg', 'png'))
+db.item_image.image.requires = IS_IMAGE(extensions=('jpg', 'jpeg', 'png'))
 
 
 db.define_table(

@@ -18,7 +18,7 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def index():
     title = T('paper sizes')
     data = SUPERT(db.paper_size, fields=[
@@ -28,7 +28,7 @@ def index():
     return locals()
 
 
-@auth.requires_membership('Config')
+@auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def create():
     form = SQLFORM(db.paper_size)
 

@@ -280,6 +280,7 @@ select {
   padding-left: 15px;
 }
 .highlights {
+  padding-top: 20px;
   display: flex;
   flex-direction: row;
   overflow-x: auto;
@@ -296,7 +297,7 @@ select {
   border-radius: 2px;
   display: flex;
   align-items: flex-end;
-  margin-left: 15px;
+  margin-right: 8px;
 }
 .highlight>.data {
   background-color: rgba(0,0,0,.5);

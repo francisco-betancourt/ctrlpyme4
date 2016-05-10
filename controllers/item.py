@@ -301,7 +301,7 @@ def get():
         args:
             item_id: the item that will be retrieved
     """
-    item = db.item(request.args(0))
+    item = db((db.item.id == request.args(0)) & (db.item.is_active == True) ).select().first()
     if not item:
         raise HTTP(404)
     return locals()
@@ -317,9 +317,9 @@ def get_by_brand():
     brand = db.brand(request.args(0))
     if not brand:
         raise HTTP(404)
-    query = (db.item.id_brand == brand.id)
+    query = ((db.item.id_brand == brand.id) & (db.item.is_active == True))
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(orderby=db.item.name, groupby=db.item.name, limitby=limits)
+    items = db(query).select(orderby=db.item.name, limitby=limits)
 
     return locals();
 
@@ -333,7 +333,10 @@ def get_item():
 
     same_traits = False
     multiple_items = False
-    item = db.item(request.args(0))
+    query = (db.item.id == request.args(0))
+    if not auth.is_logged_in() or (auth.user and auth.user.is_client):
+        query &= db.item.is_active == True
+    item = db(query).select().first()
     if not item:
         item_name = request.vars.name
 
@@ -487,18 +490,24 @@ def items_list(query, page, ipp=10):
 
 def browse():
     """ Item browser
-        vars: {category, sort}
+        vars: {category, sort, categories, is_service}
     """
 
     category = db.category(request.vars.category)
+    is_service = request.vars.is_service == 'yes'
+
+    title = T('Items')
 
     query = (db.item.is_active == True)
 
     if category:
-        query &= (db.item.categories.contains(category.id))
+        query &= db.item.categories.contains(category.id)
+    if is_service:
+        title = T('Services')
+        query &= db.item.has_inventory == False
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(groupby=db.item.name, limitby=limits)
+    items = db(query).select(limitby=limits)
 
     selected_categories = [category.id] if category else []
     categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))

@@ -83,7 +83,8 @@ def create():
 
     form = SQLFORM(db.sale_order, buttons=[], formstyle="bootstrap", _id="order_form")
     if not bag.is_paid:
-        form[0].insert(-1, BUTTON(T('Pay now'), _id="custom_button", _class="btn btn-primary" ))
+        if ENABLE_STRIPE:
+            form[0].insert(-1, BUTTON(T('Pay now'), _id="custom_button", _class="btn btn-primary" ))
         form[0].insert(-1, INPUT(_value=T('Pay on store'), _type="submit", _class="btn", _id="pay_on_store_button"))
     else:
         form[0].insert(-1, INPUT(_value=T('Order'), _type="submit", _class="btn btn-primary", _id="order_btn" ))
@@ -157,6 +158,10 @@ def create():
 
 def pay_and_order():
     """ Charge the credit card """
+
+    if not ENABLE_STRIPE:
+        return dict(error=T('stripe not available'))
+
     bag = get_valid_order_bag(request.args(0))
     if not bag.status == BAG_ORDER_COMPLETE: # commit the bag first
         raise HTTP(400)

@@ -53,6 +53,16 @@ h1 {
     float: right;
 }
 
+
+/*#info_card {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  width: 300px;
+  background: black;
+  color: white;
+}*/
+
 *:focus {
     outline-style: none;
 }
