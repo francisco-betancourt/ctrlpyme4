@@ -237,6 +237,9 @@ def modify_stock_item():
         if param_name in ['purchase_qty', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
             stock_item[param_name] = param_value
             stock_item = postprocess_stock_item(stock_item)
+            # item base price should not be 0
+            if stock_item.base_price <= D(0):
+                stock_item.base_price = stock_item.id_item.base_price or D(1)
             stock_item.update_record()
 
         update_items_total(purchase)
@@ -331,8 +334,6 @@ def update_value():
     if field_name in valid_fields:
         params = {field_name: request.vars[field_name]}
         r = db(db.purchase.id == request.args(0)).validate_and_update(**params)
-        # if r.errors:
-        #     print r.errors
         purchase = db.purchase(request.args(0))
         return {field_name: purchase[field_name]}
     return locals()
@@ -341,8 +342,7 @@ def update_value():
 @auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
-    args:
-        purchase_id
+    args: [purchase_id]
 
     """
 
@@ -408,9 +408,11 @@ def commit():
         stock_item.update_record()
         # update the item prices
         item = db.item(stock_item.id_item)
-        item.base_price = stock_item.base_price
-        item.price2 = stock_item.price2
-        item.price3 = stock_item.price3
+        # base price should not be 0
+        if stock_item.base_price > 0:
+            item.base_price = stock_item.base_price
+            item.price2 = stock_item.price2
+            item.price3 = stock_item.price3
         item.update_record()
     purchase.is_done = True
     purchase.update_record()
@@ -425,7 +427,7 @@ def commit():
         'btn': dict(href=URL('item', 'labels', vars=dict(id_purchase=purchase.id)), text=T('Print labels'))
     }
 
-    redirection(URL('index'))
+    redirect(URL('index'))
     # redirect()
 
 

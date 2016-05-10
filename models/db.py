@@ -626,7 +626,7 @@ db.define_table("stock_item",
     Field("taxes", "decimal(16,6)", default=0, label=T('Taxes')),
     Field("serial_numbers", "text", default=None, label=T('Serial numbers')),
     # base sale price, this will update the item base price when the purchase is applied
-    Field("base_price", "decimal(16,6)", default=0, label=T('Base price')),
+    Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=0, label=T('Price') + '2'),
     Field("price3", "decimal(16,6)", default=0, label=T('Price') + '3'),
     auth.signature)
