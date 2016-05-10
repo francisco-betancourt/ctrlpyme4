@@ -13,13 +13,27 @@
           initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
           user-scalable = yes allows the user to zoom in -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>{{=COMPANY_NAME}}</title>
+
+    {{ try: }} {{ page_title }} {{except NameError: }} {{ page_title = None }}
+    {{ pass }}
+    {{page_title}}
+    <title> {{=COMPANY_NAME}} {{if page_title:}}- {{=page_title}}{{pass}}</title>
+    {{ try: }} {{ page_description }} {{except NameError: }} {{ page_description = "" }}
+    {{ pass }}
+    <meta name="description" content="{{=page_description}}">
+
+
     <!-- http://dev.w3.org/html5/markup/meta.name.html -->
     <meta name="application-name" content="{{=request.application}}">
     <!-- Speaking of Google, don't forget to set your site up:
          http://google.com/webmasters -->
-    <link rel="manifest" href="{{ =URL('static', 'manifest.json') }}">
     <meta name="google-site-verification" content="">
+
+
+    <!-- manifest file -->
+    <link rel="manifest" href="{{ =URL('static', 'manifest.json') }}">
+
+
     <!-- include stylesheets -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -37,8 +51,6 @@
 
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
     <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
-
-    <link rel="manifest" href="{{=URL('static', 'manifest.json')}}">
 
     <!-- All JavaScript at the bottom, except for Modernizr which enables
          HTML5 elements & feature detects -->
@@ -74,16 +86,16 @@
 
     <!-- Add to homescreen for Chrome on Android -->
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="icon" sizes="192x192" href="">
+    <link rel="icon" sizes="192x192" href="{{=URL('static', 'images/launcher-icon-4x.png')}}">
 
     <!-- Add to homescreen for Safari on iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
     <meta name="apple-mobile-web-app-title" content="{{=COMPANY_NAME}}">
-    <link rel="apple-touch-icon" href="">
+    <link rel="apple-touch-icon" href="{{=URL('static', 'images/apple-launcher-icon-4x.png')}}">
 
     <!-- Tile icon for Win8 (144x144) -->
-    <meta name="msapplication-TileImage" content="">
+    <!-- <meta name="msapplication-TileImage" content=""> -->
   </head>
 
   <body>
@@ -121,7 +133,7 @@
     {{notifications = get_notifications()}}
 
 
-    {{include "navbar2.html"}}
+    {{ include "navbar2.html" }}
 
     {{# barcode scanner temaplte and functions }}
     {{include 'barcode_scanner.html'}}

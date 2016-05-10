@@ -772,6 +772,7 @@
 'Stagnated items': 'Items estancados',
 'start': 'inicio',
 'Start building a new search': 'Start building a new search',
+'Start page': 'Página de inicio',
 'Starts on': 'Comienza en',
 'starts with': 'comienza por',
 'state': 'estado',
