@@ -266,7 +266,8 @@ db.define_table("store",
 	#Completamente ocultos se generan cuando actualizas certificado
 	Field('certificate_number',readable=False,writable=False),
 	Field('certificate_base64',type="text",readable=False,writable=False),
-	Field('certpem_base64',type="text",readable=False,writable=False),
+	Field('csdpass',type="password",readable=False,writable=False),
+	#Field('certpem_base64',type="text",readable=False,writable=False),
     auth.signature,
     format='%(name)s'
     )
