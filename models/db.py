@@ -216,6 +216,7 @@ db.define_table("tax",
     Field("name", "string", default=None, label=T('Name')),
     Field("percentage", "integer", default=None, label=T('Percentage')),
     Field("symbol", "string", default=None, label=T('Symbol')),
+    Field("tax_type", "integer", default=1, label=T('Tax Type')),
     auth.signature,
     format='%(name)s')
 
@@ -267,7 +268,8 @@ db.define_table("store",
 	#Completamente ocultos se generan cuando actualizas certificado
 	Field('certificate_number',readable=False,writable=False),
 	Field('certificate_base64',type="text",readable=False,writable=False),
-	Field('certpem_base64',type="text",readable=False,writable=False),
+	Field('csdpass',type="password",readable=False,writable=False),
+	#Field('certpem_base64',type="text",readable=False,writable=False),
     auth.signature,
     format='%(name)s'
     )
