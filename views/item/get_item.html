@@ -13,15 +13,17 @@
       {{pass}}
 </h4>
 
-<b>{{=T('In')}}</b>
-{{for category in item.categories:}}
-  <span class="category-label">
-    <a href="{{=URL('browse', vars=dict(category=category.id))}}">
-      {{=category.name}}
-    </a>
-    {{ if category.id != item.categories[-1].id: }} , {{ pass }}
-  </span>
-{{pass}}
+{{ if item.categories: }}
+  <b>{{=T('In')}}</b>
+  {{for category in item.categories:}}
+    <span class="category-label">
+      <a href="{{=URL('browse', vars=dict(category=category.id))}}">
+        {{=category.name}}
+      </a>
+      {{ if category.id != item.categories[-1].id: }} , {{ pass }}
+    </span>
+  {{pass}}
+{{ pass }}
 
 <div class="main-item-image">
   {{if images:}}

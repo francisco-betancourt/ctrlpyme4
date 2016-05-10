@@ -404,15 +404,6 @@ def default_row_function(row, fields):
     return tr
 
 
-def bag_supert(id_bag):
-    query = (db.bag_item.id_bag == id_bag)
-    return SUPERT(query, fields=['product_name', {
-        'fields':['quantity'],
-        'custom_format': lambda r, f : DQ(r.quantity, True, True),
-        'label_as': T('Quantity')
-        }], options_enabled=False, searchable=False)
-
-
 def hide_button(row):
     """" Returns a button that calls the delete_row javascript function """
 
@@ -467,7 +458,8 @@ def super_table(table, fields, query, row_function=default_row_function,
     if paginate:
         pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
     else:
-        limits = (0, -1)
+        # TODO fix this
+        limits = (0, 100)
 
     orderby = db[table][orderby_field] if not orderby else orderby
 
