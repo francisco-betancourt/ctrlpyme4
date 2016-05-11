@@ -363,3 +363,14 @@ select {
   padding-right: 8px;
   padding: 7px 8px 7px 8px;
 }
+
+
+body {
+  opacity: 0;
+  transition: .3s opacity;
+  -webkit-transition: .3s opacity;
+}
+
+.fade-in {
+  opacity: 1;
+}
