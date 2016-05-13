@@ -399,7 +399,7 @@ def get_item():
     if not item:
         raise HTTP(404)
 
-    new_price = item.base_price
+    new_price = item.base_price or 0
     discounts = item_discounts(item)
     for discount in discounts:
         new_price -= new_price * DQ(discount.percentage / 100.0)

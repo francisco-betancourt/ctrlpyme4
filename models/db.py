@@ -414,7 +414,7 @@ db.define_table("item",
     Field("sku", "string", length=20, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
-    Field("base_price", "decimal(16,6)", default=None, label=T('Base price')),
+    Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
@@ -435,6 +435,8 @@ db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.i
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
 db.item.upc.requires=IS_BARCODE_AVAILABLE(db, request.vars.upc)
+
+db.item.base_price.requires = IS_DECIMAL_IN_RANGE(0.01, 10000000, dot=".")
 
 
 

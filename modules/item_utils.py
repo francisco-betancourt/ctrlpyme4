@@ -184,8 +184,11 @@ def fix_item_price(item, price):
 
     item.new_price = (price or 0) + item_taxes(item, price)
     discount_percentage = 0
-    if not item.new_price:
+    try:
+        # unable to calculate discount percentage with new price 0
         discount_percentage = int((1 - (new_price / item.new_price)) * 100)
+    except:
+        pass
     item.new_price = str(DQ(item.new_price, True))
     item.discounted_price = str(DQ(new_price, True))
     item.discount_percentage = discount_percentage
