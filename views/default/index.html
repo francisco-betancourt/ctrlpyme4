@@ -70,8 +70,8 @@
 </div>
 
 {{ if services: }}
-  <div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full accent-color-text">
-    <h2 class="section-header">{{=T('Services')}}</h2> <a href="{{=URL('item', 'browse', vars=dict(is_service='yes'))}}">{{=T('More')}}</a>
+  <div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full">
+    <h2 class="section-header accent-color-text">{{=T('Services')}}</h2> <a class="accent-color-text" href="{{=URL('item', 'browse', vars=dict(is_service='yes'))}}">{{=T('More')}}</a>
     <div  class="items-container no-wrap">
       {{for service in services:}}
         {{=item_card(service)}}
