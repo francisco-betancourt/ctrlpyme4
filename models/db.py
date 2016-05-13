@@ -372,12 +372,14 @@ db.define_table(
 
     , Field('space_x', 'decimal(16,6)', label=T('Labels') + ':' + T('left spacing'))
     , Field('space_y', 'decimal(16,6)', label=T('Labels') + ':' + T('bottom spacing'))
-    , Field('label_cols', 'integer', label=T('Labels columns'))
-    , Field('label_rows', 'integer', label=T('Labels rows'))
+    , Field('label_cols', 'integer', default=1, label=T('Labels columns'))
+    , Field('label_rows', 'integer', default=1, label=T('Labels rows'))
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
     , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
 )
 db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
+db.labels_page_layout.label_cols.requires = IS_INT_IN_RANGE(1, 20)
+db.labels_page_layout.label_rows.requires = IS_INT_IN_RANGE(1, 20)
 
 
 db.define_table("category",

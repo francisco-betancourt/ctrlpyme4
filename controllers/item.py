@@ -406,7 +406,11 @@ def get_item():
 
     item.barcode = item_barcode(item)
     item.base_price += item_taxes(item, item.base_price)
-    discount_percentage = int((1 - (new_price / item.base_price)) * 100)
+    discount_percentage = 0
+    try:
+        discount_percentage = int((1 - (new_price / item.base_price)) * 100)
+    except:
+        pass
     item.base_price = str(DQ(item.base_price, True))
     item.discounted_price = str(DQ(new_price, True))
     item.discount_percentage = discount_percentage
