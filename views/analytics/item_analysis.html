@@ -9,7 +9,15 @@
     {{if main_image:}}
     <img src="{{=URL('default', 'download', args=main_image.md)}}" alt="" width="100%">
     {{pass}}
-    <h4>{{=T('Existences')}} <span class="right">{{=DQ(existence, True)}}</span></h4>
+    <h4>{{=T('Existences')}}
+      <span class="right">
+        {{ if item.has_inventory: }}
+          {{ =DQ(existence, True) }}
+        {{ else: }}
+          {{ =T('Unlimited') }}
+        {{ pass }}
+      </span>
+    </h4>
     <h4>{{=T('Average days in shelf')}} <span class="right">
       {{if not wavg_days_in_shelf: }}
         ???
@@ -23,8 +31,10 @@
 {{end}}
 
 
-<h3>{{=T('Input')}}</h3>
-{{=stocks}}
+{{ if item.has_inventory: }}
+  <h3>{{=T('Input')}}</h3>
+  {{=stocks}}
+{{ pass }}
 
 <h3>{{=T('Output')}}</h3>
 <table class="table">

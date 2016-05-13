@@ -889,6 +889,7 @@
 'uninstall': 'desinstalar',
 'unit': 'unidad',
 'unknown': 'desconocido',
+'Unlimited': 'Ilimitado',
 'unsettled': 'pendientes',
 'UPC': 'UPC',
 'Update': 'Actualizar',
