@@ -123,7 +123,6 @@ def trait_selector_data():
     try:
         traits = traits_tree(request.args(0), request.vars.categories)
         if not traits:
-            print "no traits"
             return dict(status='no traits')
         return dict(traits=traits)
     except:

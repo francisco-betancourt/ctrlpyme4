@@ -436,7 +436,9 @@ db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
 db.item.upc.requires=IS_BARCODE_AVAILABLE(db, request.vars.upc)
 
-db.item.base_price.requires = IS_DECIMAL_IN_RANGE(0.01, 10000000, dot=".")
+db.item.base_price.requires = IS_DECIMAL_IN_RANGE(0, 10000000, dot=".")
+db.item.price2.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
+db.item.price3.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
 
 
 
