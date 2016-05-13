@@ -45,6 +45,8 @@ def get_wavg_days_in_shelf(item, id_store=None):
     avg_days_in_shelf = 0
     for day in days:
         avg_days_in_shelf += day.wavg_days_in_shelf
+    days_q = len(days) if len(days) else 1
+
     return avg_days_in_shelf / len(days)
 
 
@@ -160,6 +162,8 @@ def item_discounts(item):
 
 
 def discount_data(discounts, price):
+    if not price:
+        return D(0), D(0)
     new_price = price
     for discount in discounts:
         new_price -= new_price * D(discount.percentage / 100.0)
