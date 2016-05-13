@@ -175,13 +175,14 @@ def get_discount_percentage(bag_item):
 def fix_item_price(item, price):
     """ modifies the item data based on discounts and taxes """
 
+    price = 0 if not price else price
     new_price = price
     discounts = item_discounts(item)
     for discount in discounts:
         new_price -= new_price * DQ(discount.percentage / 100.0)
     new_price += item_taxes(item, new_price)
 
-    item.new_price = price + item_taxes(item, price)
+    item.new_price = (price or 0) + item_taxes(item, price)
     discount_percentage = int((1 - (new_price / item.new_price)) * 100)
     item.new_price = str(DQ(item.new_price, True))
     item.discounted_price = str(DQ(new_price, True))
