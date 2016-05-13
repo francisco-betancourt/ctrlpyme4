@@ -93,6 +93,8 @@ a.st-header.selected {
 }
 .st-card-header-content {
   width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 #supert_search_btn {
   margin-left: -1px;
@@ -119,4 +121,19 @@ a.st-header.selected {
 }
 .st-next-page {
   margin-left: 24px;
+}
+
+.supert-global-options {
+  width: 100%;
+  text-align: right;
+}
+.supert-global-options button {
+  border: none;
+}
+.supert-global-options button:hover {
+  background-color: transparent;
+}
+.supert-global-options ul {
+  left: auto;
+  right: 0px;
 }

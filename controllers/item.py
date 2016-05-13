@@ -455,6 +455,11 @@ def delete():
     return common_delete('item', request.args)
 
 
+@auth.requires_membership('Items management')
+def undelete():
+    return common_undelete('item', request.args)
+
+
 def item_options(row):
     buttons = ()
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
@@ -483,7 +488,11 @@ def index():
         fields.append({'fields': ['extra_data2'], 'label_as': EXTRA_FIELD_2_NAME})
     if EXTRA_FIELD_3_NAME:
         fields.append({'fields': ['extra_data3'], 'label_as': EXTRA_FIELD_3_NAME})
-    data = SUPERT(db.item.is_active == True, fields=fields, options_func=item_options)
+    query = (db.item.is_active == True)
+    if request.vars.show_hidden == 'yes':
+        query = (db.item.id > 0)
+
+    data = SUPERT(query, fields=fields, options_func=item_options, global_options=[visibility_g_option()])
 
     return locals()
 

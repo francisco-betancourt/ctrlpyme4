@@ -39,7 +39,13 @@ def supert_default_options(row):
 
     request = current.request
     update_btn = OPTION_BTN('edit', URL(request.controller, 'update', args=row.id), title=T('edit'))
-    hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id), title=T('hide'))
+    hide_btn = hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id), title=T('hide'))
+    try:
+        # unhide button if the item is not active
+        if not row.is_active:
+            hide_btn = OPTION_BTN('visibility', URL("undelete", args=row.id), title=T('unhide'))
+    except:
+        pass
     return update_btn, hide_btn
 
 
@@ -238,7 +244,21 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     return new_fields, datas
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options):
+def visibility_g_option():
+    new_vars = Storage(request.vars.copy())
+    if new_vars.show_hidden == 'yes':
+        del new_vars.show_hidden
+        text = T("don't show hidden")
+    else:
+        new_vars.show_hidden = 'yes'
+        text = T("show hidden")
+
+    url = URL(request.controller, request.function, request.args, vars=new_vars)
+    return (text, url)
+
+
+
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[]):
     T = current.T
 
     # base_table
@@ -266,6 +286,16 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
         search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
         t_header_content.append(search_form)
+    if global_options:
+        options_ul = UL(_class='dropdown-menu')
+        for option in global_options:
+            title, url = option
+            options_ul.append(LI(A(title, _href=url)))
+        g_options = DIV(
+            BUTTON(ICON('more_vert'), _id='supert_g_options_btn', _type='button', data={'toggle': "dropdown"}), options_ul,
+            _class="dropdown supert-global-options"
+        )
+        t_header_content.append(g_options)
     if selectable:
         selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
         checks = DIV(_class="st-col st-checks-col")
@@ -294,7 +324,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, global_options=[]):
     """ default supert with table output. recognized url parameters:
         term: search term
         orderby: field or fields to orderby, it can be something like items.price+items.barcode
@@ -344,6 +374,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         return None
 
     # base_table
-    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func)
+    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options)
 
     return table

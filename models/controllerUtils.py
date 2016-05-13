@@ -39,6 +39,22 @@ def common_delete(table_name, args, _vars=None):
     for arg in args:
         query |= (db[table_name].id == arg)
     db(query).update(is_active=False)
+    session.info = T('Item hidden')
+    redirect(URL('index'))
+
+
+def common_undelete(table_name, args, _vars=None):
+    """
+    args: request.args
+    """
+
+    if not args:
+        raise HTTP(400)
+    query = (db[table_name].id < 0)
+    for arg in args:
+        query |= (db[table_name].id == arg)
+    db(query).update(is_active=True)
+    session.info = T('Item now visible')
     redirect(URL('index'))
 
 
