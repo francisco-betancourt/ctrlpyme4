@@ -374,12 +374,14 @@ db.define_table(
 
     , Field('space_x', 'decimal(16,6)', label=T('Labels') + ':' + T('left spacing'))
     , Field('space_y', 'decimal(16,6)', label=T('Labels') + ':' + T('bottom spacing'))
-    , Field('label_cols', 'integer', label=T('Labels columns'))
-    , Field('label_rows', 'integer', label=T('Labels rows'))
+    , Field('label_cols', 'integer', default=1, label=T('Labels columns'))
+    , Field('label_rows', 'integer', default=1, label=T('Labels rows'))
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
     , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
 )
 db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
+db.labels_page_layout.label_cols.requires = IS_INT_IN_RANGE(1, 20)
+db.labels_page_layout.label_rows.requires = IS_INT_IN_RANGE(1, 20)
 
 
 db.define_table("category",
@@ -416,7 +418,7 @@ db.define_table("item",
     Field("sku", "string", length=20, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
-    Field("base_price", "decimal(16,6)", default=None, label=T('Base price')),
+    Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
@@ -437,6 +439,10 @@ db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.i
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
 db.item.ean.requires=IS_BARCODE_AVAILABLE(db, request.vars.ean)
 db.item.upc.requires=IS_BARCODE_AVAILABLE(db, request.vars.upc)
+
+db.item.base_price.requires = IS_DECIMAL_IN_RANGE(0, 10000000, dot=".")
+db.item.price2.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
+db.item.price3.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
 
 
 

@@ -123,7 +123,6 @@ def trait_selector_data():
     try:
         traits = traits_tree(request.args(0), request.vars.categories)
         if not traits:
-            print "no traits"
             return dict(status='no traits')
         return dict(traits=traits)
     except:
@@ -399,7 +398,7 @@ def get_item():
     if not item:
         raise HTTP(404)
 
-    new_price = item.base_price
+    new_price = item.base_price or 0
     discounts = item_discounts(item)
     for discount in discounts:
         new_price -= new_price * DQ(discount.percentage / 100.0)
@@ -407,7 +406,11 @@ def get_item():
 
     item.barcode = item_barcode(item)
     item.base_price += item_taxes(item, item.base_price)
-    discount_percentage = int((1 - (new_price / item.base_price)) * 100)
+    discount_percentage = 0
+    try:
+        discount_percentage = int((1 - (new_price / item.base_price)) * 100)
+    except:
+        pass
     item.base_price = str(DQ(item.base_price, True))
     item.discounted_price = str(DQ(new_price, True))
     item.discount_percentage = discount_percentage
@@ -452,6 +455,11 @@ def delete():
     return common_delete('item', request.args)
 
 
+@auth.requires_membership('Items management')
+def undelete():
+    return common_undelete('item', request.args)
+
+
 def item_options(row):
     buttons = ()
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
@@ -480,7 +488,11 @@ def index():
         fields.append({'fields': ['extra_data2'], 'label_as': EXTRA_FIELD_2_NAME})
     if EXTRA_FIELD_3_NAME:
         fields.append({'fields': ['extra_data3'], 'label_as': EXTRA_FIELD_3_NAME})
-    data = SUPERT(db.item.is_active == True, fields=fields, options_func=item_options)
+    query = (db.item.is_active == True)
+    if request.vars.show_hidden == 'yes':
+        query = (db.item.id > 0)
+
+    data = SUPERT(query, fields=fields, options_func=item_options, global_options=[visibility_g_option()])
 
     return locals()
 

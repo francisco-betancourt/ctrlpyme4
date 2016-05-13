@@ -183,7 +183,11 @@ def set_bag_item(bag_item, discounts=[]):
     # stores the price without discounts
     real_price = bag_item.sale_price + (bag_item.discount or 0)
     # discount percentage
-    discount_p = DQ(1.0) - bag_item.sale_price / real_price
+    discount_p = 0
+    try:
+        discount_p = DQ(1.0) - bag_item.sale_price / real_price
+    except:
+        pass
     item.base_price -= item.base_price * discount_p
 
     bag_item.total_sale_price = str(DQ(bag_item.sale_price + bag_item.sale_taxes, True))
@@ -228,7 +232,7 @@ def get_valid_bag(id_bag, completed=False):
     db = current.db
     auth = current.auth
     session = current.session
-    
+
     try:
         query = (db.bag.id == id_bag)
         query &= db.bag.created_by == auth.user.id

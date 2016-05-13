@@ -45,6 +45,8 @@ def get_wavg_days_in_shelf(item, id_store=None):
     avg_days_in_shelf = 0
     for day in days:
         avg_days_in_shelf += day.wavg_days_in_shelf
+    days_q = len(days) if len(days) else 1
+
     return avg_days_in_shelf / len(days)
 
 
@@ -160,6 +162,8 @@ def item_discounts(item):
 
 
 def discount_data(discounts, price):
+    if not price:
+        return D(0), D(0)
     new_price = price
     for discount in discounts:
         new_price -= new_price * D(discount.percentage / 100.0)
@@ -175,7 +179,7 @@ def get_discount_percentage(bag_item):
 def fix_item_price(item, price):
     """ modifies the item data based on discounts and taxes """
 
-    price = 0 if not price else price
+    price = D(0) if not price else price
     new_price = price
     discounts = item_discounts(item)
     for discount in discounts:
@@ -183,7 +187,12 @@ def fix_item_price(item, price):
     new_price += item_taxes(item, new_price)
 
     item.new_price = (price or 0) + item_taxes(item, price)
-    discount_percentage = int((1 - (new_price / item.new_price)) * 100)
+    discount_percentage = 0
+    try:
+        # unable to calculate discount percentage with new price 0
+        discount_percentage = int((1 - (new_price / item.new_price)) * 100)
+    except:
+        pass
     item.new_price = str(DQ(item.new_price, True))
     item.discounted_price = str(DQ(new_price, True))
     item.discount_percentage = discount_percentage
