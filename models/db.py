@@ -183,6 +183,8 @@ class IS_BARCODE_AVAILABLE(object):
 #         return value
 
 
+not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
+
 
 """ database class object creation (initialization) """
 
@@ -202,23 +204,33 @@ db.define_table("brand",
     Field("name", "string", default=None, label=T('Name')),
     Field("logo", "upload", default=None, label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     auth.signature)
+db.brand.name.requires = not_empty_requires
+
 
 db.define_table("trait_category",
     Field("name", "string", default=None, label=T('Name')),
     auth.signature)
+db.trait_category.name.requires = not_empty_requires
+
 
 db.define_table("measure_unit",
     Field("name", "string", default=None, label=T('Name')),
     Field("symbol", "string", default=None, label=T('Symbol')),
     auth.signature)
+db.measure_unit.name.requires = not_empty_requires
+
 
 db.define_table("tax",
     Field("name", "string", default=None, label=T('Name')),
-    Field("percentage", "integer", default=None, label=T('Percentage')),
+    Field("percentage", "integer", default=1, label=T('Percentage')),
     Field("symbol", "string", default=None, label=T('Symbol')),
     Field("tax_type", "integer", default=1, label=T('Tax Type')),
     auth.signature,
     format='%(name)s')
+db.tax.name.requires = not_empty_requires
+db.tax.percentage.requires = IS_INT_IN_RANGE(1, 99)
+db.tax.symbol.requires = [not_empty_requires, IS_LENGTH(1)]
+
 
 
 # probabily deprecated
@@ -226,16 +238,21 @@ db.define_table(
     "company"
     , Field('name', 'string', default=None, label=T('Name'))
 )
+db.company.name.requires = not_empty_requires
 
 
+payment_opt_format = '%(name)s'
 db.define_table("payment_opt",
     Field("name", "string", default=None, label=T('Name')),
-    Field("allow_change", "boolean", default=None, label=T('Allow change')),
-    Field("requires_account", "boolean", default=None, label=T('Requires account')),
+    Field("allow_change", "boolean", default=False, label=T('Allow change')),
+    Field("requires_account", "boolean", default=True, label=T('Requires account')),
     Field("credit_days", "integer", default=None, label=T('Credit days')),
-    auth.signature
+    auth.signature, format=payment_opt_format
     )
+db.payment_opt.name.requires = not_empty_requires
 
+
+address_format = '%(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s'
 db.define_table("address",
     Field("street", "string", default=None, label=T('Street')),
     Field("exterior", "string", default=None, label=T('Exterior number')),
@@ -247,11 +264,11 @@ db.define_table("address",
     Field("postal_code", "string", default=None, label=T('Postal code')),
     Field("country", "string", default=None, label=T('Country')),
     Field("reference", "string", default=None, label=T('Address Reference')),
-    auth.signature,
-    format='%(street)s %(exterior)s %(interior)s %(neighborhood)s'
+    auth.signature, format=address_format
     )
 
 
+store_format = '%(name)s'
 db.define_table("store",
     Field("id_address", "reference address", label=T('Address')),
     Field("name", "string", default=None, label=T('Name')),
@@ -270,16 +287,17 @@ db.define_table("store",
 	Field('certificate_base64',type="text",readable=False,writable=False),
 	Field('csdpass',type="password",readable=False,writable=False),
 	#Field('certpem_base64',type="text",readable=False,writable=False),
-    auth.signature,
-    format='%(name)s'
+    auth.signature, format=store_format
     )
 # db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
-db.store.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+db.store.id_address.requires=IS_IN_DB( db, 'address.id', address_format)
+db.store.name.requires = not_empty_requires
 
 
 highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))
 
 
+# DEPRECATED
 db.define_table(
     'notification'
     , Field('id_store', 'reference store', label=T('Store'))
@@ -303,9 +321,10 @@ db.define_table(
     , Field('bg_image', 'upload', label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     , auth.signature
 )
-db.highlight.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
+db.highlight.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', store_format))
 db.highlight.url.requires = IS_URL()
 db.highlight.bg_image.requires = highlight_image_validator
+db.highlight.title.requires = not_empty_requires
 
 
 db.define_table(
@@ -359,26 +378,36 @@ db.define_table(
 db.define_table(
     'paper_size'
     , Field('name', label=T('Name'), unique=True)
-    , Field('width', 'decimal(16,6)', label=T('Paper width'))
-    , Field('height', 'decimal(16,6)', label=T('Paper height'))
+    # in centimeters
+    , Field('width', 'decimal(16,6)', label=T('Paper width (cm)'))
+    , Field('height', 'decimal(16,6)', label=T('Paper height (cm)'))
 )
+db.paper_size.name.requires = not_empty_requires
+db.paper_size.width.requires = IS_DECIMAL_IN_RANGE(1, 100, dot='.')
+db.paper_size.height.requires = IS_DECIMAL_IN_RANGE(1, 100, dot='.')
+
 
 db.define_table(
     'labels_page_layout'
     , Field('name', label=T('Name'))
     , Field('id_paper_size', 'reference paper_size', label=T("Paper size"))
-    , Field('margin_top', 'decimal(16,6)', label=T('Paper margin top'))
-    , Field('margin_right', 'decimal(16,6)', label=T('Paper margin right'))
-    , Field('margin_bottom', 'decimal(16,6)', label=T('Paper margin bottom'))
-    , Field('margin_left', 'decimal(16,6)', label=T('Paper margin left'))
+    , Field('margin_top', 'decimal(16,6)', default=1, label=T('Paper margin top') + ' (cm)')
+    , Field('margin_right', 'decimal(16,6)', default=1, label=T('Paper margin right') + ' (cm)')
+    , Field('margin_bottom', 'decimal(16,6)', default=1, label=T('Paper margin bottom') + ' (cm)')
+    , Field('margin_left', 'decimal(16,6)', default=1, label=T('Paper margin left') + ' (cm)')
 
-    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ':' + T('left spacing'))
-    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ':' + T('bottom spacing'))
+    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ': ' + T('left spacing') + ' (cm)')
+    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ': ' + T('bottom spacing') + ' (cm)')
     , Field('label_cols', 'integer', default=1, label=T('Labels columns'))
     , Field('label_rows', 'integer', default=1, label=T('Labels rows'))
     , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
     , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
 )
+db.labels_page_layout.name.requires = not_empty_requires
+db.labels_page_layout.margin_top.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
+db.labels_page_layout.margin_right.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
+db.labels_page_layout.margin_bottom.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
+db.labels_page_layout.margin_left.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
 db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
 db.labels_page_layout.label_cols.requires = IS_INT_IN_RANGE(1, 20)
 db.labels_page_layout.label_rows.requires = IS_INT_IN_RANGE(1, 20)
@@ -396,16 +425,19 @@ db.define_table("category",
     Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
     Field("trait_category3", "reference trait_category", label=T('Trait')+" 3"),
     auth.signature)
-db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db, 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s'))
-db.category.trait_category1.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
-db.category.trait_category2.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
-db.category.trait_category3.requires=IS_EMPTY_OR(IS_IN_DB( db, 'trait_category.id', ' %(name)s'))
+db.category.name.requires = not_empty_requires
+db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db(db.category.is_active == True), 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s'))
+db.category.trait_category1.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
+db.category.trait_category2.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
+db.category.trait_category3.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
 
 
 db.define_table("trait",
     Field("id_trait_category", "reference trait_category", label=T('Trait category')),
     Field("trait_option", "string", default=None, label=T('Option')),
     auth.signature)
+db.trait.trait_option.requires = not_empty_requires
+
 
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
@@ -432,8 +464,9 @@ db.define_table("item",
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature)
+db.item.name.requires = not_empty_requires
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
-db.item.id_measure_unit.requires=IS_IN_DB( db, 'measure_unit.id', ' %(name)s %(symbol)s')
+db.item.id_measure_unit.requires=IS_IN_DB( db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s')
 db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
 
 db.item.sku.requires=IS_BARCODE_AVAILABLE(db, request.vars.sku)
@@ -453,13 +486,18 @@ db.define_table(
   , Field('quantity', 'decimal(16,6)')
   , auth.signature
 )
+# do not requires validators since theres is no public interface
 
 
+supplier_format = '%(business_name)s %(tax_id)s'
 db.define_table("supplier",
     Field("business_name", "string", default=None, label=T('Business Name')),
-    Field("tax_id", "string", default=None, label=T('Tax ID')),
+    Field("tax_id", "string", default="", label=T('Tax ID')),
     Field("id_address", "reference address", label=T('Address')),
-    auth.signature)
+    auth.signature, format=supplier_format)
+db.supplier.business_name.requires = not_empty_requires
+db.supplier.id_address.requires = IS_IN_DB(db(db.address.is_active == True), 'address.id', address_format)
+
 
 db.define_table("purchase",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
@@ -474,7 +512,8 @@ db.define_table("purchase",
     Field("is_done", "boolean", default=False, label=T('Done'), readable=False, writable=False),
     Field("purchase_xml", "upload", default=None, label=T('XML'), readable=False, writable=False),
     auth.signature)
-db.purchase.id_store.requires = IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s')
+db.purchase.id_supplier.requires = IS_IN_DB(db(db.supplier.is_active == True), 'supplier.id', supplier_format)
+db.purchase.id_store.requires = IS_IN_DB(db(db.store.is_active == True), 'store.id', store_format)
 
 
 db.define_table("bag",
@@ -675,13 +714,15 @@ db.define_table(
     , Field('name', label=T('Name'))
     , Field('description', label=T('Description'))
     , Field("id_store", "reference store", label=T('Store'))
-    , Field("code", "string", default=None, label=T('Code'))
     , Field("starts_on", "datetime", default=None, label=T('Starts on'))
     , Field("ends_on", "datetime", default=None, label=T('Ends on'))
-    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
     , Field('bg_image', 'upload', label=T('Background image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
+    # deprecated
+    , Field("code", "string", default=None, label=T('Code'))
+    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
     , auth.signature
 )
+db.offer_group.name.requires = not_empty_requires
 db.offer_group.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active == True), 'store.id', '%(name)s'))
 db.offer_group.bg_image.requires = highlight_image_validator
 
@@ -698,7 +739,7 @@ db.define_table(
     , Field("is_coupon", "boolean", default=False, label=T('Is coupon'))
     , auth.signature
 )
-db.discount.percentage.requires = IS_INT_IN_RANGE(1, 101)
+db.discount.percentage.requires = IS_INT_IN_RANGE(1, 99)
 
 
 db.define_table("account_receivable",
@@ -737,27 +778,27 @@ db.define_table("invoice",
 """ Relations between tables (remove fields you don't need from requires) """
 
 
-db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
-db.purchase.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
-db.purchase.id_supplier.requires=IS_IN_DB( db, 'supplier.id', ' %(business_name)s %(tax_id)s %(id_address)s')
-# db.purchase.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.supplier.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
-
-# db.bag.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.bag_item.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
-db.sale.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
-# db.sale.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.sale_log.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
-db.credit_note_item.id_bag_item.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
-# db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.inventory_item.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
-db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
-db.payment.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# db.promotion.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-db.account_receivable.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-db.account_payable.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
-db.invoice.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-db.invoice.id_tax_data.requires=IS_IN_DB( db, 'tax_data.id', ' %(tax_id)s %(business_name)s %(id_address)s')
-db.tax_data.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+# db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
+# db.purchase.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
+# db.purchase.id_supplier.requires=IS_IN_DB( db, 'supplier.id', ' %(business_name)s %(tax_id)s %(id_address)s')
+# # db.purchase.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
+# db.supplier.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
+#
+# # db.bag.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
+# db.bag_item.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
+# db.sale.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
+# # db.sale.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
+# db.sale_log.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
+# db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
+# db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
+# db.credit_note_item.id_bag_item.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
+# # db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
+# db.inventory_item.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
+# db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
+# db.payment.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
+# # db.promotion.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
+# db.account_receivable.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
+# db.account_payable.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
+# db.invoice.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
+# db.invoice.id_tax_data.requires=IS_IN_DB( db, 'tax_data.id', ' %(tax_id)s %(business_name)s %(id_address)s')
+# db.tax_data.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
