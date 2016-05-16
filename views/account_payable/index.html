@@ -1,3 +1,3 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Accounts payable')}}</h1>
-{{=data}}
+{{ if data: }} {{=data}} {{ else: }} <p>{{=T('No records found')}}</p>{{ pass }}

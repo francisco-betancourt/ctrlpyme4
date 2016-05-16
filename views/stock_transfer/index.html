@@ -1,6 +1,6 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Stock Transfers')}}</h1>
-{{=data}}
+{{ if data: }} {{=data}} {{ else: }} <p>{{=T('No records found')}}</p>{{ pass }}
 
 {{core_action = URL('scan_for_receive')}}
 {{core_action_icon = 'vertical_align_bottom'}}

@@ -1,7 +1,7 @@
 {{extend "layout.html"}}
 <h1>{{=T('Credit notes')}}</h1>
-
-{{=data}}
+<p>{{ =T('Press the + button') }} {{=T('to refund products') }}</p>
+{{ if data: }} {{=data}} {{ else: }} <p>{{=T('No records found')}}</p>{{ pass }}
 
 {{core_action = URL('sale', 'scan_for_refund')}}
 {{include "core_button.html"}}
