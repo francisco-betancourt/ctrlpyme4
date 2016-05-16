@@ -167,9 +167,9 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
     prev_url, next_url, limits, pages_count = pages_menu_bare(query, page, ipp, distinct)
 
     prev_disabled, next_disabled = '', ''
-    prev_link = LI(A(ICON('arrow_back'), _href=prev_url))
-    next_link = LI(A(ICON("arrow_forward"), _href=next_url))
-    pages_menu = DIV(UL(prev_link, LI(ipp), next_link, _class="pager") )
+    prev_link = A(ICON('arrow_back'), _href=prev_url) if prev_url != '#' else ''
+    next_link = A(ICON("arrow_forward"), _href=next_url) if next_url != '#' else ''
+    pages_menu = DIV(DIV(prev_link, SPAN(ipp), next_link, _class="cp-pager") )
 
     return pages_menu, limits
 
