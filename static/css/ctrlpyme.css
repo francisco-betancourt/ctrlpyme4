@@ -1,3 +1,103 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+/* overrides */
+.footer > .container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin: 20px;
+}
+body {
+  padding-top: 60px;
+  min-height: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+}
+h1 {
+  margin-bottom: 30px;
+}
+.footer {
+  background-color: inherit;
+  bottom: 0;
+  width: 100%;
+}
+.footer>.container-fluid {
+  padding-left: 0px;
+  padding-right: 0px;
+
+  margin-top: 100px;
+  margin-left: 15px;
+  margin-right: 15px;
+}
+.right {
+    float: right;
+    text-align: right;
+}
+.left {
+    float: left;
+    text-align: left;
+}
+.center {
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.copyright {
+    float: left;
+}
+#poweredBy {
+    float: right;
+}
+*:focus {
+    outline-style: none;
+}
+.modal-dialog {
+  margin-top: 70px;
+}
+.pager>li {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+.label {
+  background-color: transparent;
+  padding: .4em 0px 0px ;
+  font-size: 12px;
+}
+.btn.btn-primary {
+  font-weight: bold;
+}
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+@media(max-width: 767px) {
+  .left-sidebar>.panel {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+}
+
+
+
+
+/* Custom styles */
 .print {
   display: none;
 }
@@ -63,14 +163,7 @@ button.cp-fab:focus{
   left: 0px;
   width: 100%;
   height: 100%;
-
-  /*z-index: 21;*/
 }
-
-#main_fab_list {
-
-}
-
 
 #core_button {
   box-shadow: 0px 2px 4px rgba(0,0,0,.5);
@@ -90,11 +183,6 @@ button.cp-fab:focus{
 
 #core_button button:focus {
   outline: 0;
-}
-
-
-
-.extra-option {
 }
 
 #expand_core {
@@ -119,47 +207,26 @@ button.cp-fab:focus{
   color: rgb(210,210,210);
   opacity: .4;
 }
-
 .info-card .info-btn {
   margin-top: 15px;
 }
-
-
 #thumbs {
   margin: auto;
   margin-top: 10px;
 }
-
-
-
-/* Fix firefox ugly dropdown arrow */
-select {
-  /*-moz-appearance: none;
-  text-indent: 0.01px;
-  text-overflow: '';*/
-}
-
-
 .main-container {
   padding-left: 0px;
   padding-right: 0px;
 }
-
-
-
 .table_id, .table-selector {
   width: 4%;
 }
-
 .table-options {
   width: 10%;
 }
-
 .table > tbody > tr > td {
   vertical-align: middle;
 }
-
-
 #common_modal {
   padding-right: 0px;
   z-index: 10000000;
@@ -241,9 +308,6 @@ select {
   padding-left: 15px;
   padding-right: 15px;
 }
-
-
-
 
 .floating-container {
   position: fixed;
@@ -364,6 +428,15 @@ select {
   padding: 7px 8px 7px 8px;
 }
 
+.cp-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cp-pager>* {
+  margin-left: 16px;
+  margin-right: 16px;
+}
 
 body {
   opacity: 0;
