@@ -1,7 +1,6 @@
 {{extend 'layout.html'}}
 
 <h1> {{=T('Offers')}} </h1>
-
-{{=data}}
+{{ if data: }} {{=data}} {{ else: }} <p>{{=T('No records found')}}</p>{{ pass }}
 
 {{include 'core_button.html'}}

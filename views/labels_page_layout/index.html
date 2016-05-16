@@ -1,5 +1,5 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Labels page layouts')}}</h1>
-{{=data}}
+{{ if data: }} {{=data}} {{ else: }} <p>{{=T('No records found')}}</p>{{ pass }}
 
 {{include 'core_button.html'}}
