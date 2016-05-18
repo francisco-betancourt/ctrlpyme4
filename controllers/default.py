@@ -42,7 +42,8 @@ def index():
     stores = db(db.store.is_active == True).select()
 
     page_title = T('Start page')
-
+    PRELOAD(enable_calendar=False, enable_supert=False, enable_treeview=False,
+            enable_css_ticket=False)
     return locals()
 
 
