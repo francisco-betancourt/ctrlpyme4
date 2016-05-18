@@ -124,6 +124,8 @@ BAG_ORDER_COMPLETE = 3
 # cache names
 CACHED_POPULAR_ITEMS = 0
 
+TAX_TRANSFER=1
+TAX_RETAIN=2
 
 STRIPE_PK = CONF.take('stripe.public_key')
 STRIPE_SK = CONF.take('stripe.secure_key')

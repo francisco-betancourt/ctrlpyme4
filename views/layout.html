@@ -1,17 +1,13 @@
+{{try:}} 
+  {{current.css_style, current.head_js, current.js}}
+{{except:}}
+  {{PRELOAD()}}
+{{pass}}
 <!DOCTYPE html>
 <!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'es'}}"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
-    <!-- www.phpied.com/conditional-comments-block-downloads/ -->
-    <!-- Always force latest IE rendering engine
-         (even in intranet) & Chrome Frame
-         Remove this if you use the .htaccess -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
-    <!--  Mobile Viewport Fix
-          j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
-          device-width: Occupy full width of the screen in its current orientation
-          initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
-          user-scalable = yes allows the user to zoom in -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     {{ try: }} {{ page_title }} {{except NameError: }} {{ page_title = None }}
@@ -21,45 +17,45 @@
     {{ try: }} {{ page_description }} {{except NameError: }} {{ page_description = "" }}
     {{ pass }}
     <meta name="description" content="{{=page_description}}">
-
-
     <!-- http://dev.w3.org/html5/markup/meta.name.html -->
     <meta name="application-name" content="{{=request.application}}">
     <!-- Speaking of Google, don't forget to set your site up:
          http://google.com/webmasters -->
     <meta name="google-site-verification" content="">
-
-
-    <!-- manifest file -->
-    <link rel="manifest" href="{{ =URL('static', 'manifest.json') }}">
-
-
-    <!-- include stylesheets -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{=URL('static','css/ctrlpyme.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/item_card.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static','css/ticket.css')}}"/>
-    <link rel="stylesheet" href="{{=URL('static', 'css/navbar.css')}}">
-    <link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
-    {{ if USE_MATERIAL_ICONS: }}
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    {{ pass }}
-    {{block page_css}} {{end}}
-    <link rel="stylesheet" href="{{=URL('static','css/supert.css')}}"/>
-
-    <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
-
-    <!-- All JavaScript at the bottom, except for Modernizr which enables
-         HTML5 elements & feature detects -->
-    <script src="{{=URL('static','js/modernizr-2.8.3.min.js')}}"></script>
+    
+    
     <!--[if lt IE 9]>
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     <!-- Favicons -->
-    {{include 'web2py_ajax.html'}} <!-- this includes jquery.js, calendar.js/.css and web2py.js -->
-    <script src="{{=URL('static','js/bootstrap-treeview.min.js')}}"></script>
+    {{include 'web2py_ajax.html'}}
+    <script>{{=current.head_js}}</script>
+
+
+    <!-- manifest file -->
+    <link rel="manifest" href="{{ =URL('static', 'manifest.json') }}">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+    <!-- include stylesheets -->
+    {{block page_css}} {{end}}
+
+    <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
+    
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="{{=URL('static', 'images/launcher-icon-4x.png')}}">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
+    <meta name="apple-mobile-web-app-title" content="{{=COMPANY_NAME}}">
+    <link rel="apple-touch-icon" href="{{=URL('static', 'images/apple-launcher-icon-4x.png')}}">
+
+    <!-- Tile icon for Win8 (144x144) -->
+    <!-- <meta name="msapplication-TileImage" content=""> -->
 
     {{block head}}{{end}}
     {{
@@ -80,21 +76,7 @@
         include_bag = True
       pass
     }}
-
     {{include "style.html"}}
-
-    <!-- Add to homescreen for Chrome on Android -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="icon" sizes="192x192" href="{{=URL('static', 'images/launcher-icon-4x.png')}}">
-
-    <!-- Add to homescreen for Safari on iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
-    <meta name="apple-mobile-web-app-title" content="{{=COMPANY_NAME}}">
-    <link rel="apple-touch-icon" href="{{=URL('static', 'images/apple-launcher-icon-4x.png')}}">
-
-    <!-- Tile icon for Win8 (144x144) -->
-    <!-- <meta name="msapplication-TileImage" content=""> -->
   </head>
 
   <body>
@@ -134,7 +116,7 @@
 
     {{ include "navbar2.html" }}
 
-    {{# barcode scanner temaplte and functions }}
+    {{# barcode scanner tempalte and functions }}
     {{include 'barcode_scanner.html'}}
 
 
@@ -254,25 +236,12 @@
       </div>
     </footer>
     {{end}}
+    
+    
     <!-- The javascript =============================== -->
-    <script src="{{=URL('static','js/supert.js')}}"></script>
-    <script src="{{=URL('static','js/bootstrap.min.js')}}"></script>
-    <script src="{{=URL('static','js/web2py-bootstrap3.js')}}"></script>
+    <script>{{=current.js}}</script>
     {{block page_js}}{{end page_js}}
-    {{if response.google_analytics_id:}}
-    <!-- Analytics ==================================== -->
-    <script src="{{=URL('static','js/analytics.min.js')}}"></script>
-
-
-    <script type="text/javascript">
-      analytics.initialize({
-      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
-      });
-    </script>
-    {{pass}}
-
     <script>
-
       function hide_container(container_id, left) {
         switch (container_id) {
           case 'bag_container':
@@ -364,8 +333,17 @@
      $(document).ready(function (event) {
        $('body').addClass('fade-in');
      })
-
     </script>
+    
+    <!-- Analytics ==================================== -->
+    {{if response.google_analytics_id:}}
+    <script async src="{{=URL('static','js/analytics.min.js')}}"></script>
+    <script async type="text/javascript">
+      analytics.initialize({
+      'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
+      });
+    </script>
+    {{pass}}
 
   </body>
 </html>
