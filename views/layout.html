@@ -1,9 +1,9 @@
+<!DOCTYPE html>
 {{try:}} 
   {{current.css_style, current.head_js, current.js}}
 {{except:}}
   {{PRELOAD()}}
 {{pass}}
-<!DOCTYPE html>
 <!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'es'}}"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
@@ -12,24 +12,19 @@
 
     {{ try: }} {{ page_title }} {{except NameError: }} {{ page_title = None }}
     {{ pass }}
-    {{page_title}}
     <title> {{=COMPANY_NAME}} {{if page_title:}}- {{=page_title}}{{pass}}</title>
     {{ try: }} {{ page_description }} {{except NameError: }} {{ page_description = "" }}
     {{ pass }}
     <meta name="description" content="{{=page_description}}">
-    <!-- http://dev.w3.org/html5/markup/meta.name.html -->
     <meta name="application-name" content="{{=request.application}}">
-    <!-- Speaking of Google, don't forget to set your site up:
-         http://google.com/webmasters -->
     <meta name="google-site-verification" content="">
     
     
     <!--[if lt IE 9]>
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
-    <!-- Favicons -->
     {{include 'web2py_ajax.html'}}
-    <script>{{=current.head_js}}</script>
+    <script type="text/javascript">{{=current.head_js}}</script>
 
 
     <!-- manifest file -->
@@ -42,7 +37,6 @@
     {{block page_css}} {{end}}
 
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{=URL('static','images/favicon.png')}}">
     
     <!-- Add to homescreen for Chrome on Android -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -89,7 +83,7 @@
      </div>
     {{session.info = None}}
 
-    <script>
+    <script type="text/javascript">
       $('#info_close').click(function(event) {
         $('#info_card').fadeToggle();
       })
@@ -141,7 +135,7 @@
         </div>
       </div>
 
-      <script>
+      <script type="text/javascript">
         function set_modal(title, body, footer) {
           $('#modal_title').text(title);
           $('#modal_body').text(body);
@@ -189,7 +183,7 @@
         {{include 'help.html'}}
       </section>
 
-      <script>
+      <script type="text/javascript">
         function add_bag_item() {
           show_container('bag_container');
         }
@@ -239,9 +233,9 @@
     
     
     <!-- The javascript =============================== -->
-    <script>{{=current.js}}</script>
+    <script type="text/javascript">{{=current.js}}</script>
     {{block page_js}}{{end page_js}}
-    <script>
+    <script type="text/javascript">
       function hide_container(container_id, left) {
         switch (container_id) {
           case 'bag_container':
