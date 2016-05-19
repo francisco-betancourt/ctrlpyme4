@@ -232,6 +232,19 @@ def delete():
 
 
 @auth.requires_membership('Admin')
+def undelete():
+    user = db.auth_user(request.args(0))
+    if not user:
+        raise HTTP(404)
+
+    user.is_active = True
+    user.registration_key = ''
+    user.update_record()
+
+    redirection()
+
+
+@auth.requires_membership('Admin')
 def ban():
     user = db.auth_user(request.args(0))
     if not user:
@@ -270,9 +283,16 @@ def index():
 
     title = T('employees')
     def employee_options(row):
-        return OPTION_BTN('edit', URL('get_employee', args=row.id)), OPTION_BTN('visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index'))) )
+        options = OPTION_BTN('edit', URL('get_employee', args=row.id))
+        if row.registration_key == '':
+            options += OPTION_BTN('visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))))
+        else:
+            options += OPTION_BTN('visibility', URL('undelete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))))
+        return options
     employee_group = db(db.auth_group.role == 'Employee').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id) & (db.auth_user.registration_key == '')
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id)
+    if request.vars.show_hidden != 'yes':
+        query &= db.auth_user.registration_key == ''
     data = SUPERT(query, (db.auth_user.ALL), fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
     return locals()
 

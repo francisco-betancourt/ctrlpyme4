@@ -299,7 +299,7 @@ def report_missing_items():
 #TODO implement this function
 @auth.requires_membership('Inventories')
 def undo():
-    """ Removes the last inventory, and restocks items according to the last system quantities.  WARNING  since inventories does not store stock inforation this method will add items to the oldest stock after the penultimum inventory,
+    """ Removes the last inventory, and restocks items according to the last system quantities.  WARNING  since inventories does not store stock information this method will add items to the oldest stock after the penultimum inventory,
         args
             id_inventory
     """
@@ -313,18 +313,26 @@ def undo():
     inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
 
 
+def delete():
+    """ deletes an inventory, only available if the inventory is not done """
+
+    db((db.inventory.is_done == False) & (db.inventory.id == request.args(0))).delete()
+    redirect(URL('index'))
+
+
+
 def inventory_options(row):
     buttons = ()
     # edit option
     if not row.is_done:
         buttons += OPTION_BTN('edit', URL('fill', args=row.id), title=T('edit')),
+        buttons += OPTION_BTN('delete', URL('delete', args=row.id), title=T('delete')),
     else:
         buttons += OPTION_BTN('assignment', URL('get', args=row.id), title=T('details')),
-    buttons += supert_default_options(row)[1],
     return buttons
 
 
 @auth.requires_membership('Inventories')
 def index():
-    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False, select_args=dict(orderby=~db.inventory.created_on)))
+    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False, select_args=dict(orderby=~db.inventory.created_on), global_options=[]))
     return locals()

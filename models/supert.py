@@ -39,11 +39,11 @@ def supert_default_options(row):
 
     request = current.request
     update_btn = OPTION_BTN('edit', URL(request.controller, 'update', args=row.id), title=T('edit'))
-    hide_btn = hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "")' % (row.id), title=T('hide'))
+    hide_btn = OPTION_BTN('visibility_off', _onclick='delete_rows("/%s", "", "show_hidden=%s")' % (row.id, request.vars.show_hidden), title=T('hide'))
     try:
         # unhide button if the item is not active
         if not row.is_active:
-            hide_btn = OPTION_BTN('visibility', URL("undelete", args=row.id), title=T('unhide'))
+            hide_btn = OPTION_BTN('visibility', URL("undelete", args=row.id, vars=dict(show_hidden=request.vars.show_hidden)), title=T('unhide'))
     except:
         pass
     return update_btn, hide_btn
@@ -253,7 +253,7 @@ def visibility_g_option():
         new_vars.show_hidden = 'yes'
         text = T("show hidden")
 
-    url = URL(request.controller, request.function, request.args, vars=new_vars)
+    url = URL(request.controller, request.function, args=request.args, vars=new_vars)
     return (text, url)
 
 
@@ -263,18 +263,27 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
 
     # base_table
     table = DIV(_class="st-content")
-    for index, field in enumerate(fields):
+    if datas and fields:
+        for index, field in enumerate(fields):
+            container = DIV(_class="st-col")
+            head = sort_header(field)
+            container.append(DIV(head, _class="st-row-data st-last top"))
+            for data in datas:
+                current_data = data._values[index]
+                # say localized YES or NO instead of True False
+                if type(current_data) == bool:
+                    current_data = T('yes') if current_data else T('no')
+                if current_data is None or type(current_data) == str and current_data.strip() == 'None':
+                    current_data = ''
+                container.append(DIV(current_data, _class="st-row-data"))
+            table.append(container)
+    else:
         container = DIV(_class="st-col")
-        head = sort_header(field)
-        container.append(DIV(head, _class="st-row-data st-last top"))
-        for data in datas:
-            current_data = data._values[index]
-            # say localized YES or NO instead of True False
-            if type(current_data) == bool:
-                current_data = T('yes') if current_data else T('no')
-            if current_data is None or type(current_data) == str and current_data.strip() == 'None':
-                current_data = ''
-            container.append(DIV(current_data, _class="st-row-data"))
+        contents = T('No records found')
+        if global_options:
+            contents += T('try showing hidden records using') + ': '
+            contents = (contents, ICON('more_vert'))
+        container.append(DIV(contents , _class="st-row-data"))
         table.append(container)
 
     t_header = ''
@@ -318,13 +327,16 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert table-responsive")
+    if datas:
+        table = DIV(t_header, table, t_footer, _class="supert table-responsive")
+    else:
+        table = DIV(t_header, table, t_footer, _class="supert table-responsive")
 
     return table
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, global_options=[]):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, global_options=[visibility_g_option()]):
     """ default supert with table output. recognized url parameters:
         term: search term
         orderby: field or fields to orderby, it can be something like items.price+items.barcode
@@ -371,7 +383,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True)
 
     if not datas:
-        return None
+        datas = []
 
     # base_table
     table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options)

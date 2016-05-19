@@ -101,17 +101,13 @@
 .item-card .item-available {
   bottom: 0px;
   left: 0px;
-
   background-color: white;
 }
 
 .item-card .filler {
   height: 30px;
   min-height: 30px;
-  /*margin-top: 30px;*/
 }
-
-
 .category-link {
   font-size: 18px;
   border: 1px solid;
@@ -128,7 +124,6 @@
     flex-flow: column;
     overflow-x: auto;
   }
-
   .item-card {
     flex: auto;
     min-width: 100%;
@@ -136,26 +131,22 @@
     margin-right: 0px;
     vertical-align: top;
     display: table;
-    padding-top: 8px;
-    padding-bottom: 8px;
     margin-bottom: 8px;
+    max-height: 152px;
   }
-
   .item-card>.panel-heading, .item-card>.panel-body {
     display: table-cell;
   }
-
   .item-card>.panel-heading {
     height: 100%;
     width: 20%;
     min-width: 140px;
-    background-size: 90%;
+    background-size: cover;
   }
   .item-card>.panel-body {
     height: 100%;
     padding-top: 40px;
   }
-
   .item-card .item-available {
     position: relative;
     margin: 0px;

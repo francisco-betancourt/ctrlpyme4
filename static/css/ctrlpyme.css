@@ -261,6 +261,19 @@ button.cp-fab:focus{
   background-color: white;
 }
 
+@keyframes bc_scanner_laser {
+  0% { background-position: -20px; }
+  100% { background-position: calc(100% + 20px); }
+}
+.scanner-input {
+  background-image: url(../static/images/scanner.png);
+  background-repeat: no-repeat;
+  background-position: -20px;
+  animation: bc_scanner_laser 1s infinite;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
+  /*animation-direction: alternate-reverse;*/
+}
+
 
 #item_info>span {
   margin-left: 10px;

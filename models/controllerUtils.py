@@ -40,7 +40,7 @@ def common_delete(table_name, args, _vars=None):
         query |= (db[table_name].id == arg)
     db(query).update(is_active=False)
     session.info = T('Item hidden')
-    redirect(URL('index'))
+    redirect(URL('index', vars=request.vars))
 
 
 def common_undelete(table_name, args, _vars=None):
@@ -55,12 +55,13 @@ def common_undelete(table_name, args, _vars=None):
         query |= (db[table_name].id == arg)
     db(query).update(is_active=True)
     session.info = T('Item now visible')
-    redirect(URL('index'))
+    redirect(URL('index', vars=request.vars))
 
 
 def common_index(table_name, fields=[], supert_vars={}):
     """
     """
 
-    query = db[table_name].is_active == True
+    show_hidden = request.vars.show_hidden == 'yes'
+    query = db[table_name].is_active == True if not show_hidden else db[table_name].id > 0
     return SUPERT(query, (db[table_name].ALL), fields=fields, **supert_vars)

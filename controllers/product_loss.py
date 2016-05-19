@@ -96,6 +96,6 @@ def index():
     def options(row):
         return OPTION_BTN('info', URL('get', args=row.id), title=T('details'))
     query = (db.product_loss.id_store == session.store)
-    data = SUPERT(query, fields=['id_store.name', 'created_on', {'fields': ['created_by.first_name', 'created_by.last_name'], 'label_as': T('Created by')}, 'notes'], options_func=options)
+    data = SUPERT(query, fields=['id_store.name', 'created_on', {'fields': ['created_by.first_name', 'created_by.last_name'], 'label_as': T('Created by')}, 'notes'], options_func=options, global_options=[])
 
     return locals()

@@ -310,5 +310,5 @@ def client_order_options(row):
 @auth.requires_membership('Sale orders')
 def index():
     q = (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False)
-    data = SUPERT(q, fields=['is_ready', 'is_for_defered_sale', 'created_on'], options_func=lambda row: OPTION_BTN('playlist_add_check', URL('sale_order', 'ready', args=row.id) ))
+    data = SUPERT(q, fields=['is_ready', 'is_for_defered_sale', 'created_on'], options_func=lambda row: OPTION_BTN('playlist_add_check', URL('sale_order', 'ready', args=row.id) ), global_options=[])
     return locals()

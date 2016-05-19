@@ -415,11 +415,13 @@ def index():
         (db.auth_user.id == db.auth_membership.user_id)
         & (db.auth_user.id.belongs(store_employees_ids))
         & (db.auth_membership.group_id == checkout_group.id)
+        & (db.auth_user.registration_key == '')
     )
     employees_data = SUPERT(employees_query, db.auth_user.ALL,
         fields=[dict(fields=['first_name', 'last_name'],
         label_as=T('Name')), 'email'],
         options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id), title=T('cash out'))
+        , global_options=[]
     )
 
     return locals()

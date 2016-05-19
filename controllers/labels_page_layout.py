@@ -28,7 +28,7 @@ def index():
             'label_as': T('Cols x Rows'),
             'custom_format': lambda row, fields: '%s x %s' % (row[fields[0]], row[fields[1]])
         }
-    ])
+    ], options_func=lambda row : supert_default_options(row)[0], global_options=[] )
 
     return locals()
 

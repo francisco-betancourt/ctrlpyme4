@@ -13,10 +13,7 @@
   $('#search_form').submit(function (event) {
     event.preventDefault();
     var search_term = $(event.target).find('#search').val();
-    console.log(search_term);
-
     window.location.href = "{{=URL('search', 'search_item')}}/" + search_term;
-
     return false;
   });
 </script>

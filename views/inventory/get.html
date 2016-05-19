@@ -31,7 +31,7 @@
   </h1>
 
   <h4>
-    {{=T('Created by')}}: {{=auth.user.first_name + ' ' + auth.user.last_name}} {{=T('On')}}: {{ =inventory.created_on.strftime('%A, %d %B %Y - %I:%M %p') }}
+    {{=T('Created by')}}: {{=auth.user.first_name + ' ' + auth.user.last_name}} {{=T('On')}}: {{ =inventory.created_on }}
   </h4>
 
   <table id="inventory_table" class="table">

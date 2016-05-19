@@ -23,7 +23,7 @@ def index():
     title = T('paper sizes')
     data = SUPERT(db.paper_size, fields=[
         'name', 'width', 'height'
-    ], options_enabled=False)
+    ], options_enabled=False, global_options=[])
 
     return locals()
 

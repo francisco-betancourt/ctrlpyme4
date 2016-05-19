@@ -297,12 +297,12 @@ def precheck():
                 if not auth.has_membership('Store %s' % session.store) and not auth.has_membership('Admin'):
                     redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
                     )
-                    
+
 
 def css_path(file_name):
     request = current.request
     return os.path.join(request.folder, 'static/css/%s' % file_name)
-    
+
 def js_path(file_name):
     request = current.request
     return os.path.join(request.folder, 'static/js/%s' % file_name)
