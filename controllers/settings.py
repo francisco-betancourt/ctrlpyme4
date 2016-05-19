@@ -28,6 +28,7 @@ def update_main():
 
     form = SQLFORM(db.settings, settings, showid=False, submit_button=T('Save'))
     if form.process().accepted:
+        cache.ram.clear('main_settings')
         response.flash = T('form accepted')
         redirect(URL('update_main'))
     elif form.errors:
