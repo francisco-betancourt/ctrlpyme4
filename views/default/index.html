@@ -1,18 +1,5 @@
 {{extend 'layout.html'}}
 
-
-<style>
-  .ad {
-    background-color: grey;
-    height: 150px;
-    padding: 15px;
-    margin-bottom: 10px;
-  }
-
-
-</style>
-
-
 {{ main_bg_color = accent_color_bright }}
 {{ if highlights or offers: }}
 <div class="items-container-full" style="background-color: {{=main_bg_color}}; overflow: auto">
@@ -85,7 +72,8 @@
   <h2 class="section-header">{{=ICON('store')}} {{=T('Stores')}}</h2>
   <div class="highlights">
     {{for store in stores:}}
-      <div class="highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/%s' % store.image) }})">
+      {{bg = "background-image: url(%s);" % URL('static', 'uploads/'+ store.image) if store.image else ''}}
+      <div class="highlight shadow-1" style="{{=bg}}">
         <div class="data">
           <h2>{{=store.name}}</h2>
           <h4>{{=full_address(store.id_address)}}</h4>
@@ -98,6 +86,8 @@
   </div>
 </div>
 {{ pass }}
+
+
 
 {{block page_js:}}
 <script>

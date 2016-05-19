@@ -224,6 +224,7 @@ db.define_table("tax",
     Field("name", "string", default=None, label=T('Name')),
     Field("percentage", "integer", default=1, label=T('Percentage')),
     Field("symbol", "string", default=None, label=T('Symbol')),
+    Field("tax_type", "integer", default=1, label=T('Tax Type')),
     auth.signature,
     format='%(name)s')
 db.tax.name.requires = not_empty_requires

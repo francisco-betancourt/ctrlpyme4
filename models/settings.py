@@ -51,7 +51,9 @@ USE_MATERIAL_ICONS = True
 ENABLE_STRIPE = False
 
 
-main_settings = db(db.settings.id_store == None).select().first()
+main_settings = cache.ram('main_settings',
+    lambda: db(db.settings.id_store == None).select().first(),
+    time_expire=None)
 if main_settings:
     if main_settings.company_name:
         COMPANY_NAME = main_settings.company_name

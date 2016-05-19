@@ -26,6 +26,7 @@
 {{=categories_data_script}}
 
 
+{{block page_js}}
 <script>
   $('#categories_tree').treeview({
     data: categories_tree_data,
@@ -51,3 +52,4 @@
     $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true } ]);
   }
 </script>
+{{end}}

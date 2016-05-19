@@ -24,6 +24,25 @@ def employee_profile():
     return dict()
 
 
+def create_admin():
+    """ This function is used to create an admin user, given a validation token, only on admin per app is allowed
+    """
+    # admin_u = db((db.auth_membership.group_id == db.auth_group.id)
+    #            & (db.auth_membership.user_id == db.auth_user.id)
+    #            & (db.auth_group.role == 'Admin')
+    #            ).select(db.auth_user.ALL).first()
+    # if admin_u:
+    #     session.info = T("Admin user already created")
+    #     redirect(URL('default', 'index'))
+    #
+    # admin_u = db.auth_user.insert()
+    # admin_roles = ['Admin', 'Analytics', 'Config', 'Safe config']
+    # for admin_role in admin_roles:
+    #
+    # return locals()
+    pass
+
+
 def profile():
     if auth.has_membership('Clients'):
         redirect(URL('client_profile'))
@@ -262,11 +281,6 @@ def index():
 def post_login():
     if auth.has_membership('Clients') or auth.user.is_client:
         auto_bag_selection()
-    # if auth.has_membership('Employee'):
-    #     employee_stores = db(
-    #         (db.auth_membership.id_user == auth.user.id)
-    #         & (db.auth_membership.is_for_store == True)
-    #     )
 
     redirection()
 
