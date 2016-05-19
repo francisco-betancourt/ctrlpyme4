@@ -266,7 +266,7 @@ button.cp-fab:focus{
   100% { background-position: calc(100% + 20px); }
 }
 .scanner-input {
-  background-image: url(../static/images/scanner.png);
+  max-width: 500px;
   background-repeat: no-repeat;
   background-position: -20px;
   animation: bc_scanner_laser 1s infinite;
