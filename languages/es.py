@@ -586,6 +586,7 @@
 'Online book': 'Online book',
 'Online examples': 'Ejemplos en línea',
 'only': 'solo',
+'Only alphanumeric characters or - are allowed': 'Only alphanumeric characters or - are allowed',
 'Option': 'Opción',
 'Options': 'Opciones',
 'Or': 'O',

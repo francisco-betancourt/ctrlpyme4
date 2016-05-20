@@ -4,14 +4,14 @@ from gluon.html import XML
 from common_utils import css_path, js_path
 
 
-def PRELOAD(enable_bootstrap=True, 
-            enable_treeview=True, 
+def PRELOAD(enable_bootstrap=True,
+            enable_treeview=True,
             enable_css_item_card=True,
             enable_navbar=True,
             enable_supert=True,
             enable_calendar=True,
             enable_css_ticket=True):
-            
+
     PAGE_STYLE_STRING = ''
     if enable_bootstrap:
         with open(css_path('bootstrap.min.css'), 'r') as f:
@@ -36,7 +36,7 @@ def PRELOAD(enable_bootstrap=True,
     if enable_css_ticket:
         with open(css_path('ticket.css'), 'r') as f:
             PAGE_STYLE_STRING += f.read()
-        
+
     current.css_style = XML(PAGE_STYLE_STRING)
 
 
@@ -67,5 +67,5 @@ def PRELOAD(enable_bootstrap=True,
             with open(js_path('bootstrap-treeview.min.js'), 'r') as f:
                 PAGE_SCRIPT_STRING += f.read()
     current.js = XML(PAGE_SCRIPT_STRING)
-    
+
     return PAGE_STYLE_STRING, PAGE_HEAD_SCRIPT_STRING, PAGE_SCRIPT_STRING

@@ -35,11 +35,15 @@
 
 		expandIcon: 'glyphicon glyphicon-plus',
 		collapseIcon: 'glyphicon glyphicon-minus',
+		expandIconText: '',
+		collapseIconText: '',
 		emptyIcon: 'glyphicon',
 		nodeIcon: '',
 		selectedIcon: '',
 		checkedIcon: 'glyphicon glyphicon-check',
 		uncheckedIcon: 'glyphicon glyphicon-unchecked',
+		checkedIconText: '',
+		uncheckedIconText: '',
 
 		color: undefined, // '#000000',
 		backColor: undefined, // '#FFFFFF',
@@ -321,7 +325,7 @@
 		var target = $(event.target);
 		var node = this.findNode(target);
 		if (!node || node.state.disabled) return;
-		
+
 		var classList = target.attr('class') ? target.attr('class').split(' ') : [];
 		if ((classList.indexOf('expand-icon') !== -1)) {
 
@@ -329,12 +333,12 @@
 			this.render();
 		}
 		else if ((classList.indexOf('check-icon') !== -1)) {
-			
+
 			this.toggleCheckedState(node, _default.options);
 			this.render();
 		}
 		else {
-			
+
 			if (node.selectable) {
 				this.toggleSelectedState(node, _default.options);
 			} else {
@@ -516,7 +520,7 @@
 				.addClass(node.state.checked ? 'node-checked' : '')
 				.addClass(node.state.disabled ? 'node-disabled': '')
 				.addClass(node.state.selected ? 'node-selected' : '')
-				.addClass(node.searchResult ? 'search-result' : '') 
+				.addClass(node.searchResult ? 'search-result' : '')
 				.attr('data-nodeid', node.nodeId)
 				.attr('style', _this.buildStyleOverride(node));
 
@@ -527,13 +531,16 @@
 
 			// Add expand, collapse or empty spacer icons
 			var classList = [];
+			var expand_text = '';
 			if (node.nodes) {
 				classList.push('expand-icon');
 				if (node.state.expanded) {
 					classList.push(_this.options.collapseIcon);
+					this.expand_text = _this.options.collapseIconText;
 				}
 				else {
 					classList.push(_this.options.expandIcon);
+					this.expand_text = _this.options.expandIconText;
 				}
 			}
 			else {
@@ -543,18 +550,19 @@
 			treeItem
 				.append($(_this.template.icon)
 					.addClass(classList.join(' '))
+					.text(expand_text)
 				);
 
 
 			// Add node icon
 			if (_this.options.showIcon) {
-				
+
 				var classList = ['node-icon'];
 
 				classList.push(node.icon || _this.options.nodeIcon);
 				if (node.state.selected) {
 					classList.pop();
-					classList.push(node.selectedIcon || _this.options.selectedIcon || 
+					classList.push(node.selectedIcon || _this.options.selectedIcon ||
 									node.icon || _this.options.nodeIcon);
 				}
 
@@ -566,18 +574,21 @@
 
 			// Add check / unchecked icon
 			if (_this.options.showCheckbox) {
-
+				var cb_text = '';
 				var classList = ['check-icon'];
 				if (node.state.checked) {
-					classList.push(_this.options.checkedIcon); 
+					classList.push(_this.options.checkedIcon);
+					cb_text = _this.options.checkedIconText;
 				}
 				else {
 					classList.push(_this.options.uncheckedIcon);
+					cb_text = _this.options.uncheckedIconText;
 				}
 
 				treeItem
 					.append($(_this.template.icon)
 						.addClass(classList.join(' '))
+						.text(cb_text)
 					);
 			}
 
@@ -690,7 +701,7 @@
 		list: '<ul class="list-group"></ul>',
 		item: '<li class="list-group-item"></li>',
 		indent: '<span class="indent"></span>',
-		icon: '<span class="icon"></span>',
+		icon: '<i class="icon"></i>',
 		link: '<a href="#" style="color:inherit;"></a>',
 		badge: '<span class="badge"></span>'
 	};
@@ -935,7 +946,7 @@
 		this.forEachIdentifier(identifiers, options, $.proxy(function (node, options) {
 			this.toggleExpandedState(node, options);
 		}, this));
-		
+
 		this.render();
 	};
 
@@ -1085,7 +1096,7 @@
 
 		$.each(identifiers, $.proxy(function (index, identifier) {
 			callback(this.identifyNode(identifier), options);
-		}, this));	
+		}, this));
 	};
 
 	/*
@@ -1156,9 +1167,9 @@
 		});
 
 		if (options.render) {
-			this.render();	
+			this.render();
 		}
-		
+
 		this.$element.trigger('searchCleared', $.extend(true, {}, results));
 	};
 

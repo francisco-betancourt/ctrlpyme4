@@ -1,33 +1,33 @@
 {{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
-<h1>{{=title}}</h1>
-
-
-<div class="items-container">
-  {{for item in items:}}
-    {{=item_card(item)}}
-  {{pass}}
-</div>
-
-{{=pages}}
 
 {{block left_sidebar}}
-<h1>{{=T('Categories')}}</h1>
-<div id="categories_tree"></div>
+  <h1>{{=T('Categories')}}</h1>
+  <div id="categories_tree"></div>
 
-{{if filter_data:}}
-  <h3>{{=T("Options")}}</h3>
-  {{=filter_menu(filter_data)}}
-{{pass}}
-
+  {{if filter_data:}}
+    <h3>{{=T("Options")}}</h3>
+    {{=filter_menu(filter_data)}}
+  {{pass}}
 {{end}}
+
+<section id="items_list">
+  <h1>{{=title}}</h1>
+  <div class="items-container">
+    {{for item in items:}}
+      {{=item_card(item)}}
+    {{pass}}
+  </div>
+  {{=pages}}
+</section>
 
 {{=categories_data_script}}
 
 
 {{block page_js}}
 <script>
+  window.location.href += '#items_list';
   $('#categories_tree').treeview({
     data: categories_tree_data,
     checkedIcon: 'fa fa-check-square-o',
@@ -43,7 +43,7 @@
     {{if is_service:}}
       url += '&is_service=yes'
     {{pass}}
-    window.location.href = url
+    window.location.href = url;
   });
 
   // when the category is not visible, we have
