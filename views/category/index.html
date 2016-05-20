@@ -13,4 +13,5 @@
   {{=T('the plus button to create one.')}}
 {{pass}}
 
+{{core_action = URL('create', vars=dict(parent=request.args(0))) }}
 {{include 'core_button.html'}}

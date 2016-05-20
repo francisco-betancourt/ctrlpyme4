@@ -2,6 +2,11 @@
 {{extend "layout.html"}}
 
 
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'font-awesome/css/font-awesome.min.css')}}">
+{{end}}
+
+
 {{block left_sidebar}}
   <h1>{{=T('Categories')}}</h1>
   <div id="categories_tree"></div>

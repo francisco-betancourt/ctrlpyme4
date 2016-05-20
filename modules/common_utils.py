@@ -140,19 +140,26 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
     """ Creates a json representation of the categories tree, this representation is used with bootstrap treeview """
     db = current.db
 
-    categories = db((db.category.is_active == True)).select(orderby=~db.category.parent)
-    if len(categories)==0:
+    subs = db(
+        (db.category.is_active == True)
+        & (db.category.parent != None)
+    ).select(orderby=~db.category.parent)
+    parents = db(
+        (db.category.is_active == True)
+        & (db.category.parent == None)
+    ).select()
+    if len(subs) + len(parents) == 0:
         return []
-    current_category = categories.first().parent
+    current_category = subs.first().parent
     categories_children = {}
     current_tree = []
     categories_selected_text = ""
-    for category in categories:
+    for category in subs.as_list() + parents.as_list():
+        category = Storage(category)
         if category.parent != current_category:
             categories_children[current_category] = current_tree
             current_tree = []
             current_category = category.parent
-        # current_tree.append({'text': category.name})
         child = {'text': category.name, 'category_id': category.id}
         if category.id in selected_categories:
             if child.has_key('state'):
@@ -166,18 +173,14 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
         if categories_children.has_key(category.id):
             child['nodes'] = categories_children[category.id]
             current_tree.append(child)
-            if category.parent:
-                del categories_children[category.id]
+            del categories_children[category.id]
         else:
             current_tree.append(child)
-    categories_children[current_category] = current_tree
-    current_tree = []
-    # the categories_children array contains the master categories.
-    categories_tree = []
-    for subtree in categories_children.itervalues():
-        categories_tree.append(subtree)
     # json object from python dict
-    categories_tree = json.dumps(categories_tree[0])
+    # current_tree contains the tree.
+    categories_tree = json.dumps(current_tree)
+    if item:
+        item.categories_selected_text = categories_selected_text
 
     return categories_tree
 

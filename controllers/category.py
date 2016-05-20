@@ -22,13 +22,13 @@
 
 @auth.requires_membership('Items management')
 def create():
-    redirect_url = URL('index')
     parent = db.category(request.vars.parent)
+    redirect_url = URL('index')
 
     form = SQLFORM(db.category)
 
     if parent:
-        redirect_url = URL('get', args=parent.id)
+        redirect_url = URL('index', args=parent.id)
     form = SQLFORM(db.category, fields=['name', 'description', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
 
     form.vars.parent = parent.id if parent else None
@@ -65,7 +65,7 @@ def update():
     form = SQLFORM(db.category, category)
 
     if parent:
-        redirect_url = URL('get', args=parent.id)
+        redirect_url = URL('index', args=parent.id)
         form = SQLFORM(db.category, category, fields=['name', 'description', 'url_name', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
 
     if form.process().accepted:
@@ -90,6 +90,9 @@ def index():
         update_btn, hide_btn = supert_default_options(row)
         return update_btn, hide_btn, OPTION_BTN('details', URL('index', args=row.id), title=T('subcategories'))
     query = db.category.parent == request.args(0)
+    if not request.vars.show_hidden == 'yes':
+        query &= db.category.is_active == True
+
     request.vars.orderby = 'name'
     data = SUPERT(query, fields=['name'], options_func=category_options)
     return locals()
