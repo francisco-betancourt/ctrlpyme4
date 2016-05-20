@@ -143,18 +143,19 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
     subs = db(
         (db.category.is_active == True)
         & (db.category.parent != None)
-    ).select(orderby=~db.category.parent)
+    ).select(orderby=~db.category.parent).as_list()
     parents = db(
         (db.category.is_active == True)
         & (db.category.parent == None)
-    ).select()
-    if len(subs) + len(parents) == 0:
+    ).select().as_list()
+    categories = subs + parents
+    if len(categories) == 0:
         return []
-    current_category = subs.first().parent
+    current_category = categories[0]['parent']
     categories_children = {}
     current_tree = []
     categories_selected_text = ""
-    for category in subs.as_list() + parents.as_list():
+    for category in categories:
         category = Storage(category)
         if category.parent != current_category:
             categories_children[current_category] = current_tree
