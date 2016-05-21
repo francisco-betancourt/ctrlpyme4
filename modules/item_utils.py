@@ -214,55 +214,44 @@ def active_item(item_id):
     return db((db.item.id == item_id) & (db.item.is_active == True)).select().first()
 
 
-# def get_popular_items(start_date=None, end_date=None, amount=10, id_store=None):
-#     db = current.db
-#
-#     """ Naive method to get the most bagged items """
-#     q_sum = db.bag_item.quantity.sum()
-#     data = []
-#     for item in db(db.item.is_active == True).select():
-#         query = db.bag_item.id_bag == db.bag.id
-#         query &= db.bag_item.id_item == item.id
-#         if start_date:
-#             query &= db.bag_item.created_on >= start_date
-#         if end_date:
-#             query &= db.bag_item.created_on <= end_date
-#         if id_store:
-#             query &= db.bag.id_store == id_store
-#         counter = db(query).select(q_sum).first()[q_sum] or 0
-#         data.append((item, counter))
-#     data.sort(key=lambda tup: tup[1], reverse=True)
-#     data = data[:amount]
-#     data = [d[0] for d in data[:amount]] # remove counter
-#     return data
-
-
-
-def _remove_stocks(item, quantity, sale_date):
-    """ remove the specified item quantity from available stocks """
+def _remove_stocks(item, remove_qty, sale_date, bag_item=None):
+    """ remove the specified item quantity from available stocks
+        if a bag_item is specified this function will create stock_item_removal
+        records associated with the specified bag.
+    """
     session = current.session
+    db = current.db
 
-    if not item.has_inventory:
+    if not item.has_inventory or not remove_qty:
         return 0, 0
-    if not quantity:
+
+    stock_items, stock_qty = item_stock(item, session.store).itervalues()
+    if not stock_qty:
         return 0, 0
-    original_qty = quantity
-    stock_items, quantity = item_stock(item, session.store).itervalues()
-    quantity = DQ(quantity)
+
+    remaining_remove_qty = remove_qty
     total_buy_price = 0
     wavg_days_in_shelf = 0
     for stock_item in stock_items:
-        if not quantity:
-            return 0, 0
-        stock_qty = DQ(stock_item.stock_qty) - DQ(original_qty)
-        stock_item.stock_qty = max(0, stock_qty)
+        # the amount of items that will be removed from the current stock
+        to_be_removed_qty = min(stock_item.stock_qty, remaining_remove_qty)
+        stock_item.stock_qty -= to_be_removed_qty
         stock_item.update_record()
-        quantity = abs(stock_qty)
+        remaining_remove_qty -= to_be_removed_qty
 
-        total_buy_price += original_qty * (stock_item.price or 0)
+        total_buy_price += to_be_removed_qty * (stock_item.price or 0)
         days_since_purchase = (sale_date - stock_item.created_on).days
         wavg_days_in_shelf += days_since_purchase
-    wavg_days_in_shelf /= original_qty
+
+        # this could replace wavg_days_in shelf or we could recalculate it
+        if bag_item:
+            db.stock_item_removal.insert(
+                id_stock_item=stock_item.id,
+                qty=to_be_removed_qty,
+                id_bag_item=bag_item.id
+            )
+
+    wavg_days_in_shelf /= remove_qty
 
     return total_buy_price, wavg_days_in_shelf
 
@@ -281,24 +270,34 @@ def remove_stocks(bag_items):
             if bag_item.id_item.is_bundle:
                 total_wavg_days_in_shelf = 0
                 bundle_items_qty = 0
-                bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item.id).select()
+                bundle_items = db(
+                    db.bundle_item.id_bundle == bag_item.id_item.id
+                ).select()
                 for bundle_item in bundle_items:
                     bundle_items_qty += 1
-                    total_buy_price, wavg_days_in_shelf = _remove_stocks(bundle_item.id_item, bundle_item.quantity, bag_item.created_on)
+                    total_buy_price, wavg_days_in_shelf = _remove_stocks(
+                        bundle_item.id_item,
+                        bundle_item.quantity,
+                        bag_item.created_on,
+                        bag_item
+                    )
                     total_wavg_days_in_shelf += wavg_days_in_shelf
                     bag_item_total_buy_price += total_buy_price
                 total_wavg_days_in_shelf /= bundle_items_qty
 
                 bag_item.total_buy_price = bag_item_total_buy_price
                 bag_item.wavg_days_in_shelf = total_wavg_days_in_shelf
-
-                bag_item.update_record()
             else:
-                total_buy_price, wavg_days_in_shelf = _remove_stocks(bag_item.id_item, bag_item.quantity, bag_item.created_on)
+                total_buy_price, wavg_days_in_shelf = _remove_stocks(
+                    bag_item.id_item,
+                    bag_item.quantity,
+                    bag_item.created_on,
+                    bag_item
+                )
                 bag_item.total_buy_price = total_buy_price
                 bag_item.wavg_days_in_shelf = wavg_days_in_shelf
 
-                bag_item.update_record()
+            bag_item.update_record()
 
 
 def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id):

@@ -286,10 +286,8 @@ db.define_table("store",
 	Field('certificate_number',readable=False,writable=False),
 	Field('certificate_base64',type="text",readable=False,writable=False),
 	Field('csdpass',type="password",readable=False,writable=False),
-	#Field('certpem_base64',type="text",readable=False,writable=False),
     auth.signature, format=store_format
     )
-# db.store.id_company.requires=IS_IN_DB( db, 'company.id', '')
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', address_format)
 db.store.name.requires = not_empty_requires
 
@@ -680,6 +678,15 @@ db.define_table("stock_item",
     auth.signature)
 
 
+db.define_table(
+    'stock_item_removal'
+    , Field('id_bag_item', 'reference bag_item', label=T('Bag item'))
+    , Field('id_inventory_item', 'reference inventory_item')
+    , Field('id_stock_item', 'reference stock_item', label=T('Stock item'))
+    , Field('qty', 'decimal(16,6)', label=T('quantity'))
+)
+
+
 db.define_table("payment",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
     Field("id_sale", "reference sale", label=T('Sale')),
@@ -775,31 +782,3 @@ db.define_table("invoice",
     Field("cancel_date", "datetime", default=None, label=T('Cancel date')),
     Field("acknowledgement", "text", default=None, label=T('Acknowledgement')),
     auth.signature)
-
-""" Relations between tables (remove fields you don't need from requires) """
-
-
-# db.trait.id_trait_category.requires=IS_IN_DB( db, 'trait_category.id', ' %(name)s')
-# db.purchase.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
-# db.purchase.id_supplier.requires=IS_IN_DB( db, 'supplier.id', ' %(business_name)s %(tax_id)s %(id_address)s')
-# # db.purchase.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-# db.supplier.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')
-#
-# # db.bag.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-# db.bag_item.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
-# db.sale.id_bag.requires=IS_IN_DB( db, 'bag.id', ' %(id_store)s %(completed)s')
-# # db.sale.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-# db.sale_log.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# db.credit_note.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# db.credit_note_item.id_credit_note.requires=IS_IN_DB( db, 'credit_note.id', ' %(id_sale)s %(subtotal)s %(total)s %(is_usable)s %(code)s')
-# db.credit_note_item.id_bag_item.requires=IS_IN_DB( db, 'bag_item.id', ' %(id_item)s %(id_bag)s %(quantity)s %(buy_price)s %(buy_date)s %(sale_price)s %(sale_taxes)s %(product_name)s %(sale_code)s %(serial_number)s')
-# # db.inventory.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-# db.inventory_item.id_inventory.requires=IS_IN_DB( db, 'inventory.id', ' %(id_store)s %(is_partital)s %(done)s')
-# db.payment.id_payment_opt.requires=IS_IN_DB( db, 'payment_opt.id', ' %(name)s %(allow_change)s %(credit_days)s')
-# db.payment.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# # db.promotion.id_store.requires=IS_IN_DB( db, 'store.id', ' %(id_company)s %(id_address)s %(name)s')
-# db.account_receivable.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# db.account_payable.id_purchase.requires=IS_IN_DB( db, 'purchase.id', ' %(id_payment_opt)s %(id_supplier)s %(id_store)s %(invoice_number)s %(subtotal)s %(total)s %(shipping_cost)s %(tracking_number)s')
-# db.invoice.id_sale.requires=IS_IN_DB( db, 'sale.id', ' %(id_bag)s %(number)s %(subtotal)s %(total)s %(quantity)s %(client)s %(reward_points)s %(is_invoiced)s %(id_store)s')
-# db.invoice.id_tax_data.requires=IS_IN_DB( db, 'tax_data.id', ' %(tax_id)s %(business_name)s %(id_address)s')
-# db.tax_data.id_address.requires=IS_IN_DB( db, 'address.id', ' %(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s')

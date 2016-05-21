@@ -254,11 +254,18 @@ def stock_transfer_ticket(id_stock_transfer):
 
 
 def get():
-    """ simply redirect the user to the ticket view """
+    """ simply redirect the user to the ticket view
+        args: [next_url]
+    """
 
+    next_url = request.vars.next_url
+    if request.vars.next_url:
+        del request.vars.next_url
     session.ticket_url = URL('show_ticket', vars=request.vars)
     url = URL('default', 'index')
-    if request.env.http_referer:
+    if next_url:
+        url = next_url
+    elif request.env.http_referer:
         url = request.env.http_referer
     redirect( url )
 

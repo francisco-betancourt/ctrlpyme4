@@ -310,3 +310,6 @@ def css_path(file_name):
 def js_path(file_name):
     request = current.request
     return os.path.join(request.folder, 'static/js/%s' % file_name)
+
+
+# def error_dict(msg)

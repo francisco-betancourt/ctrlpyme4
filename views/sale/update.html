@@ -3,17 +3,19 @@
 {{extend 'layout.html'}}
 
 {{block left_sidebar}}
-  <h1>{{=T('New Sale')}}</h1>
+  <h1>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></h1>
+
+  <hr>
+    <h3 {{if remaining > 0:}} class="text-danger" {{pass}} id="remaining_container">
+      {{=T('remaining')}}: <span class="right">
+      $ <span id="remaining">{{=DQ(remaining, True)}}</span></span>
+    </h3>
+  <hr>
+
   <p>{{=T('Subtotal')}} <span class="right">$ {{=DQ(sale.subtotal, True)}}</span></p>
   <p>{{=T('Taxes')}} <span class="right">$ {{=DQ(sale.taxes, True)}}</span></p>
   <p>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></p>
   <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
-
-  <hr>
-    <p>{{=T('remaining')}}: <span class="right">
-      $ <span id="remaining">{{=DQ(remaining, True)}}</span></span>
-    </p>
-  <hr>
 
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
   {{ if not sale.is_defered: }}
@@ -131,7 +133,7 @@
   $('#client_selector').change(function (event) {
     info_card("{{=T('Saving...')}}");
 
-    var target = $(event.target)
+    var target = $(event.target);
     $.ajax({
       url: "{{=URL('set_sale_client', extension='json', args=sale.id)}}/" + target.val()
     })
@@ -193,6 +195,13 @@
   function refresh_remaining(payments_total) {
     new_remaining = {{=sale.total}} - payments_total;
     $('#remaining').text(new_remaining.toFixed(2));
+    if (!new_remaining > 0) {
+      $('#remaining_container').removeClass('text-danger');
+      $('#remaining_container').addClass('text-success');
+    } else {
+      $('#remaining_container').removeClass('text-success');
+      $('#remaining_container').addClass('text-danger');
+    }
   }
 
 
@@ -278,7 +287,7 @@
       refresh_remaining(res.payments_total);
     })
     .fail(function (res) {
-      info_card("{{=T('Unable to add payment!')}}", null, 'error');
+      info_card(res.responseText, null, 'error');
     })
   });
 

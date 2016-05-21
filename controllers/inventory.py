@@ -146,8 +146,10 @@ def partial_inventory_check(inventory):
 
     for inventory_item in inventory_items:
         diff = inventory_item.system_qty - inventory_item.physical_qty
-        # more system stock than actual physical stock
+        # more system stock than actual physical stock (missing items)
         if diff > 0:
+            # TODO: this can use _remove_stocks()
+
             # remove items from the oldest stocks
             remainder = diff
             stock_items = item_stock(inventory_item.id_item, session.store)['stocks']
@@ -161,6 +163,11 @@ def partial_inventory_check(inventory):
                 stock_item.stock_qty -= removed_from_stock
                 remainder -= removed_from_stock
                 stock_item.update_record()
+                db.stock_item_removal.insert(
+                    id_stock_item=stock_item.id,
+                    qty=removed_from_stock,
+                    id_inventory_item=inventory_item.id
+                )
 
         # more physical stock than system stock
         elif diff < 0:

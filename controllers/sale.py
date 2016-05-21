@@ -68,17 +68,17 @@ def add_payment():
     sale = db.sale(request.args(0))
     valid_sale(sale)
     if sale.id_bag.is_paid:
-        raise HTTP(405)
+        raise HTTP(405, "The bag has been paid and its complete now.")
 
     # check if the payments total is lower than the total
     s = db.payment.amount.sum()
     payments_total = db(db.payment.id_sale == sale.id).select(s).first()[s]
     if not payments_total < db.sale(sale.id).total:
-        raise HTTP(405)
+        raise HTTP(405, T('Total already covered by the current payments.'))
 
     payment_opt = db.payment_opt(request.args(1))
     if not payment_opt:
-        raise HTTP(404)
+        raise HTTP(404, T('Could not find the specified payment option.'))
 
     # do not accept stripe payment opt
     if payment_opt.name == 'stripe':
@@ -87,7 +87,7 @@ def add_payment():
 
     # only accept credit payments for registered clients
     if payment_opt.credit_days > 0 and not sale.id_client:
-        raise HTTP(405)
+        raise HTTP(405, T('Payments with credit days are only available for registered clients.'))
 
     add_new_payment = False
 
@@ -106,7 +106,7 @@ def add_payment():
     if add_new_payment:
         new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_sale=sale.id))
     else:
-        raise HTTP(405)
+        raise HTTP(405, T("You already have a payment with that payment option."))
 
     return dict(payment_opt=payment_opt, payment=new_payment, payments_total=payments_total)
 
@@ -448,7 +448,7 @@ def complete():
         bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
         remove_stocks(bag_items)
         db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
-        redirect(URL('ticket', args=sale.id, vars={'_print': True}))
+        redirect( URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index')) ) )
 
 
 @auth.requires_membership('Sales checkout')
@@ -476,7 +476,8 @@ def defer():
         # create sale order based on the
         db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
 
-    redirect(URL('ticket', args=sale.id, vars={'_print': True}))
+    url = URL('default', 'index')
+    redirect(URL('ticket', 'get', vars=dict(id_sale=sale.id, next_url=url)))
 
 
 @auth.requires_membership('Sales delivery')
