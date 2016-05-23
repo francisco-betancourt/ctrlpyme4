@@ -26,7 +26,7 @@ from item_utils  import *
 def categories_tree_html(categories, item=None):
     # json object from python dict
     categories_tree = json_categories_tree(item)
-    categories_selected_text = item.categories_selected_text
+    categories_selected_text = item.categories_selected_text if item else ''
     category_search = INPUT(_type="search", _id="category_search", _placeholder=T("search categories"), _class="form-control")
     categories_selected = INPUT(_value=categories_selected_text, _type="text", _id="categories_selected", _hidden=True, _name="categories_selected")
     # hack: this script sets the javascript variable categories_tree_data, to
