@@ -24,7 +24,7 @@ precheck()
 import json
 from uuid import uuid4
 from datetime import date, timedelta
-from item_utils import item_discounts, apply_discount, item_stock, remove_stocks
+from item_utils import item_discounts, apply_discount, item_stock, remove_stocks, undo_stock_removal
 from constants import *
 
 
@@ -441,6 +441,7 @@ def complete():
         wallet.balance += sale.reward_points
         wallet.update_record()
 
+    session.info = INFO(T("Sale created"), T("undo"), URL('undo', args=sale.id))
     #TODO check company workflow
     if not auth.has_membership('Sales delivery'):
         redirect(URL('scan_ticket'))
@@ -502,6 +503,40 @@ def deliver():
         db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
 
     return locals()
+
+
+@auth.requires(auth.has_membership('Sales checkout'))
+def undo():
+    """ Undo a sale, only available for 5 minutes after the sale creation
+        args: [sale_id]
+    """
+
+    sale = db(
+        (db.sale.id == request.args(0))
+        & (db.sale.created_by == auth.user.id)
+        & (db.sale.is_done == True)
+    ).select().first()
+
+    # undo timeout
+    err = ''
+    if not sale:
+        err = T('Sale not found')
+    if request.now > sale.created_on + timedelta(minutes=5):
+        err = T('Its too late to undo it')
+    if err:
+        session.info = err
+        redirect('default', 'index')
+
+    # return wallet payments
+    for payment in db(db.payment.id_payment_opt == get_wallet_payment_opt()).select():
+        wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
+        wallet.balance += payment.amount
+        wallet.update_record()
+
+    undo_stock_removal(bag=sale.id_bag)
+
+    session.info = T('Sale undone')
+    redirect(URL('default', 'index'))
 
 
 @auth.requires(auth.has_membership('Sales returns')

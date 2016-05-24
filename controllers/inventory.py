@@ -307,9 +307,14 @@ def undo():
 
     inventory = db.inventory(request.args(0))
     if not inventory:
-        raise HTTP(404, T("Inventory not found"))
+        session.flash = T("Inventory not found")
+        redirect(URL('index', 'default'))
     if not inventory.is_done:
-        raise HTTP(405, T("Inventory has not been applied"))
+        session.flash = T("Inventory has not been applied")
+        redirect(URL('index', 'default'))
+    if inventory.created_by.id != auth.user.id:
+        session.flash = T("Not your inventory")
+        redirect(URL('index', 'default'))
 
     # remove the items that were added by the inventory
     stock_items = db( (db.stock_item.id_inventory == inventory.id) ).select()

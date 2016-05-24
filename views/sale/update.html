@@ -198,6 +198,8 @@
     if (!new_remaining > 0) {
       $('#remaining_container').removeClass('text-danger');
       $('#remaining_container').addClass('text-success');
+      // sale paid, autocomplete
+      window.location.href = "{{=URL('complete', args=sale.id)}}";
     } else {
       $('#remaining_container').removeClass('text-success');
       $('#remaining_container').addClass('text-danger');

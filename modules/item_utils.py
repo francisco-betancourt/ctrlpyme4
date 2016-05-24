@@ -224,7 +224,7 @@ def undo_stock_removal(bag=None, inventory=None):
     if bag:
         stock_removals = db(
             (db.stock_item_removal.id_bag_item == db.bag_item.id)
-            & (db.bag_item.id_inventory == db.bag.id)
+            & (db.bag_item.id_bag == db.bag.id)
             & (db.bag.id == bag.id)
         ).select(db.stock_item_removal.ALL)
         delete_query = db.bag.id == bag.id
