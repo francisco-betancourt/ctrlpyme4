@@ -391,6 +391,7 @@ def get_item():
     images = db(db.item_image.id_item == item.id).select()
 
     page_title = item.name
+    page_description = item.description + ' ' + ', '.join([cat.name for cat in  item.categories])
 
     return locals()
 
@@ -504,6 +505,9 @@ def browse():
         "sortby": ['base_price', 'name']
     }
     filter_data = None
+
+    page_title = T('Browse items')
+    page_description = T('Browse items catalog')
 
     return locals()
 

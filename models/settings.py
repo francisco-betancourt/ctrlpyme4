@@ -50,6 +50,8 @@ USE_MATERIAL_ICONS = True
 
 ENABLE_STRIPE = False
 
+TOP_CATEGORIES_STRING = ''
+
 
 main_settings = cache.ram('main_settings',
     lambda: db(db.settings.id_store == None).select().first(),
@@ -88,6 +90,8 @@ if main_settings:
         BASE_COLOR = main_settings.base_color
     if main_settings.base_color_text:
         BASE_COLOR_TEXT = main_settings.base_color_text
+    if main_settings.top_categories_string:
+        TOP_CATEGORIES_STRING = main_settings.top_categories_string
 
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS

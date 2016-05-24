@@ -28,6 +28,10 @@ def update_main():
 
     form = SQLFORM(db.settings, settings, showid=False, submit_button=T('Save'))
     if form.process().accepted:
+        # update top categories
+        cats = ', '.join([cat.name for cat in db(db.category.parent == None).select()])
+        settings.top_categories_string = cats
+        settings.update_record()
         cache.ram.clear('main_settings')
         response.flash = T('form accepted')
         redirect(URL('update_main'))

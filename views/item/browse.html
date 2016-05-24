@@ -32,7 +32,7 @@
 
 {{block page_js}}
 <script>
-  window.location.href += '#items_list';
+  window.location.hash = '#items_list';
   $('#categories_tree').treeview({
     data: categories_tree_data,
     checkedIcon: 'fa fa-check-square-o',

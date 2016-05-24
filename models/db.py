@@ -347,6 +347,7 @@ db.define_table(
   , Field('accent_color_text', label=T('Accent color text'))
   , Field('base_color', label=T('Base color'))
   , Field('base_color_text', label=T('Base color text'))
+  , Field('top_categories_string', readable=False, writable=False)
 
   # some chached data
   # the mount of time in minutes that the cached data will be available
