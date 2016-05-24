@@ -214,7 +214,38 @@ def active_item(item_id):
     return db((db.item.id == item_id) & (db.item.is_active == True)).select().first()
 
 
-def _remove_stocks(item, remove_qty, sale_date, bag_item=None):
+def undo_stock_removal(bag=None, inventory=None):
+    """ Reintegrates the removed stocks given a bag or inventory """
+
+    db = current.db
+
+    stock_removals = None
+    delete_query = None
+    if bag:
+        stock_removals = db(
+            (db.stock_item_removal.id_bag_item == db.bag_item.id)
+            & (db.bag_item.id_inventory == db.bag.id)
+            & (db.bag.id == bag.id)
+        ).select(db.stock_item_removal.ALL)
+        delete_query = db.bag.id == bag.id
+    elif inventory:
+        stock_removals = db(
+            (db.stock_item_removal.id_inventory_item == db.inventory_item.id)
+            & (db.inventory_item.id_inventory == db.inventory.id)
+            & (db.inventory.id == inventory.id)
+        ).select(db.stock_item_removal.ALL)
+        delete_query = db.inventory.id == inventory.id
+    else:
+        return
+    for stock_removal in stock_removals:
+        stock_item = db.stock_item(stock_removal.id_stock_item.id)
+        stock_item.stock_qty += stock_removal.qty
+        stock_item.update_record()
+    db(delete_query).delete()
+
+
+def _remove_stocks(item, remove_qty, sale_date, bag_item=None,
+                   inventory_item=None):
     """ remove the specified item quantity from available stocks
         if a bag_item is specified this function will create stock_item_removal
         records associated with the specified bag.
@@ -249,6 +280,12 @@ def _remove_stocks(item, remove_qty, sale_date, bag_item=None):
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
                 id_bag_item=bag_item.id
+            )
+        elif inventory_item:
+            db.stock_item_removal.insert(
+                id_stock_item=stock_item.id,
+                qty=to_be_removed_qty,
+                id_inventory_item=inventory_item.id
             )
 
     wavg_days_in_shelf /= remove_qty

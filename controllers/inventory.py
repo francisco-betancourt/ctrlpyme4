@@ -22,7 +22,7 @@ precheck()
 
 import json
 
-from item_utils import active_item
+from item_utils import active_item, _remove_stocks, undo_stock_removal
 
 
 def is_valid_inventory(inventory):
@@ -148,26 +148,8 @@ def partial_inventory_check(inventory):
         diff = inventory_item.system_qty - inventory_item.physical_qty
         # more system stock than actual physical stock (missing items)
         if diff > 0:
-            # TODO: this can use _remove_stocks()
-
-            # remove items from the oldest stocks
-            remainder = diff
-            stock_items = item_stock(inventory_item.id_item, session.store)['stocks']
-            #TODO check the case when after iterating over all the stock items, we still have remainder, which will be very unlikely to happen
-            for stock_item in stock_items:
-                if remainder <= 0:
-                    # exit once we have removed all the physical stock items
-                    break
-                remaining_stock = stock_item.stock_qty
-                removed_from_stock = min(remaining_stock, remainder)
-                stock_item.stock_qty -= removed_from_stock
-                remainder -= removed_from_stock
-                stock_item.update_record()
-                db.stock_item_removal.insert(
-                    id_stock_item=stock_item.id,
-                    qty=removed_from_stock,
-                    id_inventory_item=inventory_item.id
-                )
+            _remove_stocks(inventory_item.id_item, diff, request.now, inventory_item=inventory_item
+            )
 
         # more physical stock than system stock
         elif diff < 0:
@@ -203,32 +185,41 @@ def partial_inventory_check(inventory):
 
 
 def full_inventory_check(inventory):
-    missing_items = []
+    """ Checks all the inventory items and report items that were missed after the inventory
+    """
 
-    inventory_items = partial_inventory_check(inventory)
-    all_items_with_inventory = db(
+    partial_inventory_check(inventory)
+
+    # get all the items that does not have inventory item
+    missing_items = db(
         (db.item.has_inventory == True)
         & (db.item.is_active == True)
-    ).select()
+        & (db.inventory.id == inventory.id)
+        & (db.inventory_item.id_item == None)
+    ).select(db.item.ALL, left=db.inventory_item.on(
+            (db.item.id == db.inventory_item.id_item)
+            & (db.inventory.id == db.inventory_item.id_inventory)
+        )
+    )
 
-    #TODO this is ugly, check if theres is a better way to do it
-    for item in all_items_with_inventory:
-        inventory_item = db(
-            (db.inventory_item.id_item == item.id)
-            & (db.inventory_item.id_inventory == inventory.id)
-        ).select().first()
-        # if the item is not in the inventory, then we have to report it as a missing item
-        if not inventory_item:
-            missing_items.append(item)
     # we have to create an inventory item for every missing item, setting the total stock quantoty to 0
     missing_items_count = 0
     for missing_item in missing_items:
-        print missing_item
+        # TODO this could use _remove_stocks()
         stock_items, quantity = item_stock(missing_item, session.store).itervalues()
-        # when there are no stocks, never purhcased.
+        # when there are no stocks (never purchased).
         if not stock_items:
             continue
+
         remainder = quantity
+        # create a missing inventory item
+        new_inventory_item_id = db.inventory_item.insert(
+            id_inventory=inventory.id
+            , id_item=missing_item.id
+            , system_qty=quantity
+            , physical_qty=0
+            , is_missing=True
+        )
         #TODO check the case when after iterating over all the stock items, we still have remainder, which will be very unlikely to happen
         for stock_item in stock_items:
             if remainder <= 0:
@@ -239,14 +230,12 @@ def full_inventory_check(inventory):
             stock_item.stock_qty -= removed_from_stock
             remainder -= removed_from_stock
             stock_item.update_record()
-        # create a missing inventory item
-        db.inventory_item.insert(
-            id_inventory=inventory.id
-            , id_item=missing_item.id
-            , system_qty=quantity
-            , physical_qty=0
-            , is_missing=True
-        )
+
+            db.stock_item_removal.insert(
+                id_stock_item=stock_item.id,
+                qty=removed_from_stock,
+                id_inventory_item=new_inventory_item_id
+            )
         missing_items_count += 1
 
     return missing_items_count
@@ -255,15 +244,14 @@ def full_inventory_check(inventory):
 @auth.requires_membership('Inventories')
 def complete():
     """
-        args:
-            id_inventory
+        args: [id_inventory]
     """
 
     inventory = db.inventory(request.args(0))
     if inventory.is_done:
-        raise HTTP(405, "Inventory is done")
+        raise HTTP(405, T("Inventory is already done"))
     if not inventory:
-        raise HTTP(404)
+        raise HTTP(404, T("Inventory not found"))
 
     missing_items = None
     try:
@@ -293,31 +281,50 @@ def report_missing_items():
 
     inventory = db.inventory(request.args(0))
     if not inventory:
-        raise HTTP(404)
+        raise HTTP(404, T('Inventory not found'))
     if not inventory.is_done:
         raise HTTP(405, T("Inventory has not been applied"))
-    missing_items = db(
-        (db.inventory_item.is_missing == True)
-        & (db.inventory_item.id_inventory == inventory.id)
-        ).select()
+    query = (db.inventory_item.is_missing == True) & (db.inventory_item.id_inventory == inventory.id)
+    data = SUPERT(query, fields=[
+            'id_item.name',
+            dict(
+                fields=['id_item.sku'], label_as='barcode',
+                custom_format=lambda r, f : item_barcode(r.id_item)
+            )
+        ]
+        , options_enabled=False
+        , global_options=[]
+        , searchable=False
+    )
     return locals()
 
 
-#TODO implement this function
 @auth.requires_membership('Inventories')
 def undo():
-    """ Removes the last inventory, and restocks items according to the last system quantities.  WARNING  since inventories does not store stock information this method will add items to the oldest stock after the penultimum inventory,
-        args
-            id_inventory
+    """ Removes the last inventory, and restocks items according to the last system quantities. this operation is available only when the stocks produced by the inventory haven't been used.
+        args: [id_inventory]
     """
 
     inventory = db.inventory(request.args(0))
     if not inventory:
-        raise HTTP(404)
+        raise HTTP(404, T("Inventory not found"))
     if not inventory.is_done:
         raise HTTP(405, T("Inventory has not been applied"))
 
-    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
+    # remove the items that were added by the inventory
+    stock_items = db( (db.stock_item.id_inventory == inventory.id) ).select()
+    used = False
+    for stock_item in stock_items:
+        tainted &= stock_item.stock_qty == stock_item.purchase_qty
+    if used:
+        session.info = T('Inventory has been used, you can not undo it')
+        redirect(URL('default', 'index'))
+    # inventory not used, we can proceed
+    # restore stocks for inventory items
+    undo_stock_removal(inventory=inventory)
+
+    session.info = T('Inventory undone')
+    redirect(URL('default', 'index'))
 
 
 def delete():
@@ -335,6 +342,7 @@ def inventory_options(row):
         buttons += OPTION_BTN('edit', URL('fill', args=row.id), title=T('edit')),
         buttons += OPTION_BTN('delete', URL('delete', args=row.id), title=T('delete')),
     else:
+        buttons += OPTION_BTN('undo', URL('undo', args=row.id), title=T('undo')),
         buttons += OPTION_BTN('assignment', URL('get', args=row.id), title=T('details')),
     return buttons
 
