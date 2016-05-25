@@ -114,9 +114,9 @@
     {{ # multiprice only available for employees }}
     {{ if user_is_employee: }}
       <p> <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
-          <a type="button" class="btn btn-default">$ <span class="item_price"></span></a>
-          <a type="button" class="btn btn-default">$ <span class="price2"></span></a>
-          <a type="button" class="btn btn-default">$ <span class="price3"></span></a>
+          <a type="button" class="btn btn-default item_price"></a>
+          <a type="button" class="btn btn-default price2"></a>
+          <a type="button" class="btn btn-default price3"></a>
         </div> </p>
     {{ pass }}
     <div class="input-group">
