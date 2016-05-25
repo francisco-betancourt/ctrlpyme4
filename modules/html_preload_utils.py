@@ -12,6 +12,8 @@ def PRELOAD(enable_bootstrap=True,
             enable_calendar=True,
             enable_css_ticket=True):
 
+    auth = current.auth
+
     PAGE_STYLE_STRING = ''
     if enable_bootstrap:
         with open(css_path('bootstrap.min.css'), 'r') as f:
@@ -66,6 +68,9 @@ def PRELOAD(enable_bootstrap=True,
         if enable_treeview:
             with open(js_path('bootstrap-treeview.min.js'), 'r') as f:
                 PAGE_SCRIPT_STRING += f.read()
+    if enable_navbar:
+        with open(js_path('navbar.js'), 'r') as f:
+            PAGE_SCRIPT_STRING += f.read()
     current.js = XML(PAGE_SCRIPT_STRING)
 
     return PAGE_STYLE_STRING, PAGE_HEAD_SCRIPT_STRING, PAGE_SCRIPT_STRING

@@ -344,136 +344,135 @@
       $(this).show();
     });
   }
-</script>
 
 
-{{ # employee functions }}
-{{ if user_is_employee: }}
-  <script>
-      set_modal("{{=T('Manager access')}}", $('#access_code_modal_body').detach(), $('#access_code_modal_footer').detach());
 
 
-      function validate_access_code() {
-        $.ajax({
-          url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
-        })
-        .done(function (data) {
-          $('#modal').modal('hide');
-          $(target).parent().find('.btn-primary').removeClass('btn-primary');
-          $(target).addClass('btn-primary');
+  {{ # employee functions }}
+  {{ if user_is_employee: }}
+    set_modal("{{=T('Manager access')}}", $('#access_code_modal_body').detach(), $('#access_code_modal_footer').detach());
 
-          set_bag_data(data)
 
-          $('#common_modal').modal('hide');
-          $('#access_code').val('');
-        })
-        .fail(function (data) {
-          $('#common_modal').modal('hide');
-          alert('{{=T("Invalid access")}}');
-        });
-      }
+    function validate_access_code() {
+      $.ajax({
+        url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
+      })
+      .done(function (data) {
+        $('#modal').modal('hide');
+        $(target).parent().find('.btn-primary').removeClass('btn-primary');
+        $(target).addClass('btn-primary');
 
-      $('#common_modal').find('.submit').click(function (event) {
+        set_bag_data(data)
+
+        $('#common_modal').modal('hide');
+        $('#access_code').val('');
+      })
+      .fail(function (data) {
+        $('#common_modal').modal('hide');
+        alert('{{=T("Invalid access")}}');
+      });
+    }
+
+    $('#common_modal').find('.submit').click(function (event) {
+      validate_access_code();
+    });
+
+
+    // scanner functions
+    function requirement(barcode) { return true; }
+    function success_callback(data, barcode) {
+      $.ajax({
+        url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + data.id
+      })
+      .done(function (res) {
+        if (res.status == "out of stock") {
+          alert('{{=T("Out of stock!!!")}}');
+        }
+        else {
+          bag_item = res.bag_item;
+          base_add_bag_item(bag_item, res);
+        }
+      })
+    }
+    function fail_callback(data, barcode) { }
+
+    var container = $('#barcode_scanner_container');
+    var scanner = create_scanner('bag_scanner', container);
+    setup_scanner(scanner, success_callback, fail_callback, requirement, null);
+
+
+    function set_sale_price(_price_index, _bag_item_id, _target) {
+      price_index = _price_index;
+      bag_item_id = _bag_item_id;
+      target = _target;
+
+      {{if auth.has_membership('Admin') or auth.has_membership('Manager'):}}
         validate_access_code();
-      });
+      {{else:}}
+        $('#common_modal').modal();
+      {{pass}}
+    }
 
+    function add_bag() {
+      $.ajax({
+        url: "{{=URL('bag', 'create', extension='json')}}"
+      })
+      .done(function (data) {
+        load_bag(data.bag);
 
-      // scanner functions
-      function requirement(barcode) { return true; }
-      function success_callback(data, barcode) {
-        $.ajax({
-          url: "{{=URL('bag', 'add_bag_item', extension='json')}}/" + data.id
-        })
-        .done(function (res) {
-          if (res.status == "out of stock") {
-            alert('{{=T("Out of stock!!!")}}');
-          }
-          else {
-            bag_item = res.bag_item;
-            base_add_bag_item(bag_item, res);
-          }
-        })
-      }
-      function fail_callback(data, barcode) { }
-
-      var container = $('#barcode_scanner_container');
-      var scanner = create_scanner('bag_scanner', container);
-      setup_scanner(scanner, success_callback, fail_callback, requirement, null);
-
-
-      function set_sale_price(_price_index, _bag_item_id, _target) {
-        price_index = _price_index;
-        bag_item_id = _bag_item_id;
-        target = _target;
-
-        {{if auth.has_membership('Admin') or auth.has_membership('Manager'):}}
-          validate_access_code();
-        {{else:}}
-          $('#common_modal').modal();
-        {{pass}}
-      }
-
-      function add_bag() {
-        $.ajax({
-          url: "{{=URL('bag', 'create', extension='json')}}"
-        })
-        .done(function (data) {
+        // add the new bag to the active bags list
+        var bag_selector = document.createElement('a');
+        bag_selector.id = 'bag_selector_' + data.bag;
+        bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+        bag_selector.href = '#';
+        bag_selector.className = 'list-group-item';
+        $('#active_bags').append(bag_selector);
+        $('#bag_selector_' + data.bag).click(function(event) {
           load_bag(data.bag);
-
-          // add the new bag to the active bags list
-          var bag_selector = document.createElement('a');
-          bag_selector.id = 'bag_selector_' + data.bag;
-          bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
-          bag_selector.href = '#';
-          bag_selector.className = 'list-group-item';
-          $('#active_bags').append(bag_selector);
-          $('#bag_selector_' + data.bag).click(function(event) {
-            load_bag(data.bag);
-          });
-        })
-      }
-
-      function show_active_bags() {
-        $('#active_bags').toggle();
-      }
-
-      $('#add_bag_btn').on('click', function(event) {
-        $.ajax({
-          url: "{{=URL('bag', 'create', extension='json')}}"
-        })
-        .done(function (data) {
-          load_bag(data.bag);
-
-          // add the new bag to the active bags list
-          var bag_selector = document.createElement('a');
-          bag_selector.id = 'bag_selector_' + data.bag;
-          bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
-          bag_selector.href = '#';
-          bag_selector.className = 'list-group-item';
-          $('#active_bags').append(bag_selector);
-          $('#bag_selector_' + data.bag).click(function(event) {
-            load_bag(data.bag);
-          });
-        })
-      });
-
-      function discard_bag() {
-        $.ajax({
-          url: "{{=URL('bag', 'discard_bag', extension='json')}}"
-        })
-        .done(function (res) {
-          var removed = res.removed;
-          $('#bag_selector_' + removed).remove();
-          if (res.other_bag) load_bag(res.other_bag.id);
-          else add_bag();
-          return false;
         });
-      }
+      })
+    }
 
-      function transfer_bag() {
-        var r = confirm("{{=T('Confirm stock transfer?')}}");
-        if (r == true) window.location.href = "{{=URL('bag', 'stock_transfer')}}";
-      }
+    function show_active_bags() {
+      $('#active_bags').toggle();
+    }
 
-  </script>
-{{ pass   # end employee section }}
+    $('#add_bag_btn').on('click', function(event) {
+      $.ajax({
+        url: "{{=URL('bag', 'create', extension='json')}}"
+      })
+      .done(function (data) {
+        load_bag(data.bag);
+
+        // add the new bag to the active bags list
+        var bag_selector = document.createElement('a');
+        bag_selector.id = 'bag_selector_' + data.bag;
+        bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+        bag_selector.href = '#';
+        bag_selector.className = 'list-group-item';
+        $('#active_bags').append(bag_selector);
+        $('#bag_selector_' + data.bag).click(function(event) {
+          load_bag(data.bag);
+        });
+      })
+    });
+
+    function discard_bag() {
+      $.ajax({
+        url: "{{=URL('bag', 'discard_bag', extension='json')}}"
+      })
+      .done(function (res) {
+        var removed = res.removed;
+        $('#bag_selector_' + removed).remove();
+        if (res.other_bag) load_bag(res.other_bag.id);
+        else add_bag();
+        return false;
+      });
+    }
+
+    function transfer_bag() {
+      var r = confirm("{{=T('Confirm stock transfer?')}}");
+      if (r == true) window.location.href = "{{=URL('bag', 'stock_transfer')}}";
+    }
+  {{ pass   # end employee section }}
+</script>

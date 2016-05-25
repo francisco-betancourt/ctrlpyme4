@@ -394,6 +394,22 @@ button.cp-fab:focus{
 }
 
 
+/* notifications */
+.notifications-list {
+  padding-left: 0px;
+  list-style-type: none;
+}
+.notification {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+
 /* theme previews */
 .preview-container {
   overflow: auto;

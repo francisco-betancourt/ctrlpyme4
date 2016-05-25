@@ -133,6 +133,7 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None):
     request = current.request
     db = current.db
 
+    ipp = min(ipp, 100)
     start = page * ipp
     end = start + ipp
     total_rows_count = db(query).count(distinct=distinct)
@@ -160,7 +161,7 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None):
 def pages_menu(query, page=0, ipp=10, distinct=None):
     try:
         page = int(page or 0)
-        ipp = int(ipp or 10)
+        ipp = min(int(ipp or 10), 100)
     except:
         page = 0
         ipp = 10
@@ -255,7 +256,7 @@ def item_card(item):
       & (db.item.is_active == True)
     ).select(db.item_image.ALL)
     if images:
-        bg_style = "background-image: url(%s);" % URL('static','uploads/'+ images.first().md)
+        bg_style = "background-image: url(%s);" % URL('static','uploads/'+ images.first().sm)
     else:
         bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 
@@ -327,7 +328,7 @@ def item_card(item):
             item_price_html,
             _class="panel-body"
         ),
-        _class="panel panel-default item-card shadow-1"
+        _class="panel panel-default item-card"
     )
 
 

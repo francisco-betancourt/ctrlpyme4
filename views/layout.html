@@ -25,7 +25,7 @@
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     {{include 'web2py_ajax.html'}}
-    <script type="text/javascript">{{=current.head_js}}</script>
+    <script type="text/javascript"> {{=current.head_js}} </script>
 
 
     <!-- manifest file -->
@@ -74,6 +74,8 @@
 
   <body>
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
+
+    <!-- Info card -->
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
     {{pass}}
@@ -103,13 +105,11 @@
       }
     </script>
 
-    <!-- Navbar ======================================= -->
     {{notifications = get_notifications()}}
+    <!-- Navbar ======================================= -->
+    {{ include "navbar.html" }}
 
-
-    {{ include "navbar2.html" }}
-
-    {{# barcode scanner tempalte and functions }}
+    {{# barcode scanner template and functions }}
     {{include 'barcode_scanner.html'}}
 
 
@@ -182,13 +182,15 @@
         {{include 'help.html'}}
       </section>
 
+
+      <!-- bag -->
       <script type="text/javascript">
         function add_bag_item() {
           show_container('bag_container');
         }
       </script>
       {{if include_bag and request.controller != 'appadmin':}}
-        <secction id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
+        <section id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
           <div class="bag-container">
             {{if auth.is_logged_in():}}
               {{auto_bag_selection()}}
@@ -211,8 +213,9 @@
               <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login ')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
             {{pass}}
           </div>
-        </secction>
+        </section>
       {{pass}}
+      <!-- end bag -->
 
 
     </div>
@@ -331,7 +334,7 @@
     <!-- Analytics ==================================== -->
     {{if response.google_analytics_id:}}
     <script async src="{{=URL('static','js/analytics.min.js')}}"></script>
-    <script async type="text/javascript">
+    <script type="text/javascript">
       analytics.initialize({
       'Google Analytics':{trackingId:'{{=response.google_analytics_id}}'}
       });

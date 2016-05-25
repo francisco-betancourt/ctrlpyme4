@@ -5,7 +5,7 @@
     <div class="menu-element primary-color-text" id="close_search" hidden="hidden">{{=ICON('close')}}</div>
 
     <div id="m_nav_filler" class="menu-element" state="hidden">
-      <div class="menu-element hamburger">{{=ICON('menu')}}</div>
+      <div class="menu-element hamburger">{{=ICON('close')}}</div>
       <a href="{{=URL('default', 'index')}}" class="menu-element brand">{{=COMPANY_NAME}}</a>
     </div>
 
@@ -17,7 +17,8 @@
         {{=COMPANY_NAME}}
       {{pass}}
     </a>
-    <div id="main_menu_m" state="hidden">
+    <!-- mobile main menu -->
+    <div id="main_menu_m" state="hidden" class="shadow-2">
       {{ for m_element in MENU_ELEMENTS('m', response.menu): }}
         {{ =m_element.menu }}
         {{ if m_element.submenu: }}
@@ -39,7 +40,6 @@
         {{ =m_element.menu }}
       {{pass}}
     </div>
-
   </section>
 
 
@@ -79,91 +79,6 @@
       {{pass}}
     </div>
   </section>
-
 </nav>
 
 <div id="nav_screen" ></div>
-
-
-<script>
-  // $('.submenu').hide();
-
-  $('#nav_screen')[0].addEventListener('transitionend', function (event) {
-    if (event.target.style.opacity == 0) {
-      $('#nav_screen').css('visibility', 'hidden');
-    }
-  }, true);
-
-  function show_nav_screen() {
-    $('#nav_screen').css('opacity', '1');
-    $('#nav_screen').css('visibility', 'visible');
-  }
-  function hide_nav_screen() {
-    $('#nav_screen').css('opacity', '0');
-  }
-
-  function hide_main_menu() {
-    hide_container('main_menu_m', true);
-    hide_container('m_nav_filler', true);
-    hide_nav_screen();
-  }
-
-  function close_search() {
-    $('#bag_btn, #search_menu_btn, #hamburger, .brand').show();
-    $('#hamburger, #search_menu_btn').removeClass('hidden');
-    $('#close_search').css('display', 'none');
-    $('.submenu').hide();
-    $('#search_form').css('transform', 'translateY(-64px)');
-    $('#search_form').css('width', '0px');
-  }
-
-  function toggle_main_menu() {
-    if ($('#main_menu_m').attr('state') == 'hidden') {
-      show_container('main_menu_m');
-      show_container('m_nav_filler');
-      show_nav_screen();
-      // $('#nav_screen').show();
-    } else {
-      hide_main_menu();
-    }
-    close_search();
-  }
-
-  $('.hamburger').click(function (event) {
-    toggle_main_menu();
-  });
-
-  $('#nav_screen, #bag_btn, #search_form').click(function (event) {
-    $('.submenu').hide();
-    hide_nav_screen();
-  })
-
-  function toggle_submenu(name) {
-    $('.submenu').not('#submenu_' + name).hide();
-    $('#submenu_' + name).toggle();
-    if ($('#hamburger').css('display') == 'none' || $('#hamburger').css('display') == 'none !important' || name == 'auth') {
-      if ($('#submenu_' + name).css('display') == 'block') {
-        show_nav_screen();
-      } else {
-        hide_nav_screen();
-      }
-    }
-  }
-
-
-  $('#close_search').click(function (event) {
-    close_search();
-  });
-
-  $('#search_menu_btn').click(function (event) {
-    $('#bag_btn, #search_menu_btn, .brand').hide();
-    $('#hamburger, #search_menu_btn').addClass('hidden');
-    $('#close_search').css('display', 'flex');
-    $('.submenu').hide();
-    hide_nav_screen();
-    hide_main_menu();
-    $('#search_form').css('transform', 'translateY(0px)');
-    $('#search_form').css('width', '100%');
-    $('#search').focus();
-  })
-</script>
