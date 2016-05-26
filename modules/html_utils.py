@@ -43,8 +43,9 @@ def discounts_list(discounts):
             a_text = '%s %s %s' % (T('item'), discount.id_item.name, discount.id_item.id)
             a_href = URL('item', 'get_item', args=discount.id_item.id)
         if discount.id_brand:
-            a_text = '%s %s' % (T('brand'), discount.id_brand.name)
-            a_href = URL('item', 'get_by_brand', args=discount.id_brand.id)
+            brand = discount.id_brand.name
+            a_text = '%s %s' % (T('brand'), brand.name)
+            a_href = URL('item', 'browse', vars=dict(brand=brand.id))
         if discount.id_category:
             a_text = '%s %s' % (T('category'), discount.id_category.name)
             a_href = URL('item', 'browse', vars=dict(category=discount.id_category.id))
@@ -260,7 +261,11 @@ def item_card(item):
     else:
         bg_style = "background-image: url(%s);" % URL('static', 'images/no_image.svg')
 
-    brand_link = H4(A(item.id_brand.name, _href=URL('item', 'get_by_brand', args=item.id_brand.id))) if item.id_brand else H4(T('No brand'))
+    brand_link = H4(
+        A(item.id_brand.name,
+          _href=URL('item', 'browse', vars=dict(brand=item.id_brand.id))
+        )
+    ) if item.id_brand else H4(T('No brand'))
 
     item_price = (item.base_price or 0) + item_taxes(item, item.base_price)
     fix_item_price(item, item.base_price)
@@ -323,8 +328,6 @@ def item_card(item):
                 _class="item_data"
             ),
             item_options,
-            # create_item_options(item),
-            # P(item.description, _class="description"),
             item_price_html,
             _class="panel-body"
         ),
