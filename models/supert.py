@@ -26,6 +26,8 @@ from gluon.storage import Storage
 # from gluon import current, URL
 # from html_utils import ICON, pages_menu_bare
 
+t_index = 0
+
 
 def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title=''):
     if _onclick:
@@ -79,6 +81,7 @@ def _search_query(field, term):
     else:
         return None
 
+
 def search_query_from_field(field, term):
     q = None
     for subfield in field:
@@ -93,6 +96,15 @@ def search_query_from_field(field, term):
 
 
 def parse_field(field, base_table_name, joined=False, search_term=None):
+    """ Parses field data into an intermediate representation usable by data formaters, the returned object is
+
+        field:
+        header: the header for the specified field
+        orderby: string that can be used to sort the table by the field
+        search: a search query for the specified field
+        format: The format function that will be applied to the specified field
+    """
+
     db = current.db
     header = None
     new_field = ''
@@ -191,6 +203,8 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     if not joined:
         # if not joined we infer the table name using the result
         base_table_name = rows.colnames[0].split('.')[0]
+        if not select_fields:
+            select_fields = [db[base_table_name].ALL]
 
     # default order, newest first
     if not select_args.has_key('orderby'):
@@ -214,7 +228,7 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     search_query = None
     datas = []
     new_fields = []
-    for index, field in enumerate(fields):
+    for field in fields:
         new_field = parse_field(field, base_table_name, joined, search_term)
         new_fields.append(new_field)
         if new_field.search:
@@ -232,14 +246,26 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
 
     for row in rows:
         row_id = None
+
+        # something happened to the query and its returning something like a join
+        _row = row
+        try:
+            if not joined:
+                _row = row[base_table_name]
+        except:
+            pass
+
         if not joined:
-            row_id = row['id']
+            row_id = _row['id']
         else:
-            row_id = row[base_table_name].id
+            row_id = _row[base_table_name].id
         values = []
-        for index, field in enumerate(new_fields):
-            values.append(field.format(row, field.field))
-        datas.append(Storage(_id=row_id, _values=values, _row=row))
+        for field in new_fields:
+            values.append(field.format(_row, field.field))
+        datas.append(Storage(_id=row_id, _values=values, _row=_row))
+
+    global t_index
+    t_index += 1
 
     return new_fields, datas
 
@@ -258,7 +284,8 @@ def visibility_g_option():
 
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[]):
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', t_index=0):
+
     T = current.T
 
     # base_table
@@ -290,8 +317,10 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
     t_header_content = DIV(_class="st-card-header-content")
     # add search field
+    if title:
+        t_header_content.append(H4(title))
     if searchable:
-        search_form = FORM(_id='supert_search_form', _class="form-inline")
+        search_form = FORM(_id='supert_search_form', _class="form-inline", **{'_data-index': t_index})
         search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
         search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
         t_header_content.append(search_form)
@@ -327,16 +356,13 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    if datas:
-        table = DIV(t_header, table, t_footer, _class="supert table-responsive")
-    else:
-        table = DIV(t_header, table, t_footer, _class="supert table-responsive")
+    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index)
 
     return table
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, global_options=[visibility_g_option()]):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_options=[visibility_g_option()]):
     """ default supert with table output. recognized url parameters:
         term: search term
         orderby: field or fields to orderby, it can be something like items.price+items.barcode
@@ -345,18 +371,21 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         ipp: the number of items per page
         ids: list of comma separated ids to apply the table to a subset of items
     """
+    global t_index
+    current_t_index = t_index
+
     request = current.request
     db = current.db
 
     specified_base_table_name = base_table_name
     # normalize fields
-    search_term = request.vars.term
+    search_term = request.vars['term_%s' % t_index]
     # ordering
     try:
         orderby = None
-        for f_string in request.vars.orderby.split('+'):
+        for f_string in request.vars['orderby_%s' % t_index].split('+'):
             tname, f_name = f_string.split('.')
-            orderparam = db[tname][f_name] if request.vars.order == 'asc' else ~db[tname][f_name]
+            orderparam = db[tname][f_name] if request.vars['order_%s' % t_index] == 'asc' else ~db[tname][f_name]
             if not orderby:
                 orderby = orderparam
             else:
@@ -366,18 +395,18 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         pass
     # limits
     distinct = db[base_table_name].id if base_table_name else None
-    page = request.vars.page
-    ipp = request.vars.ipp
+    page = request.vars['page_%s' % t_index]
+    ipp = request.vars['ipp_%s' % t_index]
     try:
         page = int(page or 0)
         ipp = int(ipp or 10)
     except:
         page = 0
         ipp = 10
-    prev_url, next_url, limits, pages_count  = pages_menu_bare(query, page, ipp, distinct=distinct)
+    prev_url, next_url, limits, pages_count  = pages_menu_bare(query, page, ipp, distinct=distinct, index=t_index)
     select_args['limitby'] = limits
 
-    ids = request.vars.ids
+    ids = request.vars['ids_%s' % t_index]
     ids = ids.split(',') if ids else []
 
     new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True)
@@ -386,6 +415,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         datas = []
 
     # base_table
-    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options)
+    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index)
 
     return table
