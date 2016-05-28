@@ -54,7 +54,6 @@ def create():
             img = Image.open(img_path)
             outfile = os.path.splitext(img_path)[0]
             img_width, img_height = img.size # get the original image size
-            img.close()
 
             img_ext = item_image.lg.split('.')[-1]
             img_ext = 'jpeg' if img_ext == 'jpg' else img_ext
@@ -70,7 +69,6 @@ def create():
                     item_image[sizes_names[i]] = img_file
                     # remove the PIL generated image
                     os.remove(new_file_name)
-                    img.close()
                 except IOError:
                     import traceback as tb
                     tb.print_exc()
