@@ -275,6 +275,43 @@ def stocks_table(item):
 
         return tr
 
+    def stock_row_2(row, fields):
+        # the stock is from purchase
+
+        if row.id_purchase:
+            return A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id))
+        # stock is from inventory
+        elif row.id_inventory:
+            return A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id))
+        # stock is from credit note
+        elif row.id_credit_note:
+            return A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))
+        elif row.id_stock_transfer:
+            return A(T('Stock transfer'), _href=URL('stock_transfer', 'ticket', args=row.id_stock_transfer.id))
+
+    return SUPERT(
+        (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store),
+        fields=[
+            {
+                'fields': ['id'],
+                'label_as': T('Concept'),
+                'custom_format': stock_row_2
+            },
+            {
+                'fields': ['purchase_qty'],
+                'label_as': T('Quantity'),
+                'custom_format': lambda r, f : DQ(r[f[0]], True, True)
+            },
+            'created_on',
+            {
+                'fields': ['created_by'],
+                'label_as': T('Created by'),
+                'custom_format': lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
+            }
+        ], options_enabled=False, searchable=False, global_options=[],
+        title=T('Input')
+    )
+
     return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on, search_enabled=False)
 
 
@@ -293,28 +330,62 @@ def item_analysis():
 
     stocks = stocks_table(item)
 
-    sales = db(
-        (db.bag_item.id_bag == db.bag.id) &
-        (db.sale.id_bag == db.bag.id) &
-        (db.sale_log.id_sale == db.sale.id) &
-        (db.sale_log.sale_event == SALE_DELIVERED) &
-        (db.sale.id_store == session.store) &
-        (db.bag_item.id_item == item.id)
-    ).select(db.sale.ALL, db.bag_item.ALL, orderby=~db.sale.created_on)
-    stock_transfers = db(
-        # (db.bundle_item.id_bundle == db.item.id)
+
+    def out_custom_format(row, fields):
+        link = ''
+        if row.sale.id:
+            link = A('%s %s' % (T('Sale'), row.sale.consecutive), _href=URL('sale', 'ticket', args=row.sale.id))
+        elif row.product_loss.id:
+            link = A('%s %s' % (T('Product loss'), row.product_loss.id), _href=URL('product_loss', 'get', args=row.product_loss.id))
+        elif row.stock_transfer.id:
+            link = A('%s %s' % (T('Stock transfer'), row.stock_transfer.id), _href=URL('stock_transfer', 'ticket', args=row.stock_transfer.id))
+        elif row.inventory.id:
+            link = A('%s %s' % (T('Inventory'), row.inventory.id), _href=URL('inventory', 'ticket', args=row.inventory.id))
+        return link
+
+
+    # since services do not have stocks the following table is only applied to items with inventory
+    # every stock removal is stored in a stock_item_removal_record
+    outputs_t = SUPERT(
         (db.bag_item.id_bag == db.bag.id)
-        & (db.stock_transfer.id_bag == db.bag.id)
-        & (db.stock_transfer.id_store_from == session.store)
         & (db.bag_item.id_item == item.id)
-    ).select(db.stock_transfer.ALL, db.bag_item.ALL, orderby=~db.stock_transfer.created_on)
-    product_losses = db(
-        # (db.bundle_item.id_bundle == db.item.id)
-        (db.bag_item.id_bag == db.bag.id)
-        & (db.product_loss.id_bag == db.bag.id)
-        & (db.product_loss.id_store == session.store)
-        & (db.bag_item.id_item == item.id)
-    ).select(db.product_loss.ALL, db.bag_item.ALL, orderby=~db.product_loss.created_on)
+        & (db.stock_item_removal.id_bag_item == db.bag_item.id)
+        & (db.bag.id_store == session.store)
+        & (
+            (db.sale.id_bag == db.bag.id)
+            | (db.product_loss.id_bag == db.bag.id)
+            | (db.stock_transfer.id_bag == db.bag.id)
+        )
+        , select_fields=
+            (db.sale.ALL, db.product_loss.ALL, db.stock_item_removal.ALL,
+            db.stock_transfer.ALL)
+        , select_args=dict(left=[
+            db.sale.on(db.bag.id == db.sale.id_bag),
+            db.product_loss.on(db.bag.id == db.product_loss.id_bag),
+            db.stock_transfer.on(db.bag.id == db.stock_transfer.id_bag),
+        ]),
+        fields=[
+            dict(
+                fields=[''],
+                label_as=T('Concept'),
+                custom_format=out_custom_format
+            ),
+            dict(
+                fields=['stock_item_removal.qty'],
+                label_as=T('Quantity'),
+                custom_format=lambda r, f : DQ(r[f[0]], True, True)
+            ),
+            'bag.created_on',
+            dict(
+                fields=['bag.created_by'],
+                label_as=T('Created by'),
+                custom_format=lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
+            )
+        ],
+        base_table_name='stock_item_removal',
+        title=T('Output'), searchable=False, options_enabled=False,
+        global_options=[]
+    )
 
     wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 
