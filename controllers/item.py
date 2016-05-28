@@ -279,23 +279,6 @@ def get():
     return locals()
 
 
-def get_by_brand():
-    """
-        args:
-            id_brand
-        vars: [page, ipp]
-    """
-
-    brand = db.brand(request.args(0))
-    if not brand:
-        raise HTTP(404)
-    query = ((db.item.id_brand == brand.id) & (db.item.is_active == True))
-    pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(orderby=db.item.name, limitby=limits)
-
-    return locals();
-
-
 def get_item():
     """
         get the item specified by its id or name and traits
@@ -478,11 +461,12 @@ def items_list(query, page, ipp=10):
 
 def browse():
     """ Item browser
-        vars: {category, sort, categories, is_service}
+        vars: {category, sort, categories, is_service, brand}
     """
 
     category = db.category(request.vars.category)
     is_service = request.vars.is_service == 'yes'
+    brand = db.brand(request.vars.brand)
 
     title = T('Items')
 
@@ -493,6 +477,19 @@ def browse():
     if is_service:
         title = T('Services')
         query &= db.item.has_inventory == False
+    if brand:
+        query &= db.item.id_brand == brand.id
+
+    # no items msg
+
+    no_items_msg = T('No items found') + ' '
+    if is_service:
+        no_items_msg = T('No services found') + ' '
+    if brand:
+        no_items_msg += T('with brand: %s ') % brand.name
+    if category:
+        no_items_msg += T('in category: %s') % category.name
+
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(limitby=limits)

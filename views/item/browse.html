@@ -15,24 +15,47 @@
     <h3>{{=T("Options")}}</h3>
     {{=filter_menu(filter_data)}}
   {{pass}}
+
+  {{ if brand: }}
+  <div>
+    <span>
+      <input type="checkbox" id="brand_toggle" checked="checked">
+      {{=T('Brand')}} {{=brand.name}}
+    </span>
+  </div>
+  {{ pass }}
+
 {{end}}
 
 <section id="items_list">
   <h1>{{=title}}</h1>
   <div class="items-container">
-    {{for item in items:}}
-      {{=item_card(item)}}
-    {{pass}}
+    {{ if items: }}
+      {{for item in items:}}
+        {{=item_card(item)}}
+      {{pass}}
+    {{ else: }}
+      <h4>{{ =no_items_msg }}</h4>
+    {{ pass }}
   </div>
   {{=pages}}
 </section>
 
-{{=categories_data_script}}
-
 
 {{block page_js}}
+{{=categories_data_script}}
 <script>
   window.location.hash = '#items_list';
+
+  $('#brand_toggle').click(function (event) {
+    console.log(event.target.checked);
+    if (!event.target.checked) {
+      var url = "{{=URL('item', 'browse')}}?";
+      {{ if category: }} url += 'category={{=category.id}}' {{ pass }}
+      window.location.href = url;
+    }
+  });
+
   $('#categories_tree').treeview({
     data: categories_tree_data,
     checkedIcon: 'fa fa-check-square-o',
@@ -44,14 +67,30 @@
   });
 
   $('#categories_tree').on('nodeSelected', function(event, data) {
-    url = "{{=URL('browse')}}?category=" + data.category_id;
+    var vars = '?category=' + data.category_id;
+    {{ if brand: }}
+      vars += '&brand={{=brand.id}}';
+    {{ pass }}
+
+    url = "{{=URL('browse')}}" + vars;
     {{if is_service:}}
       url += '&is_service=yes'
     {{pass}}
     window.location.href = url;
   });
+  $('#categories_tree').on('nodeUnselected', function(event, data) {
+    url = "{{=URL('browse')}}?";
+    {{if is_service:}}
+      url += 'is_service=yes&'
+    {{pass}}
+    {{ if brand: }}
+      url += 'brand={{=brand.id}}';
+    {{ pass }}
 
-  // when the category is not visible, we have
+    window.location.href = url;
+  });
+
+  // when the category is not visible, we have reveal it
   var selected_node = $('#categories_tree').treeview('getSelected')[0];
   if (selected_node) {
     $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true } ]);

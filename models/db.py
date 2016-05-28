@@ -709,13 +709,12 @@ db.define_table("payment",
 
 db.define_table("item_image",
     Field("id_item", "reference item", label=T('Item'), readable=False, writable=False),
-    Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
     Field("thumb", "upload", default=None, label=T('Thumbnail'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
     Field("sm", "upload", default=None, label=T('Small'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
     Field("md", "upload", default=None, label=T('Medium'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
-    Field("lg", "upload", default=None, label=T('Large'), readable=False, writable=False, uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
+    Field("lg", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads'), autodelete=True),
 )
-db.item_image.image.requires = IS_IMAGE(extensions=('jpg', 'jpeg', 'png'))
+db.item_image.lg.requires = IS_IMAGE(extensions=('jpg', 'jpeg', 'png'))
 
 
 db.define_table(

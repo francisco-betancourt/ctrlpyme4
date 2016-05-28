@@ -50,32 +50,32 @@ def create():
         if form.process().accepted:
             item_image = db.item_image(form.vars.id)
             item_image.id_item = item.id
-            img_path = os.path.join(request.folder, 'static/uploads/', item_image.image)
+            img_path = os.path.join(request.folder, 'static/uploads/', item_image.lg)
             img = Image.open(img_path)
             outfile = os.path.splitext(img_path)[0]
-            img_width, img_height = img.size
+            img_width, img_height = img.size # get the original image size
+            img.close()
 
-            i = 0
-            for size in sizes:
+            img_ext = item_image.lg.split('.')[-1]
+            img_ext = 'jpeg' if img_ext == 'jpg' else img_ext
+
+            for i, size in enumerate(sizes):
                 try:
                     img = Image.open(img_path)
                     new_file_name = outfile
-                    new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
+                    new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.%s' % (sizes_names[i], img_ext)
                     img.thumbnail(size, Image.ANTIALIAS)
-                    img.save(new_file_name, 'JPEG')
+                    img.save(new_file_name, img_ext)
                     img_file = open(new_file_name)
                     item_image[sizes_names[i]] = img_file
-                    i += 1
+                    # remove the PIL generated image
+                    os.remove(new_file_name)
+                    img.close()
                 except IOError:
                     import traceback as tb
                     tb.print_exc()
+            os.remove(img_path) # remove the original image
             item_image.update_record()
-            i = 0
-            for size in sizes:
-                new_file_name = outfile
-                new_file_name += '.thumbnail' if sizes_names[i] == 'thumb' else '_%s.jpg' % sizes_names[i]
-                os.remove(new_file_name)
-                i += 1
             redirect(URL(request.function, args=request.args))
     except IOError:
         session.info = T('Filename too long')

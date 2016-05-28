@@ -7,7 +7,7 @@
 <h2>{{=item.name}}</h2>
 <hr>
 <h4 id="item_info">
-  <a href="{{=URL('item', 'get_by_brand', args=item.id_brand.id)}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
+  <a href="{{=URL('item', 'browse', vars=dict(brand=item.id_brand.id))}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
       {{if auth.has_membership('Employee') and item_barcode(item):}}
         <span class="barcode">{{=item_barcode(item)}}</span>
       {{pass}}
