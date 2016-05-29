@@ -681,10 +681,13 @@ db.define_table("stock_item",
 
 db.define_table(
     'stock_item_removal'
-    , Field('id_bag_item', 'reference bag_item', label=T('Bag item'))
-    , Field('id_inventory_item', 'reference inventory_item')
-    , Field('id_stock_item', 'reference stock_item', label=T('Stock item'))
-    , Field('qty', 'decimal(16,6)', label=T('quantity'))
+    , Field('id_bag_item', 'reference bag_item', default=None)
+    , Field('id_inventory_item', 'reference inventory_item', default=None)
+    , Field('id_stock_item', 'reference stock_item', default=None)
+    , Field('id_item', 'reference item', default=None)
+    , Field('id_inventory', 'reference inventory', default=None)
+    , Field('id_bag', 'reference bag', default=None)
+    , Field('qty', 'decimal(16,6)', label=T('Quantity'))
 )
 
 

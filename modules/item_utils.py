@@ -279,13 +279,17 @@ def _remove_stocks(item, remove_qty, sale_date, bag_item=None,
             db.stock_item_removal.insert(
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
-                id_bag_item=bag_item.id
+                id_bag_item=bag_item.id,
+                id_bag=bag_item.id_bag.id,
+                id_item=item.id
             )
         elif inventory_item:
             db.stock_item_removal.insert(
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
-                id_inventory_item=inventory_item.id
+                id_inventory_item=inventory_item.id,
+                id_inventory=inventory_item.id_inventory.id,
+                id_item=item.id
             )
 
     wavg_days_in_shelf /= remove_qty
@@ -339,6 +343,7 @@ def remove_stocks(bag_items):
 
 def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id):
     db = current.db
+    session = current.session
 
     stock_item = db((db.stock_item[target_field] == target_id) & (db.stock_item.id_item == item.id)).select().first()
     if stock_item:

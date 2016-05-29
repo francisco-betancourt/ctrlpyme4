@@ -254,28 +254,6 @@ def monthly_analysis(query, tablename, field, month, year):
 
 def stocks_table(item):
     def stock_row(row, fields):
-        tr = TR()
-        # the stock is from purchase
-        if row.id_purchase:
-            tr.append(TD(A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id))))
-        # stock is from inventory
-        elif row.id_inventory:
-            tr.append(TD(A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id))))
-        # stock is from credit note
-        elif row.id_credit_note:
-            tr.append(TD(A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))))
-        elif row.id_stock_transfer:
-            tr.append(TD(A(T('Stock transfer'), _href=URL('stock_transfer', 'ticket', args=row.id_stock_transfer.id))))
-
-        tr.append(TD(DQ(row.purchase_qty, True)))
-        tr.append(TD(row['created_on'].strftime('%d %b %Y, %H:%M')))
-
-        #TODO  add link to employee analysis
-        tr.append(TD(row.created_by.first_name + ' ' + row.created_by.last_name))
-
-        return tr
-
-    def stock_row_2(row, fields):
         # the stock is from purchase
 
         if row.id_purchase:
@@ -295,7 +273,7 @@ def stocks_table(item):
             {
                 'fields': ['id'],
                 'label_as': T('Concept'),
-                'custom_format': stock_row_2
+                'custom_format': stock_row
             },
             {
                 'fields': ['purchase_qty'],
@@ -311,8 +289,6 @@ def stocks_table(item):
         ], options_enabled=False, searchable=False, global_options=[],
         title=T('Input')
     )
-
-    return super_table('stock_item', ['purchase_qty'], (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store), row_function=stock_row, options_enabled=False, custom_headers=['concept', 'quantity', 'created on', 'created by'], paginate=False, orderby=~db.stock_item.created_on, search_enabled=False)
 
 
 from item_utils import get_wavg_days_in_shelf
@@ -351,14 +327,8 @@ def item_analysis():
         & (db.bag_item.id_item == item.id)
         & (db.stock_item_removal.id_bag_item == db.bag_item.id)
         & (db.bag.id_store == session.store)
-        & (
-            (db.sale.id_bag == db.bag.id)
-            | (db.product_loss.id_bag == db.bag.id)
-            | (db.stock_transfer.id_bag == db.bag.id)
-        )
         , select_fields=
-            (db.sale.ALL, db.product_loss.ALL, db.stock_item_removal.ALL,
-            db.stock_transfer.ALL)
+            [db.bag.ALL, db.stock_item_removal.ALL, db.sale.ALL, db.product_loss.ALL, db.product_loss.ALL]
         , select_args=dict(left=[
             db.sale.on(db.bag.id == db.sale.id_bag),
             db.product_loss.on(db.bag.id == db.product_loss.id_bag),
@@ -474,13 +444,13 @@ def index():
     expenses = day_data['expenses']
     today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    store_group = db(db.auth_group.role == 'Store %s' % session.store).select().first()
-    checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
+    store_group = db(db.auth_group.role == 'Store %s' % session.store).select(cache=(cache.ram,3600), cacheable=True).first()
+    checkout_group = db(db.auth_group.role == 'Sales checkout').select(cache=(cache.ram,3600), cacheable=True).first()
     # query the employees with current store membership
     store_employees_ids = [r.id for r in db(
           (db.auth_user.id == db.auth_membership.user_id)
         & (db.auth_membership.group_id == store_group.id)
-    ).select(db.auth_user.id, cache=(cache.ram,3600), cacheable=True)]
+    ).select(db.auth_user.id, cache=(cache.ram,600), cacheable=True)]
     # employees with store membership and checkout membership
     employees_query = (
         (db.auth_user.id == db.auth_membership.user_id)
@@ -488,9 +458,15 @@ def index():
         & (db.auth_membership.group_id == checkout_group.id)
         & (db.auth_user.registration_key == '')
     )
-    employees_data = SUPERT(employees_query, db.auth_user.ALL,
-        fields=[dict(fields=['first_name', 'last_name'],
-        label_as=T('Name')), 'email'],
+    employees_data = SUPERT(
+        employees_query,
+        select_fields=[db.auth_user.ALL],
+        fields=[
+            dict(
+                fields=['first_name', 'last_name'],
+                label_as=T('Name')
+            ), 'email'
+        ],
         options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id), title=T('cash out'))
         , global_options=[]
     )
