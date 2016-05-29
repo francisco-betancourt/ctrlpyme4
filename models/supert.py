@@ -142,13 +142,15 @@ def parse_field(field, base_table_name, joined=False, search_term=None):
 
 
 
-def sort_header(field):
+def sort_header(field, t_index=0):
     request = current.request
 
+    orderby_key = 'orderby_%s' % t_index
+    order_key = 'order_%s' % t_index
     new_vars = Storage(request.vars)
     content = field.header
-    orderby = request.vars.orderby
-    ascendant = request.vars.order == 'asc'
+    orderby = request.vars[orderby_key]
+    ascendant = request.vars[order_key] == 'asc'
     icon = ''
     classes = ''
     if orderby == field.orderby:
@@ -159,8 +161,8 @@ def sort_header(field):
         ascendant = not ascendant
     else:
         ascendant = True
-    new_vars.order = 'asc' if ascendant else 'dsc'
-    new_vars.orderby = field.orderby
+    new_vars[order_key] = 'asc' if ascendant else 'dsc'
+    new_vars[orderby_key] = field.orderby
     url = URL(request.controller, request.function, args=request.args, vars=new_vars)
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
@@ -189,10 +191,12 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
 
     # this query is used to get table or tables name(s), since this value is not specified, and only a query is given
     rows = None
-    try:
-        rows = db(query).select(select_fields, limitby=(0,1))
-    except:
-        rows = db(query).select(limitby=(0,1))
+    copy_select_args = select_args.copy() if select_args else dict()
+    copy_select_args['limitby'] = (0,1)
+    if select_fields:
+        rows = db(query).select(*select_fields, **copy_select_args)
+    else:
+        rows = db(query).select(**copy_select_args)
     if not rows:
         return None, None
 
@@ -203,8 +207,8 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     if not joined:
         # if not joined we infer the table name using the result
         base_table_name = rows.colnames[0].split('.')[0]
-        if not select_fields:
-            select_fields = [db[base_table_name].ALL]
+        #if not select_fields:
+        #    select_fields = [db[base_table_name].ALL]
 
     # default order, newest first
     if not select_args.has_key('orderby'):
@@ -239,9 +243,9 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     if search_query:
         query = query & search_query
 
-    try:
-        rows = db(query).select(select_fields, **select_args)
-    except:
+    if select_fields:
+        rows = db(query).select(*select_fields, **select_args)
+    else:
         rows = db(query).select(**select_args)
 
     for row in rows:
@@ -293,7 +297,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     if datas and fields:
         for index, field in enumerate(fields):
             container = DIV(_class="st-col")
-            head = sort_header(field)
+            head = sort_header(field, t_index)
             container.append(DIV(head, _class="st-row-data st-last top"))
             for data in datas:
                 current_data = data._values[index]
@@ -381,7 +385,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     # normalize fields
     search_term = request.vars['term_%s' % t_index]
     # ordering
-    try:
+    if request.vars['orderby_%s' % t_index]:
         orderby = None
         for f_string in request.vars['orderby_%s' % t_index].split('+'):
             tname, f_name = f_string.split('.')
@@ -391,8 +395,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
             else:
                 orderby |= orderparam
         select_args['orderby'] = orderby
-    except:
-        pass
     # limits
     distinct = db[base_table_name].id if base_table_name else None
     page = request.vars['page_%s' % t_index]
