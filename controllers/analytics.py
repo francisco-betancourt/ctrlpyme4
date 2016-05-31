@@ -132,22 +132,28 @@ def cash_out():
         payment_opt.c_color = random_color_mix(PRIMARY_COLOR)
         payment_opts_ref[str(payment_opt.id)] = payment_opt
 
-    sales = db((db.sale.id == db.sale_log.id_sale)
-                & ((db.sale_log.sale_event == 'paid')
-                | (db.sale_log.sale_event == 'defered'))
-                & (db.sale.id_store == session.store)
-                & (db.sale.created_by == seller.id)
-                & time_interval_query('sale', start_date, end_date)
-                ).select(db.sale.ALL, orderby=db.sale.id)
-    payments_query = (db.payment.id < 0)
+    sales = db(
+        (db.sale.id == db.sale_log.id_sale)
+        & ((db.sale_log.sale_event == SALE_PAID)
+        | (db.sale_log.sale_event == SALE_DEFERED))
+        & (db.sale.id_store == session.store)
+        & (db.sale.created_by == seller.id)
+        & time_interval_query('sale', start_date, end_date)
+    ).select(db.sale.ALL, orderby=db.sale.id)
 
     total = 0
     total_cash = 0
-    # set payments query and total sold quantity
-    for sale in sales:
-        payments_query |= db.payment.id_sale == sale.id
     payment_index = 0
-    payments = db(payments_query).select(orderby=db.payment.id_sale)
+    payments = db(
+        (db.sale_log.id_sale == db.sale.id)
+        & (db.payment.id_sale == db.sale.id)
+        & (
+            (db.sale_log.sale_event == SALE_PAID)
+            | (db.sale_log.sale_event == SALE_DEFERED)
+        )
+        & time_interval_query('sale', start_date, end_date)
+    ).select(db.payment.ALL, orderby=db.payment.id_sale)
+    # payments = db(payments_query).select(orderby=db.payment.id_sale)
     for sale in sales:
         sale.total_change = 0
         sale.payments = {}

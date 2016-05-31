@@ -473,9 +473,12 @@ db.item.sku.requires=[IS_BARCODE_AVAILABLE(db, request.vars.sku), BC_MATCH]
 db.item.ean.requires=[IS_BARCODE_AVAILABLE(db, request.vars.ean), IS_EMPTY_OR(BC_MATCH)]
 db.item.upc.requires=[IS_BARCODE_AVAILABLE(db, request.vars.upc), IS_EMPTY_OR(BC_MATCH)]
 
-db.item.base_price.requires = IS_DECIMAL_IN_RANGE(0, 10000000, dot=".")
-db.item.price2.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
-db.item.price3.requires = IS_EMPTY_OR(IS_DECIMAL_IN_RANGE(0, 10000000, dot="."))
+PRICE_RANGE_VALIDATOR = IS_DECIMAL_IN_RANGE(
+    .00001, 10000000, dot=".", error_message=T('Price needs to be more than 0')
+)
+db.item.base_price.requires = PRICE_RANGE_VALIDATOR
+db.item.price2.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
+db.item.price3.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
 
 
 
