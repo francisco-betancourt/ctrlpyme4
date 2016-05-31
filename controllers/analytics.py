@@ -300,12 +300,16 @@ def item_analysis():
     """
 
     item = db.item(request.args(0))
+    if not item:
+        session.info = T('Item not found')
+        redirect(URL('default', 'index'))
     main_image = db(db.item_image.id_item == item.id).select().first()
 
-    existence = item_stock(item, id_store=session.store)['quantity']
-
-    stocks = stocks_table(item)
-
+    existence = 0
+    stocks = None
+    if item.has_inventory:
+        existence = item_stock(item, id_store=session.store)['quantity']
+        stocks = stocks_table(item)
 
     def out_custom_format(row, fields):
         link = ''
@@ -315,45 +319,111 @@ def item_analysis():
             link = A('%s %s' % (T('Product loss'), row.product_loss.id), _href=URL('product_loss', 'get', args=row.product_loss.id))
         elif row.stock_transfer.id:
             link = A('%s %s' % (T('Stock transfer'), row.stock_transfer.id), _href=URL('stock_transfer', 'ticket', args=row.stock_transfer.id))
-        elif row.inventory.id:
-            link = A('%s %s' % (T('Inventory'), row.inventory.id), _href=URL('inventory', 'ticket', args=row.inventory.id))
+        # elif row.inventory.id:
+        #     link = A('%s %s' % (T('Inventory'), row.inventory.id), _href=URL('inventory', 'ticket', args=row.inventory.id))
         return link
 
 
     # since services do not have stocks the following table is only applied to items with inventory
     # every stock removal is stored in a stock_item_removal_record
-    outputs_t = SUPERT(
-        (db.bag_item.id_bag == db.bag.id)
-        & (db.bag_item.id_item == item.id)
-        & (db.stock_item_removal.id_bag_item == db.bag_item.id)
-        & (db.bag.id_store == session.store)
-        , select_fields=
-            [db.bag.ALL, db.stock_item_removal.ALL, db.sale.ALL, db.product_loss.ALL, db.product_loss.ALL]
-        , select_args=dict(left=[
-            db.sale.on(db.bag.id == db.sale.id_bag),
-            db.product_loss.on(db.bag.id == db.product_loss.id_bag),
-            db.stock_transfer.on(db.bag.id == db.stock_transfer.id_bag),
-        ]),
-        fields=[
+    outputs_t = None
+    if item.has_inventory:
+        outputs_t = SUPERT(
+            (db.bag_item.id_bag == db.bag.id)
+            & (db.bag_item.id_item == item.id)
+            & (db.stock_item_removal.id_bag_item == db.bag_item.id)
+            & (db.bag.id_store == session.store)
+            , select_fields=[
+                db.bag.ALL, db.stock_item_removal.ALL, db.sale.ALL,
+                db.product_loss.ALL, db.product_loss.ALL, db.stock_transfer.ALL
+            ]
+            , select_args=dict(left=[
+                db.sale.on(db.bag.id == db.sale.id_bag),
+                db.product_loss.on(db.bag.id == db.product_loss.id_bag),
+                db.stock_transfer.on(db.bag.id == db.stock_transfer.id_bag)
+            ]),
+            fields=[
+                dict(
+                    fields=[''],
+                    label_as=T('Concept'),
+                    custom_format=out_custom_format
+                ),
+                dict(
+                    fields=['stock_item_removal.qty'],
+                    label_as=T('Quantity'),
+                    custom_format=lambda r, f : DQ(r[f[0]], True, True)
+                ),
+                'bag.created_on',
+                dict(
+                    fields=['bag.created_by'],
+                    label_as=T('Created by'),
+                    custom_format=lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
+                )
+            ],
+            base_table_name='stock_item_removal',
+            title=T('Output'), searchable=False, options_enabled=False,
+            global_options=[]
+        )
+    else:
+        outputs_t = SUPERT(
+            (db.bag_item.id_bag == db.bag.id)
+            & (db.bag_item.id_item == item.id)
+            & (db.bag.id_store == session.store)
+            , select_fields=[
+                db.bag.ALL, db.sale.ALL, db.bag_item.ALL
+            ]
+            , select_args=dict(left=[
+                db.sale.on(db.bag.id == db.sale.id_bag)
+            ]),
+            fields=[
+                dict(
+                    fields=[''],
+                    label_as=T('Concept'),
+                    custom_format=lambda r, f : A(T('Sale') + ' %s' % r.sale.consecutive, _href=URL('sale', 'ticket', args=r.sale.id))
+                ),
+                dict(
+                    fields=['bag_item.quantity'],
+                    label_as=T('Quantity'),
+                    custom_format=lambda r, f : DQ(r[f[0]], True, True)
+                ),
+                'bag.created_on',
+                dict(
+                    fields=['bag.created_by'],
+                    label_as=T('Created by'),
+                    custom_format=lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
+                )
+            ],
+            base_table_name='bag_item',
+            title=T('Output'), searchable=False, options_enabled=False,
+            global_options=[]
+        )
+
+    out_inventories_t = SUPERT(
+        (db.inventory_item.id_inventory == db.inventory.id)
+        & (db.inventory_item.id_item == item.id)
+        & (db.stock_item_removal.id_inventory_item == db.inventory_item.id)
+        & (db.inventory.id_store == session.store)
+        , select_args=dict(distinct=db.inventory.id, orderby=~db.inventory.id)
+        , fields=[
             dict(
                 fields=[''],
-                label_as=T('Concept'),
-                custom_format=out_custom_format
+                label_as=T('Inventory'),
+                custom_format=lambda r, f : A(r.inventory.id, _href=URL('inventory', 'get', args=r.inventory.id))
             ),
             dict(
                 fields=['stock_item_removal.qty'],
                 label_as=T('Quantity'),
                 custom_format=lambda r, f : DQ(r[f[0]], True, True)
             ),
-            'bag.created_on',
+            'inventory.created_on',
             dict(
-                fields=['bag.created_by'],
+                fields=['inventory.created_by'],
                 label_as=T('Created by'),
                 custom_format=lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
             )
         ],
         base_table_name='stock_item_removal',
-        title=T('Output'), searchable=False, options_enabled=False,
+        title=T('Missing items'), searchable=False, options_enabled=False,
         global_options=[]
     )
 

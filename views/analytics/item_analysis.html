@@ -18,6 +18,8 @@
         {{ pass }}
       </span>
     </h4>
+
+    {{ if item.has_inventory: }}
     <h4>{{=T('Average days in shelf')}} <span class="right">
       {{if not wavg_days_in_shelf: }}
         ???
@@ -26,6 +28,8 @@
       {{pass}}
       </span>
     </h4>
+    {{pass}}
+
   </div>
 </div>
 {{end}}
@@ -38,4 +42,8 @@
 
 <hr>
 {{=outputs_t}}
-</table>
+
+{{ if item.has_inventory: }}
+<hr>
+{{=out_inventories_t}}
+{{ pass }}

@@ -739,10 +739,10 @@ def sale_options(row):
 
 @auth.requires_membership("Sales invoices")
 def index():
-    query = (db.sale_log.id_sale == db.sale.id) & (db.sale.id_store == session.store)
     data = SUPERT(
-        query,
-        select_args=dict(groupby=db.sale.id),
+        (db.sale_log.id_sale == db.sale.id)
+        & (db.sale.id_store == session.store)
+        , select_args=dict(orderby=~db.sale.id, distinct=db.sale.id),
         fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ],
         options_func=sale_options,
         base_table_name='sale', global_options=[])

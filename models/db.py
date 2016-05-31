@@ -685,8 +685,6 @@ db.define_table(
     , Field('id_inventory_item', 'reference inventory_item', default=None)
     , Field('id_stock_item', 'reference stock_item', default=None)
     , Field('id_item', 'reference item', default=None)
-    , Field('id_inventory', 'reference inventory', default=None)
-    , Field('id_bag', 'reference bag', default=None)
     , Field('qty', 'decimal(16,6)', label=T('Quantity'))
 )
 
