@@ -24,7 +24,7 @@ precheck()
 import json
 from uuid import uuid4
 from datetime import date, timedelta
-from item_utils import item_discounts, apply_discount, item_stock, remove_stocks, undo_stock_removal
+from item_utils import item_discounts, apply_discount, item_stock, remove_stocks, undo_stock_removal, reintegrate_stock
 from constants import *
 
 
@@ -718,9 +718,9 @@ def refund():
                         bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item).select()
                         avg_buy_price = DQ(bag_item.total_buy_price) / DQ(returned_items) / DQ(len(bundle_items)) if bag_item.total_buy_price else 0
                         for bundle_item in bundle_items:
-                            reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, id_new_credit_note)
+                            reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
                     else:
-                        reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, id_new_credit_note)
+                        reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
         redirect(URL('credit_note', 'get', args=id_new_credit_note))
     return locals()
 
@@ -739,6 +739,11 @@ def sale_options(row):
 
 @auth.requires_membership("Sales invoices")
 def index():
-    query = (db.sale_log.id_sale == db.sale.id) & (db.sale.id_store == session.store)
-    data = SUPERT(query, fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ], options_func=sale_options, base_table_name='sale', select_args=dict(groupby=db.sale.id|db.sale_log.id, distinct=db.sale.id), global_options=[])
+    data = SUPERT(
+        (db.sale_log.id_sale == db.sale.id)
+        & (db.sale.id_store == session.store)
+        , select_args=dict(orderby=~db.sale.id, distinct=db.sale.id),
+        fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ],
+        options_func=sale_options,
+        base_table_name='sale', global_options=[])
     return locals()

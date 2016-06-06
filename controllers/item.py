@@ -178,7 +178,7 @@ def item_form(item=None, is_bundle=False):
             redirection(URL('index'))
             # redirect(URL('index'))
     elif form.errors:
-        response.flash = 'form has errors'
+        response.flash = T('form has errors')
     return dict(form=form)
 
 
@@ -258,11 +258,11 @@ def fill_bundle():
             item_id, item_qty = pair.split(':')
             db.bundle_item.update_or_insert((db.bundle_item.id_bundle == bundle.id) & (db.bundle_item.id_item == item_id), quantity=item_qty, id_bundle=bundle.id, id_item=item_id)
         redirect(URL('index'))
-        response.flash = 'form accepted'
+        response.flash = T('form accepted')
     elif form.errors:
-        response.flash = 'form has errors'
+        response.flash = T('form has errors')
     else:
-        response.flash = 'please fill the form'
+        response.flash = T('please fill the form')
 
     return locals()
 

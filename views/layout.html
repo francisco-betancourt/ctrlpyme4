@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-{{try:}}
-  {{current.css_style, current.head_js, current.js}}
-{{except:}}
-  {{PRELOAD()}}
-{{pass}}
 <!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js" lang="{{=T.accepted_language or 'es'}}"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
@@ -25,7 +20,14 @@
         <script src="{{=URL('static','js/respond-1.4.2.min.js')}}"></script>
         <![endif]-->
     {{include 'web2py_ajax.html'}}
-    <script type="text/javascript"> {{=current.head_js}} </script>
+    <script type="text/javascript">
+      {{ include '../static/js/modernizr-2.8.3.min.js'}}
+      {{ include '../static/js/jquery.js'}}
+      
+      function add_bag_item() {
+        show_container('bag_container');
+      }
+    </script>
 
 
     <!-- manifest file -->
@@ -69,6 +71,30 @@
         include_bag = True
       pass
     }}
+    <style>
+      {{ if enable_bootstrap: }}
+        {{ include '../static/css/bootstrap.min.css' }}
+        {{ if enable_treeview: }}
+          {{ include '../static/css/bootstrap-treeview.min.css' }}
+        {{ pass }}
+      {{ pass }}
+      {{ include '../static/css/ctrlpyme.css' }}
+      {{ if enable_css_item_card: }}
+        {{ include '../static/css/item_card.css' }}
+      {{ pass }}
+      {{ if enable_navbar: }}
+        {{ include '../static/css/navbar.css' }}
+      {{ pass }}
+      {{ if enable_supert: }}
+        {{ include '../static/css/supert.css' }}
+      {{ pass }}
+      {{ if enable_calendar: }}
+        {{ include '../static/css/calendar.css' }}
+      {{ pass }}
+      {{ if enable_css_ticket: }}
+        {{ include '../static/css/ticket.css' }}
+      {{ pass }}
+    </style>
     {{include "style.html"}}
   </head>
 
@@ -84,30 +110,11 @@
      </div>
     {{session.info = None}}
 
-    <script type="text/javascript">
-      $('#info_close').click(function(event) {
-        $('#info_card').fadeToggle();
-      })
-
-      function info_card(msg, button, context) {
-        $('#info_card')[0].className = "info-card panel panel-default noprint";
-        $('#info_card__text').text(msg);
-        if (! button) {
-          $('#info_card__btn_container').hide();
-        }
-        else {
-          $('#info_card__btn_container').show();
-        }
-        if (context) {
-          $('#info_card').addClass(context);
-        }
-        $('#info_card').fadeIn();
-      }
-    </script>
 
     {{notifications = get_notifications()}}
     <!-- Navbar ======================================= -->
     {{ include "navbar.html" }}
+
 
     {{# barcode scanner template and functions }}
     {{include 'barcode_scanner.html'}}
@@ -133,20 +140,6 @@
           </div>
         </div>
       </div>
-
-      <script type="text/javascript">
-        function set_modal(title, body, footer) {
-          $('#modal_title').text(title);
-          $('#modal_body').text(body);
-          if (footer) {
-            $('#modal_footer').text(footer);
-          }
-        }
-
-        function show_modal() {
-          $('#common_modal').modal();
-        }
-      </script>
 
 
       {{if left_sidebar_enabled:}}
@@ -184,11 +177,6 @@
 
 
       <!-- bag -->
-      <script type="text/javascript">
-        function add_bag_item() {
-          show_container('bag_container');
-        }
-      </script>
       {{if include_bag and request.controller != 'appadmin':}}
         <section id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
           <div class="bag-container">
@@ -235,9 +223,71 @@
 
 
     <!-- The javascript =============================== -->
-    <script type="text/javascript">{{=current.js}}</script>
-    {{block page_js}}{{end page_js}}
     <script type="text/javascript">
+      {{ include '../static/js/calendar.js'}}
+      {{ include '../static/js/web2py.js'}}
+
+
+      var DEFAULT_BARCODE_SCANNER_URL = '{{ =URL("item", "find_by_code", extension="json") }}/'
+
+
+      $('#info_close').click(function(event) {
+        $('#info_card').fadeToggle();
+      })
+
+      function info_card(msg, button, context) {
+        $('#info_card')[0].className = "info-card panel panel-default noprint";
+        $('#info_card__text').text(msg);
+        if (! button) {
+          $('#info_card__btn_container').hide();
+        } else {
+          $('#info_card__btn_container').show();
+        }
+        if (context) {
+          $('#info_card').addClass(context);
+        }
+        $('#info_card').fadeIn();
+      }
+
+
+      function set_modal(title, body, footer) {
+        $('#modal_title').text(title);
+        $('#modal_body').html(body);
+        if (footer) {
+          $('#modal_footer').html(footer);
+        }
+      }
+      function show_modal() {
+        $('#common_modal').modal();
+      }
+
+
+      // inlined_JS
+      {{include '../static/js/barcode_scanner.js'}}
+      {{ if enable_supert: }}
+        {{ include '../static/js/supert.js'}}
+      {{ pass }}
+      {{ if enable_bootstrap: }}
+        {{ include '../static/js/bootstrap.min.js'}}
+        {{ include '../static/js/web2py-bootstrap3.js'}}
+        {{ if enable_treeview: }}
+          {{ include '../static/js/bootstrap-treeview.min.js'}}
+        {{ pass }}
+      {{ pass }}
+      {{ if enable_navbar: }}
+        {{ include '../static/js/navbar.js'}}
+      {{ pass }}
+    </script>
+
+    <script type="text/javascript">
+      $('#search_form').submit(function (event) {
+        event.preventDefault();
+        var search_term = $(event.target).find('#search').val();
+        window.location.href = "{{=URL('search', 'search_item')}}/" + search_term;
+        return false;
+      });
+
+
       function hide_container(container_id, left) {
         switch (container_id) {
           case 'bag_container':
@@ -330,6 +380,12 @@
        $('body').addClass('fade-in');
      })
     </script>
+
+
+
+    {{block page_js}}{{end page_js}}
+
+
 
     <!-- Analytics ==================================== -->
     {{if response.google_analytics_id:}}

@@ -44,8 +44,13 @@ def index():
     page_title = T('Start page')
     categories_string = ', '.join([cat.name for cat in rand_categories])
     page_description = T('Shop online') + ' ' + T('categories') + ': ' + categories_string
-    PRELOAD(enable_calendar=False, enable_supert=False, enable_treeview=False,
-            enable_css_ticket=False)
+
+    # disable some ui components
+    enable_calendar=False
+    enable_supert=False
+    enable_treeview=False
+    enable_css_ticket=False
+
     return locals()
 
 

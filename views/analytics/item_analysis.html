@@ -18,6 +18,8 @@
         {{ pass }}
       </span>
     </h4>
+
+    {{ if item.has_inventory: }}
     <h4>{{=T('Average days in shelf')}} <span class="right">
       {{if not wavg_days_in_shelf: }}
         ???
@@ -26,48 +28,22 @@
       {{pass}}
       </span>
     </h4>
+    {{pass}}
+
   </div>
 </div>
 {{end}}
 
 
 {{ if item.has_inventory: }}
-  <h3>{{=T('Input')}}</h3>
+  <hr>
   {{=stocks}}
 {{ pass }}
 
-<h3>{{=T('Output')}}</h3>
-<table class="table">
-  <thead>
-    <th>{{=T('Sale')}}</th>
-    <th>{{=T('Quantity')}}</th>
-    <th>{{=T('Created on')}}</th>
-    <th>{{=T('Created by')}}</th>
-  </thead>
-  <tbody>
-    {{for sale in sales:}}
-      <tr>
-        <td><a href="{{=URL('sale', 'ticket', args=sale.sale.id)}}">{{=T('Sale')}} {{=sale.sale.consecutive}}</a></td>
-        <td>{{=DQ(sale.bag_item.quantity, normalize=True)}}</td>
-        <td>{{=sale.sale.created_on.strftime('%d %b %Y, %H:%M')}}</td>
-        <td>{{=sale.sale.created_by.first_name + ' ' + sale.sale.created_by.last_name}}</td>
-      </tr>
-    {{pass}}
-    {{for transfer in stock_transfers:}}
-      <tr>
-        <td><a href="{{=URL('stock_transfer', 'ticket', args=transfer.stock_transfer.id)}}">{{=T('Stock transfer')}} {{=transfer.stock_transfer.id}}</a></td>
-        <td>{{=DQ(transfer.bag_item.quantity, normalize=True)}}</td>
-        <td>{{=transfer.stock_transfer.created_on.strftime('%d %b %Y, %H:%M')}}</td>
-        <td>{{=transfer.stock_transfer.created_by.first_name + ' ' + transfer.stock_transfer.created_by.last_name}}</td>
-      </tr>
-    {{pass}}
-    {{for row in product_losses:}}
-      <tr>
-        <td><a href="{{=URL('product_loss', 'get', args=row.product_loss.id)}}">{{=T('Product loss')}} {{=row.product_loss.id}}</a></td>
-        <td>{{=DQ(row.bag_item.quantity, normalize=True)}}</td>
-        <td>{{=row.product_loss.created_on.strftime('%d %b %Y, %H:%M')}}</td>
-        <td>{{=row.product_loss.created_by.first_name + ' ' + row.product_loss.created_by.last_name}}</td>
-      </tr>
-    {{pass}}
-  </tbody>
-</table>
+<hr>
+{{=outputs_t}}
+
+{{ if item.has_inventory: }}
+<hr>
+{{=out_inventories_t}}
+{{ pass }}

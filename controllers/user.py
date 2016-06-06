@@ -156,7 +156,6 @@ def remove_employee_membership():
     db((db.auth_membership.group_id == group.id)
      & (db.auth_membership.user_id == employee.id)
     ).delete()
-    # db.auth_membership.insert(user_id=employee.id, group_id=group.id)
 
     return locals()
 
@@ -273,7 +272,7 @@ def clients():
         ban_btn = OPTION_BTN(icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))))
         return edit_btn, ban_btn
     query = (db.auth_user.is_client == True)
-    data = SUPERT(query, (db.auth_user.ALL), fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False)
+    data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False)
     return locals()
 
 
@@ -293,7 +292,7 @@ def index():
     query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id)
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
-    data = SUPERT(query, (db.auth_user.ALL), fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
+    data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
     return locals()
 
 

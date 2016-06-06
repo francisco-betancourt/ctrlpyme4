@@ -27,33 +27,37 @@
   var search_form = document.getElementById('supert_search_form');
   if (search_form) {
     search_form.addEventListener('submit', function (event) {
+      var term_str = "term_" + $(this).attr('data-index');
+      var index = $(this).attr('data-index');
       event.preventDefault();
       var s_term = document.getElementById('supert_search').value;
       var splited_url = window.location.href.split('?');
       var base_url = splited_url[0];
       var url_vars = splited_url[1];
       var new_vars = '';
-      var re = /term=.*(?=&)|term=.*$/;
+      var re = new RegExp(term_str + '=.*(?=&)|' + term_str + '=.*$');
+      console.log(re);
       if (url_vars) {
         url_vars = url_vars.replace('#', '');
         var vars = url_vars.split('&');
         var term_found = false;
         for (var i = 0; i < vars.length; i++) {
           if (!vars[i]) continue;
-          new_vars += vars[i].replace(re, 'term=' + s_term);
+          new_vars += vars[i].replace(re, term_str + '=' + s_term);
 
           if (i < vars.length - 1) { new_vars += '&'; }
           term_found = vars[i].search(re) >= 0;
           if (term_found) { break }
         }
-        if (!term_found) { new_vars += '&term=' + s_term; }
+        if (!term_found) { new_vars += '&' + term_str + '=' + s_term; }
         url_vars = new_vars;
       } else {
-        url_vars = 'term=' + s_term;
+        url_vars = term_str + '=' + s_term;
       }
       if (base_url.slice(-1) == '#')
         base_url = base_url.slice(0, -1);
-      url_vars = url_vars.replace(/&page=.*(?=&)|&page=.*$/, '');
+      page_re = RegExp('&page_' + index + '=.*(?=&)|&page_'+index+'=.*$')
+      url_vars = url_vars.replace(page_re, '');
       window.location.href = base_url + '?' + url_vars;
     });
   }

@@ -64,4 +64,4 @@ def common_index(table_name, fields=[], supert_vars={}):
 
     show_hidden = request.vars.show_hidden == 'yes'
     query = db[table_name].is_active == True if not show_hidden else db[table_name].id > 0
-    return SUPERT(query, (db[table_name].ALL), fields=fields, **supert_vars)
+    return SUPERT(query, [db[table_name].ALL], fields=fields, **supert_vars)

@@ -1,6 +1,10 @@
 {{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
 
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'font-awesome/css/font-awesome.min.css')}}">
+{{end}}
+
 
 <style>
   #items_list {
@@ -87,6 +91,7 @@
 
 
 
+{{ block page_js }}
 <script>
   $('#proto_item').hide();
 
@@ -303,6 +308,7 @@
     });
   }
 
+
   function requirement(barcode) {
     var el_item = $('#items_list').find('#item_' + barcode);
     if (el_item.length) {
@@ -324,3 +330,4 @@
   }
 
 </script>
+{{ end }}

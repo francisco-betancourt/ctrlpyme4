@@ -128,8 +128,8 @@ def MENU_ELEMENTS(submenu_prefix = '', menu=current.response.menu):
 
 
 
-def pages_menu_bare(query, page=0, ipp=10, distinct=None):
-    """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page """
+def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
+    """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page, index is used as a postfix in the generated vars """
 
     request = current.request
     db = current.db
@@ -142,14 +142,20 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None):
     page = int(min(page, pages_count))
     page = int(max(0, page))
 
+    page_key = 'page'
+    ipp_key = 'ipp'
+    if index != None and type(index) == int:
+        page_key += '_%s' % index
+        ipp_key += '_%s' % index
+
     next_page_vars = dict(**request.vars)
-    next_page_vars['page'] = page + 1
-    next_page_vars['ipp'] = ipp
+    next_page_vars[page_key] = page + 1
+    next_page_vars[ipp_key] = ipp
     next_url = URL(request.controller, request.function, args=request.args, vars=next_page_vars)
 
     prev_page_vars = dict(**request.vars)
-    prev_page_vars['page'] = page - 1
-    prev_page_vars['ipp'] = ipp
+    prev_page_vars[page_key] = page - 1
+    prev_page_vars[ipp_key] = ipp
     prev_url = URL(request.controller, request.function, args=request.args, vars=prev_page_vars)
     if page == 0:
         prev_url = '#'
@@ -335,8 +341,6 @@ def item_card(item):
     )
 
 
-# def
-
 def item_images(id_item):
     """ Item upload form """
 
@@ -350,8 +354,6 @@ def item_images(id_item):
         print "success"
         # img_container.append()
     return img_container
-
-
 
 
 def filter_menu(filter_data):
@@ -522,7 +524,10 @@ def super_table(table, fields, query, row_function=default_row_function,
 
         tbody.append(tr)
 
-    filter_form = FORM(INPUT(_id='table_filter_term', _class="form-control"), INPUT(_type="submit", _value=T('Search')), _id="table_filter", _class="form-inline")
+    filter_form = FORM(
+        INPUT(_id='table_filter_term', _class="form-control"),
+        INPUT(_type="submit", _value=T('Search')), _id="table_filter", _class="form-inline", **{'_data-index': t_index}
+    )
     form_script = SCRIPT("$('#table_filter').submit(function (event) {window.location.href = '%s?term=' + $('#table_filter_term').val(); event.preventDefault()})" % URL(request.controller, request.function))
     if not search_enabled:
         filter_form = ''

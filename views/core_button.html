@@ -20,18 +20,17 @@
 </div>
 
 <script>
-  $('.extra-option').hide();
-
-  $('#core_action').on('click', function(event) {
-    window.location.href = '{{=core_action}}';
-  });
-
-  $('#expand_core').on('click', function(event) {
-    $('.extra-option').toggle();
-  });
-
-
   $(function () {
+    $('.extra-option').hide();
+
+    $('#core_action').on('click', function(event) {
+      window.location.href = '{{=core_action}}';
+    });
+
+    $('#expand_core').on('click', function(event) {
+      $('.extra-option').toggle();
+    });
+
     $('[data-toggle="tooltip"]').tooltip()
   })
 </script>
