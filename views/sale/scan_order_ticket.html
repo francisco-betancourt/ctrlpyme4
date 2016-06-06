@@ -4,6 +4,7 @@
 <div id="ticket_scanner_container"></div>
 
 
+{{block page_js}}
 <script>
   function order_fail_callback(data, barcode) {
     alert("{{=T('Nothing found')}}");
@@ -16,3 +17,4 @@
   var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
   setup_scanner(scanner, order_success_callback, order_fail_callback, null, "{{=URL('sale_order', 'get_by_code', extension='json')}}/", 'sale_order');
 </script>
+{{ pass }}
