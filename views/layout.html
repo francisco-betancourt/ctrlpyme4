@@ -137,12 +137,11 @@
       <script type="text/javascript">
         function set_modal(title, body, footer) {
           $('#modal_title').text(title);
-          $('#modal_body').text(body);
+          $('#modal_body').html(body);
           if (footer) {
-            $('#modal_footer').text(footer);
+            $('#modal_footer').html(footer);
           }
         }
-
         function show_modal() {
           $('#common_modal').modal();
         }
