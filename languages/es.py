@@ -452,6 +452,7 @@
 'Item hidden': 'Item ocultado',
 'Item labels': 'Etiquetas de items',
 'Item name': 'Nombre del item',
+'Item not found': 'Item not found',
 'Item not found!': 'Item no encontrado!',
 'Item now visible': 'Item ahora visible',
 'Item updated': 'Items actualizado',

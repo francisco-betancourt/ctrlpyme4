@@ -98,7 +98,8 @@ def DQ(value, lite=False, normalize=False):
     """ Decimal Quantized """
 
     if normalize:
-        return D(value or 0).normalize()
+        v = D(value or 0)
+        return v.quantize(D(1)) if v == v.to_integral() else v.normalize()
     if lite:
         return D(value or 0).quantize(D('.00'))
     else:
