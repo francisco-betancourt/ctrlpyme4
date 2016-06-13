@@ -474,3 +474,8 @@ body {
 .fade-in {
   opacity: 1;
 }
+
+
+#items_list {
+  margin-bottom: 15px;
+}

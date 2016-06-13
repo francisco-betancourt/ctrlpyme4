@@ -1,5 +1,4 @@
 // dont forget to set item_id.
-
 $('#categories_tree').treeview({
   data: categories_tree_data,
   checkedIcon: 'fa fa-check-square-o',
@@ -55,17 +54,17 @@ function update_categories_and_traits() {
   });
 }
 
-
 update_categories_and_traits();
-$('#traits_selected').prop('value', initial_selected_traits);
+try {
+  $('#traits_selected').prop('value', initial_selected_traits);
+} catch (ex) {
+  console.log('initial_traits_selected not defined');
+}
+
+
 
 // set initial traits
-
-
-
-
 $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
-
   // select parent categories
   var currentNode = node;
   while (currentNode.parentId >= 0) {
@@ -88,7 +87,7 @@ $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
       selected_categories += ',';
     }
   }
-  $('#categories_selected').prop('value', selected_categories);
+  $('#categories_selected').attr('value', selected_categories);
   update_categories_and_traits();
 });
 

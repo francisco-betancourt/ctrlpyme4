@@ -6,13 +6,6 @@
 {{end}}
 
 
-<style>
-  #items_list {
-    margin-bottom: 15px;
-  }
-</style>
-
-
 {{block left_sidebar}}
 <h1>{{=T('Purchase')}} {{=purchase.id}}</h1>
   {{=form}}
@@ -20,9 +13,7 @@
 
 
 <h1>{{=T('Add')}} Items</h1>
-{{=stock_items_script}}
 <div id="purchase_scanner_container"></div>
-{{new_item_js_url = URL('static', 'js/create_item.js')}}
 
 <div>
   <div>
@@ -90,9 +81,11 @@
 
 
 
-
+{{new_item_js_url = URL('static', 'js/create_item.js')}}
 {{ block page_js }}
+{{=stock_items_script}}
 <script>
+  var initial_selected_traits = ""; // selected traits for new items
   $('#proto_item').hide();
 
 
@@ -209,7 +202,7 @@
 
     el_item.find('.show-serials').click(function(event) {
       el_item.find('.serial_numbers_fg').toggle();
-    })
+    });
   }
 
 
