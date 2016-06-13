@@ -34,13 +34,13 @@
 
 
 
+
+{{block page_js}}
+
 {{=inventory_items_script}}
-
-
 <script>
   function new_inventory_item_element(inventory_item, item) {
     var el_new_inventory_item = $('#proto_inventory_item').clone().show();
-    console.log(el_new_inventory_item);
 
     el_new_inventory_item.attr('id', 'inventory_item_' + inventory_item.id);
     el_new_inventory_item.find('.item_name').text(item.name);
@@ -48,7 +48,6 @@
     var physical_qty_input = el_new_inventory_item.find('.physical_qty').val(inventory_item.physical_qty);
     physical_qty_input.change(function (event) {
       var new_qty = event.target.value;
-      console.log(new_qty);
 
       $.ajax({
         url: "{{=URL('modify_item', extension='json')}}/" + inventory_item.id + '?physical_qty=' + new_qty
@@ -71,12 +70,8 @@
     var item = inventory_item.id_item;
     new_inventory_item_element(inventory_item, item)
   }
-</script>
 
 
-
-<!-- Scanner setup -->
-<script type="text/javascript">
   function success_callback(data, barcode) {
     $.ajax({
       url: "{{=URL('add_item', args=inventory.id, extension='json')}}/" + data.id
@@ -91,9 +86,7 @@
         $(el_inventory_item).find('.physical_qty').val(res.inventory_item.physical_qty)
       }
     })
-    .fail(function (res) {
-
-    })
+    .fail(function (res) { });
   }
   function fail_callback(data, barcode) {
     alert("{{=T('Barcode not found')}}");
@@ -102,3 +95,5 @@
   var scanner = create_scanner('inventory', $('#inventory_scanner_container'));
   setup_scanner(scanner, success_callback, fail_callback, null, null);
 </script>
+
+{{end}}
