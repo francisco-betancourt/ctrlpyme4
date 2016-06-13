@@ -397,6 +397,17 @@ def commit():
     if abs(purchase.total - purchase.items_total) > D(1):
         session.info = T('Purchase total does not match the items total')
         redirect(URL('fill', args=purchase.id))
+    # check if the purchase has all the necessary information
+    missing_fields = []
+    if not purchase.id_payment_opt:
+        missing_fields.append(str(T("Payment option")))
+    if not purchase.id_supplier:
+        missing_fields.append(str(T("Supplier")))
+    if not purchase.id_store:
+        missing_fields.append(str(T("Store")))
+    if missing_fields:
+        session.info = T('Please fill the following fields') + ': ' + ', '.join(missing_fields)
+        redirect(URL('fill', args=purchase.id))
 
     # generate stocks for every purchase item
     stock_items = db(db.stock_item.id_purchase == purchase.id).select()
