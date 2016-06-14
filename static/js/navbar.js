@@ -78,3 +78,10 @@ $('#search_menu_btn').click(function (event) {
   $('#search_form').css('width', '100%');
   $('#search').focus();
 });
+
+
+function show_help() {
+  try {
+    var help_window = window.open(HELP_WINDOW_URL, 1,  "width=500, height=600, resizable, scrollbars=yes, status=1");
+  } catch (ex) {}
+}

@@ -1,0 +1,46 @@
+body {
+  margin: 0px;
+}
+nav {
+  position: fixed;
+  top: 0px;
+  height: 64px;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-weight: bold;
+}
+nav .brand {
+  text-transform: uppercase;
+}
+#content, #title {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+#title {
+  overflow: auto;
+}
+
+
+.help-list {
+  background-color: white;
+  border-radius: 2px;
+}
+.help-list .help-topic {
+  border-top: 1px solid rgba(0,0,0,.1);
+}
+.help-list .help-topic:first-child {
+  border-top: none;
+}
+.help-topic {
+  padding: 24px 16px 24px 16px;
+}
+.help-topic-title {
+  font-weight: bold;
+}
+.help-topic-description {
+  padding-top: 4px;
+  opacity: .7;
+}

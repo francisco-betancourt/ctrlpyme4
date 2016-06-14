@@ -23,7 +23,9 @@
     <script type="text/javascript">
       {{ include '../static/js/modernizr-2.8.3.min.js'}}
       {{ include '../static/js/jquery.js'}}
-      
+
+      var HELP_WINDOW_URL = "{{=URL('the_help', 'index', vars=dict(controller=request.controller, function=request.function))}}";
+
       function add_bag_item() {
         show_container('bag_container');
       }
