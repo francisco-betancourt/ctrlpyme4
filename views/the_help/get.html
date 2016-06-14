@@ -1,0 +1,20 @@
+{{extend 'help_layout.html'}}
+
+{{block title}}
+  {{=ICON('arrow_back', _class="back-icon", _id="back_icon")}}
+  {{=topic.title}}
+{{end}}
+
+<p></p>
+<section class="help-sheet shadow-1">
+  {{=MARKMIN(topic.contents)}}
+</section>
+
+
+{{block page_js}}
+<script>
+  document.getElementById('back_icon').addEventListener('click', function (e) {
+    window.location.href = "{{=request.env.HTTP_REFERER}}";
+  });
+</script>
+{{end}}

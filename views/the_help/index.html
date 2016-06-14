@@ -27,7 +27,7 @@
   <h3>{{=T('General help')}}</h3>
   <div class="help-list shadow-1">
     {{ for topic in general_help: }}
-      <div class="help-topic">
+      <div class="help-topic" onclick="view_topic({{=topic.id}})">
         <div class="help-topic-title">{{=topic.title}}</div>
         <div class="help-topic-description">{{=topic.description}}</div>
       </div>
@@ -35,3 +35,12 @@
   </div>
 
 {{ pass }}
+
+
+{{block page_js}}
+<script>
+  function view_topic(id) {
+    window.location.href = "{{=URL('the_help', 'get')}}/" + id;
+  }
+</script>
+{{end}}

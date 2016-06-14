@@ -22,9 +22,16 @@ nav .brand {
 #title {
   overflow: auto;
 }
+#title>h3 {
+  display: flex;
+  align-items: center;
+}
+#title .back-icon {
+  padding-right: 16px;
+}
 
 
-.help-list {
+.help-list, .help-sheet {
   background-color: white;
   border-radius: 2px;
 }
@@ -36,6 +43,9 @@ nav .brand {
 }
 .help-topic {
   padding: 24px 16px 24px 16px;
+}
+.help-sheet {
+  padding: 1px 16px 1px 16px;
 }
 .help-topic-title {
   font-weight: bold;
