@@ -25,6 +25,10 @@ def search():
 
 def get():
     """ args: [help_id] """
+    topic = db.the_help(request.args(0))
+    if not topic:
+        raise HTTP(404)
+
     return locals()
 
 
