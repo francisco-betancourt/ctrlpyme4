@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="{{=T.accepted_language or 'es'}}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title> {{=T('CtrlPyME: The help')}}</title>
+    <meta name="description" content="{{=T('CtrlPyME Official help')}}">
+    <meta name="application-name" content="{{=T('CtrlPyME Help')}}">
+    <meta name="keywords" content="ctrlpyme, {{=T('Online help')}}, {{=T('help')}}, {{=T('The help')}}">
+    <meta name="google-site-verification" content="">
+
+
+    <!-- web fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+    <link rel="shortcut icon" href="{{=URL('static','images/help_favicon.ico')}}" type="image/x-icon">
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="{{=URL('static', 'images/launcher-help-icon-4x.png')}}">
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
+    <meta name="apple-mobile-web-app-title" content="{{=COMPANY_NAME}}">
+    <link rel="apple-touch-icon" href="{{=URL('static', 'images/apple-launcher-help-icon-4x.png')}}">
+
+
+    <style>
+      {{ include '../static/css/ctrlpyme.css' }}
+      {{ include '../static/css/help.css'}}
+    </style>
+    {{ include "style.html"}}
+
+  </head>
+
+  <body onload="document.body.classList.add('fade-in');">
+    <nav class="the-nav">
+      <section class="nav-left">
+        <a href="{{=URL('the_help', 'index')}}" class="menu-element brand">
+          {{=T('The help')}}
+        </a>
+      </section>
+    </nav>
+
+    <section id="title" class="accent-color-bright">
+      <h3 class="accent-color-text"> {{block title}} {{end block_title}} </h3>
+    </section>
+
+    <section id="content">
+      {{include}}
+    </section>
+
+  </body>
+
+  {{block page_js}} {{end page_js}}
+</html>

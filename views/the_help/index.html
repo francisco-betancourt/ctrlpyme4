@@ -1,0 +1,37 @@
+{{extend 'help_layout.html'}}
+
+{{block title}}
+  {{=T('Help for your current page')}}
+{{end}}
+
+
+{{ if not url_help and not general_help: }}
+  <p> {{=T('There is no help :( , sorry. ')}}</p>
+{{ else: }}
+
+  {{ if url_help: }}
+    <h3>{{=T('Page help')}}</h3>
+
+    <div class="help-list shadow-1">
+      {{ for topic in url_help: }}
+        <div class="help-topic">
+          <div class="help-topic-title">{{=topic.title}}</div>
+          <div class="help-topic-description">{{=topic.description}}</div>
+        </div>
+      {{ pass }}
+    </div>
+  {{else:}}
+    <p> {{=T('There is no help for the current page.')}} </p>
+  {{pass}}
+
+  <h3>{{=T('General help')}}</h3>
+  <div class="help-list shadow-1">
+    {{ for topic in general_help: }}
+      <div class="help-topic">
+        <div class="help-topic-title">{{=topic.title}}</div>
+        <div class="help-topic-description">{{=topic.description}}</div>
+      </div>
+    {{ pass }}
+  </div>
+
+{{ pass }}
