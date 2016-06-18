@@ -23,7 +23,7 @@ import math
 from gluon import *
 from gluon.html import *
 from gluon.storage import Storage
-from item_utils import item_stock, item_taxes, fix_item_price, fix_item_quantity
+from item_utils import item_stock, item_taxes, fix_item_price, fix_item_quantity, item_barcode
 from common_utils import INFO, DQ
 
 
@@ -241,8 +241,6 @@ def item_card(item):
     available = "Not available"
     available_class = "label label-danger"
 
-    # stock, available = stock_info(item)
-
     stock_qty = 0
     if not session.store:
         stock_data = item_stock(item)
@@ -330,7 +328,10 @@ def item_card(item):
     return DIV(
         A('', _class="panel-heading", _style=bg_style, _href=item_url),
         DIV(
-            DIV(H4(A(item_name, _href=item_url)), brand_link,
+            DIV(
+                H4(A(item_name, _href=item_url)),
+                brand_link,
+                P('# ', SPAN(item_barcode(item)), _class="item-barcode"),
                 _class="item_data"
             ),
             item_options,
