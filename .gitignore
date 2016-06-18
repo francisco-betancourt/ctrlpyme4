@@ -62,9 +62,11 @@ databases/
 private/
 sessions/
 errors/
+cron/
 
 uploads/
 .imdone/
 
+.pythonhistory
 
 cfdi.py
