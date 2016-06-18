@@ -14,7 +14,7 @@
 ## once in production, remove reload=True to gain full speed
 # CONF = AppConfig(reload=True)
 
-from gluon.custom_import import track_changes; track_changes(True)
+# from gluon.custom_import import track_changes; track_changes(True)
 from constants import CONF, BAG_ACTIVE
 
 import os
