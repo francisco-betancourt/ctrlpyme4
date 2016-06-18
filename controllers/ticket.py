@@ -74,6 +74,9 @@ def ticket_item_list(items, concept=''):
             item_name = bag_item.product_name
             item_price = bag_item.sale_price
             # get item taxes
+
+            item_name = '#%s %s' % (item_barcode(bag_item.id_item), item_name)
+
             try:
                 if bag_item.item_taxes:
                     taxes_str = bag_item.item_taxes.split(',')

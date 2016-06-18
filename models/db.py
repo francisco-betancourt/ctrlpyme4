@@ -25,9 +25,14 @@ if not request.env.web2py_runtime_gae:
     migrate = CONF.take('db.migrate', cast=int) == 1
     lazy_tables = CONF.take('db.lazy_tables', cast=int) == 1
     db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'], migrate=migrate, migrate_enabled=migrate, lazy_tables=lazy_tables)
+
+    help_migrate = CONF.take('help_db.migrate', cast=int) == 1
+    help_lazy_tables = CONF.take('help_db.lazy_tables', cast=int) == 1
+    help_db = DAL(CONF.take('help_db.uri'), pool_size=CONF.take('help_db.pool_size', cast=int), check_reserved=['all'], migrate=help_migrate, migrate_enabled=help_migrate, lazy_tables=help_lazy_tables)
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
+    help_db = DAL('google:datastore+ndb')
     ## store sessions and tickets there
     session.connect(request, response, db=db)
     ## or store session in Memcache, Redis, etc.

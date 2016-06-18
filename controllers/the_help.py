@@ -25,7 +25,7 @@ def search():
 
 def get():
     """ args: [help_id] """
-    topic = db.the_help(request.args(0))
+    topic = help_db.the_help(request.args(0))
     if not topic:
         raise HTTP(404)
 
@@ -41,16 +41,14 @@ def index():
 
     url_help = None
     if controller and function:
-        url_help = db(
-            (db.the_help.url_controller == controller)
-            & (db.the_help.url_function == function)
+        url_help = help_db(
+            (help_db.the_help.url_controller == controller)
+            & (help_db.the_help.url_function == function)
         ).select()
 
-    general_help = db(
-        (db.the_help.url_controller == '')
-        & (db.the_help.url_function == '')
+    general_help = help_db(
+        (help_db.the_help.url_controller == '')
+        & (help_db.the_help.url_function == '')
     ).select()
-
-    print general_help
 
     return locals()
