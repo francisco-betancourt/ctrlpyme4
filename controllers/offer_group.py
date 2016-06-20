@@ -145,7 +145,8 @@ def dates_custom_format(row, subfields):
 @auth.requires_membership('Offers')
 def index():
     def offer_options(row):
-        return supert_default_options(row) + (OPTION_BTN('local_offer', URL('fill', args=row.id)), )
+        return supert_default_options(row) + (OPTION_BTN('local_offer', URL('fill', args=row.id), title=T("modify discounts")), )
+
     title = T('offer groups')
     offers_query = (db.offer_group.is_active == True)
     if not auth.has_membership('Admin'):

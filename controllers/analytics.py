@@ -325,8 +325,6 @@ def item_analysis():
             link = A('%s %s' % (T('Product loss'), row.product_loss.id), _href=URL('product_loss', 'get', args=row.product_loss.id))
         elif row.stock_transfer.id:
             link = A('%s %s' % (T('Stock transfer'), row.stock_transfer.id), _href=URL('stock_transfer', 'ticket', args=row.stock_transfer.id))
-        # elif row.inventory.id:
-        #     link = A('%s %s' % (T('Inventory'), row.inventory.id), _href=URL('inventory', 'ticket', args=row.inventory.id))
         return link
 
 

@@ -1,22 +1,29 @@
 {{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
 
-
-<style>
-  .highlight {
-    width: 100%;
-    margin: 0px;
-  }
-</style>
-
 {{block left_sidebar}}
 <hr>
-<div class="highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer_group.bg_image)}})">
+<div class="offer-group-highlight-header highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer_group.bg_image)}})">
   <div class="data">
     <h2>{{=offer_group.name}}</h2>
     <p>{{=offer_group.starts_on.strftime('%a %d %B %Y')}} -  {{=offer_group.ends_on.strftime('%a %d %B %Y')}}</p>
   </div>
 </div>
+
+{{if auth.has_membership('Offers'):}}
+<hr>
+<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  <div class="btn-group">
+    <a class="btn btn-default" href="{{=URL('update', args=offer_group.id)}}">
+    {{=ICON('edit')}}</a>
+  </div>
+  <div class="btn-group">
+    <a class="btn btn-default" href="{{=URL('fill', args=offer_group.id)}}">
+    {{=ICON('label')}}</a>
+  </div>
+</div>
+{{pass}}
+
 <hr>
 {{=discounts_list(discounts)}}
 {{end}}

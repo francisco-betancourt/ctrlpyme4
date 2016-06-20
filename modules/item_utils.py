@@ -214,7 +214,7 @@ def active_item(item_id):
     return db((db.item.id == item_id) & (db.item.is_active == True)).select().first()
 
 
-def undo_stock_removal(bag=None, inventory=None):
+def undo_stock_removal(bag=None, inventory=None, remove=True):
     """ Reintegrates the removed stocks given a bag or inventory """
 
     db = current.db
@@ -234,7 +234,9 @@ def undo_stock_removal(bag=None, inventory=None):
             & (db.inventory_item.id_inventory == db.inventory.id)
             & (db.inventory.id == inventory.id)
         ).select(db.stock_item_removal.ALL)
-        delete_query = db.inventory.id == inventory.id
+        delete_query = db.stock_item.id_inventory == inventory.id
+        if remove:
+            delete_query = db.inventory.id == inventory.id
     else:
         return
     for stock_removal in stock_removals:

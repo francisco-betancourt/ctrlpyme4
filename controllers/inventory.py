@@ -250,9 +250,11 @@ def complete():
 
     inventory = db.inventory(request.args(0))
     if inventory.is_done:
-        raise HTTP(405, T("Inventory is already done"))
+        session.info = T("Inventory is already done")
+        redirect(URL('default', 'index'))
     if not inventory:
-        raise HTTP(404, T("Inventory not found"))
+        session.info = T("Inventory not found")
+        redirect(URL('default', 'index'))
 
     missing_items = None
     try:
@@ -282,9 +284,11 @@ def report_missing_items():
 
     inventory = db.inventory(request.args(0))
     if not inventory:
-        raise HTTP(404, T('Inventory not found'))
+        session.info = T('Inventory not found')
+        redirect(URL('default', 'index'))
     if not inventory.is_done:
-        raise HTTP(405, T("Inventory has not been applied"))
+        session.info = T("Inventory has not been applied")
+        redirect(URL('default', 'index'))
     query = (db.inventory_item.is_missing == True) & (db.inventory_item.id_inventory == inventory.id)
     data = SUPERT(query, fields=[
             'id_item.name',
@@ -302,7 +306,7 @@ def report_missing_items():
 
 @auth.requires_membership('Inventories')
 def undo():
-    """ Removes the last inventory, and restocks items according to the last system quantities. this operation is available only when the stocks produced by the inventory haven't been used.
+    """ Removes the last inventory, and restocks items according to the last system quantities. this operation is available only when the stocks produced by the inventory haven't been used (sold). The intended use of this action is to undo inventories commited by mistake (even though the commited inventory will be lost).
         args: [id_inventory]
     """
 
@@ -321,16 +325,20 @@ def undo():
     stock_items = db( (db.stock_item.id_inventory == inventory.id) ).select()
     used = False
     for stock_item in stock_items:
-        tainted &= stock_item.stock_qty == stock_item.purchase_qty
+        used &= stock_item.stock_qty == stock_item.purchase_qty
+    # do not allow when the items introduced by an inventory has been sold
     if used:
         session.info = T('Inventory has been used, you can not undo it')
         redirect(URL('default', 'index'))
     # inventory not used, we can proceed
     # restore stocks for inventory items
-    undo_stock_removal(inventory=inventory)
+    undo_stock_removal(inventory=inventory, remove=False)
+
+    inventory.is_done = False
+    inventory.update_record()
 
     session.info = T('Inventory undone')
-    redirect(URL('default', 'index'))
+    redirect(URL('inventory', 'index'))
 
 
 def delete():

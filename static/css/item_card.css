@@ -11,7 +11,6 @@
 }
 .items-container.no-wrap {
   flex-wrap: nowrap;
-  /*flex-justify: space-around;*/
   overflow-x: scroll;
 }
 .items-container-full {
@@ -64,6 +63,10 @@
   flex: 100%;
 }
 
+.item-card .item-barcode {
+  opacity: .7;
+}
+
 .item-card .item-options {
   position: absolute;
   top: 0px;
@@ -107,15 +110,6 @@
 .item-card .filler {
   height: 30px;
   min-height: 30px;
-}
-.category-link {
-  font-size: 18px;
-  border: 1px solid;
-  border-radius: 4px;
-  margin-top: 8px;
-  padding: 4px 8px 4px 8px;
-  margin-right: 8px;
-  display: inline-block;
 }
 
 
