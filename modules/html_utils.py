@@ -289,23 +289,6 @@ def item_card(item):
         )
     )
 
-    # item options
-    item_options = DIV(
-        BUTTON(ICON('shopping_basket'), _type="button", _class="btn btn-default", _onclick="add_bag_item(%s)" % item.id)
-        , _class="btn-group item-options"
-    )
-    if auth.has_membership('Employee'):
-        expand_btn = BUTTON(ICON('more_vert'), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
-        item_options.append(expand_btn)
-        options_ul = UL(_class="dropdown-menu")
-        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
-            options_ul.append(LI(A(T('Update'), _href=URL('item', 'update', args=item.id))))
-            options_ul.append(LI(A(T('Print labels'), _href=URL('item', 'labels', args=item.id))))
-            options_ul.append(LI(A(T('Add images'), _href=URL('item_image', 'create', args=item.id))))
-        if auth.has_membership('Analytics'):
-            options_ul.append(LI(A(T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id))))
-        item_options.append(options_ul)
-
 
     # concatenate all the item traits, this string will be appended to the item name
     traits_str = ''
@@ -325,15 +308,45 @@ def item_card(item):
         if len(item.description) > 10:
             item_name += '...'
 
+    main_content = DIV(
+        H4(A(item_name, _href=item_url)),
+        brand_link,
+        _class="item_data"
+    )
+
+    # item options
+    item_options = DIV(
+        BUTTON(ICON('shopping_basket'), _type="button", _class="btn btn-default", _onclick="add_bag_item(%s)" % item.id)
+        , _class="btn-group item-options"
+    )
+    if auth.has_membership('Employee'):
+        main_content.append(
+            P('# ', SPAN(item_barcode(item)), _class="item-barcode")
+        )
+
+        expand_btn = BUTTON(ICON('more_vert'), _type="button", _class="btn btn-default dropdown-toggle", data={'toggle':'dropdown'})
+        item_options.append(expand_btn)
+        options_ul = UL(_class="dropdown-menu")
+        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+            options_ul.append(
+                LI(A(T('Update'), _href=URL('item', 'update', args=item.id)))
+            )
+            options_ul.append(
+                LI(A(T('Print labels'), _href=URL('item', 'labels', args=item.id)))
+            )
+            options_ul.append(
+                LI(A(T('Add images'), _href=URL('item_image', 'create', args=item.id)))
+            )
+        if auth.has_membership('Analytics'):
+            options_ul.append(
+                LI(A(T('Analysis'), _href=URL('analytics', 'item_analysis', args=item.id)))
+            )
+        item_options.append(options_ul)
+
     return DIV(
         A('', _class="panel-heading", _style=bg_style, _href=item_url),
         DIV(
-            DIV(
-                H4(A(item_name, _href=item_url)),
-                brand_link,
-                P('# ', SPAN(item_barcode(item)), _class="item-barcode"),
-                _class="item_data"
-            ),
+            main_content,
             item_options,
             item_price_html,
             _class="panel-body"
