@@ -20,7 +20,7 @@ function hide_main_menu() {
 }
 
 function close_search() {
-  $('#bag_btn, #search_menu_btn, #hamburger, .brand').show();
+  $('#bag_btn, #search_menu_btn, .brand, #notifications_btn, #help_menu_btn').show();
   $('#hamburger, #search_menu_btn').removeClass('hidden');
   $('#close_search').css('display', 'none');
   $('.submenu').hide();
@@ -68,7 +68,7 @@ $('#close_search').click(function (event) {
 });
 
 $('#search_menu_btn').click(function (event) {
-  $('#bag_btn, #search_menu_btn, .brand').hide();
+  $('#bag_btn, #search_menu_btn, .brand, #notifications_btn, #help_menu_btn').hide();
   $('#hamburger, #search_menu_btn').addClass('hidden');
   $('#close_search').css('display', 'flex');
   $('.submenu').hide();

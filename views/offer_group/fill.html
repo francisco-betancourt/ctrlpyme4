@@ -112,6 +112,7 @@
     $('#add_discount_btn').click(function (event) {
       var percentage = $('#discount_percentage').val();
       var code = $('#discount_code').val();
+      if (!code) code = "";
       var is_combinable = $('#discount_is_combinable').prop('checked');
       var is_coupon = $('#discount_is_coupon').prop('checked');
 

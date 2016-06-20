@@ -369,7 +369,7 @@ button.cp-fab:focus{
   height: 250px;
 
   margin-bottom: 10px;
-  border-radius: 2px;
+  border-radius: 25px;
   display: flex;
   align-items: flex-end;
   margin-right: 8px;
@@ -380,17 +380,30 @@ button.cp-fab:focus{
   color: white;
   padding: 15px;
   text-shadow: 0px 0px 4px rgba(0, 0, 0, .7);
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
 }
 .highlight>.data>h2 {
   margin-top: 0px;
   font-weight: bold;
 }
 .highlight>.data>a.btn {
+  text-shadow: none;
   border-color: white;
-  color: white;
+  background-color: white;
+  color: #333333;
   font-size: 16px;
+  border-radius: 25px;
+}
+
+.offer-group-highlight-header {
+  width: 100%;
+  margin: 0px;
+}
+.offer-group-highlight-header .data {
+  width: 100%;
+  margin: 0px;
+  border-radius: 2px;
 }
 
 
@@ -478,4 +491,31 @@ body {
 
 #items_list {
   margin-bottom: 15px;
+}
+
+.category-link {
+  font-size: 18px;
+  border: 1px solid;
+  border-radius: 25px;
+  margin-top: 8px;
+  padding: 4px 18px 4px 18px;
+  margin-right: 8px;
+  display: inline-block;
+}
+.category-link:hover {
+  /*background-color: */
+  text-decoration: none;
+}
+
+
+#search_form > .form-group, .search-bar > .form-group {
+  display: flex;
+  align-items: center;
+}
+#search_form input {
+  padding-left: 20px;
+  border-radius: 25px;
+}
+#search_form .search-icon, .search-bar .search-icon {
+  margin-left: -38px;
 }
