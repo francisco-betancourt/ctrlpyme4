@@ -56,7 +56,7 @@ def create():
             img_width, img_height = img.size # get the original image size
 
             img_ext = item_image.lg.split('.')[-1]
-            img_ext = 'jpeg' if img_ext == 'jpg' else img_ext
+            img_ext = 'jpeg' if img_ext.lower() == 'jpg' else img_ext
 
             for i, size in enumerate(sizes):
                 try:
