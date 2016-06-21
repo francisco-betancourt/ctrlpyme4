@@ -511,8 +511,10 @@ body {
 #search_form > .form-group, .search-bar > .form-group {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 #search_form input {
+  max-width: 800px;
   padding-left: 20px;
   border-radius: 25px;
 }
