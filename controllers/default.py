@@ -21,25 +21,25 @@ def index():
         (db.bag_item.id_item == db.item.id)
         & (db.bag_item.created_on >= start_date)
         & (db.bag_item.created_on <= end_date)
-    ).select(db.item.ALL, db.bag_item.quantity.sum(), groupby=db.item.id, limitby=(0, 10), orderby=~db.bag_item.quantity.sum(), cache=(cache.ram, 3600), cacheable=True)
+    ).select(db.item.ALL, db.bag_item.quantity.sum(), groupby=db.item.id, limitby=(0, 10), orderby=~db.bag_item.quantity.sum())
     popular_items = [v.item for v in values]
     random.shuffle(popular_items)
 
-    new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10), cache=(cache.ram, 3600), cacheable=True)
+    new_items = db(db.item.is_active == True).select(orderby=~db.item.created_on, limitby=(0, 10))
 
-    services = db((db.item.is_active == True) & (db.item.has_inventory == False)).select(orderby='<random>', limitby=(0, 10), cache=(cache.ram, 3600), cacheable=True)
+    services = db((db.item.is_active == True) & (db.item.has_inventory == False)).select(orderby='<random>', limitby=(0, 10))
 
-    rand_categories = db((db.category.is_active == True)).select(orderby='<random>', limitby=(0, 10), cache=(cache.ram, 3600), cacheable=True)
+    rand_categories = db((db.category.is_active == True)).select(orderby='<random>', limitby=(0, 10))
 
     highlights = db((db.highlight.id_store == session.store)
                   | (db.highlight.id_store == None)
-                  ).select(cache=(cache.ram, 3600), cacheable=True)
+                  ).select()
 
     offers = db((db.offer_group.starts_on < request.now)
               & (db.offer_group.ends_on > request.now)
-              ).select(cache=(cache.ram, 3600), cacheable=True)
+              ).select()
 
-    stores = db(db.store.is_active == True).select(cache=(cache.ram, 3600), cacheable=True)
+    stores = db(db.store.is_active == True).select()
 
     page_title = T('Start page')
     categories_string = ', '.join([cat.name for cat in rand_categories])

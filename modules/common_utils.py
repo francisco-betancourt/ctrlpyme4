@@ -181,6 +181,7 @@ def json_categories_tree(item=None, selected_categories=[], visible_categories=[
     # json object from python dict
     # current_tree contains the tree.
     categories_tree = json.dumps(current_tree)
+    del current_tree
     if item:
         item.categories_selected_text = categories_selected_text
 

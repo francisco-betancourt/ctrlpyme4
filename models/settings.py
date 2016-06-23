@@ -53,9 +53,7 @@ ENABLE_STRIPE = False
 TOP_CATEGORIES_STRING = ''
 
 
-main_settings = cache.ram('main_settings',
-    lambda: db(db.settings.id_store == None).select().first(),
-    time_expire=None)
+main_settings = db(db.settings.id_store == None).select().first()
 if main_settings:
     if main_settings.company_name:
         COMPANY_NAME = main_settings.company_name
