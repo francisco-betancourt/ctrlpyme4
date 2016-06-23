@@ -33,11 +33,8 @@ def update_main():
 
     if form.process().accepted:
         # update top categories
-        cache.ram.clear('main_settings')
         response.flash = T('form accepted')
         redirect(URL('update_main'))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
-
-    return locals()
