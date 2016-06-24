@@ -521,3 +521,42 @@ body {
 #search_form .search-icon, .search-bar .search-icon {
   margin-left: -38px;
 }
+
+
+.card {
+  display: flex;
+  border-radius: 4px;
+}
+.rounded-card {
+  border-radius: 25px;
+  display: flex;
+  background-color: white;
+}
+
+#current_stock_item {
+  overflow: auto;
+  background-color: white;
+}
+#current_stock_item .header {
+  display: flex;
+  justify-content: space-between;
+}
+#current_stock_item .header .barcode {
+  opacity: .5;
+  margin-left: 16px;
+}
+#current_stock_item .form-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+#current_stock_item>.left-content {
+  flex: 1;
+  background-position: center;
+  background-size: cover;
+}
+#current_stock_item>.right-content {
+  flex: 2;
+  padding: 0px 16px 16px 16px;
+}

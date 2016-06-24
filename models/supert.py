@@ -306,7 +306,9 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
                     current_data = T('yes') if current_data else T('no')
                 if current_data is None or type(current_data) == str and current_data.strip() == 'None':
                     current_data = ''
-                container.append(DIV(current_data, _class="st-row-data"))
+                container.append(
+                    DIV(current_data, _class="st-row-data st-row-%s" % data._id)
+                )
             table.append(container)
     else:
         container = DIV(_class="st-col")
@@ -352,7 +354,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         options = DIV(_class="st-col")
         options.append(DIV(T('Options'), _class="st-row-data st-last top st-options st-header"))
         for data in datas:
-            options.append(DIV(options_func(data._row), _class='st-row-data st-option'))
+            options.append(DIV(options_func(data._row), _class='st-row-data st-option st-row-%s' % data._id))
         table.append(options)
     t_footer = DIV(_class="st-row-data st-last bottom st-footer")
     t_footer.append(DIV(T('Items per page')))
