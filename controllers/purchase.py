@@ -365,7 +365,7 @@ def fill():
         db.stock_item.id_purchase == purchase.id
         , fields=[
             dict(fields=[ 'id_item.name' ], label_as=T('Name')),
-            dict(fields=[ 'id_item' ],
+            dict(fields=['id_item','id_item.sku','id_item.ean','id_item.upc' ],
                 custom_format=lambda r, f : item_barcode(r[f[0]]),
                 label_as=T('Barcode')
             ),

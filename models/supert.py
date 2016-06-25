@@ -69,8 +69,30 @@ def base_multifield_format(row, subfields):
 
 
 def _search_query(field, term):
+    join = None
     db = current.db
-    table_name, field = field.split('.')[:2]
+    splited_field = field.split('.')
+    table_name, field = splited_field[0], splited_field[1]
+
+    try:
+        field_type, ref_table = db[table_name][field].type.split(' ')[:2]
+        is_reference = field_type == 'reference'
+        if is_reference:
+            join = db[table_name][field] == db[ref_table].id
+    except:
+        pass
+
+    if join and len(splited_field) > 2:
+        joined_table_field = splited_field[2]
+        if db[ref_table][joined_table_field].type == 'string':
+            return join & db[ref_table][joined_table_field].contains(term)
+        if db[ref_table][joined_table_field].type == 'integer':
+            try:
+                return join & db[ref_table][joined_table_field] == int(term)
+            except:
+                pass
+
+    # this is for not joined field
     if db[table_name][field].type == 'string':
         return db[table_name][field].contains(term)
     if db[table_name][field].type == 'integer':
@@ -91,7 +113,6 @@ def search_query_from_field(field, term):
             s = _search_query(subfield, term)
             if s:
                 q |= s
-
     return q
 
 
