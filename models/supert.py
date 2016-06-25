@@ -391,9 +391,22 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         )
         , _class="st-ipp"
     ))
-    if page >= 0:
+    if page >= 0 and pages_count:
         t_footer.append(DIV(T('Page'), _class='st-footer-element'))
-        t_footer.append(DIV(page + 1, _class="st-ipp"))
+        page_select = SELECT(
+            _name='st_page_select', _class='st-page-select form-control',
+            _value=page + 1
+        )
+        for i in xrange(1, pages_count + 2):
+            selected = False if i - 1 != page else True
+            page_select.append(OPTION(i, _value=i - 1, _selected=selected))
+        t_footer.append(DIV(
+            SPAN(page + 1, _class="page-value"),
+            FORM(
+                page_select, _hidden=True, _class="form-inline st-page-form"
+            ),
+            _class="st-page"
+        ))
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 

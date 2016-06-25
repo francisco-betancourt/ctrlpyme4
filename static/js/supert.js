@@ -92,11 +92,32 @@
       event.preventDefault();
       var new_ipp = ipp_form.querySelector('.form-control').value;
       URL.vars['ipp_' + t_index] = new_ipp;
-      console.log(URL.generate_url());
+      URL.vars['page_' + t_index] = "";
       window.location.href = URL.generate_url();
     });
     ipp_form.addEventListener('focusout', function (event) {
       ipp_value.removeAttribute('hidden');
+      this.setAttribute('hidden', 'hidden');
+    });
+
+    var page_value = supert.querySelector('.page-value');
+    var page_form = supert.querySelector('.st-page-form');
+
+    page_value.addEventListener('click', function(event) {
+      this.setAttribute('hidden', 'hidden');
+      page_form.removeAttribute('hidden');
+      var select = page_form.querySelector('.form-control');
+      select.focus();
+      select.click();
+    });
+    page_form.addEventListener('change', function(event) {
+      event.preventDefault();
+      var new_page = page_form.querySelector('.form-control').value;
+      URL.vars['page_' + t_index] = new_page;
+      window.location.href = URL.generate_url();
+    });
+    page_form.addEventListener('focusout', function (event) {
+      page_value.removeAttribute('hidden');
       this.setAttribute('hidden', 'hidden');
     });
 
