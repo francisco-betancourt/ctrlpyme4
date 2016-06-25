@@ -12,7 +12,7 @@
 {{end}}
 
 
-<h1>{{=T('Add')}} Items</h1>
+<h1>{{=T('Current item')}}</h1>
 <div id="purchase_scanner_container"></div>
 
 <div>
@@ -31,67 +31,86 @@
 
 <div>
   <!-- Items list -->
-  <div id="items_list"></div>
-</div>
+  <div id="items_list">
 
+    {{ if current_stock_item: }}
 
-<!-- Prototype element for purchase items list  -->
-<div href="#" class="list-group-item" id="proto_item">
-  <h4> <span class="item_name"></span> <i class="fa fa-times right close"></i></h4>
-  <p><i class="fa fa-barcode"> </i> <span class="barcode"></span></p>
-  <div class="form-inline">
+    {{bg_url = URL('static', 'images/no_image.svg')}}
 
-    <div class="form-group">
-      <label class="control-label">{{=T('Quantity')}} </label>
-      <input type="text" class="form-control quantity" name="quantity" placeholder="{{=T('Quantity')}}">
-    </div>
-    <div class="form-group">
-      <label class="">{{=T('Buy Price')}}</label>
-      <input type="text" class="form-control price" name="price" placeholder="{{=T('Buy Price')}}">
-    </div>
+    {{item_image = db(db.item_image.id_item == current_stock_item.id_item.id).select().first() }}
+    {{ if item_image: }}
+      {{bg_url = URL('static', 'uploads/', args=item_image.md)}}
+    {{ pass }}
+    <div href="#" class="card shadow-1 " id="current_stock_item">
+      <section class="left-content" style="background-image: url({{=bg_url}})">
 
-    <div class="form-group">
-      <label>{{=T('Taxes')}}</label>
-      <input type="text" class="form-control taxes" placeholder="{{=T('Taxes')}}" disabled>
-    </div>
+      </section>
 
-    <!-- Prices -->
-    <div class="form-group">
-      <label class="">{{=T('Base Price')}}</label>
-      <input type="text" class="form-control base_price" placeholder="{{=T('Sale Price')}}">
-    </div>
-    <div class="form-group">
-      <label class="">{{=T('Price 2')}}</label>
-      <input type="text" class="form-control price2" placeholder="{{=T('Sale Price')}}">
-    </div>
-    <div class="form-group">
-      <label>{{=T('Price 3')}}</label>
-      <input type="text" class="form-control price3" placeholder="{{=T('Sale Price')}}">
-    </div>
+      <section class="right-content">
+        <h3 class="header">
+          <span class="item-info">
+            {{=current_stock_item.id_item.name}}
+            <span class="barcode">
+              #{{=item_barcode(current_stock_item.id_item)}}
+            </span>
+          </span>
+         {{=ICON('close', _id='remove_stock_item_btn')}}
+        </h3>
+        <hr>
 
-    <button class="btn btn btn-default show-serials">{{=T('Serial numbers')}}</button>
-    <div>
-      <div class="form-group serial_numbers_fg" style="width: 100%; display: None">
-        <label>{{=T('Serial Numbers')}}</label>
-        <textarea class="form-control serial_numbers" name="" id="" rows="10" style="width: 100%; resize: none;" cols="auto"></textarea>
-      </div>
+        <div class="form-inline">
+          <div class="form-group">
+            <label class="control-label">{{=T('Quantity')}} </label>
+            <input type="text" class="form-control quantity" name="quantity" placeholder="{{=T('Quantity')}}" value="{{=DQ(current_stock_item.purchase_qty, True, True)}}">
+          </div>
+          <div class="form-group">
+            <label class="">{{=T('Buy Price')}}</label>
+            <input type="text" class="form-control price" name="price" placeholder="{{=T('Buy Price')}}" value="{{=DQ(current_stock_item.price, True)}}">
+          </div>
+
+          <div class="form-group">
+            <label>{{=T('Taxes')}}</label>
+            <input type="text" class="form-control taxes" placeholder="{{=T('Taxes')}}" disabled value="{{=DQ(current_stock_item.taxes, True)}}">
+          </div>
+
+          <!-- Prices -->
+          <div class="form-group">
+            <label class="">{{=T('Base Price')}}</label>
+            <input type="text" class="form-control base_price" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.base_price, True)}}">
+          </div>
+          <div class="form-group">
+            <label class="">{{=T('Price 2')}}</label>
+            <input type="text" class="form-control price2" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price2, True) or ''}}">
+          </div>
+          <div class="form-group">
+            <label>{{=T('Price 3')}}</label>
+            <input type="text" class="form-control price3" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price3, True) or ''}}">
+          </div>
+        </div>
+      </section>
+
     </div>
+    {{ else: }}
+      <p>
+        {{=T('Please select an item from the table, or scan a barcode')}}
+      </p>
+    {{ pass }}
+
   </div>
 </div>
 
 
+<hr>
+<h1>Items</h1>
+{{=stock_items_table}}
+
 
 {{new_item_js_url = URL('static', 'js/create_item.js')}}
 {{ block page_js }}
-{{=stock_items_script}}
 <script>
-  var initial_selected_traits = ""; // selected traits for new items
-  $('#proto_item').hide();
-
-
+  // purchase modification
   $('#purchase_form input, #purchase_form select').change(function (event) {
     info_card("{{=T('Saving')}}");
-
     $.ajax({
       url: "{{=URL('update_value', args=purchase.id, extension='json')}}?" + event.target.name + '=' + event.target.value
     })
@@ -111,20 +130,12 @@
     $('#new_item_form').remove();
     $('#new_item_panel').hide();
     $('#barcode__purchases').val("");
+    $('#current_stock_item').show();
   });
 
-  function remove_item(key, stock_item_id) {
-    $('#' + key).remove();
-    $.ajax({
-      url: "{{=URL('delete_stock_item', extension='json')}}/" + stock_item_id
-    })
-    .done(function (data) {
-      console.log(data);
-    })
-  }
 
   function refresh_stock_item(pitem) {
-    var key = "#item_" + pitem.item.barcode;
+    var key = "#current_stock_item";
 
     $(key).find('.quantity').val(pitem.purchase_qty);
     $(key).find('.price').val(pitem.price);
@@ -138,7 +149,7 @@
 
   function call_stock_item_modifier(stock_item_id, param_name, param_value, barcode) {
     if (!param_value) {return false}
-    // $('#item_' + barcode).addClass('bg-warning');
+
     info_card("{{=T('Saving')}}...");
     $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
@@ -148,62 +159,58 @@
       info_card("{{=T('Saved')}}", null, "success");
       refresh_stock_item(res);
 
-      $('#item_' + barcode).css('background-color', '#DFF0D8');
-      window.setTimeout(function() {
-        $('#item_' + barcode).css('background-color', 'white');
-      }, 800)
+      // modify the table
+      $('#s_item_' + stock_item_id + '_' + param_name).text(res[param_name]);
+
     });
   }
 
 
-  // clones the proto html item list element and cofigures the newly created element
-  function create_html_item(item, barcode, stock_item) {
-    var key = 'item_' + barcode;
-    var el_item = $('#proto_item').clone();
-    el_item.attr('id', key);
-    el_item.show();
-    el_item.css('display', 'block');
-    var pitem_id = stock_item.id;
-    el_item.find('.item_name').html(item.name);
-    el_item.find('.close').on('click', function() {remove_item(key, stock_item.id);});
-    el_item.find('.barcode').text(barcode);
-
-    var quantity = el_item.find('.quantity');
-    var buy_price = el_item.find('.price');
-    var base_price = el_item.find('.base_price');
-    var price2 = el_item.find('.price2');
-    var price3 = el_item.find('.price3');
-    var serial_numbers = el_item.find('.serial_numbers')
-
-    $('#items_list').prepend(el_item);
-    refresh_stock_item(stock_item);
+  {{ if current_stock_item: }}
+    var stock_item_id = {{=current_stock_item.id}};
+    var barcode = {{=item_barcode(current_stock_item.id_item)}}
+    var quantity = $('#current_stock_item input[name="quantity"]');
+    var buy_price = $('#current_stock_item input[name="price"]');
+    var base_price = $('#current_stock_item input[name="base_price"]');
+    var price2 = $('#current_stock_item input[name="price2"]');
+    var price3 = $('#current_stock_item input[name="price3"]');
 
     quantity.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'purchase_qty', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(stock_item_id, 'purchase_qty', parseFloat($(this).val()), barcode);
     });
-
     buy_price.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'price', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(stock_item_id, 'price', parseFloat($(this).val()), barcode);
     });
-
     base_price.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'base_price', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(stock_item_id, 'base_price', parseFloat($(this).val()), barcode);
     });
     price2.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'price2', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(stock_item_id, 'price2', parseFloat($(this).val()), barcode);
     });
     price3.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'price3', parseFloat($(this).val()), barcode);
+      call_stock_item_modifier(stock_item_id, 'price3', parseFloat($(this).val()), barcode);
     });
 
-    serial_numbers.on('change', function() {
-      call_stock_item_modifier(pitem_id, 'serial_numbers', $(this).val(), barcode);
+
+    $('#remove_stock_item_btn').click(function (event) {
+      window.location.href = "{{=URL('delete_stock_item')}}/" + {{=current_stock_item.id}};
     });
 
-    el_item.find('.show-serials').click(function(event) {
-      el_item.find('.serial_numbers_fg').toggle();
-    });
-  }
+
+    function requirement(barcode) {
+      // in this case ignore redirection and add one to the quantity instead
+      if (barcode == {{=item_barcode(current_stock_item.id_item)}}) {
+        var qty_input = $('#current_stock_item input[name="quantity"]');
+        var new_qty =  parseFloat(qty_input.val()) + 1;
+        qty_input.val(new_qty);
+        call_stock_item_modifier({{=current_stock_item.id}}, 'purchase_qty', parseFloat(new_qty), barcode);
+        return false;
+      } else return true;
+    }
+
+  {{ else: }}
+    function requirement(barcode) { return true; }
+  {{ pass }}
 
 
   $("#bundle_form").on('submit', function(event) {
@@ -218,21 +225,15 @@
 
   function success_callback(data, barcode) {
     var item = data;
-    $.ajax({
-      url: "{{=URL('add_stock_item', args=purchase.id, extension='json')}}/" + item.id
-    })
-    .done(function(data) {
-      create_html_item(item, barcode, data.stock_item);
-    })
-    .fail(function(data) {
-      alert("{{=T('Could not add item!')}}")
-    });
+    window.location.href = "{{=URL('add_stock_item', args=purchase.id)}}/" + item.id
   }
 
   function fail_callback(data, barcode) {
     // this happens when the item wasn't found, so we need to display the item
     // creation form.
     $('#new_item_form_container > *').remove();
+    // hide the current item
+    $('#current_stock_item').hide();
     $.ajax({
       url: "{{=URL('item', 'create_or_update', extension='json')}}"
     })
@@ -284,9 +285,7 @@
           }
           else {
             // add the new purchase item to the list
-            create_html_item(data.item, barcode, data.stock_item);
-            $('#new_item_form').remove();
-            $('#new_item_panel').hide();
+            window.location.href = "{{=URL('fill', args=[purchase.id])}}/" + data.stock_item.id;
           }
         })
         .fail(function (data) {
@@ -301,26 +300,8 @@
     });
   }
 
-
-  function requirement(barcode) {
-    var el_item = $('#items_list').find('#item_' + barcode);
-    if (el_item.length) {
-      return false;
-    }
-    else {
-      return true;
-    }
-  }
-
   var scanner = create_scanner('purchase', $('#purchase_scanner_container'));
   setup_scanner(scanner, success_callback, fail_callback, requirement, null);
-
-
-  // purchase_items is a javascript variable sended by the server. in the purchase_items_form
-  for (var i in stock_items) {
-    var stock_item = stock_items[i];
-    create_html_item(stock_item.item, stock_item.item.barcode, stock_item);
-  }
 
 </script>
 {{ end }}

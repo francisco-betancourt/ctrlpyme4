@@ -69,8 +69,30 @@ def base_multifield_format(row, subfields):
 
 
 def _search_query(field, term):
+    join = None
     db = current.db
-    table_name, field = field.split('.')[:2]
+    splited_field = field.split('.')
+    table_name, field = splited_field[0], splited_field[1]
+
+    try:
+        field_type, ref_table = db[table_name][field].type.split(' ')[:2]
+        is_reference = field_type == 'reference'
+        if is_reference:
+            join = db[table_name][field] == db[ref_table].id
+    except:
+        pass
+
+    if join and len(splited_field) > 2:
+        joined_table_field = splited_field[2]
+        if db[ref_table][joined_table_field].type == 'string':
+            return join & db[ref_table][joined_table_field].contains(term)
+        if db[ref_table][joined_table_field].type == 'integer':
+            try:
+                return join & db[ref_table][joined_table_field] == int(term)
+            except:
+                pass
+
+    # this is for not joined field
     if db[table_name][field].type == 'string':
         return db[table_name][field].contains(term)
     if db[table_name][field].type == 'integer':
@@ -91,7 +113,6 @@ def search_query_from_field(field, term):
             s = _search_query(subfield, term)
             if s:
                 q |= s
-
     return q
 
 
@@ -288,7 +309,7 @@ def visibility_g_option():
 
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', t_index=0):
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0):
 
     T = current.T
 
@@ -306,7 +327,9 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
                     current_data = T('yes') if current_data else T('no')
                 if current_data is None or type(current_data) == str and current_data.strip() == 'None':
                     current_data = ''
-                container.append(DIV(current_data, _class="st-row-data"))
+                container.append(
+                    DIV(current_data, _class="st-row-data st-row-%s" % data._id)
+                )
             table.append(container)
     else:
         container = DIV(_class="st-col")
@@ -324,9 +347,13 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     if title:
         t_header_content.append(H4(title))
     if searchable:
-        search_form = FORM(_id='supert_search_form', _class="form-inline", **{'_data-index': t_index})
-        search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
-        search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
+        search_form = FORM(_class="form-inline st-search-form")
+        search_form.append(
+            INPUT(_class="form-control st-search-input", _name='supert_search')
+        )
+        search_form.append(
+            BUTTON(ICON('search'), _class="btn btn-default st-search-form-btn")
+        )
         t_header_content.append(search_form)
     if global_options:
         options_ul = UL(_class='dropdown-menu')
@@ -334,12 +361,12 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
             title, url = option
             options_ul.append(LI(A(title, _href=url)))
         g_options = DIV(
-            BUTTON(ICON('more_vert'), _id='supert_g_options_btn', _type='button', data={'toggle': "dropdown"}), options_ul,
+            BUTTON(ICON('more_vert'), _class='st-g-options-btn', _type='button', data={'toggle': "dropdown"}), options_ul,
             _class="dropdown supert-global-options"
         )
         t_header_content.append(g_options)
     if selectable:
-        selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
+        selected_options = DIV(_class='st-card-header-options')
         checks = DIV(_class="st-col st-checks-col")
         checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
         for data in datas:
@@ -352,15 +379,38 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         options = DIV(_class="st-col")
         options.append(DIV(T('Options'), _class="st-row-data st-last top st-options st-header"))
         for data in datas:
-            options.append(DIV(options_func(data._row), _class='st-row-data st-option'))
+            options.append(DIV(options_func(data._row), _class='st-row-data st-option st-row-%s' % data._id))
         table.append(options)
     t_footer = DIV(_class="st-row-data st-last bottom st-footer")
-    t_footer.append(DIV(T('Items per page')))
-    t_footer.append(DIV(ipp, _class="st-ipp"))
+    t_footer.append(DIV(T('Items per page'), _class='st-footer-element'))
+    t_footer.append(DIV(
+        SPAN(ipp, _class="ipp-value"),
+        FORM(
+            INPUT(_value=ipp, _class="form-control", _name='supert_search'),
+            _class="form-inline st-ipp-form", _hidden=True
+        )
+        , _class="st-ipp"
+    ))
+    if page >= 0 and pages_count:
+        t_footer.append(DIV(T('Page'), _class='st-footer-element'))
+        page_select = SELECT(
+            _name='st_page_select', _class='st-page-select form-control',
+            _value=page + 1
+        )
+        for i in xrange(1, pages_count + 2):
+            selected = False if i - 1 != page else True
+            page_select.append(OPTION(i, _value=i - 1, _selected=selected))
+        t_footer.append(DIV(
+            SPAN(page + 1, _class="page-value"),
+            FORM(
+                page_select, _hidden=True, _class="form-inline st-page-form"
+            ),
+            _class="st-page"
+        ))
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index)
+    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index, **{'_data-index': t_index})
 
     return table
 
@@ -417,6 +467,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         datas = []
 
     # base_table
-    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index)
+    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index, page=page, pages_count=pages_count)
 
     return table

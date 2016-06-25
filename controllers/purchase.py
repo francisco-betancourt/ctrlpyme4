@@ -24,6 +24,7 @@ precheck()
 import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
+from item_utils import item_barcode
 # from cfdi import *
 
 
@@ -145,26 +146,23 @@ def add_stock_item():
             item_id
     """
 
-    try:
-        purchase = db.purchase(request.args(0))
-        item = db.item(request.args(1))
-        valid_purchase(purchase)
-        if not item:
-            raise HTTP(404)
-        if item.is_bundle or not item.has_inventory:
-            raise HTTP(403)
+    purchase = db.purchase(request.args(0))
+    item = db.item(request.args(1))
+    valid_purchase(purchase)
+    if not item:
+        raise HTTP(404)
+    if item.is_bundle or not item.has_inventory:
+        raise HTTP(403)
 
-        stock_item = db((db.stock_item.id_item == item.id) &
-                           (db.stock_item.id_purchase == purchase.id)
-                          ).select().first()
-        if not stock_item:
-            stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
-            stock_item = db.stock_item(stock_item)
-            stock_item = response_stock_item(stock_item)
-        return locals()
-    except:
-        import traceback
-        traceback.print_exc()
+    stock_item = db((db.stock_item.id_item == item.id) &
+                       (db.stock_item.id_purchase == purchase.id)
+                      ).select().first()
+    if not stock_item:
+        stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
+        stock_item = db.stock_item(stock_item)
+        stock_item = response_stock_item(stock_item)
+    redirect(URL('fill', args=[purchase.id, stock_item['id']]))
+    return locals()
 
 
 def update_items_total(purchase):
@@ -191,7 +189,7 @@ def delete_stock_item():
     stock_item.delete_record()
     update_items_total(stock_item.id_purchase)
 
-    return dict(status="ok")
+    redirect(URL('fill', args=[stock_item.id_purchase.id]))
 
 
 def postprocess_stock_item(stock_item):
@@ -300,23 +298,21 @@ def add_item_and_stock_item():
                 pass
     else:
         item_data['taxes'] = None
-    try:
-        item_data['created_by'] = auth.user.id
+    item_data['created_by'] = auth.user.id
 
-        ret = db.item.validate_and_insert(**item_data)
-        if not ret.errors:
-            item = db.item(ret.id)
-            url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
-            db.item(ret.id).update_record(url_name=url_name)
+    ret = db.item.validate_and_insert(**item_data)
+    if not ret.errors:
+        item = db.item(ret.id)
+        url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
+        db.item(ret.id).update_record(url_name=url_name)
 
-            stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, purchase_qty=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
-            stock_item = response_stock_item(db.stock_item(stock_item))
-            return dict(item=item, stock_item=stock_item)
-        else:
-            return dict(errors=ret.errors)
-    except:
-        import traceback
-        traceback.print_exc()
+        stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, purchase_qty=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
+        stock_item = response_stock_item(db.stock_item(stock_item))
+
+        return dict(item=item, stock_item=stock_item)
+    else:
+        return dict(errors=ret.errors)
+
 
 
 @auth.requires_membership('Purchases')
@@ -342,12 +338,17 @@ def update_value():
 @auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
-    args: [purchase_id]
+    args: [purchase_id, current_stock_item]
 
     """
 
     purchase = db.purchase(request.args(0))
     valid_purchase(purchase)
+    current_stock_item = db.stock_item(request.args(1))
+
+    if current_stock_item and current_stock_item.id_purchase != purchase.id:
+        session.flash = T('Invalid stock item')
+        current_stock_item == None
 
     buttons = [
           A(T('Commit'), _class="btn btn-primary", _href=URL('commit', args=purchase.id))
@@ -356,14 +357,33 @@ def fill():
     ]
     form = SQLFORM(db.purchase, purchase.id, buttons=buttons, formstyle="bootstrap3_stacked", showid=False, _id="purchase_form")
 
-    stock_items = db(db.stock_item.id_purchase == purchase.id).select()
-    stock_items_json = []
-    for stock_item in stock_items:
-        serials = stock_item.serial_numbers.replace(',', ',\n') if stock_item.serial_numbers else ''
 
-        stock_items_json.append(response_stock_item(stock_item))
-    stock_items_json = json.dumps(stock_items_json)
-    stock_items_script = SCRIPT('stock_items = %s;' % stock_items_json)
+    def stock_item_options(row):
+        return OPTION_BTN('edit',
+            url=URL('fill', args=[purchase.id, row.id], vars=request.vars)
+            , title=T("modify")
+        )
+
+    stock_items_table = SUPERT(
+        db.stock_item.id_purchase == purchase.id
+        , fields=[
+            dict(fields=[ 'id_item.name' ], label_as=T('Name')),
+            dict(fields=['id_item','id_item.sku','id_item.ean','id_item.upc' ],
+                custom_format=lambda r, f : item_barcode(r[f[0]]),
+                label_as=T('Barcode')
+            ),
+            dict(fields=['purchase_qty'],
+                custom_format=lambda r, f : SPAN(DQ(r[f[0]], True, True), _id="s_item_%s_%s" % (r.id, f[0])),
+                label_as=T('Quantity')
+            ),
+            dict(fields=['price'],
+                custom_format=lambda r, f : SPAN(DQ(r[f[0]], True), _id="s_item_%s_%s" % (r.id, f[0])),
+                label_as=T('Buy Price')
+            )
+        ]
+        , options_func=stock_item_options
+        , global_options=[]
+    )
 
     return locals()
 
