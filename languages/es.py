@@ -630,6 +630,7 @@
 'Overview': 'Resumen',
 'pack all': 'empaquetar todo',
 'pack compiled': 'empaquetar compilados',
+'Page': 'Page',
 'Page format': 'Formato de página',
 'Paid': 'Paid',
 'Paper height': 'Alto del papel',

@@ -359,7 +359,10 @@ def fill():
 
 
     def stock_item_options(row):
-        return OPTION_BTN('edit', url=URL('fill', args=[purchase.id, row.id]), title=T("modify"))
+        return OPTION_BTN('edit',
+            url=URL('fill', args=[purchase.id, row.id], vars=request.vars)
+            , title=T("modify")
+        )
 
     stock_items_table = SUPERT(
         db.stock_item.id_purchase == purchase.id

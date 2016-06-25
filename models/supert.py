@@ -309,7 +309,7 @@ def visibility_g_option():
 
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', t_index=0):
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0):
 
     T = current.T
 
@@ -347,9 +347,13 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     if title:
         t_header_content.append(H4(title))
     if searchable:
-        search_form = FORM(_id='supert_search_form', _class="form-inline", **{'_data-index': t_index})
-        search_form.append(INPUT(_class="form-control", _name='supert_search', _id='supert_search'))
-        search_form.append(BUTTON(ICON('search'), _class="btn btn-default", _id="supert_search_btn"))
+        search_form = FORM(_class="form-inline st-search-form")
+        search_form.append(
+            INPUT(_class="form-control st-search-input", _name='supert_search')
+        )
+        search_form.append(
+            BUTTON(ICON('search'), _class="btn btn-default st-search-form-btn")
+        )
         t_header_content.append(search_form)
     if global_options:
         options_ul = UL(_class='dropdown-menu')
@@ -357,12 +361,12 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
             title, url = option
             options_ul.append(LI(A(title, _href=url)))
         g_options = DIV(
-            BUTTON(ICON('more_vert'), _id='supert_g_options_btn', _type='button', data={'toggle': "dropdown"}), options_ul,
+            BUTTON(ICON('more_vert'), _class='st-g-options-btn', _type='button', data={'toggle': "dropdown"}), options_ul,
             _class="dropdown supert-global-options"
         )
         t_header_content.append(g_options)
     if selectable:
-        selected_options = DIV(_class='st-card-header-options', _id='st_card_header_options')
+        selected_options = DIV(_class='st-card-header-options')
         checks = DIV(_class="st-col st-checks-col")
         checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
         for data in datas:
@@ -378,12 +382,22 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
             options.append(DIV(options_func(data._row), _class='st-row-data st-option st-row-%s' % data._id))
         table.append(options)
     t_footer = DIV(_class="st-row-data st-last bottom st-footer")
-    t_footer.append(DIV(T('Items per page')))
-    t_footer.append(DIV(ipp, _class="st-ipp"))
+    t_footer.append(DIV(T('Items per page'), _class='st-footer-element'))
+    t_footer.append(DIV(
+        SPAN(ipp, _class="ipp-value"),
+        FORM(
+            INPUT(_value=ipp, _class="form-control", _name='supert_search'),
+            _class="form-inline st-ipp-form", _hidden=True
+        )
+        , _class="st-ipp"
+    ))
+    if page >= 0:
+        t_footer.append(DIV(T('Page'), _class='st-footer-element'))
+        t_footer.append(DIV(page + 1, _class="st-ipp"))
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index)
+    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index, **{'_data-index': t_index})
 
     return table
 
@@ -440,6 +454,6 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         datas = []
 
     # base_table
-    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index)
+    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index, page=page, pages_count=pages_count)
 
     return table

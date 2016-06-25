@@ -96,12 +96,12 @@ a.st-header.selected {
   display: flex;
   justify-content: space-between;
 }
-#supert_search_btn {
+.st-search-form-btn {
   margin-left: -1px;
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }
-#supert_search {
+.st-search-input {
   display: inline-block !important;
   width: auto !important;
   margin-right: -1px;
@@ -113,9 +113,16 @@ a.st-header.selected {
   color: rgba(0,0,0,.54);
   justify-content: flex-end;
 }
-.st-ipp {
+.st-footer-element {
+  margin-right: 40px;
   margin-left: 40px;
 }
+
+.st-ipp-form .form-control {
+  width: 4em;
+  text-align: right;
+}
+
 .st-prev-page {
   margin-left: 32px;
 }
