@@ -335,8 +335,8 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         container = DIV(_class="st-col")
         contents = T('No records found')
         if global_options:
-            contents += T('try showing hidden records using') + ': '
-            contents = (contents, ICON('more_vert'))
+            contents += ' ' + T('try showing hidden records using') + ': '
+            contents = (contents, ICON('more_vert'), '> ', T('show hidden'))
         container.append(DIV(contents , _class="st-row-data"))
         table.append(container)
 
