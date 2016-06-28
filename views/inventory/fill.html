@@ -82,6 +82,7 @@
       })
       .done(function (res) {
         physical_qty_input.val(res.inventory_item.physical_qty);
+        $('#item_' + res.inventory_item.id + '_physical_qty').text(res.inventory_item.physical_qty);
         info_card('{{=T("Saved")}}', null, 'success');
       })
       .fail(function (res) {

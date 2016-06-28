@@ -61,7 +61,13 @@ def fill():
 
     inventory_items_table = SUPERT(
         (db.inventory_item.id_inventory == inventory.id)
-        , fields=['id_item.name', 'system_qty', 'physical_qty']
+        , fields=['id_item.name', 'system_qty',
+            dict(
+                fields=['physical_qty'],
+                label_as=T('Physical quantity'),
+                custom_format=lambda r, f : SPAN(r[f[0]], _id='item_%s_%s' % (r.id, f[0]))
+            )
+        ]
         , options_func=inventory_item_options
         , global_options=[]
     )
