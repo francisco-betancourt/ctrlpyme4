@@ -247,7 +247,7 @@
 'CSD password': 'password CSD',
 'CSV': 'CSV',
 'CSV (hidden cols)': 'CSV (columnas ocultas)',
-'Current item': 'Current item',
+'Current item': 'Item actual',
 'Current request': 'Solicitud en curso',
 'Current response': 'Respuesta en curso',
 'Current session': 'Sesión en curso',
