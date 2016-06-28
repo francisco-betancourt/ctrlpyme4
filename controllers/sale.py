@@ -743,7 +743,14 @@ def index():
         (db.sale_log.id_sale == db.sale.id)
         & (db.sale.id_store == session.store)
         , select_args=dict(orderby=~db.sale.id, distinct=db.sale.id),
-        fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ],
+        fields=['sale.consecutive', 'sale.subtotal', 'sale.total',
+            dict(
+                fields=['sale_log.sale_event'],
+                label_as=T("Status"),
+                custom_format=lambda r, f : A(T(r[f[0]]), _href=URL('index', vars=dict(term_0=r[f[0]]) ))
+            ),
+            'sale.created_on'
+        ],
         options_func=sale_options,
         base_table_name='sale', global_options=[])
     return locals()
