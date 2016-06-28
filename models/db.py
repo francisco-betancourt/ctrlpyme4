@@ -594,6 +594,8 @@ db.define_table("sale",
     Field("is_done", "boolean", default=False, writable=False, readable=False),
     # true if the sale has been defered for later payment
     Field("is_defered", "boolean", default=False, writable=False, readable=False),
+    Field("last_log_event", label=T('Last event')),
+    Field("last_log_event_date", 'datetime', label=T('Last event date')),
     auth.signature)
 db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 
