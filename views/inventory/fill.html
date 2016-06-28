@@ -1,75 +1,106 @@
+{{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
-{{if is_partial:}}
-  <h1>{{=T('Working on partial Inventory')}} {{=inventory.id}}</h1>
-{{else:}}
-  <h1>{{=T('Working on full Inventory')}} {{=inventory.id}}</h1>
-{{pass}}
+
+{{block left_sidebar}}
+
+<h1>{{=T('Current item')}}</h1>
 
 <div id="inventory_scanner_container"></div>
 
-<table class="table">
-  <thead>
-    <th> {{=T('Item name')}}</th>
-    <th> {{=T('System')}}</th>
-    <th> {{=T('Physical')}}</th>
-  </thead>
-  <tbody id="inventory_items_list">
 
-  </tbody>
-</table>
+{{ if inventory_item: }}
+
+{{bg_url = URL('static', 'images/no_image.svg')}}
+
+{{item_image = db(db.item_image.id_item == inventory_item.id_item.id).select().first() }}
+{{ if item_image: }}
+  {{bg_url = URL('static', 'uploads/', args=item_image.md)}}
+{{ pass }}
+<div href="#" class="card vertical shadow-1 " id="current_inventory_item">
+  <section class="left-content" style="background-image: url({{=bg_url}})">
+  </section>
+
+  <section class="right-content">
+    <h3 class="header">
+      <span class="item-info">
+        {{=inventory_item.id_item.name}}
+      </span>
+     {{=ICON('close', _id='remove_item_btn')}}
+    </h3>
+    <span class="barcode">
+      #{{=item_barcode(inventory_item.id_item)}}
+    </span>
+    <hr>
+
+    <div class="form-inline">
+      <div class="form-group">
+        <label class="control-label">{{=T('System quantity')}} </label>
+        <input type="text" class="form-control quantity" name="system_qty" value="{{=DQ(inventory_item.system_qty, True, True)}}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="">{{=T('Physical quantity')}}</label>
+        <input type="text" class="form-control price" name="physical_qty" id="physical_qty_input" value="{{=DQ(inventory_item.physical_qty, True, True)}}">
+      </div>
+    </div>
+  </section>
+
+</div>
+{{ else: }}
+  <p>
+    {{=T('Please select an item from the table, or scan a barcode')}}
+  </p>
+{{ pass }}
+
+{{end}}
+
+
+{{if is_partial:}}
+  <h1>{{=T('Partial Inventory')}} {{=inventory.id}}</h1>
+{{else:}}
+  <h1>{{=T('Full Inventory')}} {{=inventory.id}}</h1>
+{{pass}}
+
+{{=inventory_items_table}}
+
+<hr>
 
 <button class="btn btn-primary" onclick="window.location = '{{=URL('complete', args=inventory.id)}}'"> {{=T('Done')}}  </button>
 <button class="btn btn-default" onclick="window.location = '{{=URL('index')}}'"> {{=T('Save')}}  </button>
 
 
-<table hidden>
-  <tr id="proto_inventory_item" hidden>
-    <td class="item_name"></td>
-    <td class="system_qty"></td>
-    <td>
-      <input type="number" class="physical_qty form-control"/>
-    </td>
-  </tr>
-</table>
-
-
-
 
 {{block page_js}}
 
-{{=inventory_items_script}}
 <script>
-  function new_inventory_item_element(inventory_item, item) {
-    var el_new_inventory_item = $('#proto_inventory_item').clone().show();
-
-    el_new_inventory_item.attr('id', 'inventory_item_' + inventory_item.id);
-    el_new_inventory_item.find('.item_name').text(item.name);
-    el_new_inventory_item.find('.system_qty').text(inventory_item.system_qty);
-    var physical_qty_input = el_new_inventory_item.find('.physical_qty').val(inventory_item.physical_qty);
-    physical_qty_input.change(function (event) {
-      var new_qty = event.target.value;
-
+  {{ if inventory_item: }}
+    $('#physical_qty_input').change(function (event) {
+      var physical_qty_input = $(this);
+      var new_qty = physical_qty_input.val();
+      info_card('{{=T("Saving...")}}');
       $.ajax({
-        url: "{{=URL('modify_item', extension='json')}}/" + inventory_item.id + '?physical_qty=' + new_qty
+        url: "{{=URL('modify_item', args=inventory_item.id, extension='json')}}" + '?physical_qty=' + new_qty
       })
       .done(function (res) {
         physical_qty_input.val(res.inventory_item.physical_qty);
+        info_card('{{=T("Saved")}}', null, 'success');
       })
       .fail(function (res) {
-        alert("{{=T('Could not modify item')}}")
+        info_card('{{=T("Could not modify item")}}', null, 'error');
       })
-    })
+    });
 
-    $('#inventory_items_list').prepend(el_new_inventory_item);
-  }
-
-
-  // recreate inventory items
-  for (index in inventory_items) {
-    var inventory_item = inventory_items[index];
-    var item = inventory_item.id_item;
-    new_inventory_item_element(inventory_item, item)
-  }
+    $('#remove_item_btn').click(function (event) {
+      $.ajax({
+        url: "{{=URL('remove_item', args=inventory_item.id, extension='json')}}"
+      })
+      .done(function (res) {
+        window.location.href = "{{=URL('fill', args=inventory.id, vars=request.vars)}}";
+      })
+      .fail(function (res) {
+        info_card('{{=T("Could not remove item")}}', null, 'error');
+      })
+    });
+  {{ pass }}
 
 
   function success_callback(data, barcode) {
@@ -77,14 +108,7 @@
       url: "{{=URL('add_item', args=inventory.id, extension='json')}}/" + data.id
     })
     .done(function (res) {
-      var el_inventory_items = $('#inventory_item_' + res.inventory_item.id)
-      var el_inventory_item = el_inventory_items[0];
-      if (!el_inventory_items.length) {
-        new_inventory_item_element(res.inventory_item, res.item)
-      }
-      else {
-        $(el_inventory_item).find('.physical_qty').val(res.inventory_item.physical_qty)
-      }
+      window.location.href = "{{=URL('fill', args=inventory.id)}}/" + res.inventory_item.id
     })
     .fail(function (res) { });
   }

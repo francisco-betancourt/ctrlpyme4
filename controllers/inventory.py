@@ -43,27 +43,28 @@ def create():
 
 @auth.requires_membership('Inventories')
 def fill():
-    """ args [ id_inventory ] """
+    """ args [ id_inventory, id_inventory_item ] """
 
     inventory = db.inventory(request.args(0))
     is_partial = inventory.is_partial
     is_valid_inventory(inventory)
 
-    # we use this list to send the inventory items in json format to the client, so it can rebuild the inventory items list
-    json_inventory_items = []
-    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
-    for inventory_item in inventory_items:
-        json_inventory_item = {
-              "id": inventory_item.id
-            , "physical_qty": inventory_item.physical_qty
-            , "id_item": {
-                "id": inventory_item.id_item.id,
-                "name": inventory_item.id_item.name
-            }
-            , "system_qty": inventory_item.system_qty
-        }
-        json_inventory_items.append(json_inventory_item)
-    inventory_items_script = SCRIPT('var inventory_items = %s' % json.dumps(json_inventory_items))
+    def inventory_item_options(row):
+        return OPTION_BTN('edit', URL('fill', args=[inventory.id, row.id], vars=request.vars))
+
+    inventory_item = None
+    if request.args(1):
+        inventory_item = db(
+            (db.inventory_item.id == request.args(1))
+            & (db.inventory_item.id_inventory == inventory.id)
+        ).select().first()
+
+    inventory_items_table = SUPERT(
+        (db.inventory_item.id_inventory == inventory.id)
+        , fields=['id_item.name', 'system_qty', 'physical_qty']
+        , options_func=inventory_item_options
+        , global_options=[]
+    )
 
     return locals()
 
@@ -83,6 +84,25 @@ def modify_item():
     try:
         inventory_item.physical_qty = fix_item_quantity(inventory_item.id_item, DQ(request.vars.physical_qty, True))
         inventory_item.update_record()
+        return locals()
+    except:
+        import traceback
+        traceback.print_exc()
+
+
+@auth.requires_membership('Inventories')
+def remove_item():
+    """ Allows the modification of the physical quantity
+        args [ id_inventory_item ]
+    """
+
+    inventory_item = db.inventory_item(request.args(0))
+    if not inventory_item:
+        raise HTTP(404)
+    if inventory_item.id_inventory.is_done:
+        raise HTTP(405, T("Inventory is done"))
+    try:
+        inventory_item.delete_record()
         return locals()
     except:
         import traceback
@@ -363,5 +383,5 @@ def inventory_options(row):
 
 @auth.requires_membership('Inventories')
 def index():
-    data = common_index('inventory', ['is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False, select_args=dict(orderby=~db.inventory.created_on), global_options=[]))
+    data = common_index('inventory', ['id', 'is_partial', 'is_done', 'created_on'], dict(options_func=inventory_options, searchable=False, select_args=dict(orderby=~db.inventory.created_on), global_options=[]))
     return locals()

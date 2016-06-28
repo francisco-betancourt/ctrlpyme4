@@ -733,13 +733,6 @@ def refund():
     return locals()
 
 
-def sale_row(row):
-    # sale status
-    last_log = db(db.sale_log.id_sale == row.id).select().last()
-    sale_event = last_log.sale_event if last_log else None
-    row.last_log = sale_event or T('Unknown')
-
-
 
 @auth.requires_membership("Sales invoices")
 def index():
