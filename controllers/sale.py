@@ -256,7 +256,8 @@ def cancel():
     db(db.sale_order.id_bag == sale.id_bag.id).delete()
     sale.delete_record()
 
-    redirection()
+    session.info = T('Sale canceled')
+    redirect(URL('default', 'index'))
 
 
 @auth.requires_membership('Sales checkout')
