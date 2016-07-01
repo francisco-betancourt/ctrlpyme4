@@ -44,3 +44,16 @@ def delete():
 def index():
     data = common_index('trait_category', ['name'], dict(options_func=lambda row: supert_default_options(row) + (OPTION_BTN('details', URL('get', args=row.id), title=T('values')),) ) )
     return locals()
+
+
+@auth.requires_membership('Items management')
+def search():
+    """ args: [term] """
+
+    term = request.raw_args.split('/')[0] or ''
+
+    match = db(db.trait_category.name.contains(term)).select(
+        db.trait_category.name, db.trait_category.id
+    )
+
+    return dict(match=match)
