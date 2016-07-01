@@ -73,3 +73,30 @@ def delete():
         query |= (db['trait'].id == arg)
     db(query).update(is_active=False)
     redirect(URL('index', vars=request.vars))
+
+
+
+@auth.requires_membership('Items management')
+def search():
+    """ args: [term] """
+
+    try:
+        raw_args = request.raw_args.split('/')
+        cat_name = raw_args[0]
+        term = ''
+        if len(raw_args) > 1:
+            term = raw_args[1]
+
+        match = db(
+            (db.trait.id_trait_category == db.trait_category.id) &
+            (db.trait_category.name == cat_name) &
+            (db.trait.trait_option.contains(term))
+        ).select(
+            db.trait.trait_option
+        )
+        match = [{'name': r.trait_option} for r in match]
+        return dict(match=match)
+    except:
+        import traceback as tb
+        tb.print_exc()
+        raise HTTP(405)

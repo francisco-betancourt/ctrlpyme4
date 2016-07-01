@@ -37,6 +37,61 @@ def categories_tree_html(categories, item=None):
     return DIV(LABEL(T('Categories'), _class="control-label col-sm-3"), field, _class="form-group")
 
 
+def traits_widget(item=None):
+    # get the item traits
+    traits = item.traits if item else []
+
+    def create_tait_data_container(trait=None):
+        # trait_cat_name = ''
+        # trait_option = ''
+        # trait_category_input_id = 'new_trait_category_name'
+        # trait_option_input_id = 'new_trait_option'
+        # trait_category_list_id = ''
+        # trait_option_list_id
+
+        trait_cat_name = trait.id_trait_category.name if trait else ""
+        trait_option = trait.trait_option if trait else ""
+        id_suffix = '_%s' % trait.id if trait else ''
+        return DIV(
+            DIV(
+                INPUT(_value=trait_cat_name,
+                    _placeholder=T("Trait category name"),
+                    _class='trait-category-name form-control',
+                    _id='new_trait_category_name' + id_suffix,
+                    _list="new_trait_category_name_suggestions"
+                ),
+                TAG['datalist'](_id="new_trait_category_name_suggestions" + id_suffix),
+                _class='trait-input-container'
+            ),
+            DIV(
+                INPUT(_value=trait_option,
+                    _placeholder=T("Trait option"),
+                    _class='trait-option form-control',
+                    _id='new_trait_option' + id_suffix,
+                    _list="new_trait_option_suggestions",
+                    **{'_data-suffix': id_suffix}
+                ),
+                TAG['datalist'](_id="new_trait_option_suggestions" + id_suffix),
+                _class='trait-input-container'
+            ),
+            _class="trait-values"
+        )
+
+    container = DIV(_class="traits-container col-sm-9")
+
+    for trait in traits:
+        container.append(create_tait_data_container(trait))
+    container.append(create_tait_data_container())
+
+    container = DIV(
+        LABEL(T('Traits'), _class="control-label col-sm-3"),
+        container, _class="form-group"
+    )
+
+    return container
+
+
+
 def traits_tree(item_id=None, categories_ids=""):
     try:
         # we need a category in order to retrieve the traits
@@ -153,7 +208,8 @@ def item_form(item=None, is_bundle=False):
     categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
     if categories:
         form[0].insert(4, categories_tree_html(categories, item))
-        form[0].insert(5, trait_selector_html())
+        form[0].insert(5, traits_widget(item))
+        #form[0].insert(5, trait_selector_html())
 
     if form.process().accepted:
         # categories

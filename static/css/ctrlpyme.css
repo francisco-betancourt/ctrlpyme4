@@ -576,3 +576,30 @@ body {
   width: 100px;
   text-align: right;
 }
+
+
+datalist {
+  border: 1px solid;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+datalist > * {
+  padding-left: 15px;
+  display: flex;
+  align-items: center;
+  height: 42px;
+}
+datalist > *:hover {
+  display: flex;
+  align-items: center;
+  height: 42px;
+}
+
+.trait-values {
+  display: flex;
+}
+.trait-input-container {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+}
