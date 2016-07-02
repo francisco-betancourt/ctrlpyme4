@@ -41,134 +41,71 @@ def traits_widget(item=None):
     # get the item traits
     traits = item.traits if item else []
 
-    def create_tait_data_container(trait=None):
-        # trait_cat_name = ''
-        # trait_option = ''
-        # trait_category_input_id = 'new_trait_category_name'
-        # trait_option_input_id = 'new_trait_option'
-        # trait_category_list_id = ''
-        # trait_option_list_id
-
-        trait_cat_name = trait.id_trait_category.name if trait else ""
-        trait_option = trait.trait_option if trait else ""
-        id_suffix = '_%s' % trait.id if trait else ''
+    def create_tait_data_container():
         return DIV(
             DIV(
-                INPUT(_value=trait_cat_name,
+                INPUT(
                     _placeholder=T("Trait category name"),
                     _class='trait-category-name form-control',
-                    _id='new_trait_category_name' + id_suffix,
+                    _id='new_trait_category_name',
                     _list="new_trait_category_name_suggestions"
                 ),
-                TAG['datalist'](_id="new_trait_category_name_suggestions" + id_suffix),
+                TAG['datalist'](_id="new_trait_category_name_suggestions"),
                 _class='trait-input-container'
             ),
             DIV(
-                INPUT(_value=trait_option,
+                INPUT(
                     _placeholder=T("Trait option"),
                     _class='trait-option form-control',
-                    _id='new_trait_option' + id_suffix,
+                    _id='new_trait_option',
                     _list="new_trait_option_suggestions",
-                    **{'_data-suffix': id_suffix}
                 ),
-                TAG['datalist'](_id="new_trait_option_suggestions" + id_suffix),
+                TAG['datalist'](_id="new_trait_option_suggestions"),
                 _class='trait-input-container'
             ),
+            BUTTON(ICON('add'), _class='form-control', _id='new_trait_button'),
             _class="trait-values"
         )
 
     container = DIV(_class="traits-container col-sm-9")
 
+    prototype_list_element = TAG['template'](
+        LI(
+            SPAN( B(_class='trait-name'), SPAN(_class='trait-option') ),
+            ICON('close', _class='right remove-btn'),
+            _class='list-group-item'
+        ), _id='proto_trait_li'
+    )
+    current_traits = UL(_class='added-traits list-group', _id='current_traits')
+    traits_query = None
+    for trait_id in item.traits:
+        if not traits_query:
+            traits_query = (db.trait.id == trait_id)
+        else:
+            traits_query |= db.trait.id == trait_id
+    if traits_query:
+        traits = db(traits_query).select(
+            db.trait.id_trait_category, db.trait.trait_option
+        )
+    else:
+        traits = []
+    traits_selected = ''
     for trait in traits:
-        container.append(create_tait_data_container(trait))
+        traits_selected += trait.id_trait_category.name + ':' + trait.trait_option + ','
+    traits_selected = traits_selected[:-1]
+    container.append(prototype_list_element)
+    container.append(current_traits)
     container.append(create_tait_data_container())
 
     container = DIV(
         LABEL(T('Traits'), _class="control-label col-sm-3"),
-        container, _class="form-group"
+        container,
+        INPUT(_value=traits_selected, _type="text", _hidden=True, _id="traits_selected", _name="traits_selected"
+        ),
+        _class="form-group"
     )
 
     return container
-
-
-
-def traits_tree(item_id=None, categories_ids=""):
-    try:
-        # we need a category in order to retrieve the traits
-        if not categories_ids:
-            return {}
-        categories_ids = categories_ids.split(',')
-        item = db.item(item_id)
-
-        # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
-        query = (db.category.id < 0)
-        for category_id in categories_ids:
-            if category_id:
-                query |= (db.category.id == category_id)
-        categories = db(query).select()
-        query = (db.trait.id < 0)
-        for category in categories:
-            query |= (db.trait.id_trait_category == category.trait_category1)
-            query |= (db.trait.id_trait_category == category.trait_category2)
-            query |= (db.trait.id_trait_category == category.trait_category3)
-        traits = db(query & (db.trait.is_active == True)
-                    ).select(orderby=db.trait.id_trait_category)
-        # creates the trait tree
-        trait_tree = []
-        if not traits:
-            return {}
-        current_trait_category = traits.first().id_trait_category
-        current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
-        for trait in traits:
-            if trait.id_trait_category != current_trait_category:
-                trait_tree.append(current_subtree)
-                current_trait_category = trait.id_trait_category
-                current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
-            node = {"text": trait.trait_option, "trait_id": trait.id}
-            if item:
-                if trait.id in item.traits:
-                    node['state'] = {'selected': True}
-            current_subtree['nodes'].append(node)
-        trait_tree.append(current_subtree)
-        current_trait_category = trait.id_trait_category
-        current_subtree = {"text": current_trait_category.name, "nodes": []}
-        return trait_tree
-    except:
-        import traceback
-        traceback.print_exc()
-
-
-def trait_selector_data():
-    """ treeview based on the selected categories, use this function as json
-
-        args:
-            item_id: the current item (only available on updates)
-        vars:
-            categories: list of categories (separated by comma)
-
-    """
-
-    try:
-        traits = traits_tree(request.args(0), request.vars.categories)
-        if not traits:
-            return dict(status='no traits')
-        return dict(traits=traits)
-    except:
-        import traceback
-        traceback.print_exc()
-
-
-
-def trait_selector_html():
-    """ Returns the trait selector html, for the treeview function """
-    return DIV(
-                LABEL(T('Traits'), _class="control-label col-sm-3"),
-                DIV(DIV(_id="traits_tree"),
-                    INPUT(_type="text", _hidden=True, _id="traits_selected", _name="traits_selected"),
-                    _class="col-sm-9"
-                ),
-                _class="form-group"
-            )
 
 
 def bundle_items_html():
@@ -209,7 +146,6 @@ def item_form(item=None, is_bundle=False):
     if categories:
         form[0].insert(4, categories_tree_html(categories, item))
         form[0].insert(5, traits_widget(item))
-        #form[0].insert(5, trait_selector_html())
 
     if form.process().accepted:
         # categories
@@ -220,7 +156,29 @@ def item_form(item=None, is_bundle=False):
                 continue
             l_categories.append(int(c))
         # add the traits
-        traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
+        traits = []
+        for pair in form.vars.traits_selected.split(','):
+            category_name, option = None, None
+            try:
+                category_name, option = pair.split(':')[:2]
+                cat_id = db(db.trait_category.name == category_name).select().first()
+                if not cat_id:
+                    cat_id = db.trait_category.insert(name=category_name)
+                else:
+                    cat_id = cat_id.id
+                trait_id = db(
+                    (db.trait.id_trait_category == cat_id)
+                    & (db.trait.trait_option == option)
+                ).select().first()
+                if not trait_id:
+                    trait_id = db.trait.insert(trait_option=option, id_trait_category=cat_id)
+                else:
+                    trait_id = trait_id.id
+                traits.append(trait_id)
+            except:
+                import traceback as tb
+                tb.print_exc()
+                continue
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
