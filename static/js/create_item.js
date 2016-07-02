@@ -11,10 +11,11 @@ $('#categories_tree').treeview({
 });
 
 
+var traits_map = {};
+
+
 function fill_datalist(options, target) {
   $(target.list).empty();
-  target.list.style.display = 'block';
-
   for (var index in options) {
     var option = options[index];
     var el_option = $('<option value="' + option.name + '">' + option.name + '</option>\n');
@@ -32,13 +33,11 @@ function search_trait_category_names(target) {
     var options = res.match;
     fill_datalist(options, target);
   })
-  .fail(function(res){
-
-  })
+  .fail(function(res) { });
 }
 
 function search_traits_by_category_name(target) {
-  var cat_name = $('#new_trait_category_name' + target.dataset.suffix).val();
+  var cat_name = $('#new_trait_category_name').val();
   var val = $(target).val();
   $.ajax({
     url: AJAX_SEARCH_TRAITS_URL + '/' + cat_name + '/' + val
@@ -47,13 +46,16 @@ function search_traits_by_category_name(target) {
     var options = res.match;
     fill_datalist(options, target);
   })
-  .fail(function(res){
-
-  })
+  .fail(function(res) { });
 }
 
 
+function avoid_event(event) {
+  return event.keyCode >= 37 && event.keyCode <= 40 || event.keyCode == 13;
+}
+
 $('.trait-category-name').keyup(function (event) {
+  if (avoid_event(event)) return;
   search_trait_category_names(event.target);
 });
 $('.trait-category-name').on('focusin', function (event) {
@@ -62,6 +64,7 @@ $('.trait-category-name').on('focusin', function (event) {
 
 
 $('.trait-option').on('keyup', function (event) {
+  if (avoid_event(event)) return;
   search_traits_by_category_name(event.target);
 });
 $('.trait-option').on('focusin', function (event) {
@@ -71,60 +74,60 @@ $('.trait-option').on('focusin', function (event) {
 
 $('.trait-category-name, .trait-option').on('focusout', function (event) {
   $(event.target.list).empty();
-  event.target.list.style.display = 'none';
 });
 
 
-function update_categories_and_traits() {
-  var selected_categories = $('#categories_selected').val();
-  $.ajax({
-    url: "/ctrlpyme4/item/trait_selector_data.json/" + item_id + "?categories=" + selected_categories
-  })
-  .done(function(data) {
-    // create the traits tree.
-    if (data.status == "no traits") {
-      $('#traits_tree *').remove();
-      return;
-    }
-    $('#traits_tree').treeview({
-      data: data.traits,
-      multiSelect: true,
-      selectedIcon: 'fa fa-check',
-      expandIcon: 'fa fa-plus',
-      collapseIcon: 'fa fa-minus',
-      highlightSelected: false,
-      levels: 1
+var proto_trait_li = document.getElementById('proto_trait_li');
+function update_traits_list() {
+  $('#current_traits').empty();
+  var s = "";
+  for (var k in traits_map) {
+    var trait_option = traits_map[k];
+    s += k + ':' + trait_option + ',';
+    var new_trait = $(document.importNode(proto_trait_li.content, true));
+    new_trait.find('.trait-name').text(k + ' : ');
+    new_trait.find('.trait-option').text(trait_option);
+    var remove_btn = new_trait.find('.remove-btn');
+    remove_btn.attr('data-key', k);
+    remove_btn.click(function (event) {
+      var key = $(this).attr('data-key');
+      delete traits_map[key];
+      $(this).parent().remove();
     });
-
-    $('#traits_tree').bind('nodeSelected nodeUnselected', function(event, node) {
-      var siblings = $('#traits_tree').treeview('getSiblings', node);
-      var selected_traits = "";
-      for(var i = 0; i < siblings.length; i++) {
-        $('#traits_tree').treeview('unselectNode', [ siblings[i], { silent: true } ]);
-      }
-      var selected = $('#traits_tree').treeview('getSelected');
-      var selected_traits = "";
-      for(var i = 0; i < selected.length; i++) {
-        selected_traits += selected[i].trait_id;
-        if (i < selected.length - 1) {
-          selected_traits += ',';
-        }
-      }
-      $('#traits_selected').prop('value', selected_traits);
-    });
-
-  })
-  .fail(function(data) {
-    console.log(data);
-  });
+    $('#current_traits').append(new_trait);
+  }
+  s = s.slice(0,-1);
+  $('#traits_selected').val(s);
 }
 
-update_categories_and_traits();
-try {
-  $('#traits_selected').prop('value', initial_selected_traits);
-} catch (ex) {
-  console.log('initial_traits_selected not defined');
+$('#new_trait_button').click(function (event) {
+  event.preventDefault();
+  var cat_name = $('#new_trait_category_name').val();
+  var option = $('#new_trait_option').val();
+  if (!option || !cat_name) return;
+  traits_map[cat_name] = option;
+  update_traits_list();
+  $('#new_trait_category_name').val("");
+  $('#new_trait_option').val("");
+})
+
+
+function update_traits_map_from_selected_traits() {
+  var initial_selected = $('#traits_selected').val();
+  if (!initial_selected) return;
+
+  var subs = initial_selected.split(',');
+  console.log(subs);
+  for (var index in subs) {
+    var kv = subs[index].split(':')
+    cat_name = kv[0]
+    option = kv[1]
+    traits_map[cat_name] = option;
+  }
+  update_traits_list();
 }
+
+update_traits_map_from_selected_traits();
 
 
 
@@ -153,7 +156,6 @@ $('#categories_tree').bind('nodeChecked nodeUnchecked', function(event, node) {
     }
   }
   $('#categories_selected').attr('value', selected_categories);
-  update_categories_and_traits();
 });
 
 

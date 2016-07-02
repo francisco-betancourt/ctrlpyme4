@@ -578,23 +578,6 @@ body {
 }
 
 
-datalist {
-  border: 1px solid;
-  margin-bottom: 20px;
-  border-radius: 4px;
-}
-datalist > * {
-  padding-left: 15px;
-  display: flex;
-  align-items: center;
-  height: 42px;
-}
-datalist > *:hover {
-  display: flex;
-  align-items: center;
-  height: 42px;
-}
-
 .trait-values {
   display: flex;
 }
@@ -602,4 +585,10 @@ datalist > *:hover {
   display: flex;
   flex-direction: column;
   flex: auto;
+}
+.trait-input-container input {
+  margin-right: 18px;
+}
+.trait-values .form-control {
+  width: auto;
 }

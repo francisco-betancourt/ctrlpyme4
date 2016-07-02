@@ -616,6 +616,7 @@
 'Only alphanumeric characters or - are allowed': 'Solo caracteres alfanuméricos y - están permitidos',
 'Option': 'Opción',
 'Options': 'Opciones',
+'Options not specified': 'Options not specified',
 'Or': 'O',
 'or': 'o',
 'or import from csv file': 'o importar desde archivo CSV',
