@@ -315,19 +315,20 @@ def get_item():
         query &= db.item.is_active == True
     item = db(query).select().first()
 
-    if not item:
+    if not item or request.vars.name:
         item_name = request.vars.name
 
         # when traits are specified, only one item with the specified name and traits should match
         # this is the first item
         if request.vars.traits:
             traits = request.vars.traits.split(',')
-            item = db(
-                (db.item.name == item_name)
-              & (db.item.traits.contains(traits, all=True))
-              & (db.item.is_active == True)
-            ).select().first()
-        else:
+            if not item:
+                item = db(
+                    (db.item.name == item_name)
+                  & (db.item.traits.contains(traits, all=True))
+                  & (db.item.is_active == True)
+                ).select().first()
+        elif not item:
             item = db(
                 (db.item.name == item_name)
               & (db.item.is_active == True)
@@ -352,7 +353,7 @@ def get_item():
         #same_traits = True
         trait_options = {}
 
-        if multiple_items and item.traits:
+        if multiple_items:
             # check if all the items have the same traits
             for other_item in other_items:
                 # other_trait_categories = [str(t.id_trait_category.id) for t in item.traits]
