@@ -77,18 +77,20 @@ def traits_widget(item=None):
         ), _id='proto_trait_li'
     )
     current_traits = UL(_class='added-traits list-group', _id='current_traits')
-    traits_query = None
-    for trait_id in item.traits:
-        if not traits_query:
-            traits_query = (db.trait.id == trait_id)
+
+    if item:
+        traits_query = None
+        for trait_id in item.traits:
+            if not traits_query:
+                traits_query = (db.trait.id == trait_id)
+            else:
+                traits_query |= db.trait.id == trait_id
+        if traits_query:
+            traits = db(traits_query).select(
+                db.trait.id_trait_category, db.trait.trait_option
+            )
         else:
-            traits_query |= db.trait.id == trait_id
-    if traits_query:
-        traits = db(traits_query).select(
-            db.trait.id_trait_category, db.trait.trait_option
-        )
-    else:
-        traits = []
+            traits = []
     traits_selected = ''
     for trait in traits:
         traits_selected += trait.id_trait_category.name + ':' + trait.trait_option + ','
@@ -142,42 +144,46 @@ def item_form(item=None, is_bundle=False):
     form.append(SCRIPT(name_change_script));
 
     # categories
-    categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
+    categories = db(
+        db.category.is_active==True
+    ).select(orderby=~db.category.parent)
     if categories:
         form[0].insert(4, categories_tree_html(categories, item))
         form[0].insert(5, traits_widget(item))
 
     if form.process().accepted:
         # categories
-        form.vars.categories_selected
-        l_categories = []
+        l_categories = []  # categories selected
         for c in (form.vars.categories_selected or '').split(','):
             if not c:
                 continue
             l_categories.append(int(c))
-        # add the traits
+        # traits
         traits = []
-        for pair in form.vars.traits_selected.split(','):
-            category_name, option = None, None
+        # only accept the first 10 traits
+        for pair in form.vars.traits_selected.split(',')[:10]:
             try:
                 category_name, option = pair.split(':')[:2]
-                cat_id = db(db.trait_category.name == category_name).select().first()
-                if not cat_id:
-                    cat_id = db.trait_category.insert(name=category_name)
+                trait_cat_id = db(
+                    db.trait_category.name == category_name
+                ).select().first()
+                if not trait_cat_id:
+                    trait_cat_id = db.trait_category.insert(name=category_name)
                 else:
-                    cat_id = cat_id.id
+                    trait_cat_id = trait_cat_id.id
                 trait_id = db(
-                    (db.trait.id_trait_category == cat_id)
+                    (db.trait.id_trait_category == trait_cat_id)
                     & (db.trait.trait_option == option)
                 ).select().first()
                 if not trait_id:
-                    trait_id = db.trait.insert(trait_option=option, id_trait_category=cat_id)
+                    trait_id = db.trait.insert(
+                        trait_option=option,
+                        id_trait_category=trait_cat_id
+                    )
                 else:
                     trait_id = trait_id.id
                 traits.append(trait_id)
             except:
-                import traceback as tb
-                tb.print_exc()
                 continue
 
         db.item(form.vars.id).update_record(
@@ -190,7 +196,6 @@ def item_form(item=None, is_bundle=False):
             redirect(URL('fill_bundle', args=form.vars.id))
         else:
             redirection(URL('index'))
-            # redirect(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
@@ -303,15 +308,18 @@ def get_item():
     same_traits = False
     multiple_items = False
     query = (db.item.id == request.args(0))
+
+    return_data = dict()
+
     if not auth.is_logged_in() or (auth.user and auth.user.is_client):
         query &= db.item.is_active == True
     item = db(query).select().first()
+
     if not item:
         item_name = request.vars.name
 
         # when traits are specified, only one item with the specified name and traits should match
         # this is the first item
-        item = None
         if request.vars.traits:
             traits = request.vars.traits.split(',')
             item = db(
@@ -327,46 +335,62 @@ def get_item():
         if not item:
             raise HTTP(404)
 
-        # since the could be multiple items with the same name, we query all the items with the specified name different than the first item
-        items = db(
+        # base_trait_categories = [str(t.id_trait_category.id) for t in item.traits]
+        # base_trait_categories.sort()
+        # base_trait_categories = ','.join(base_trait_categories)
+        item.traits_str = ','.join([str(t.id) for t in item.traits])
+
+        # since there could be multiple items with the same name, we query all the items with the specified name different than the first item
+        other_items = db(
             (db.item.name == item_name)
           & (db.item.id != item.id)
           & (db.item.is_active == True)
         ).select()
-        if items > 1:
+        if other_items > 1:
             multiple_items = True
 
-        same_traits = True
-        base_trait_category_set = []
+        #same_traits = True
         trait_options = {}
 
         if multiple_items and item.traits:
-            other_items = items
-            for trait in item.traits:
-                base_trait_category_set.append(trait.id_trait_category)
-                trait_options[str(trait.id_trait_category.id)] = {
-                    'id': trait.id_trait_category.id,
-                    'options': [{'name': trait.trait_option, 'id': trait.id}]
-                }
-            base_trait_category_set = set(base_trait_category_set)
             # check if all the items have the same traits
-            broken = False
             for other_item in other_items:
-                other_trait_category_set = []
-                if not other_item.traits and item.traits:
-                    same_traits = False
-                    break
-                for trait in other_item.traits:
-                    other_trait_category_set.append(trait.id_trait_category)
-                    if not trait.id_trait_category in base_trait_category_set:
-                        same_traits = False
-                        broken = True
-                        break
-                    trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
-                if broken:
-                    break
+                # other_trait_categories = [str(t.id_trait_category.id) for t in item.traits]
+                # other_trait_categories.sort()
+                # other_trait_categories = ','.join(other_trait_categories)
+                other_item.traits_str = ','.join([str(t.id) for t in other_item.traits])
+
+                # if base_trait_categories != other_trait_categories:
+                #     same_traits = False
+                #     break
+        return_data['other_items'] = other_items
+
     if not item:
         raise HTTP(404)
+
+
+    # in this case we can add a selector for every trait
+    # if same_traits:
+    #     for trait in item.traits:
+    #         trait_category = trait.id_trait_category
+    #         trait_options[str(trait_category.id)] = {
+    #             'name': trait_category.name,
+    #             'options': {}
+    #         }
+    #         trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
+    #             'name': trait.trait_option, 'id': trait.id
+    #         }
+    #     for other_item in other_items:
+    #         for trait in other_item.traits:
+    #             trait_category = trait.id_trait_category
+    #             if trait_options[str(trait_category.id)]['options'].has_key(
+    #                 str(trait.id)
+    #             ):
+    #                 continue
+    #             trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
+    #                 'name': trait.trait_option, 'id': trait.id
+    #             }
+    #     return_data['trait_options'] = trait_options
 
     new_price = item.base_price or 0
     discounts = item_discounts(item)
@@ -390,7 +414,16 @@ def get_item():
     page_title = item.name
     page_description = item.description + ' ' + ', '.join([cat.name for cat in  item.categories])
 
-    return locals()
+    return_data['item'] = item
+    return_data['images'] = images
+    return_data['page_title'] = page_title
+    return_data['page_description'] = page_description
+    return_data['stock'] = stock
+    return_data['discounts'] = discounts
+    return_data['same_traits'] = same_traits
+    return_data['multiple_items'] = multiple_items
+
+    return return_data
 
 
 def find_by_code():
