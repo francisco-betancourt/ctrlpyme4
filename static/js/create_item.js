@@ -94,7 +94,9 @@ function update_traits_list() {
     remove_btn.click(function (event) {
       var key = $(this).attr('data-key');
       delete traits_map[key];
+      console.log(traits_map);
       $(this).parent().remove();
+      update_selected_traits_input();
     });
     $('#current_traits').append(new_trait);
   }
@@ -112,6 +114,17 @@ $('#new_trait_button').click(function (event) {
   $('#new_trait_category_name').val("");
   $('#new_trait_option').val("");
 })
+
+
+function update_selected_traits_input() {
+  var s = "";
+  for (var k in traits_map) {
+    var trait_option = traits_map[k];
+    s += k + ':' + trait_option + ',';
+  }
+  s = s.slice(0,-1);
+  $('#traits_selected').val(s);
+}
 
 
 function update_traits_map_from_selected_traits() {
@@ -169,7 +182,7 @@ $('#category_search').bind('change paste keyup', function(event) {
     exactMatch: false,    // like or equals
     revealResults: true  // reveal matching nodes
   }]);
-})
+});
 
 $("#item_is_bundle").on('click', function(event) {
   if (event.target.checked) {
