@@ -12,6 +12,7 @@ $('#categories_tree').treeview({
 
 
 var traits_map = {};
+var traits_count = 0;
 
 
 function fill_datalist(options, target) {
@@ -51,6 +52,7 @@ function search_traits_by_category_name(target) {
 
 
 function avoid_event(event) {
+  // avoid submit when pressing arrow keys
   return event.keyCode >= 37 && event.keyCode <= 40 || event.keyCode == 13;
 }
 
@@ -117,7 +119,6 @@ function update_traits_map_from_selected_traits() {
   if (!initial_selected) return;
 
   var subs = initial_selected.split(',');
-  console.log(subs);
   for (var index in subs) {
     var kv = subs[index].split(':')
     cat_name = kv[0]

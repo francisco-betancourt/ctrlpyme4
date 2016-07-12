@@ -98,12 +98,13 @@
 {{try:}}
   {{if multiple_items:}}
     {{if same_traits:}}
-      {{for trait_c in base_trait_category_set:}}
-        <h3>{{=trait_c.name}}</h3>
+      {{for key in trait_options.iterkeys():}}
+        {{ trait_c = trait_options[key] }}
+        <h3>{{=trait_c['name']}}</h3>
         <select id="trait_selector" class="form-control trait-selector">
-          {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
-            <option value="{{=trait_option['id']}}">
-              {{=trait_option['name']}}
+          {{for tkey in trait_c['options'].iterkeys():}}
+            <option value="{{ =trait_c['options'][tkey]['id'] }}">
+              {{ =trait_c['options'][tkey]['name'] }}
             </option>
           {{pass}}
         </select>
@@ -111,15 +112,20 @@
     {{else:}}
       <h3>{{=T('Options')}}</h3>
       <select id="trait_selector" class="form-control trait-selector">
-        {{for item in items:}}
-          <option value="{{=item.id}}">
-            {{if not item.traits:}}
-              {{=T('Options not specified')}}
-            {{else:}}
-              {{for trait in item.traits:}}
-                {{=trait.trait_option}}
-              {{pass}}
-            {{pass}}
+        <option value="{{=item.id}}" data-traits="{{=item.traits_str}}">
+          {{ for trait in item.traits: }}
+            {{=trait.id_trait_category.name}}: {{ =trait.trait_option }}
+          {{ pass }}
+        </option>
+        {{ for other_item in other_items: }}
+          <option value="{{=other_item.id}}" data-traits="{{=other_item.traits_str}}">
+            {{ if not other_item.traits: }}
+              {{ =T('Options not specified') }}
+            {{ else: }}
+              {{ for trait in other_item.traits: }}
+                {{=trait.id_trait_category.name}}: {{ =trait.trait_option }}
+              {{ pass }}
+            {{ pass }}
           </option>
         {{pass}}
       </select>
@@ -128,9 +134,17 @@
 {{except:}}
   <div></div>
 {{pass}}
+
+
+<hr>
 <h3>{{=T('Description')}}</h3>
 <div id="description">
   {{=MARKMIN(item.description)}}
+
+  {{ for trait in item.traits: }}
+    <p><b>{{=trait.id_trait_category.name}}:</b> {{=trait.trait_option}} </p>
+  {{ pass }}
+
   {{if item.is_bundle:}}
   <h4>{{=T('This bundle contains')}}</h4>
   <ul>
@@ -187,6 +201,11 @@
       current_item_id = data.item.id;
 
       // load selected item images
+      if (!data.images[0]) {
+        $('#item_image').attr('src', "{{=URL('static', 'images/no_image.svg')}}");
+        return;
+      }
+
       $('#item_image').attr('src', download_url + data.images[0].lg);
       $('.img-thumb').remove();
       for (var index in data.images) {
@@ -205,7 +224,23 @@
 
 
   $('#trait_selector').on('change', function (event) {
-    select_traits(event);
+    var url = "{{=URL('get_item')}}";
+    selected_traits = '';
+    {{if same_traits:}}
+      $('.trait-selector').each(function (index) {
+        if (index > 0) {
+          selected_traits += ','
+        }
+        selected_traits += $(this).val();
+      });
+    {{else:}}
+      var option = event.target.options[event.target.selectedIndex];
+      selected_traits = option.dataset.traits;
+    {{pass}}
+    console.log(selected_traits);
+
+    url += '?name={{=item.name}}&traits=' + selected_traits;
+    window.location.href = url;
   });
 
   function update_item(item_id) {
