@@ -359,3 +359,39 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
                              id_store=session.store,
                              taxes=0, **target_data
                              )
+
+
+def create_traits_ref_list(traits_str):
+    """ given a string of encoded traits, create a list of ids for every trait, creating them if they do not exist.
+
+        trait string format is a comma separated list of:
+        category_name:trait_option
+    """
+
+    db = current.db
+
+    traits = []
+    # only accept the first 10 traits
+    for pair in traits_str.split(',')[:10]:
+        category_name, option = pair.split(':')[:2]
+        trait_cat_id = db(
+            db.trait_category.name == category_name
+        ).select().first()
+        if not trait_cat_id:
+            trait_cat_id = db.trait_category.insert(name=category_name)
+        else:
+            trait_cat_id = trait_cat_id.id
+        trait_id = db(
+            (db.trait.id_trait_category == trait_cat_id)
+            & (db.trait.trait_option == option)
+        ).select().first()
+        if not trait_id:
+            trait_id = db.trait.insert(
+                trait_option=option,
+                id_trait_category=trait_cat_id
+            )
+        else:
+            trait_id = trait_id.id
+        traits.append(trait_id)
+
+    return traits
