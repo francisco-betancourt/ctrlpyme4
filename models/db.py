@@ -418,17 +418,9 @@ db.define_table("category",
     Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
     Field("icon", "upload", default=None, label=T('Icon'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field("parent", "reference category", label=T('Parent category'), readable=False, writable=False),
-    # used to group items and provide the group with custom traits. categories with this attribute can not have parent nor children, and does not show in the categories, tree, it
-    # Field("is_ghost", 'boolean', default=False, readable=False, writable=False),
-    Field("trait_category1", "reference trait_category", label=T('Trait')+" 1"),
-    Field("trait_category2", "reference trait_category", label=T('Trait')+" 2"),
-    Field("trait_category3", "reference trait_category", label=T('Trait')+" 3"),
     auth.signature)
 db.category.name.requires = not_empty_requires
-db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db(db.category.is_active == True), 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s %(trait_category1)s %(trait_category2)s %(trait_category3)s'))
-db.category.trait_category1.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
-db.category.trait_category2.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
-db.category.trait_category3.requires=IS_EMPTY_OR(IS_IN_DB( db(db.trait_category.is_active == True), 'trait_category.id', ' %(name)s'))
+db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db(db.category.is_active == True), 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s'))
 
 
 db.define_table("trait",
