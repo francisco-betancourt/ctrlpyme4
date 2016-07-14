@@ -322,7 +322,7 @@ def get_item():
           & (db.item.id != item.id)
           & (db.item.is_active == True)
         ).select()
-        if len(other_items) > 1:
+        if len(other_items) > 0:
             multiple_items = True
 
         #same_traits = True
