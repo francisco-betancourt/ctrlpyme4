@@ -27,10 +27,12 @@ CONF = AppConfig(reload=True)
 
 # constants definitions
 FLOW_BASIC = 0  # seller and manager
+
+# one person list the items, other checkouts and other delivers
 FLOW_MULTIROLE = 1
+
 # reduce the common employe permissions to the mimimum
 FLOW_DICTATOR = 2
-FLOW_CUSTOM = 3
 
 
 
@@ -51,12 +53,10 @@ class AccessCard:
 
 class Workflow:
     _cards = []
-    _flow = {}
     _data = {}
 
     def __init__(self, cards, data):
         self._cards = cards
-        self._flow = data['flow']
         self._data = data
 
     def cards(self):
@@ -68,20 +68,12 @@ class Workflow:
         else:
             raise None
 
-    def next(self, controller, function, user):
-        key = '%s_%s' % (controller, function)
-        if self._flow.has_key(key):
-            if user.access_card_index in self._flow[key]['required']:
-                return self._flow[key]['next']
-            else:
-                return self._flow[key]['invalid']
-
 
 def get_workflows():
     T = current.T
 
-    return [Workflow(
-        [
+    return [
+        Workflow([
             AccessCard({
                 'name': T('Seller'),
                 'description': T('Employees with this card can create and delete and sell bags (checkout and deliver items), modify basic items information like its name, categories and pictures, return items'),
@@ -93,17 +85,31 @@ def get_workflows():
                 'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss', 'Safe config'
                 ]
             })
-        ],
-        {
-            'flow': {
-                'bag_complete': {
-                    'next': URL('sale', 'create'),
-                    'required': [0, 1],
-                    'invalid': URL('bag', 'ticket')
-                },
-            }
-        }
-    )]
+        ], {}),
+        Workflow([
+            AccessCard({
+                'name': T('Bags'),
+                'description': T('Employees with this card can create bag but they can\'t checkout or deliver products'),
+                'groups': ['Sales bags']
+            }),
+            AccessCard({
+                'name': T('Checkout'),
+                'description': T('Employees with this card can process a bag ticket in order to checkout, but they can\'t deliver the merchandise'),
+                'groups': ['Sales checkout', 'Sales invoices', 'Sales returns', 'Sale orders']
+            }),
+            AccessCard({
+                'name': T('Delivery'),
+                'description': T('Employees with this card can deliver merchandise already paid'),
+                'groups': ['Sales delivery']
+            }),
+            AccessCard({
+                'name': T('Manager'),
+                'description': T('Manager employees can create inventories, make purchases, change item prices, sell items at diferent prices, create invoices, make cash outs and view analytic data'),
+                'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss', 'Safe config'
+                ]
+            })
+        ], {})
+    ]
 
 WORKFLOW_DATA = get_workflows()
 

@@ -122,65 +122,7 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # auth.enable_record_versioning(db)
 
 
-# #TODO:60 move validators to a module
-# validators
-class IS_BARCODE_AVAILABLE(object):
-    """ checks if the object barcode has been already used """
-
-    def __init__(self, db, barcode='', error_message=T('Barcode already used')):
-        self.db = db;
-        self.barcode = barcode
-        self.error_message = error_message
-        self.record_id = None
-    def set_self_id(self, id):
-        self.record_id = id
-    def __call__(self, value):
-        if not value:
-            return (value, None)
-
-        barcodes = None
-        # update case
-        if self.record_id:
-            barcodes = self.db((self.db.item.id != self.record_id)
-                               & ((self.db.item.sku == self.barcode)
-                                | (self.db.item.ean == self.barcode)
-                                | (self.db.item.upc == self.barcode))
-                             ).select().first()
-        # creation case
-        else:
-            barcodes = self.db((self.db.item.sku == self.barcode)
-                             | (self.db.item.ean == self.barcode)
-                             | (self.db.item.upc == self.barcode)
-                             ).select().first()
-        if not barcodes:
-            return (value, None)
-        else:
-            return (value, self.error_message)
-    def formatter(self, value):
-        return value
-
-
-# class HAS_BARCODE(object):
-#     def __init__(self, sku, ean, upc, error_message=T('Barcode already used')):
-#         self.barcode1 = sku
-#         self.barcode2 = ean
-#         self.barcode3 = upc
-#         self.error_message = error_message
-#     def __call__(self, value, value2, value3):
-#         if not (value or value2 or value3):
-#             return ()
-#         if not value:
-#             return (value, None)
-#         barcodes = self.db((self.db.item.sku == self.barcode)
-#                     | (self.db.item.ean == self.barcode)
-#                     | (self.db.item.upc == self.barcode)
-#                      ).select()
-#         if not barcodes:
-#             return (value, None)
-#         else:
-#             return (value, self.error_message)
-#     def formatter(self, value):
-#         return value
+from custom_validators import *
 
 
 not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
