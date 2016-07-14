@@ -159,32 +159,7 @@ def item_form(item=None, is_bundle=False):
                 continue
             l_categories.append(int(c))
         # traits
-        traits = []
-        # only accept the first 10 traits
-        for pair in form.vars.traits_selected.split(',')[:10]:
-            try:
-                category_name, option = pair.split(':')[:2]
-                trait_cat_id = db(
-                    db.trait_category.name == category_name
-                ).select().first()
-                if not trait_cat_id:
-                    trait_cat_id = db.trait_category.insert(name=category_name)
-                else:
-                    trait_cat_id = trait_cat_id.id
-                trait_id = db(
-                    (db.trait.id_trait_category == trait_cat_id)
-                    & (db.trait.trait_option == option)
-                ).select().first()
-                if not trait_id:
-                    trait_id = db.trait.insert(
-                        trait_option=option,
-                        id_trait_category=trait_cat_id
-                    )
-                else:
-                    trait_id = trait_id.id
-                traits.append(trait_id)
-            except:
-                continue
+        traits = create_traits_ref_list(request.vars.selected_traits)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),

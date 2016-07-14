@@ -253,12 +253,11 @@ def modify_stock_item():
 def add_item_and_stock_item():
     """ Adds the item specified by the form, then add a purchase item whose id_item is the id of the newly created item, and its id_purchase is the specified purchase
 
-        args
-            id_purchase
-        vars:
-            all the item form fields
+        args: [id_purchase]
+        vars: [all the item form fields]
 
     """
+    from item_utils import create_traits_ref_list
 
     purchase = db.purchase(request.args(0))
     valid_purchase(purchase)
@@ -281,12 +280,9 @@ def add_item_and_stock_item():
 
     # add the traits
     if request.vars.traits and request.vars.traits != 'undefined':
-        item_data['traits'] = []
-        for c in request.vars.traits.split(','):
-            try:
-                item_data['traits'].append(int(c))
-            except:
-                pass
+        print request.vars.traits
+        item_data['traits'] = create_traits_ref_list(request.vars.traits)
+        print item_data['traits']
     else:
         item_data['traits'] = None
     if request.vars.taxes and request.vars.taxes != 'undefined':
