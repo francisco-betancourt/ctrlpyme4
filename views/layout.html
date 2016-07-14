@@ -23,7 +23,11 @@
     <script type="text/javascript">
       {{ include '../static/js/modernizr-2.8.3.min.js'}}
       {{ include '../static/js/jquery.js'}}
-      
+
+      // some constants
+      var AJAX_SEARCH_TRAIT_CATEGORIES_URL = "{{=URL('trait_category', 'search', extension='json')}}";
+      var AJAX_SEARCH_TRAITS_URL = "{{=URL('trait', 'search', extension='json')}}";
+
       function add_bag_item() {
         show_container('bag_container');
       }

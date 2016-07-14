@@ -28,6 +28,12 @@ from item_utils import item_discounts, apply_discount, item_stock, remove_stocks
 from constants import *
 
 
+def create_sale_event(sale, event_name, event_date=request.now):
+    sale.last_log_event = event_name
+    sale.last_log_event_date = event_date
+    return db.sale_log.insert(id_sale=sale.id, sale_event=event_name, event_date=event_date)
+
+
 def ticket():
     redirect( URL( 'ticket', 'get', vars=dict(id_sale=request.args(0)) ) )
 
@@ -250,7 +256,8 @@ def cancel():
     db(db.sale_order.id_bag == sale.id_bag.id).delete()
     sale.delete_record()
 
-    redirection()
+    session.info = T('Sale canceled')
+    redirect(URL('default', 'index'))
 
 
 @auth.requires_membership('Sales checkout')
@@ -427,10 +434,10 @@ def complete():
     store = db(db.store.id == session.store).select(for_update=True).first()
     sale.consecutive = store.consecutive
     sale.is_done = True
+    create_sale_event(sale, SALE_PAID)
+    sale.update_record()
     store.consecutive += 1;
     store.update_record()
-    sale.update_record()
-    db.sale_log.insert(id_sale=sale.id, sale_event=SALE_PAID)
 
     # if defered sale, remove sale order
     db(db.sale_order.id_sale == sale.id).delete()
@@ -448,7 +455,8 @@ def complete():
     else:
         bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
         remove_stocks(bag_items)
-        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
+        create_sale_event(sale, SALE_DELIVERED)
+        sale.update_record()
         redirect( URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index')) ) )
 
 
@@ -471,8 +479,8 @@ def defer():
     # if defered function is called on a defered sale, we skip the following steps
     if not sale.is_defered:
         sale.is_defered = True
+        create_sale_event(sale, SALE_DEFERED)
         sale.update_record()
-        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DEFERED)
 
         # create sale order based on the
         db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
@@ -500,7 +508,8 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
-        db.sale_log.insert(id_sale=sale.id, sale_event=SALE_DELIVERED)
+        create_sale_event(sale, SALE_DELIVERED)
+        sale.update_record()
 
     return locals()
 
@@ -725,25 +734,26 @@ def refund():
     return locals()
 
 
-def sale_row(row):
-    # sale status
-    last_log = db(db.sale_log.id_sale == row.id).select().last()
-    sale_event = last_log.sale_event if last_log else None
-    row.last_log = sale_event or T('Unknown')
-
-
-def sale_options(row):
-    return OPTION_BTN('receipt', URL('ticket', args=row.sale.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
-
-
 
 @auth.requires_membership("Sales invoices")
 def index():
+    def sale_options(row):
+        return OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
+
+    def status_format(r, f):
+        if r[f[0]]:
+            return A(T(r[f[0]]), _href=URL('index', vars=dict(term_0=r[f[0]]) ))
+        return '???'
+
     data = SUPERT(
-        (db.sale_log.id_sale == db.sale.id)
-        & (db.sale.id_store == session.store)
-        , select_args=dict(orderby=~db.sale.id, distinct=db.sale.id),
-        fields=['sale.consecutive', 'sale.subtotal', 'sale.total', 'sale_log.sale_event', 'sale.created_on' ],
-        options_func=sale_options,
-        base_table_name='sale', global_options=[])
+        (db.sale.id_store == session.store)
+        , fields=['consecutive', 'subtotal', 'total',
+            dict(
+                fields=['last_log_event'],
+                label_as=T("Status"),
+                custom_format=status_format
+            ),
+            'created_on'
+        ],
+        options_func=sale_options, global_options=[])
     return locals()

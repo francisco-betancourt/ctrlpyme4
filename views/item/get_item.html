@@ -95,42 +95,47 @@
 {{end}}
 
 
-{{try:}}
-  {{if multiple_items:}}
-    {{if same_traits:}}
-      {{for trait_c in base_trait_category_set:}}
-        <h3>{{=trait_c.name}}</h3>
-        <select id="trait_selector" class="form-control trait-selector">
-          {{for trait_option in trait_options[str(trait_c.id)]['options']:}}
-            <option value="{{=trait_option['id']}}">
-              {{=trait_option['name']}}
-            </option>
-          {{pass}}
-        </select>
-      {{pass}}
-    {{else:}}
-      <h3>{{=T('Options')}}</h3>
+{{if multiple_items:}}
+  {{if same_traits:}}
+    {{for key in trait_options.iterkeys():}}
+      {{ trait_c = trait_options[key] }}
+      <h3>{{=trait_c['name']}}</h3>
       <select id="trait_selector" class="form-control trait-selector">
-        {{for item in items:}}
-          <option value="{{=item.id}}">
-            {{if not item.traits:}}
-              {{=T('Options not specified')}}
-            {{else:}}
-              {{for trait in item.traits:}}
-                {{=trait.trait_option}}
-              {{pass}}
-            {{pass}}
+        {{for tkey in trait_c['options'].iterkeys():}}
+          <option value="{{ =trait_c['options'][tkey]['id'] }}">
+            {{ =trait_c['options'][tkey]['name'] }}
           </option>
         {{pass}}
       </select>
     {{pass}}
+  {{else:}}
+    <h3>{{=T('Options')}}</h3>
+    <select id="trait_selector" class="form-control trait-selector">
+      {{ for other_item in [item] + other_items.as_list(): }}
+        <option value="{{=other_item['id']}}" data-traits="{{=other_item['traits_str']}}">
+          {{ if not other_item['traits']: }}
+            {{ =T('Options not specified') }}
+          {{ else: }}
+            {{ for trait in other_item['traits']: }}
+              {{=trait['id_trait_category'].name}}: {{ =trait.trait_option }}
+            {{ pass }}
+          {{ pass }}
+        </option>
+      {{pass}}
+    </select>
   {{pass}}
-{{except:}}
-  <div></div>
+  <hr>
 {{pass}}
+
+
 <h3>{{=T('Description')}}</h3>
 <div id="description">
   {{=MARKMIN(item.description)}}
+
+  {{ for trait in item.traits: }}
+    <p><b>{{=trait.id_trait_category.name}}:</b> {{=trait.trait_option}} </p>
+  {{ pass }}
+
   {{if item.is_bundle:}}
   <h4>{{=T('This bundle contains')}}</h4>
   <ul>
@@ -160,52 +165,29 @@
     $('#item_image').attr('src', path);
   }
 
-  function select_traits(event) {
-    var url = "{{=URL('get_item', extension='json')}}";
+
+  $('#trait_selector').on('change', function (event) {
+    var url = "{{=URL('get_item')}}";
+    var selected_traits = '';
+    var item_id = '';
     {{if same_traits:}}
-      selected_traits = '';
       $('.trait-selector').each(function (index) {
         if (index > 0) {
           selected_traits += ','
         }
         selected_traits += $(this).val();
       });
-      url += '?name={{=item.name}}&traits=' + selected_traits;
     {{else:}}
-      url += '/' + $(event.target).val();
+      var option = event.target.options[event.target.selectedIndex];
+      selected_traits = option.dataset.traits;
+      item_id = option.value;
     {{pass}}
 
-    $.ajax({
-      url: url
-    })
-    .done(function (data) {
-      $('.barcode').text(data.item.barcode);
-      $('.item-price').text(data.item.base_price);
-      $('.discounted_price').text(data.item.discounted_price);
-      $('.discount_percentage').text(data.item.discount_percentage);
-      $('.stock').html(data.stock);
-      current_item_id = data.item.id;
+    if (!selected_traits)
+      url += '/' + item_id
 
-      // load selected item images
-      $('#item_image').attr('src', download_url + data.images[0].lg);
-      $('.img-thumb').remove();
-      for (var index in data.images) {
-        var image = data.images[index];
-        var el_thumb = $(document.createElement('img'));
-        el_thumb.attr('src', download_url + image.thumb);
-        el_thumb.addClass('img-thumb');
-        el_thumb.attr('onclick', 'show_image("'+download_url + image.lg+'")');
-        $('#thumbs').append(el_thumb);
-      }
-    })
-    .fail(function (res) {
-      console.log(res);
-    })
-  }
-
-
-  $('#trait_selector').on('change', function (event) {
-    select_traits(event);
+    url += '?name={{=item.name}}&traits=' + selected_traits;
+    window.location.href = url;
   });
 
   function update_item(item_id) {

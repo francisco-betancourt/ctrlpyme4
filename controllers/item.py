@@ -37,83 +37,77 @@ def categories_tree_html(categories, item=None):
     return DIV(LABEL(T('Categories'), _class="control-label col-sm-3"), field, _class="form-group")
 
 
-def traits_tree(item_id=None, categories_ids=""):
-    try:
-        # we need a category in order to retrieve the traits
-        if not categories_ids:
-            return {}
-        categories_ids = categories_ids.split(',')
-        item = db.item(item_id)
+def traits_widget(item=None):
+    # get the item traits
+    traits = item.traits if item else []
 
-        # select all the trait categories that are associated with a category in categories_ids, then select all the traits that are associated with the obtained trait categories
-        query = (db.category.id < 0)
-        for category_id in categories_ids:
-            if category_id:
-                query |= (db.category.id == category_id)
-        categories = db(query).select()
-        query = (db.trait.id < 0)
-        for category in categories:
-            query |= (db.trait.id_trait_category == category.trait_category1)
-            query |= (db.trait.id_trait_category == category.trait_category2)
-            query |= (db.trait.id_trait_category == category.trait_category3)
-        traits = db(query & (db.trait.is_active == True)
-                    ).select(orderby=db.trait.id_trait_category)
-        # creates the trait tree
-        trait_tree = []
-        if not traits:
-            return {}
-        current_trait_category = traits.first().id_trait_category
-        current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable":False}
-        for trait in traits:
-            if trait.id_trait_category != current_trait_category:
-                trait_tree.append(current_subtree)
-                current_trait_category = trait.id_trait_category
-                current_subtree = {"text": current_trait_category.name, "nodes": [], "selectable": False}
-            node = {"text": trait.trait_option, "trait_id": trait.id}
-            if item:
-                if trait.id in item.traits:
-                    node['state'] = {'selected': True}
-            current_subtree['nodes'].append(node)
-        trait_tree.append(current_subtree)
-        current_trait_category = trait.id_trait_category
-        current_subtree = {"text": current_trait_category.name, "nodes": []}
-        return trait_tree
-    except:
-        import traceback
-        traceback.print_exc()
-
-
-def trait_selector_data():
-    """ treeview based on the selected categories, use this function as json
-
-        args:
-            item_id: the current item (only available on updates)
-        vars:
-            categories: list of categories (separated by comma)
-
-    """
-
-    try:
-        traits = traits_tree(request.args(0), request.vars.categories)
-        if not traits:
-            return dict(status='no traits')
-        return dict(traits=traits)
-    except:
-        import traceback
-        traceback.print_exc()
-
-
-
-def trait_selector_html():
-    """ Returns the trait selector html, for the treeview function """
-    return DIV(
-                LABEL(T('Traits'), _class="control-label col-sm-3"),
-                DIV(DIV(_id="traits_tree"),
-                    INPUT(_type="text", _hidden=True, _id="traits_selected", _name="traits_selected"),
-                    _class="col-sm-9"
+    def create_tait_data_container():
+        return DIV(
+            DIV(
+                INPUT(
+                    _placeholder=T("Trait category name"),
+                    _class='trait-category-name form-control',
+                    _id='new_trait_category_name',
+                    _list="new_trait_category_name_suggestions"
                 ),
-                _class="form-group"
+                TAG['datalist'](_id="new_trait_category_name_suggestions"),
+                _class='trait-input-container'
+            ),
+            DIV(
+                INPUT(
+                    _placeholder=T("Trait option"),
+                    _class='trait-option form-control',
+                    _id='new_trait_option',
+                    _list="new_trait_option_suggestions",
+                ),
+                TAG['datalist'](_id="new_trait_option_suggestions"),
+                _class='trait-input-container'
+            ),
+            BUTTON(ICON('add'), _class='form-control', _id='new_trait_button'),
+            _class="trait-values"
+        )
+
+    container = DIV(_class="traits-container col-sm-9")
+
+    prototype_list_element = TAG['template'](
+        LI(
+            SPAN( B(_class='trait-name'), SPAN(_class='trait-option') ),
+            ICON('close', _class='right remove-btn'),
+            _class='list-group-item'
+        ), _id='proto_trait_li'
+    )
+    current_traits = UL(_class='added-traits list-group', _id='current_traits')
+
+    if item:
+        traits_query = None
+        for trait_id in item.traits:
+            if not traits_query:
+                traits_query = (db.trait.id == trait_id)
+            else:
+                traits_query |= db.trait.id == trait_id
+        if traits_query:
+            traits = db(traits_query).select(
+                db.trait.id_trait_category, db.trait.trait_option
             )
+        else:
+            traits = []
+    traits_selected = ''
+    for trait in traits:
+        traits_selected += trait.id_trait_category.name + ':' + trait.trait_option + ','
+    traits_selected = traits_selected[:-1]
+    container.append(prototype_list_element)
+    container.append(current_traits)
+    container.append(create_tait_data_container())
+
+    container = DIV(
+        LABEL(T('Traits'), _class="control-label col-sm-3"),
+        container,
+        INPUT(_value=traits_selected, _type="text", _hidden=True, _id="traits_selected", _name="traits_selected"
+        ),
+        _class="form-group"
+    )
+
+    return container
 
 
 def bundle_items_html():
@@ -150,21 +144,22 @@ def item_form(item=None, is_bundle=False):
     form.append(SCRIPT(name_change_script));
 
     # categories
-    categories = db((db.category.is_active==True) ).select(orderby=~db.category.parent)
+    categories = db(
+        db.category.is_active==True
+    ).select(orderby=~db.category.parent)
     if categories:
         form[0].insert(4, categories_tree_html(categories, item))
-        form[0].insert(5, trait_selector_html())
+        form[0].insert(5, traits_widget(item))
 
     if form.process().accepted:
         # categories
-        form.vars.categories_selected
-        l_categories = []
+        l_categories = []  # categories selected
         for c in (form.vars.categories_selected or '').split(','):
             if not c:
                 continue
             l_categories.append(int(c))
-        # add the traits
-        traits = [int(trait) for trait in form.vars.traits_selected.split(',')] if form.vars.traits_selected else None
+        # traits
+        traits = create_traits_ref_list(request.vars.selected_traits)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
@@ -176,7 +171,6 @@ def item_form(item=None, is_bundle=False):
             redirect(URL('fill_bundle', args=form.vars.id))
         else:
             redirection(URL('index'))
-            # redirect(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
@@ -289,23 +283,27 @@ def get_item():
     same_traits = False
     multiple_items = False
     query = (db.item.id == request.args(0))
+
+    return_data = dict()
+
     if not auth.is_logged_in() or (auth.user and auth.user.is_client):
         query &= db.item.is_active == True
     item = db(query).select().first()
-    if not item:
+
+    if not item or request.vars.name:
         item_name = request.vars.name
 
         # when traits are specified, only one item with the specified name and traits should match
         # this is the first item
-        item = None
         if request.vars.traits:
             traits = request.vars.traits.split(',')
-            item = db(
-                (db.item.name == item_name)
-              & (db.item.traits.contains(traits, all=True))
-              & (db.item.is_active == True)
-            ).select().first()
-        else:
+            if not item:
+                item = db(
+                    (db.item.name == item_name)
+                  & (db.item.traits.contains(traits, all=True))
+                  & (db.item.is_active == True)
+                ).select().first()
+        elif not item:
             item = db(
                 (db.item.name == item_name)
               & (db.item.is_active == True)
@@ -313,46 +311,62 @@ def get_item():
         if not item:
             raise HTTP(404)
 
-        # since the could be multiple items with the same name, we query all the items with the specified name different than the first item
-        items = db(
+        # base_trait_categories = [str(t.id_trait_category.id) for t in item.traits]
+        # base_trait_categories.sort()
+        # base_trait_categories = ','.join(base_trait_categories)
+        item.traits_str = ','.join([str(t.id) for t in item.traits])
+
+        # since there could be multiple items with the same name, we query all the items with the specified name different than the first item
+        other_items = db(
             (db.item.name == item_name)
           & (db.item.id != item.id)
           & (db.item.is_active == True)
         ).select()
-        if items > 1:
+        if len(other_items) > 1:
             multiple_items = True
 
-        same_traits = True
-        base_trait_category_set = []
+        #same_traits = True
         trait_options = {}
 
-        if multiple_items and item.traits:
-            other_items = items
-            for trait in item.traits:
-                base_trait_category_set.append(trait.id_trait_category)
-                trait_options[str(trait.id_trait_category.id)] = {
-                    'id': trait.id_trait_category.id,
-                    'options': [{'name': trait.trait_option, 'id': trait.id}]
-                }
-            base_trait_category_set = set(base_trait_category_set)
+        if multiple_items:
             # check if all the items have the same traits
-            broken = False
             for other_item in other_items:
-                other_trait_category_set = []
-                if not other_item.traits and item.traits:
-                    same_traits = False
-                    break
-                for trait in other_item.traits:
-                    other_trait_category_set.append(trait.id_trait_category)
-                    if not trait.id_trait_category in base_trait_category_set:
-                        same_traits = False
-                        broken = True
-                        break
-                    trait_options[str(trait.id_trait_category.id)]['options'].append({'name': trait.trait_option, 'id': trait.id})
-                if broken:
-                    break
+                # other_trait_categories = [str(t.id_trait_category.id) for t in item.traits]
+                # other_trait_categories.sort()
+                # other_trait_categories = ','.join(other_trait_categories)
+                other_item.traits_str = ','.join([str(t.id) for t in other_item.traits])
+
+                # if base_trait_categories != other_trait_categories:
+                #     same_traits = False
+                #     break
+        return_data['other_items'] = other_items
+
     if not item:
         raise HTTP(404)
+
+
+    # in this case we can add a selector for every trait
+    # if same_traits:
+    #     for trait in item.traits:
+    #         trait_category = trait.id_trait_category
+    #         trait_options[str(trait_category.id)] = {
+    #             'name': trait_category.name,
+    #             'options': {}
+    #         }
+    #         trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
+    #             'name': trait.trait_option, 'id': trait.id
+    #         }
+    #     for other_item in other_items:
+    #         for trait in other_item.traits:
+    #             trait_category = trait.id_trait_category
+    #             if trait_options[str(trait_category.id)]['options'].has_key(
+    #                 str(trait.id)
+    #             ):
+    #                 continue
+    #             trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
+    #                 'name': trait.trait_option, 'id': trait.id
+    #             }
+    #     return_data['trait_options'] = trait_options
 
     new_price = item.base_price or 0
     discounts = item_discounts(item)
@@ -376,7 +390,16 @@ def get_item():
     page_title = item.name
     page_description = item.description + ' ' + ', '.join([cat.name for cat in  item.categories])
 
-    return locals()
+    return_data['item'] = item
+    return_data['images'] = images
+    return_data['page_title'] = page_title
+    return_data['page_description'] = page_description
+    return_data['stock'] = stock
+    return_data['discounts'] = discounts
+    return_data['same_traits'] = same_traits
+    return_data['multiple_items'] = multiple_items
+
+    return return_data
 
 
 def find_by_code():

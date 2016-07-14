@@ -11,22 +11,6 @@
 
 
 {{block page_js}}
-  {{item_id = item.id if item else "null"}}
-  <script>
-    initial_selected_traits = '';
-    item_id = {{=item_id}};
-    {{if item:}}
-      {{ if item.traits: }}
-
-        {{for id_trait in item.traits:}}
-          initial_selected_traits += "{{=id_trait}}";
-          {{if id_trait != item.traits[-1]:}}
-            initial_selected_traits += ','
-          {{pass}}
-        {{pass}}
-      {{ pass }}
-    {{pass}}
-  </script>
   <script type="text/javascript" src="{{=URL('static', 'js/create_item.js')}}"></script>
   <script type="text/javascript">
     // barcode checking
