@@ -155,6 +155,8 @@
 'Cash out': 'Corte de caja',
 'cash out': 'corte de caja',
 'Cash out done': 'Corte de caja listo',
+'Cash out interval days': 'Dias de intervalo para corte de caja',
+'Cash out interval is set to %s day(s)': 'El intervalo entre cortes de caja es de %s dia(s)',
 'Cash out report': 'Reporte de corte de caja',
 'catalog': 'catálogo',
 'Catalog': 'Catálogo',

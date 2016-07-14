@@ -121,7 +121,8 @@ def cash_out():
 
     # check if the cash out is in a valid interval
     if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
-        raise HTTP(405)
+        session.info = T('Cash out interval is set to %s day(s)') % CASH_OUT_INTERVAL.days
+        redirect(URL('index'))
 
     payment_opts = db(db.payment_opt.is_active == True).select()
     payment_opts_ref = {}

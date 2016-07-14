@@ -1,7 +1,7 @@
 # settings list
 
 from datetime import timedelta
-from constants import FLOW_BASIC
+from constants import FLOW_BASIC, FLOW_MULTIROLE
 
 COMPANY_NAME = 'CtrlPyME'
 COMPANY_SLOGAN = 'Press Ctrl + PyME to begin.'
@@ -90,6 +90,9 @@ if main_settings:
         BASE_COLOR_TEXT = main_settings.base_color_text
     if main_settings.top_categories_string:
         TOP_CATEGORIES_STRING = main_settings.top_categories_string
+
+    if main_settings.cash_out_interval_days:
+        CASH_OUT_INTERVAL = timedelta(days=main_settings.cash_out_interval_days)
 
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS

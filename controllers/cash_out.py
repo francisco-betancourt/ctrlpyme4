@@ -31,7 +31,6 @@ def create():
     ).select(orderby=db.cash_out.created_on).last()
     if last_cash_out:
         if request.now < last_cash_out.created_on + CASH_OUT_INTERVAL:
-            print "not yet"
             redirect(URL('analytics', 'cash_out', vars=dict( id_cash_out=last_cash_out.id) ))
 
     seller = db.auth_user(request.args(0))

@@ -130,17 +130,6 @@ not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
 
 """ database class object creation (initialization) """
 
-# deprecated
-db.define_table(
-    "company_config"
-    , Field('param_name', label=T("Name"), writable=False)
-    , Field('param_value', label=T("Value"))
-    , Field('param_type', label=T("Type"), readable=False, writable=False, default="string")
-    # used to create computed fields
-    , Field('param_expr', label=T("Expr"), readable=False, writable=False)
-    , Field('is_public', type="boolean", label=T("Is public"))
-)
-
 
 db.define_table("brand",
     Field("name", "string", default=None, label=T('Name')),
@@ -290,6 +279,10 @@ db.define_table(
   , Field('base_color', label=T('Base color'))
   , Field('base_color_text', label=T('Base color text'))
   , Field('top_categories_string', readable=False, writable=False)
+
+  # 1 day default cash out interval
+  , Field('cash_out_interval_days', 'integer', default=1, label=T('Cash out interval days'))
+
 
   # some chached data
   # the mount of time in minutes that the cached data will be available
