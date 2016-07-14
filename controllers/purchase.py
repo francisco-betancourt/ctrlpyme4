@@ -411,7 +411,7 @@ def commit():
 
     # < 1 peso difference allowed
     if abs(purchase.total - purchase.items_total) > D(1):
-        session.info = T('Purchase total does not match the items total')
+        session.info = T('Purchase total does not match the items total (calculated total is: $%s)') % DQ(purchase.items_total, True)
         redirect(URL('fill', args=purchase.id))
     # check if the purchase has all the necessary information
     missing_fields = []
