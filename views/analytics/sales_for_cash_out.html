@@ -42,6 +42,15 @@
         <a class="btn btn-primary btn-block" href="{{=URL('cash_out', 'done', args=cash_out.id)}}">{{=T('Done')}}</a>
       {{else:}}
         <hr>
+        <h3>{{=T('Physical cash')}}:
+          <span class="right">$ {{=DQ(cash_out.cash, True)}}</span>
+        </h3>
+        {{ if cash_out.notes: }}
+          <p>{{=cash_out.notes}}</p>
+        {{ else: }}
+          <p>{{=T('Cash out does not have notes')}}</p>
+        {{ pass }}
+        <hr>
         <button onclick="window.print()" class="btn btn-primary btn-block">
           {{=T('Print')}}
         </button>
@@ -54,7 +63,7 @@
       <div>
         <div class="media cash-out-sale">
           <div class="media-left media-top noprint">
-            <a href="{{=URL('sale', 'ticket', args=sale.id)}}" target="_blank">
+            <a onclick="window.open('{{=URL('ticket', 'show_ticket', vars=dict(id_sale=sale.id))}}', '1', resizable=true)">
               <h3 class="noprint">#{{=sale.id}}</h3>
             </a>
           </div>
