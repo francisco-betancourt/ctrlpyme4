@@ -282,6 +282,12 @@ def get_item():
 
     same_traits = False
     multiple_items = False
+
+    try:
+        long(request.args(0))
+    except:
+        raise HTTP(404)
+
     query = (db.item.id == request.args(0))
 
     return_data = dict()
