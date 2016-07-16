@@ -449,6 +449,7 @@
 'invalid ticket': 'ticket inválido',
 'Inventories': 'Inventarios',
 'Inventory': 'Inventario',
+'Inventory has been used, you can not undo it': 'El inventario ha sido usado, no puedes deshacerlo',
 'Inventory is done': 'El inventario está terminado',
 'Inventory not found': 'Inventorio no econtrado',
 'Inventory removed': 'Inventario removido',

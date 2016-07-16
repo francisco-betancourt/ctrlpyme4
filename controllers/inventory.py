@@ -351,7 +351,7 @@ def undo():
     stock_items = db( (db.stock_item.id_inventory == inventory.id) ).select()
     used = False
     for stock_item in stock_items:
-        used &= stock_item.stock_qty == stock_item.purchase_qty
+        used |= not (stock_item.stock_qty == stock_item.purchase_qty)
     # do not allow when the items introduced by an inventory has been sold
     if used:
         session.info = T('Inventory has been used, you can not undo it')
