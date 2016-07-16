@@ -54,7 +54,7 @@
       <div>
         <div class="media cash-out-sale">
           <div class="media-left media-top noprint">
-            <a href="{{=URL('sale', 'ticket', args=sale.id)}}" target="_blank">
+            <a onclick="window.open('{{=URL('ticket', 'show_ticket', vars=dict(id_sale=sale.id))}}', '1', resizable=true)">
               <h3 class="noprint">#{{=sale.id}}</h3>
             </a>
           </div>
