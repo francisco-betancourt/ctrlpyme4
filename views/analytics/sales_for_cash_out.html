@@ -42,6 +42,15 @@
         <a class="btn btn-primary btn-block" href="{{=URL('cash_out', 'done', args=cash_out.id)}}">{{=T('Done')}}</a>
       {{else:}}
         <hr>
+        <h3>{{=T('Physical cash')}}:
+          <span class="right">$ {{=DQ(cash_out.cash, True)}}</span>
+        </h3>
+        {{ if cash_out.notes: }}
+          <p>{{=cash_out.notes}}</p>
+        {{ else: }}
+          <p>{{=T('Cash out does not have notes')}}</p>
+        {{ pass }}
+        <hr>
         <button onclick="window.print()" class="btn btn-primary btn-block">
           {{=T('Print')}}
         </button>

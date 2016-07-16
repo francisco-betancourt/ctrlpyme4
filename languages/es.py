@@ -155,6 +155,7 @@
 'cash': 'efectivo',
 'Cash out': 'Corte de caja',
 'cash out': 'corte de caja',
+'Cash out does not have notes': 'Este corte de caja no tiene notas',
 'Cash out done': 'Corte de caja listo',
 'Cash out interval days': 'Dias de intervalo para corte de caja',
 'Cash out interval is set to %s day(s)': 'El intervalo entre cortes de caja es de %s dia(s)',
