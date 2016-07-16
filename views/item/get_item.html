@@ -132,8 +132,10 @@
 <div id="description">
   {{=MARKMIN(item.description)}}
 
-  {{ for trait in item.traits: }}
-    <p><b>{{=trait.id_trait_category.name}}:</b> {{=trait.trait_option}} </p>
+  {{ if item.traits: }}
+    {{ for trait in item.traits: }}
+      <p><b>{{=trait.id_trait_category.name}}:</b> {{=trait.trait_option}} </p>
+    {{ pass }}
   {{ pass }}
 
   {{if item.is_bundle:}}
