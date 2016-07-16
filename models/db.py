@@ -122,82 +122,13 @@ auth.settings.logout_next = URL('user', 'post_logout')
 # auth.enable_record_versioning(db)
 
 
-# #TODO:60 move validators to a module
-# validators
-class IS_BARCODE_AVAILABLE(object):
-    """ checks if the object barcode has been already used """
-
-    def __init__(self, db, barcode='', error_message=T('Barcode already used')):
-        self.db = db;
-        self.barcode = barcode
-        self.error_message = error_message
-        self.record_id = None
-    def set_self_id(self, id):
-        self.record_id = id
-    def __call__(self, value):
-        if not value:
-            return (value, None)
-
-        barcodes = None
-        # update case
-        if self.record_id:
-            barcodes = self.db((self.db.item.id != self.record_id)
-                               & ((self.db.item.sku == self.barcode)
-                                | (self.db.item.ean == self.barcode)
-                                | (self.db.item.upc == self.barcode))
-                             ).select().first()
-        # creation case
-        else:
-            barcodes = self.db((self.db.item.sku == self.barcode)
-                             | (self.db.item.ean == self.barcode)
-                             | (self.db.item.upc == self.barcode)
-                             ).select().first()
-        if not barcodes:
-            return (value, None)
-        else:
-            return (value, self.error_message)
-    def formatter(self, value):
-        return value
-
-
-# class HAS_BARCODE(object):
-#     def __init__(self, sku, ean, upc, error_message=T('Barcode already used')):
-#         self.barcode1 = sku
-#         self.barcode2 = ean
-#         self.barcode3 = upc
-#         self.error_message = error_message
-#     def __call__(self, value, value2, value3):
-#         if not (value or value2 or value3):
-#             return ()
-#         if not value:
-#             return (value, None)
-#         barcodes = self.db((self.db.item.sku == self.barcode)
-#                     | (self.db.item.ean == self.barcode)
-#                     | (self.db.item.upc == self.barcode)
-#                      ).select()
-#         if not barcodes:
-#             return (value, None)
-#         else:
-#             return (value, self.error_message)
-#     def formatter(self, value):
-#         return value
+from custom_validators import *
 
 
 not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
 
 
 """ database class object creation (initialization) """
-
-# deprecated
-db.define_table(
-    "company_config"
-    , Field('param_name', label=T("Name"), writable=False)
-    , Field('param_value', label=T("Value"))
-    , Field('param_type', label=T("Type"), readable=False, writable=False, default="string")
-    # used to create computed fields
-    , Field('param_expr', label=T("Expr"), readable=False, writable=False)
-    , Field('is_public', type="boolean", label=T("Is public"))
-)
 
 
 db.define_table("brand",
@@ -348,6 +279,10 @@ db.define_table(
   , Field('base_color', label=T('Base color'))
   , Field('base_color_text', label=T('Base color text'))
   , Field('top_categories_string', readable=False, writable=False)
+
+  # 1 day default cash out interval
+  , Field('cash_out_interval_days', 'integer', default=1, label=T('Cash out interval days'))
+
 
   # some chached data
   # the mount of time in minutes that the cached data will be available
@@ -567,6 +502,8 @@ db.define_table(
     , Field('id_seller', 'reference auth_user', label=T('Seller'))
     , Field('notes', 'text', label=T('Notes'))
     , Field('is_done', 'boolean', default=False, label=T('Is done'))
+    , Field('start_date', 'datetime', label=T('Start date'))
+    , Field('end_date', 'datetime', label=T('End date'))
     , auth.signature
 )
 

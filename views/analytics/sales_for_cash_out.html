@@ -40,6 +40,11 @@
           <textarea id="cash_out_notes" name="cash_out_notes" rows="8" cols="40" class="form-control cash-out-update" target="notes">{{=cash_out.notes if cash_out.notes else ''}}</textarea>
         </div>
         <a class="btn btn-primary btn-block" href="{{=URL('cash_out', 'done', args=cash_out.id)}}">{{=T('Done')}}</a>
+      {{else:}}
+        <hr>
+        <button onclick="window.print()" class="btn btn-primary btn-block">
+          {{=T('Print')}}
+        </button>
       {{pass}}
     {{end}}
 
@@ -60,24 +65,24 @@
               </h4>
               <h4 class="right"> $ {{=DQ(sale.total, True)}} </h4>
             </div>
-              <div class="progress sale-progress noprint">
-                {{for _key in sale.payments.iterkeys(): }}
-                  {{ payment_opt = payment_opts_ref[_key] }}
-                  {{ payment = sale.payments[_key] }}
-                  {{ hex = payment_opt.c_color }}
+            <div class="progress sale-progress noprint">
+              {{for _key in sale.payments.iterkeys(): }}
+                {{ payment_opt = payment_opts_ref[_key] }}
+                {{ payment = sale.payments[_key] }}
+                {{ hex = payment_opt.c_color }}
 
-                  {{payment_amount = payment.amount - payment.change_amount}}
-                  {{p = payment.amount / (sale.payments_total + sale.change) * DQ(100, True)}}
-                  <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
-                    <span>{{=payment_opt.c_label}}: {{=DQ(payment.amount, True)}}</span>
-                    {{ payment_opt.c_value += DQ(payment_amount, True) }}
-                  </div>
-                  {{p = sale.change / (sale.payments_total + sale.change) * DQ(100, True)}}
-                  <div class="progress-bar" style="width: {{=p}}%; background-color: #333; font-size: 14px;">
-                    <span>{{=T('Change')}}: {{=DQ(sale.change, True)}}</span>
-                  </div>
-                {{pass}}
-              </div>
+                {{payment_amount = payment.amount - payment.change_amount}}
+                {{p = payment.amount / (sale.payments_total + sale.change) * DQ(100, True)}}
+                <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
+                  <span>{{=payment_opt.c_label}}: {{=DQ(payment.amount, True)}}</span>
+                  {{ payment_opt.c_value += DQ(payment_amount, True) }}
+                </div>
+                {{p = sale.change / (sale.payments_total + sale.change) * DQ(100, True)}}
+                <div class="progress-bar" style="width: {{=p}}%; background-color: #333; font-size: 14px;">
+                  <span>{{=T('Change')}}: {{=DQ(sale.change, True)}}</span>
+                </div>
+              {{pass}}
+            </div>
           </div>
         </div>
       </div>

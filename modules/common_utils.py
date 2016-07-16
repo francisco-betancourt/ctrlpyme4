@@ -314,4 +314,9 @@ def js_path(file_name):
     return os.path.join(request.folder, 'static/js/%s' % file_name)
 
 
+def time_interval_query(tablename, start_date, end_date):
+    db = current.db
+    return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
+
+
 # def error_dict(msg)

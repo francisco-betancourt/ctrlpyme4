@@ -38,10 +38,6 @@ def get_month_interval(year, month):
     return start_date, end_date
 
 
-def time_interval_query(tablename, start_date, end_date):
-    return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
-
-
 def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
     """ Returns all income payments in the specified time interval, performed in the specified store """
     payments = db(
@@ -93,35 +89,20 @@ def get_day_sales_data(day, id_store):
     return data
 
 
-
 @auth.requires_membership("Analytics")
-def cash_out():
-    """ Returns the specified date, information
+def sales_for_cash_out():
+    """ Get the sales created in the specified cash out time interval
 
-        args: [year, month, day]
-        vars: [id_cash_out]
+        args: [id_cash_out]
     """
 
-    year, month, day = None, None, None
-    try:
-        year, month, day = int(request.args(0)), int(request.args(1)), int(request.args(2))
-    except:
-        today = date.today()
-        year, month, day = today.year, today.month, today.day
-    if not year or not month or not day:
-        raise HTTP(400)
-    cash_out = db.cash_out(request.vars.id_cash_out)
+    cash_out = db.cash_out(request.args(0))
     if not cash_out:
         raise HTTP(404)
     seller = cash_out.id_seller
 
-    s_date = date(year, month, day)
-    start_date = datetime(s_date.year, s_date.month, s_date.day, 0)
-    end_date = start_date + CASH_OUT_INTERVAL
-
-    # check if the cash out is in a valid interval
-    if not (cash_out.created_on > start_date and cash_out.created_on < end_date):
-        raise HTTP(405)
+    start_date = cash_out.start_date
+    end_date = cash_out.end_date
 
     payment_opts = db(db.payment_opt.is_active == True).select()
     payment_opts_ref = {}
@@ -134,16 +115,20 @@ def cash_out():
 
     sales = db(
         (db.sale.id == db.sale_log.id_sale)
-        & ((db.sale_log.sale_event == SALE_PAID)
-        | (db.sale_log.sale_event == SALE_DEFERED))
+        & (
+            (db.sale_log.sale_event == SALE_PAID)
+          | (db.sale_log.sale_event == SALE_DEFERED)
+        )
         & (db.sale.id_store == session.store)
         & (db.sale.created_by == seller.id)
         & time_interval_query('sale', start_date, end_date)
-    ).select(db.sale.ALL, orderby=db.sale.id)
+    ).select(db.sale.ALL, orderby=~db.sale.id)
 
     total = 0
     total_cash = 0
     payment_index = 0
+
+    # this will be the total amount of income
     payments = db(
         (db.sale_log.id_sale == db.sale.id)
         & (db.payment.id_sale == db.sale.id)
@@ -152,13 +137,15 @@ def cash_out():
             | (db.sale_log.sale_event == SALE_DEFERED)
         )
         & time_interval_query('sale', start_date, end_date)
-    ).select(db.payment.ALL, orderby=db.payment.id_sale)
-    # payments = db(payments_query).select(orderby=db.payment.id_sale)
+    ).select(db.payment.ALL, orderby=~db.payment.id_sale)
+
     for sale in sales:
         sale.total_change = 0
         sale.payments = {}
         sale.payments_total = 0
         sale.change = 0
+
+        payments_count = 0
         for payment in payments[payment_index:]:
             if payment.id_sale != sale.id:
                 break
@@ -169,15 +156,22 @@ def cash_out():
                 _payment = sale.payments[str(payment.id_payment_opt.id)]
                 _payment.amount += payment.amount
                 _payment.change_amount += payment.change_amount
+            # payments that allow change are considered cash.
             if payment.id_payment_opt.allow_change:
                 total_cash += payment.amount - payment.change_amount
             sale.total_change += payment.change_amount
             sale.change += payment.change_amount
             total += payment.amount - payment.change_amount
+            payments_count += 1
+
         sale.change = DQ(sale.change, True)
-        payment_index += 1
+        payment_index += payments_count
     total = DQ(total, True)
     total_cash = DQ(total_cash, True)
+
+    if not cash_out.is_done:
+        cash_out.sys_cash = total_cash
+        cash_out.update_record()
 
     return locals()
 
@@ -541,8 +535,15 @@ def index():
                 label_as=T('Name')
             ), 'email'
         ],
-        options_func=lambda row : OPTION_BTN('attach_money', URL('cash_out', 'create', args=row.id), title=T('cash out'))
-        , global_options=[]
+        options_func=lambda row : (
+            OPTION_BTN('attach_money',
+                URL('cash_out', 'create', args=row.id),
+                title=T('cash out')
+            ),
+            OPTION_BTN('archive', URL('cash_out', 'index',
+                args=row.id), title=T('previous cash outs'))
+            )
+        , global_options=[], title=T("Cash out")
     )
 
     return locals()
