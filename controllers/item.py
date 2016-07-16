@@ -284,7 +284,7 @@ def get_item():
     multiple_items = False
 
     try:
-        long(request.args(0))
+        long(request.args(0) or 0)
     except:
         raise HTTP(404)
 
