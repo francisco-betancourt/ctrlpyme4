@@ -502,6 +502,8 @@ db.define_table(
     , Field('id_seller', 'reference auth_user', label=T('Seller'))
     , Field('notes', 'text', label=T('Notes'))
     , Field('is_done', 'boolean', default=False, label=T('Is done'))
+    , Field('start_date', 'datetime', label=T('Start date'))
+    , Field('end_date', 'datetime', label=T('End date'))
     , auth.signature
 )
 

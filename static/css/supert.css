@@ -96,6 +96,9 @@ a.st-header.selected {
   display: flex;
   justify-content: space-between;
 }
+.st-card-header-content > h4 {
+  margin-right: 24px;
+}
 .st-search-form-btn {
   margin-left: -1px;
   border-top-left-radius: 0px;
