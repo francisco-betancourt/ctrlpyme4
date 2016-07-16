@@ -122,9 +122,24 @@ def index():
 
         return options
 
+    def status_format(r, f):
+        if r.sys_cash == r.cash:
+            return T("Ok")
+        elif r.sys_cash < r.cash:
+            return T("Added money")
+        elif r.sys_cash < r.cash:
+            return T("Missing money")
+
     data = SUPERT(
         (db.cash_out.id_seller == seller.id) & (db.cash_out.is_done == True)
-        , fields=['start_date', 'end_date', 'sys_cash', 'cash', 'is_done']
+        , fields=[
+            'start_date', 'end_date', 'sys_cash', 'cash', 'is_done',
+            dict(
+                fields=['id'],
+                label_as=T('Status'),
+                custom_format=status_format
+            )
+        ]
         , options_func=cash_out_options
         , global_options=[]
         , searchable=False
