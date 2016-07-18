@@ -694,6 +694,7 @@
 'Physical': 'Físico',
 'Physical cash': 'Dinero físico',
 'Physical quantity': 'Cantidad física',
+'Physical_qty': 'Physical_qty',
 'Please add items to the product loss': 'Por favor agregue items a la merma',
 'Please fill the following fields': 'Por favor llene los siguientes campos',
 'Please fill the following fields: Forma de pago Proveedor': 'Please fill the following fields: Forma de pago Proveedor',

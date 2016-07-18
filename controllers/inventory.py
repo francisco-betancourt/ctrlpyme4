@@ -155,7 +155,38 @@ def get():
     inventory = db.inventory(request.args(0))
     if not inventory.is_done:
         raise HTTP(405, T("Inventory is not done"))
-    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
+
+    def physical_qty_format(row, f):
+        diff = row.physical_qty - row.system_qty
+        sgn = '-' if diff < 0 else '+'
+        diff = B(' ( %s %s )' % (sgn, abs(diff)))
+        if row.physical_qty == row.system_qty:
+            return I(_class='status-circle accent-color'), SPAN(row[f[0]]),
+        # lost items
+        elif row.physical_qty < row.system_qty:
+            return I(_class='status-circle bg-danger'), SPAN(row[f[0]]), diff,
+        elif row.physical_qty > row.system_qty:
+            return I(_class='status-circle bg-success'), SPAN(row[f[0]]), diff,
+
+    data = SUPERT(
+        db.inventory_item.id_inventory == inventory.id
+        , fields=[
+            'id_item.name',
+            dict(
+                fields=['id_item'],
+                label_as=T('Barcode'),
+                custom_format=lambda r, f : item_barcode(r[f[0]])
+            ),
+            'system_qty',
+            dict(
+                fields=['physical_qty'],
+                label_as=T('Physical_qty'),
+                custom_format=physical_qty_format
+            )
+        ]
+        , options_enabled=False
+        , global_options=[]
+    )
 
     return locals()
 
