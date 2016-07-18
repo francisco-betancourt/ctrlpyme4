@@ -126,15 +126,15 @@ def index():
 
     def status_format(r, f):
         if r.sys_cash == r.cash:
-            return A(T("Ok"),
+            return I(_class='status-circle bg-success'), A(T("Ok"),
                 _href=URL('index', args=seller.id, vars=dict(status="ok"))
-            )
+            ),
         elif r.sys_cash < r.cash:
-            return A(T("Added money"), _class='text-success',
+            return I(_class='status-circle bg-success'), A(T("Added money"),
                 _href=URL('index', args=seller.id, vars=dict(status="added"))
             )
         elif r.sys_cash > r.cash:
-            return A(T("Missing money"), _class='text-danger',
+            return I(_class='status-circle bg-danger'), A(T("Missing money"),
                 _href=URL('index', args=seller.id, vars=dict(status="missing"))
             )
 

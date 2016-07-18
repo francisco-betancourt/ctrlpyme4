@@ -159,7 +159,11 @@ def item_form(item=None, is_bundle=False):
                 continue
             l_categories.append(int(c))
         # traits
-        traits = create_traits_ref_list(request.vars.selected_traits)
+        traits = []
+        if item:
+            traits = item.traits
+        if request.vars.selected_traits:
+            traits = create_traits_ref_list(request.vars.selected_traits)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
