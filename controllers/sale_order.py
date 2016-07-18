@@ -258,28 +258,48 @@ def ready():
     ready = True
     # check if the order items are in stock
     items = []
-    for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
-        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
+
+    def ready_status_format(row, f, global_data):
+        stock, quantity = item_stock(row.id_item, session.store).itervalues()
+
         # consider previous orders
-        order_items = db(
-            (db.sale_order.id_bag == db.bag.id)
+        q_sum = db.bag_item.quantity.sum()
+        order_items_qty = db(
+              (db.sale_order.id_bag == db.bag.id)
             & (db.bag_item.id_bag == db.bag.id)
             & (db.sale_order.id < order.id)
             & (db.sale_order.is_active == True)
             & (db.sale_order.id_sale == None)
             & (db.sale_order.id_store == session.store)
-            & (db.bag_item.id_item == bag_item.id_item.id)
-        ).select()
+            & (db.bag_item.id_item == row.id_item.id)
+        ).select( q_sum ).first()[q_sum] or 0
 
-        order_items_qty = 0
-        for order_item in order_items:
-            order_items_qty += order_item.bag_item.quantity
+        item_ready = quantity >= (row.quantity + order_items_qty)
+        global_data['is_ready'] &= item_ready
 
-        item_ready = (quantity >= bag_item.quantity + order_items_qty)
-        ready &= item_ready
-        items.append(dict(bag_item=bag_item, ready=item_ready))
+        if item_ready:
+            return I(_class='status-circle bg-success'), SPAN(T('yes')),
+        else:
+            return I(_class='status-circle bg-danger'), SPAN(T('no')),
 
-    buttons = [] if ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
+    global_data = {'is_ready': True}
+    data = SUPERT(
+        db.bag_item.id_bag == order.id_bag.id
+        , fields=['product_name', 'quantity',
+            dict(
+                fields=['id'],
+                label_as=T('Ready'),
+                custom_format=ready_status_format
+            )
+        ]
+        , options_enabled=False
+        , global_data=global_data
+        , global_options=[]
+    )
+
+    is_ready = global_data['is_ready']
+
+    buttons = [] if is_ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
     if not buttons:
         form = SQLFORM.factory(submit_button=T('Notify buyer'), formstyle='bootstrap')
     else:
