@@ -111,27 +111,44 @@ def index():
     """
 
     seller = db.auth_user(request.args(0))
-
+    if not seller:
+        raise HTTP(404)
     if not auth.has_membership(None, seller.id, 'Sales checkout'):
         raise HTTP(404)
 
     def cash_out_options(row):
         options = OPTION_BTN(
-            'assignment', URL('analytics', 'sales_for_cash_out', args=row.id)
+            'assignment', URL('analytics', 'sales_for_cash_out', args=row.id),
+            title=T('details')
         )
 
         return options
 
     def status_format(r, f):
         if r.sys_cash == r.cash:
-            return T("Ok")
+            return A(T("Ok"),
+                _href=URL('index', args=seller.id, vars=dict(status="ok"))
+            )
         elif r.sys_cash < r.cash:
-            return T("Added money")
-        elif r.sys_cash < r.cash:
-            return T("Missing money")
+            return A(T("Added money"), _class='text-success',
+                _href=URL('index', args=seller.id, vars=dict(status="added"))
+            )
+        elif r.sys_cash > r.cash:
+            return A(T("Missing money"), _class='text-danger',
+                _href=URL('index', args=seller.id, vars=dict(status="missing"))
+            )
+
+    status = request.vars.status
+    query = (db.cash_out.id_seller == seller.id) & (db.cash_out.is_done == True)
+    if status == 'missing':
+        query &= db.cash_out.sys_cash > db.cash_out.cash
+    elif status == 'added':
+        query &= db.cash_out.sys_cash < db.cash_out.cash
+    elif status == 'ok':
+        query &= db.cash_out.sys_cash == db.cash_out.cash
 
     data = SUPERT(
-        (db.cash_out.id_seller == seller.id) & (db.cash_out.is_done == True)
+        query
         , fields=[
             'start_date', 'end_date', 'sys_cash', 'cash', 'is_done',
             dict(
