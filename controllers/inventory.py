@@ -180,7 +180,7 @@ def get():
             'system_qty',
             dict(
                 fields=['physical_qty'],
-                label_as=T('Physical_qty'),
+                label_as=T('Physical quantity'),
                 custom_format=physical_qty_format
             )
         ]

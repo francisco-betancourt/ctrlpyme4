@@ -410,7 +410,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index, **{'_data-index': t_index})
+    table = DIV(t_header, table, t_footer, _class="supert", _id="supert_%s" % t_index, **{'_data-index': t_index})
 
     return table
 
