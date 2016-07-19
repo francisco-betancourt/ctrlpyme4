@@ -72,26 +72,30 @@
               <h4> <b class="print"> {{=T('sale')}} #{{=sale.id}} - </b>
                 {{=sale.created_on}}
               </h4>
-              <h4 class="right"> $ {{=DQ(sale.total, True)}} </h4>
+              <h4 class="right">
+                {{=T('payments total')}}: $ {{=DQ(sale.payments_total, True)}} |
+                {{=T('change')}}: $ {{=DQ(sale.change, True)}} |
+                {{=T('total')}}: $ {{=DQ(sale.total, True)}}
+              </h4>
             </div>
+
             <div class="progress sale-progress noprint">
               {{for _key in sale.payments.iterkeys(): }}
                 {{ payment_opt = payment_opts_ref[_key] }}
                 {{ payment = sale.payments[_key] }}
                 {{ hex = payment_opt.c_color }}
 
-                {{payment_amount = payment.amount - payment.change_amount}}
-                {{p = payment.amount / (sale.payments_total + sale.change) * DQ(100, True)}}
+                {{ payment_amount = payment.amount - payment.change_amount }}
+                {{ p = payment_amount / sale.total * 100 }}
                 <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
-                  <span>{{=payment_opt.c_label}}: {{=DQ(payment.amount, True)}}</span>
+                  <span>
+                    {{=payment_opt.c_label}}: {{=DQ(payment_amount, True)}}
+                  </span>
                   {{ payment_opt.c_value += DQ(payment_amount, True) }}
-                </div>
-                {{p = sale.change / (sale.payments_total + sale.change) * DQ(100, True)}}
-                <div class="progress-bar" style="width: {{=p}}%; background-color: #333; font-size: 14px;">
-                  <span>{{=T('Change')}}: {{=DQ(sale.change, True)}}</span>
                 </div>
               {{pass}}
             </div>
+
           </div>
         </div>
       </div>

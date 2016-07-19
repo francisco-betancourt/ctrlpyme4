@@ -689,6 +689,7 @@
 'Payment removed': 'Pago removido',
 'Payments': 'Pagos',
 'Payments amount is lower than the total': 'El total de los pagos es menor que el total de la venta',
+'payments total': 'total pagos',
 'Payments with credit days are only available for registered clients.': 'Pagos con días de crédito están solo disponibles para clientes registrados',
 'Peeking at file': 'Visualizando archivo',
 'Percentage': 'Porcentaje',
