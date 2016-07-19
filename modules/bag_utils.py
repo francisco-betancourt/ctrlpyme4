@@ -246,3 +246,24 @@ def get_valid_bag(id_bag, completed=False):
         import traceback as tb
         tb.print_exc()
         return None
+
+
+
+def get_ordered_items_count(id_order, id_item):
+    """ """
+
+    db = current.db
+    session = current.session
+
+    q_sum = db.bag_item.quantity.sum()
+    order_items_qty = db(
+          (db.sale_order.id_bag == db.bag.id)
+        & (db.bag_item.id_bag == db.bag.id)
+        & (db.sale_order.id < id_order)
+        & (db.sale_order.is_active == True)
+        & (db.sale_order.id_sale == None)
+        & (db.sale_order.id_store == session.store)
+        & (db.bag_item.id_item == id_item)
+    ).select( q_sum ).first()[q_sum] or 0
+
+    return order_items_qty

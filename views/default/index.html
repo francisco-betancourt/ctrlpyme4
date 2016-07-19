@@ -76,6 +76,29 @@
       <div class="highlight shadow-1" style="{{=bg}}">
         <div class="data">
           <h2>{{=store.name}}</h2>
+          {{ if store.phone_number_1 or store.phone_number_2: }}
+            <h4 class="flex icon-text">
+              {{=ICON('phone')}}
+              {{ if store.phone_number_1:}}
+                <a href="tel:{{=store.phone_number_1}}">
+                  {{=store.phone_number_1}}
+                </a>
+              {{pass}}
+              {{ if store.phone_number_2:}}
+                <a href="tel:{{=store.phone_number_2}}">
+                  {{=store.phone_number_2}}
+                </a>
+              {{pass}}
+            </h4>
+          {{ pass }}
+          {{ if store.email: }}
+            <h4 class="flex icon-text">
+              {{=ICON('email')}}
+              <a href="mailto:{{=store.email}}">
+                {{=store.email}}
+              </a>
+            </h4>
+          {{ pass }}
           <h4>{{=full_address(store.id_address)}}</h4>
           {{ if store.map_url: }}
             <a href="{{=store.map_url}}" class="btn btn-block" target="blank"> {{=T('Check map')}} </a>

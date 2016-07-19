@@ -395,6 +395,10 @@ button.cp-fab:focus{
   font-size: 16px;
   border-radius: 25px;
 }
+.highlight a, .highlight a:hover, .highlight a:visited {
+  color: white;
+}
+
 
 .offer-group-highlight-header {
   width: 100%;
@@ -600,4 +604,16 @@ body {
   border-radius: 50%;
   margin-right: 8px;
   background-color: black;
+}
+
+
+.flex {
+  display: flex;
+}
+
+.icon-text i {
+  margin-right: 18px;
+}
+.icon-text a {
+  margin-right: 8px;
 }

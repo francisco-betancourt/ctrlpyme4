@@ -205,6 +205,11 @@ db.define_table("store",
     Field("name", "string", default=None, label=T('Name')),
     Field("consecutive", "integer", default=1, readable=False, writable=False),
     Field('map_url', default=None, label=T('Map url')),
+
+    Field('phone_number_1', default='', label=T('Phone number')),
+    Field('phone_number_2', default='', label=T('Phone number')),
+    Field('email', default='', label=T('Email')),
+
     Field("image", "upload", default=None, label=T('Image'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
 
     #Fields required for CFDI Invoice
@@ -221,6 +226,7 @@ db.define_table("store",
     )
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', address_format)
 db.store.name.requires = not_empty_requires
+db.store.email.requires = IS_EMAIL()
 
 
 highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))
