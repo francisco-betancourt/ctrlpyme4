@@ -563,7 +563,7 @@ def labels():
         page_layout = db(db.labels_page_layout).select().first()
     if not page_layout:
         redirect(URL('labels_page_layout', 'index'))
-    layout = {
+    layout = Storage({
         'id': page_layout.id,
         'width': page_layout.id_paper_size.width,
         'height': page_layout.id_paper_size.height,
@@ -577,9 +577,8 @@ def labels():
         'rows': page_layout.label_rows,
         'show_item_name': page_layout.show_name,
         'show_price': page_layout.show_price
-    }
+    })
 
-    layout = Storage(layout)
     layout.label_width = (layout.width - (layout.margin_left + layout.margin_right + layout.space_x * (layout.cols - 1))) / layout.cols
     layout.label_height = (layout.height - (layout.margin_top + layout.margin_bottom + layout.space_y * (layout.rows - 1))) / layout.rows
 
@@ -593,10 +592,13 @@ def labels():
             raise HTTP(404)
         return dict(items=purchase_items, layout=layout)
 
-    items_ids = request.args(0).split('_')
-    query = (db.item.id < 0)
-    for item_id in items_ids:
-        query |= (db.item.id == int(item_id))
-    items = db((query) & (db.item.is_active == True) & (db.item.has_inventory == True)).select()
+    if request.args:
+        items_ids = request.args(0).split('_')
+        query = (db.item.id < 0)
+        for item_id in items_ids:
+            query |= (db.item.id == int(item_id))
+        items = db((query) & (db.item.is_active == True) & (db.item.has_inventory == True)).select()
 
-    return dict(items=items, layout=layout)
+        return dict(items=items, layout=layout)
+
+    redirect(URL('default', 'index'))
