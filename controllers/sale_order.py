@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 from constants import STRIPE_SK, STRIPE_PK
-from bag_utils import check_bag_owner, bag_selection_return_format, bag_item_taxes
+from bag_utils import check_bag_owner, bag_selection_return_format, bag_item_taxes, get_ordered_items_count
 
 precheck()
 
@@ -262,18 +262,7 @@ def ready():
     def ready_status_format(row, f, global_data):
         stock, quantity = item_stock(row.id_item, session.store).itervalues()
 
-        # consider previous orders
-        q_sum = db.bag_item.quantity.sum()
-        order_items_qty = db(
-              (db.sale_order.id_bag == db.bag.id)
-            & (db.bag_item.id_bag == db.bag.id)
-            & (db.sale_order.id < order.id)
-            & (db.sale_order.is_active == True)
-            & (db.sale_order.id_sale == None)
-            & (db.sale_order.id_store == session.store)
-            & (db.bag_item.id_item == row.id_item.id)
-        ).select( q_sum ).first()[q_sum] or 0
-
+        order_items_qty = get_ordered_items_count(order.id, row.id_item.id)
         item_ready = quantity >= (row.quantity + order_items_qty)
         global_data['is_ready'] &= item_ready
 

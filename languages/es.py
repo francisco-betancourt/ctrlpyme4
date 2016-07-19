@@ -861,7 +861,7 @@
 'Slogan': 'Slogan',
 'Some categories': 'Algunas categorías',
 'some files could not be removed': 'algunos archivos no pudieron ser removidos',
-'Some items in the order are not available, press the purchase order button to create a purchase that contains the order items': 'Algunos items en la order no están disponibles, presione el botón comprar orden para crear una compra con los items faltantes',
+'Some items in the order are not available, press the purchase order button to create a purchase that contains the order items': 'Algunos items en la orden no están disponibles, presione el botón comprar orden para crear una compra con los items faltantes',
 'Some items were not reported in the full inventory': 'Algunos items no fueron reportados en el inventario completo',
 'Some payments requires account': 'Some payments requires account',
 'Some sale orders are pending': 'Ordenes de venta pendientes',
