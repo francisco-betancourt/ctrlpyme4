@@ -51,7 +51,7 @@ def supert_default_options(row):
     return update_btn, hide_btn
 
 
-def row_data_from_field(row, field):
+def row_data_from_field(row, field, global_data={}):
     keys = field.split('.')
     data = row
     for key in keys:
@@ -61,7 +61,7 @@ def row_data_from_field(row, field):
     return data
 
 
-def base_multifield_format(row, subfields):
+def base_multifield_format(row, subfields, global_data={}):
     data = ''
     for sub_field in subfields:
         data += '%s ' % row_data_from_field(row, sub_field)
@@ -188,7 +188,7 @@ def sort_header(field, t_index=0):
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
 
-def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], search_term=None, base_table_name=None, include_row=False):
+def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], search_term=None, base_table_name=None, include_row=False, global_data={}):
     """
     about fields, fields is an array of <value> where every <value> is either
     a dict or a string.
@@ -207,6 +207,8 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
            'custom_format': lambda row, fields: "%s" % row.field)
         }
     using a dict will group the specified fields into a single one.
+
+    use global_data to share data between rows, specially usefull when using custom formater, this data can be accessed during the custom row formating.
     """
     db = current.db
 
@@ -286,7 +288,10 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
             row_id = _row[base_table_name].id
         values = []
         for field in new_fields:
-            values.append(field.format(_row, field.field))
+            try:
+                values.append(field.format(_row, field.field, global_data))
+            except:
+                values.append(field.format(_row, field.field))
         datas.append(Storage(_id=row_id, _values=values, _row=_row))
 
     global t_index
@@ -410,13 +415,13 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     t_footer.append(A(ICON('keyboard_arrow_left'), _class='st-prev-page', _href=prev_url))
     t_footer.append(A(ICON('keyboard_arrow_right'), _class='st-next-page', _href=next_url))
 
-    table = DIV(t_header, table, t_footer, _class="supert table-responsive", _id="supert_%s" % t_index, **{'_data-index': t_index})
+    table = DIV(t_header, table, t_footer, _class="supert", _id="supert_%s" % t_index, **{'_data-index': t_index})
 
     return table
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_options=[visibility_g_option()]):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_data={}, global_options=[visibility_g_option()]):
     """ default supert with table output. recognized url parameters:
         term: search term
         orderby: field or fields to orderby, it can be something like items.price+items.barcode
@@ -461,7 +466,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     ids = request.vars['ids_%s' % t_index]
     ids = ids.split(',') if ids else []
 
-    new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True)
+    new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True, global_data=global_data)
 
     if not datas:
         datas = []

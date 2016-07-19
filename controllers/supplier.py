@@ -60,5 +60,5 @@ def delete():
     or auth.has_membership('Manager')
 )
 def index():
-    data = common_index('supplier', ['business_name'])
+    data = common_index('supplier', ['business_name', 'tax_id'])
     return locals()

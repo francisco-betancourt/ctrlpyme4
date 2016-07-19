@@ -395,3 +395,48 @@ def create_traits_ref_list(traits_str):
         traits.append(trait_id)
 
     return traits
+
+
+
+def search_item_query(str_term, category):
+    """
+        Generates a query to search items with the specified term and category
+    """
+
+    db = current.db
+
+    term = str_term.split(' ')
+
+    query = (db.item.name.contains(term))
+    query |= db.item.sku == term[0]
+    query |= db.item.ean == term[0]
+    query |= db.item.upc == term[0]
+
+    categories_data_script = SCRIPT()
+    if not category:
+        matched_categories = db(db.category.name.contains(term)).select()
+        if matched_categories:
+            matched_categories_ids = []
+            for matched_category in matched_categories:
+                matched_categories_ids.append(str(matched_category.id))
+            # search by category
+            query |= db.item.categories.contains(
+                matched_categories_ids, all=False
+            )
+
+    # search by Brands
+    matched_brands = db(db.brand.name.contains(term)).select()
+    for matched_brand in matched_brands:
+        query |= db.item.id_brand == matched_brand.id
+
+    # search by trait
+    matched_traits = [str(i['id']) for i in db(db.trait.trait_option.contains(term)).select(db.trait.id).as_list()]
+    if matched_traits:
+        query |= db.item.traits.contains(matched_traits, all=False)
+
+    query &= db.item.is_active == True
+
+    if not term:
+        query = db.item.is_active == True
+
+    return query

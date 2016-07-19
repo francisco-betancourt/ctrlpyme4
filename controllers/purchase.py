@@ -64,6 +64,9 @@ def create_from_order():
         args: [id_order]
     """
 
+    from bag_utils import get_ordered_items_count
+
+
     order = db.sale_order(request.args(0))
     if not order:
         raise HTTP(404)
@@ -72,13 +75,16 @@ def create_from_order():
     # check if the order items are in stock
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
         stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
-        item_ready = (quantity >= bag_item.quantity)
+        order_items_qty = get_ordered_items_count(order.id, bag_item.id_item.id)
+        # the needed quantity will be the total amount of required items to satisfy the specified order and the previous orders.
+        needed_qty = bag_item.quantity + order_items_qty
+        item_ready = (quantity >= needed_qty)
         if not item_ready:
             # if the item is a bundle add the contained items to the purchase
             if bag_item.id_item.is_bundle:
                 for bundle_item in db((db.bundle_item.id_bundle == bag_item.id_item.id)).select():
                     stock, qty = item_stock(bundle_item.id_item, session.store).itervalues()
-                item_ready = (quantity >= bag_item.quantity * bundle_item.quantity)
+                item_ready = (quantity >= needed_qty * bundle_item.quantity)
                 if not item_ready:
                     missing_items.append(
                         dict(
@@ -87,12 +93,15 @@ def create_from_order():
                         )
                     )
             else:
-                missing_items.append(dict(item=bag_item.id_item, qty=bag_item.quantity - quantity))
+                missing_items.append(dict(item=bag_item.id_item, qty=needed_qty - quantity))
 
     if missing_items:
         new_purchase = db.purchase.insert(id_store=session.store)
         for missing_item in missing_items:
             db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id, base_price=missing_item['item'].base_price, price2=missing_item['item'].price2, price3=missing_item['item'].price3)
+    else:
+        session.info = T('No missing items')
+        redirect(URL('sale_order', 'ready', args=order.id))
 
     redirect(URL('fill', args=new_purchase, vars=dict(is_xml=False)))
 

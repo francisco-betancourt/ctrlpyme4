@@ -52,6 +52,9 @@
     if (!event.target.checked) {
       var url = "{{=URL('item', 'browse')}}?";
       {{ if category: }} url += 'category={{=category.id}}' {{ pass }}
+      {{ if term: }}
+        url += '&term={{=term}}';
+      {{ pass }}
       window.location.href = url;
     }
   });
@@ -76,6 +79,9 @@
     {{if is_service:}}
       url += '&is_service=yes'
     {{pass}}
+    {{ if term: }}
+      url += '&term={{=term}}';
+    {{ pass }}
     window.location.href = url;
   });
   $('#categories_tree').on('nodeUnselected', function(event, data) {
@@ -85,6 +91,9 @@
     {{pass}}
     {{ if brand: }}
       url += 'brand={{=brand.id}}';
+    {{ pass }}
+    {{ if term: }}
+      url += '&term={{=term}}';
     {{ pass }}
 
     window.location.href = url;

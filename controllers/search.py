@@ -10,16 +10,14 @@ def search_item():
 
     category = db.category(request.vars.id_category)
 
-    prettify = request.vars.pretty == 'True'
-
     term = request.args(0) or ''
     term = term.split('_')
 
     # search by item name
     query = (db.item.name.contains(term))
-    query |= (db.item.sku.contains(term))
-    query |= (db.item.ean.contains(term))
-    query |= (db.item.upc.contains(term))
+    query |= db.item.sku == term
+    query |= db.item.ean == term
+    query |= db.item.upc == term
 
     categories_data_script = SCRIPT()
     if not category:
@@ -29,26 +27,24 @@ def search_item():
             for matched_category in matched_categories:
                 matched_categories_ids.append(str(matched_category.id))
             # search by category
-            query |= (db.item.categories.contains(matched_categories_ids, all=False))
-    # else:
-    #     query &= (db.item.categories.contains(category.id))
-    #     categories_data_script = SCRIPT('var categories_tree_data = %s;' % json_categories_tree(None, visible_categories=[category.id]))
-
+            query |= db.item.categories.contains(
+                matched_categories_ids, all=False
+            )
 
     # search by Brands
     matched_brands = db(db.brand.name.contains(term)).select()
     for matched_brand in matched_brands:
-        query |= (db.item.id_brand == matched_brand.id)
+        query |= db.item.id_brand == matched_brand.id
 
     # search by trait
     matched_traits = [str(i['id']) for i in db(db.trait.trait_option.contains(term)).select(db.trait.id).as_list()]
     if matched_traits:
-        query |= (db.item.traits.contains(matched_traits, all=False))
+        query |= db.item.traits.contains(matched_traits, all=False)
 
-    query &= (db.item.is_active == True)
+    query &= db.item.is_active == True
 
     if not term:
-        query = (db.item.is_active == True)
+        query = db.item.is_active == True
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(limitby=limits)
 

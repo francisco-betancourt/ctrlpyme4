@@ -159,7 +159,11 @@ def item_form(item=None, is_bundle=False):
                 continue
             l_categories.append(int(c))
         # traits
-        traits = create_traits_ref_list(request.vars.selected_traits)
+        traits = []
+        if item:
+            traits = item.traits
+        if request.vars.selected_traits:
+            traits = create_traits_ref_list(request.vars.selected_traits)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
@@ -490,8 +494,10 @@ def items_list(query, page, ipp=10):
 
 def browse():
     """ Item browser
-        vars: {category, sort, categories, is_service, brand}
+        vars: {category, sort, categories, is_service, brand, term}
     """
+
+    term = request.vars.term;
 
     category = db.category(request.vars.category)
     is_service = request.vars.is_service == 'yes'
@@ -501,15 +507,18 @@ def browse():
 
     query = (db.item.is_active == True)
 
+    if term:
+        query = search_item_query(term, category)
+
     if category:
         query &= db.item.categories.contains(category.id)
+
     if is_service:
         title = T('Services')
         query &= db.item.has_inventory == False
     if brand:
         query &= db.item.id_brand == brand.id
 
-    # no items msg
 
     no_items_msg = T('No items found') + ' '
     if is_service:
