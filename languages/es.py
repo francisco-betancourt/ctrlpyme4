@@ -752,6 +752,7 @@
 'Product loss commited': 'Merma completada',
 'Product losses': 'Mermas de producto',
 'Product name': 'Nombre del producto',
+'Products added to stock': 'Products added to stock',
 'Profile': 'Perfil',
 'Profile updated': 'Perfil actualizado',
 'Provider': 'Provider',
