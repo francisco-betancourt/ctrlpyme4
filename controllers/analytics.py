@@ -483,7 +483,8 @@ def dashboard():
         while current_max_stock_date < end_date:
             # add labels if this is the first time that we add data
             if not items_data['datasets']:
-                items_data['labels'].append(current_max_stock_date.strftime('%B'))
+                month_name = str(T(current_max_stock_date.strftime('%B')))
+                items_data['labels'].append(month_name)
             current_items = db(
                 (db.stock_item.id_store == store.id)
                 & (db.stock_item.created_on < current_max_stock_date)
