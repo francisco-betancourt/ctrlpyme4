@@ -290,7 +290,7 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         for field in new_fields:
             try:
                 values.append(field.format(_row, field.field, global_data))
-            except:
+            except TypeError:
                 values.append(field.format(_row, field.field))
         datas.append(Storage(_id=row_id, _values=values, _row=_row))
 
