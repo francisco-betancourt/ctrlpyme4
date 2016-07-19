@@ -443,7 +443,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     if request.vars['orderby_%s' % t_index]:
         orderby = None
         for f_string in request.vars['orderby_%s' % t_index].split('+'):
-            tname, f_name = f_string.split('.')
+            tname, f_name = f_string.split('.')[:2]
             orderparam = db[tname][f_name] if request.vars['order_%s' % t_index] == 'asc' else ~db[tname][f_name]
             if not orderby:
                 orderby = orderparam
