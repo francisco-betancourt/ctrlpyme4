@@ -494,8 +494,10 @@ def items_list(query, page, ipp=10):
 
 def browse():
     """ Item browser
-        vars: {category, sort, categories, is_service, brand}
+        vars: {category, sort, categories, is_service, brand, term}
     """
+
+    term = request.vars.term;
 
     category = db.category(request.vars.category)
     is_service = request.vars.is_service == 'yes'
@@ -505,15 +507,18 @@ def browse():
 
     query = (db.item.is_active == True)
 
+    if term:
+        query = search_item_query(term, category)
+
     if category:
         query &= db.item.categories.contains(category.id)
+
     if is_service:
         title = T('Services')
         query &= db.item.has_inventory == False
     if brand:
         query &= db.item.id_brand == brand.id
 
-    # no items msg
 
     no_items_msg = T('No items found') + ' '
     if is_service:
