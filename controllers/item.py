@@ -162,8 +162,8 @@ def item_form(item=None, is_bundle=False):
         traits = []
         if item:
             traits = item.traits
-        if request.vars.selected_traits:
-            traits = create_traits_ref_list(request.vars.selected_traits)
+        if form.vars.traits_selected:
+            traits = create_traits_ref_list(request.vars.traits_selected)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
