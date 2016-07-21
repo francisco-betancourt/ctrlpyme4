@@ -39,7 +39,7 @@ def categories_tree_html(categories, item=None):
 
 def traits_widget(item=None):
     # get the item traits
-    traits = item.traits if item else []
+    traits = item.traits if item and item.traits else []
 
     def create_tait_data_container():
         return DIV(
