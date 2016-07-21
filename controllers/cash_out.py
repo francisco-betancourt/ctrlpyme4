@@ -37,7 +37,9 @@ def create():
     if end_date - start_date < CASH_OUT_INTERVAL:
         btn_text = T('View last cash out')
         if not last_cash_out.is_done:
-            btn_text = T('Edit current cash out')
+            redirect(
+                URL('analytics', 'sales_for_cash_out', args=last_cash_out.id)
+            )
         session.info = dict(
             text=T('Cash out interval is set to %s day(s)') % CASH_OUT_INTERVAL.days,
             btn=dict(
