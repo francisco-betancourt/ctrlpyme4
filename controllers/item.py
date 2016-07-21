@@ -80,7 +80,7 @@ def traits_widget(item=None):
 
     if item:
         traits_query = None
-        for trait_id in item.traits:
+        for trait_id in traits:
             if not traits_query:
                 traits_query = (db.trait.id == trait_id)
             else:
