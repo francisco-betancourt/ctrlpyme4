@@ -18,7 +18,7 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
-@auth.requires_membership('Config')
+@auth.requires_membership('Safe config')
 def create():
     form = SQLFORM(db.address)
     if form.process().accepted:

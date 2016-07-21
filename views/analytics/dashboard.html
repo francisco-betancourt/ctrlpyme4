@@ -18,7 +18,7 @@
 
   <div class="panel panel-default col-md-6 col-sm-12 col-lg-4 theme-panel">
     <div class="panel-heading">
-      <h3> <span class="theme-name">{{=T('Income by store')}} - {{=request.now.strftime('%B %Y')}}</span> </h3>
+      <h3> <span class="theme-name">{{=T('Income by store')}} - {{=T(request.now.strftime('%B'))}} {{=request.now.year}}</span> </h3>
     </div>
     <div class="panel-body">
       <canvas style="width: 100%" id="stores_income"></canvas>

@@ -24,7 +24,19 @@
     or auth.has_membership('Manager')
 )
 def create():
-    return common_create('supplier')
+    """ args: [id_address] """
+    address = db.address(request.args(0))
+    if not address:
+        redirect(URL('address', 'create', vars=dict(_next=URL('create'))))
+    form = SQLFORM(db.supplier)
+    form.vars.id_address = address.id
+    if form.process().accepted:
+        # insert store group
+        response.flash = T('form accepted')
+        redirect(URL('index'))
+    elif form.errors:
+        response.flash = T('form has errors')
+    return dict(form=form)
 
 
 @auth.requires(

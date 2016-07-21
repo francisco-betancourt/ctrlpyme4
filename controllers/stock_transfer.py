@@ -20,7 +20,7 @@
 
 precheck()
 
-from item_utils import remove_stocks
+from item_utils import remove_stocks, reintegrate_stock
 
 
 @auth.requires_membership('Stock transfers')
