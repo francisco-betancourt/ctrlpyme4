@@ -345,7 +345,10 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
     db = current.db
     session = current.session
 
-    stock_item = db((db.stock_item[target_field] == target_id) & (db.stock_item.id_item == item.id)).select().first()
+    stock_item = db(
+        (db.stock_item[target_field] == target_id)
+      & (db.stock_item.id_item == item.id)
+    ).select().first()
     if stock_item:
         stock_item.purchase_qty += returned_qty
         stock_item.stock_qty += returned_qty
@@ -358,7 +361,7 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
                              stock_qty=returned_qty,
                              id_store=session.store,
                              taxes=0, **target_data
-                             )
+        )
 
 
 def create_traits_ref_list(traits_str):
