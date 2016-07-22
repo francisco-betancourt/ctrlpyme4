@@ -445,7 +445,7 @@ def commit():
         redirect(URL('fill', args=purchase.id))
 
     # generate stocks for every purchase item
-    stock_items = db(db.stock_item.id_purchase == purchase.id).select()
+    stock_items = db(db.stock_item.id_purchase == purchase.id).iterselect()
     for stock_item in stock_items:
         stock_item = postprocess_stock_item(stock_item)
         stock_item.stock_qty = stock_item.purchase_qty
