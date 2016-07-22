@@ -39,7 +39,7 @@ def ticket():
 
 
 def get_payments_data(id_sale):
-    payments = db(db.payment.id_sale == id_sale).select()
+    payments = db(db.payment.id_sale == id_sale).iterselect()
 
     total = 0
     change = 0
@@ -348,7 +348,7 @@ def create():
         session.info = T('Bag already sold')
         redirect(URL('default', 'index'))
 
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
+    bag_items = db(db.bag_item.id_bag == bag.id).iterselect()
     #TODO check discounts coherence
     for bag_item in bag_items:
         discounts = item_discounts(bag_item.id_item)
@@ -413,7 +413,7 @@ def complete():
     verify_payments(payments, sale)
 
     # verify items stock
-    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
     requires_serials = False  #TODO implement serial numbers
     for bag_item in bag_items:
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
@@ -497,7 +497,7 @@ def deliver():
     if not sale:
         raise HTTP(404)
     # find all the sold items whose purchase had serial numbers
-    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
     resume = DIV()
     for bag_item in bag_items:
         resume.append(bag_item.product_name + str(DQ(bag_item.quantity, True)) + ' x $' + str(DQ(bag_item.sale_price, True)))
@@ -631,7 +631,7 @@ def refund():
         query_result = db((db.bag_item.id_item == db.item.id)
                         & (db.bag_item.id_bag == sale.id_bag.id)
                         & (db.item.is_returnable == True)
-                         ).select(db.bag_item.ALL)
+                         ).iterselect(db.bag_item.ALL)
         for row in query_result:
             bag_items.append(row)
             bag_items_data[str(row.id)] = row

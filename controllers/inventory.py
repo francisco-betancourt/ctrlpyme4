@@ -199,7 +199,7 @@ def update():
 def partial_inventory_check(inventory):
     """ Given the inventory items, fix the current system stocks to match the physical quantities """
 
-    inventory_items = db(db.inventory_item.id_inventory == inventory.id).select()
+    inventory_items = db(db.inventory_item.id_inventory == inventory.id).iterselect()
 
     for inventory_item in inventory_items:
         diff = inventory_item.system_qty - inventory_item.physical_qty
@@ -253,7 +253,7 @@ def full_inventory_check(inventory):
         & (db.item.is_active == True)
         & (db.inventory.id == inventory.id)
         & (db.inventory_item.id_item == None)
-    ).select(db.item.ALL, left=db.inventory_item.on(
+    ).iterselect(db.item.ALL, left=db.inventory_item.on(
             (db.item.id == db.inventory_item.id_item)
             & (db.inventory.id == db.inventory_item.id_inventory)
         )

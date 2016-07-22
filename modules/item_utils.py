@@ -94,13 +94,16 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None, max_date=N
                    & (db.bag_item.id_item == db.item.id)
                    & (db.item.is_bundle == True)
                    & (db.bag_item.id_bag == id_bag)
-        ).select(db.bag_item.ALL, groupby=db.bag_item.id)
+        ).iterselect(db.bag_item.ALL, groupby=db.bag_item.id)
         for bundle in bundles:
             bundle_item = db((db.bundle_item.id_bundle == bundle.id_item.id) & (db.bundle_item.id_item == item.id)).select().first()
             if bundle_item:
                 bag_item_count += bundle_item.quantity * bundle.quantity
         # this is the same item in bag
-        bag_item = db((db.bag_item.id_item == item.id) & (db.bag_item.id_bag == id_bag) & (db.bag_item.quantity > 0)).select().first()
+        bag_item = db(
+            (db.bag_item.id_item == item.id) & (db.bag_item.id_bag == id_bag)
+          & (db.bag_item.quantity > 0)
+        ).select().first()
         bag_item_count += bag_item.quantity if bag_item else 0
     stocks = db(query).select(orderby=db.stock_item.created_on)
     if stocks:

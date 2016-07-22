@@ -73,7 +73,7 @@ def create_from_order():
     missing_items = []
 
     # check if the order items are in stock
-    for bag_item in db(db.bag_item.id_bag == order.id_bag.id).select():
+    for bag_item in db(db.bag_item.id_bag == order.id_bag.id).iterselect():
         stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
         order_items_qty = get_ordered_items_count(order.id, bag_item.id_item.id)
         # the needed quantity will be the total amount of required items to satisfy the specified order and the previous orders.
