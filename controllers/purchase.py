@@ -163,23 +163,25 @@ def add_stock_item():
     if item.is_bundle or not item.has_inventory:
         raise HTTP(403)
 
-    stock_item = db((db.stock_item.id_item == item.id) &
-                       (db.stock_item.id_purchase == purchase.id)
-                      ).select().first()
+
+    stock_item = db(
+        (db.stock_item.id_item == item.id) &
+        (db.stock_item.id_purchase == purchase.id)
+    ).select().first()
     if not stock_item:
-        stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, base_price=item.base_price, price2=item.price2, price3=item.price3, purchase_qty=1)
+        stock_item = db.stock_item.insert(
+            id_purchase=purchase.id, id_item=item.id,
+            base_price=item.base_price, price2=item.price2, price3=item.price3,
+            purchase_qty=1
+        )
         stock_item = db.stock_item(stock_item)
         stock_item = response_stock_item(stock_item)
     redirect(URL('fill', args=[purchase.id, stock_item['id']]))
     return locals()
 
 
-def update_items_total(purchase):
-    items_total = 0
-    for s_item in db(db.stock_item.id_purchase == purchase.id).select():
-        items_total += (s_item.price or 0) * (s_item.purchase_qty or 0)
-    purchase.items_total = items_total
-    purchase.update_record()
+def stock_items_buy_price(stock_item):
+    return (D(stock_item.price or 0) + D(stock_item.taxes or 0)) * D(stock_item.purchase_qty or 0)
 
 
 @auth.requires_membership('Purchases')
@@ -195,8 +197,10 @@ def delete_stock_item():
         raise HTTP(400)
     valid_purchase(stock_item.id_purchase)
 
+    purchase = db.purchase(stock_item.id_purchase.id)
+    purchase.items_total -= stock_items_buy_price(stock_item)
+    purchase.update_record()
     stock_item.delete_record()
-    update_items_total(stock_item.id_purchase)
 
     redirect(URL('fill', args=[stock_item.id_purchase.id]))
 
@@ -238,6 +242,9 @@ def modify_stock_item():
     if stock_item.id_purchase.is_done:
         raise HTTP(405)
     try:
+
+        old_price = stock_items_buy_price(stock_item)
+
         param_name = request.args(1)
         param_value = request.args(2)
 
@@ -249,7 +256,10 @@ def modify_stock_item():
                 stock_item.base_price = stock_item.id_item.base_price or D(1)
             stock_item.update_record()
 
-        update_items_total(purchase)
+        new_price = stock_items_buy_price(stock_item)
+        price_diff = old_price - new_price
+        purchase.items_total -= price_diff
+        purchase.update_record()
 
         return response_stock_item(stock_item)
     except:
