@@ -188,6 +188,32 @@ def sort_header(field, t_index=0):
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
 
+def data_iterator(rows, joined, new_fields, global_data):
+    for row in rows:
+        row_id = None
+
+        # something happened to the query and its returning something like a join
+        _row = row
+        try:
+            if not joined:
+                _row = row[base_table_name]
+        except:
+            pass
+
+        if not joined:
+            row_id = _row['id']
+        else:
+            row_id = _row[base_table_name].id
+        values = []
+        for field in new_fields:
+            try:
+                values.append(field.format(_row, field.field, global_data))
+            except TypeError:
+                values.append(field.format(_row, field.field))
+        yield(Storage(_id=row_id, _values=values, _row=_row))
+
+
+
 def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], search_term=None, base_table_name=None, include_row=False, global_data={}):
     """
     about fields, fields is an array of <value> where every <value> is either
@@ -267,32 +293,11 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         query = query & search_query
 
     if select_fields:
-        rows = db(query).select(*select_fields, **select_args)
+        rows = db(query).iterselect(*select_fields, **select_args)
     else:
-        rows = db(query).select(**select_args)
+        rows = db(query).iterselect(**select_args)
 
-    for row in rows:
-        row_id = None
-
-        # something happened to the query and its returning something like a join
-        _row = row
-        try:
-            if not joined:
-                _row = row[base_table_name]
-        except:
-            pass
-
-        if not joined:
-            row_id = _row['id']
-        else:
-            row_id = _row[base_table_name].id
-        values = []
-        for field in new_fields:
-            try:
-                values.append(field.format(_row, field.field, global_data))
-            except TypeError:
-                values.append(field.format(_row, field.field))
-        datas.append(Storage(_id=row_id, _values=values, _row=_row))
+    datas = data_iterator(rows, joined, new_fields, global_data)
 
     global t_index
     t_index += 1
@@ -320,22 +325,73 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
 
     # base_table
     table = DIV(_class="st-content")
-    if datas and fields:
-        for index, field in enumerate(fields):
-            container = DIV(_class="st-col")
+
+
+    if fields:
+        # generate columns array
+        cols = []
+        for field in fields:
+            col = DIV(_class='st-col')
             head = sort_header(field, t_index)
-            container.append(DIV(head, _class="st-row-data st-last top"))
-            for data in datas:
-                current_data = data._values[index]
-                # say localized YES or NO instead of True False
+            col.append(DIV(head, _class="st-row-data st-last top"))
+            cols.append(col)
+
+        # add an extra column if the row is selectable
+        if selectable:
+            checks = DIV(_class="st-col st-checks-col")
+            checks.append(
+                DIV(CB(_id="cb_master"),
+                    _class="st-row-data st-last top st-options st-header st-check"
+                )
+            )
+            cols.insert(0, checks)
+
+        # add options
+        if options_enabled:
+            options = DIV(_class="st-col")
+            options.append(
+                DIV(T('Options'),
+                    _class="st-row-data st-last top st-options st-header"
+                )
+            )
+            cols.append(options)
+
+
+        for data in datas:
+            s = 0
+            e = len(cols)
+            # select check box goes at the beginning
+            if selectable:
+                cols[0].append(
+                    DIV(CB(_id="cb_%s" % data._id),
+                        _class='st-row-data st-option st-check'
+                    )
+                )
+                s = 1
+            # row options goes at the end
+            if options_enabled:
+                cols[-1].append(
+                    DIV(options_func(data._row),
+                        _class='st-row-data st-option st-row-%s' % data._id
+                    )
+                )
+                e = len(cols) - 1
+
+            for index, col in enumerate(cols[s:e]):
+                current_data = data._values[index + s]
+
+                # fix the value if needed
                 if type(current_data) == bool:
                     current_data = T('yes') if current_data else T('no')
                 if current_data is None or type(current_data) == str and current_data.strip() == 'None':
                     current_data = ''
-                container.append(
+                col.append(
                     DIV(current_data, _class="st-row-data st-row-%s" % data._id)
                 )
-            table.append(container)
+
+        # add columns to table content
+        for col in cols:
+            table.append(col)
     else:
         container = DIV(_class="st-col")
         contents = T('No records found')
@@ -345,8 +401,10 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
         container.append(DIV(contents , _class="st-row-data"))
         table.append(container)
 
-    t_header = ''
-    t_header = DIV(_class="st-row-data top st-card-header", _id="supert_card_header");
+
+    t_header = DIV(
+        _class="st-row-data top st-card-header", _id="supert_card_header"
+    )
     t_header_content = DIV(_class="st-card-header-content")
     # add search field
     if title:
@@ -370,22 +428,9 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
             _class="dropdown supert-global-options"
         )
         t_header_content.append(g_options)
-    if selectable:
-        selected_options = DIV(_class='st-card-header-options')
-        checks = DIV(_class="st-col st-checks-col")
-        checks.append(DIV(CB(_id="cb_master"), _class="st-row-data st-last top st-options st-header st-check"))
-        for data in datas:
-            checks.append(DIV(CB(_id="cb_%s" % data._id), _class='st-row-data st-option st-check'))
-        table.insert(0, checks)
     t_header.append(t_header_content)
 
-    # add options
-    if options_enabled:
-        options = DIV(_class="st-col")
-        options.append(DIV(T('Options'), _class="st-row-data st-last top st-options st-header"))
-        for data in datas:
-            options.append(DIV(options_func(data._row), _class='st-row-data st-option st-row-%s' % data._id))
-        table.append(options)
+
     t_footer = DIV(_class="st-row-data st-last bottom st-footer")
     t_footer.append(DIV(T('Items per page'), _class='st-footer-element'))
     t_footer.append(DIV(
