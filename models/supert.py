@@ -188,7 +188,7 @@ def sort_header(field, t_index=0):
     return icon, A(content, _href=url, _class='st-header ' + classes)
 
 
-def data_iterator(rows, joined, new_fields, global_data):
+def data_iterator(rows, joined, new_fields, global_data, base_table_name):
     for row in rows:
         row_id = None
 
@@ -297,7 +297,9 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     else:
         rows = db(query).iterselect(**select_args)
 
-    datas = data_iterator(rows, joined, new_fields, global_data)
+    datas = data_iterator(
+        rows, joined, new_fields, global_data, base_table_name
+    )
 
     global t_index
     t_index += 1
