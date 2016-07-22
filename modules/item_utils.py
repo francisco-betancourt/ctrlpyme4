@@ -397,7 +397,7 @@ def create_traits_ref_list(traits_str):
             trait_id = trait_id.id
         traits.append(trait_id)
 
-    return traits
+    return traits or []
 
 
 
