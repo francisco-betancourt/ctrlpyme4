@@ -49,7 +49,7 @@ def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
         # do not consider wallet payments
         & (db.payment.id_payment_opt != get_wallet_payment_opt())
         & (db.payment.is_settled == True)
-    ).select(db.payment.ALL, orderby=db.payment.created_on)
+    ).iterselect(db.payment.ALL, orderby=db.payment.created_on)
     return payments
 
 
@@ -61,7 +61,7 @@ def get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
         & (db.bag.is_paid == True)
         & (db.bag.created_on >= start_date)
         & (db.bag.created_on <= end_date)
-    ).select()
+    ).iterselect()
 
     for paid_bag in paid_bags:
         yield Storage(amount=paid_bag.total, change_amount=0, created_on=paid_bag.created_on)
@@ -209,12 +209,12 @@ def day_report_data(year, month, day):
     sales_data = json.dumps(sales_data)
 
     # expenses
-    purchases_total_sum =db.purchase.total.sum()
+    purchases_total_sum = db.purchase.total.sum()
     expenses = db((db.purchase.id_store == session.store)
                 & (db.purchase.is_done >= True)
                 & (db.purchase.created_on >= start_date)
                 & (db.purchase.created_on <= end_date)
-                ).select(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
+    ).iterselect(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
 
     return locals()
 
