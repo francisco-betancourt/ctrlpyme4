@@ -86,7 +86,7 @@ def traits_widget(item=None):
             else:
                 traits_query |= db.trait.id == trait_id
         if traits_query:
-            traits = db(traits_query).select(
+            traits = db(traits_query).iterselect(
                 db.trait.id_trait_category, db.trait.trait_option
             )
         else:
@@ -146,7 +146,7 @@ def item_form(item=None, is_bundle=False):
     # categories
     categories = db(
         db.category.is_active==True
-    ).select(orderby=~db.category.parent)
+    ).iterselect(orderby=~db.category.parent)
     if categories:
         form[0].insert(4, categories_tree_html(categories, item))
         form[0].insert(5, traits_widget(item))
@@ -587,7 +587,9 @@ def labels():
         purchase = db((db.purchase.id == request.vars.id_purchase) & (db.purchase.is_done == True)).select().first()
         if not purchase:
             raise HTTP(404)
-        purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
+        purchase_items = db(
+            db.stock_item.id_purchase == purchase.id
+        ).iterselect()
         if not purchase_items:
             raise HTTP(404)
         return dict(items=purchase_items, layout=layout)
@@ -597,7 +599,10 @@ def labels():
         query = (db.item.id < 0)
         for item_id in items_ids:
             query |= (db.item.id == int(item_id))
-        items = db((query) & (db.item.is_active == True) & (db.item.has_inventory == True)).select()
+        items = db(
+            (query) & (db.item.is_active == True)
+            & (db.item.has_inventory == True)
+        ).select()
 
         return dict(items=items, layout=layout)
 
