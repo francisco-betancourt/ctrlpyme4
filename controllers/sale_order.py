@@ -308,15 +308,6 @@ def delete():
 
 
 @auth.requires_membership('Sale orders')
-def client_order_options(row):
-    td = TD()
-
-    # view ticket
-    td.append(option_btn('check', ))
-    return td
-
-
-@auth.requires_membership('Sale orders')
 def index():
     q = (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False)
     data = SUPERT(q,

@@ -52,7 +52,7 @@ def search():
 
     term = request.raw_args.split('/')[0] or ''
 
-    match = db(db.trait_category.name.contains(term)).select(
+    match = db(db.trait_category.name.contains(term)).iterselect(
         db.trait_category.name, db.trait_category.id
     )
 

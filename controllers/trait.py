@@ -115,7 +115,7 @@ def search():
             (db.trait.id_trait_category == db.trait_category.id) &
             (db.trait_category.name == cat_name) &
             (db.trait.trait_option.contains(term))
-        ).select(
+        ).iterselect(
             db.trait.trait_option
         )
         match = [{'name': r.trait_option} for r in match]
