@@ -354,7 +354,7 @@
 'Errors': 'Errores',
 'Errors in form': 'Errors in form',
 'Errors in form, please check it out.': 'Hay errores en el formulario, por favor comprúebelo.',
-'Estimated payment date': 'Estimated payment date',
+'Estimated payment date': 'Fecha de pago estimada',
 'Event': 'Evento',
 'Events': 'Eventos',
 'Existences': 'Existencias',
