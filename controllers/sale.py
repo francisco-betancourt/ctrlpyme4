@@ -39,7 +39,7 @@ def ticket():
 
 
 def get_payments_data(id_sale):
-    payments = db(db.payment.id_sale == id_sale).iterselect()
+    payments = db(db.payment.id_sale == id_sale).select()
 
     total = 0
     change = 0
