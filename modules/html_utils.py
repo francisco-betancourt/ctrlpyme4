@@ -129,7 +129,7 @@ def MENU_ELEMENTS(submenu_prefix = '', menu=current.response.menu):
 
 
 def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
-    """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page, index is used as a postfix in the generated vars """
+    """ Returns the rows matched by the query with a pagination menu, with the default page 'page' and 'ipp' items per page, index is used as a postfix in the generated vars, this function does not return HTML, it return data useful for generating the required HTML """
 
     request = current.request
     db = current.db
@@ -166,6 +166,8 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
 
 
 def pages_menu(query, page=0, ipp=10, distinct=None):
+    """ Returns a generic pagination menu, paginating over the results of the query """
+    
     try:
         page = int(page or 0)
         ipp = min(int(ipp or 10), 100)
@@ -393,163 +395,6 @@ def filter_menu(filter_data):
         ),
         _class="panel panel-default"
     )
-
-
-def option_btn(icon_name, action_url=None, action_name='', onclick=None):
-    T = current.T
-
-    click_action = onclick if onclick else 'window.location.href = "%s"' % action_url
-    button = BUTTON(ICON(icon_name), T(action_name), _type='button', _class='btn', _onclick=click_action)
-    return button
-
-def row_options(row, update=False, delete=False, get=False):
-    options = DIV()
-    if get:
-        options.append(option_btn(''))
-    if update:
-        options.append(option_btn('edit', URL(request.controller, 'update', args=row.id)))
-    if delete:
-        options.append(option_btn('visibility_off', URL(request.controller, 'delete', args=row.id)))
-    return options
-
-
-
-def default_row_function(row, fields):
-    """ Returns a row with the columns specified by fields, from the specified row """
-
-    tr = TR()
-    for field in fields:
-        tr.append(TD(row[field]))
-
-    return tr
-
-
-def hide_button(row):
-    """" Returns a button that calls the delete_row javascript function """
-
-    return option_btn('visibility_off', onclick='delete_rows("/%s", "", "")' % (row.id))
-
-
-def default_options_function(row):
-    """ Returns a column with a generic edit option and delete javascript option """
-
-    td = TD()
-    # edit option
-    td.append(option_btn('edit', URL('update', args=row.id)))
-    td.append(option_btn('visibility_off', onclick='delete_rows("/%s", "", "")' % (row.id)))
-    return td
-
-
-def super_table(table, fields, query, row_function=default_row_function,
-                options_function=default_options_function, options_enabled=True,
-                show_id=False, selectable=False, custom_headers=[],
-                extra_options=None, paginate=True, orderby=None, search_enabled=True):
-    """ Returns a data table with the specified rows obtained from the specified query, if a row function is supplied then rows will follow the format established by that function, meaning that the row function should return a TR element, the row function has access to the row object and the fields array, if an options function is specified, then, option buttons will be appended as a row column (You must set options_enabled to True). The options_function must return a TD element. Set show_id True if you want the table to display the id for every row, Set selectable to True if you want a multiselect environment, the multiselect work via javascript, so you will have a list of selected row ids. If custom headers is not empty, those items will be used as the table headers, id and select will not be affected. extra_options is a function that will return a list of elements based on the specified row, that will be appended to the default options or the specified options (even though its not necesary to use extra options in a custom options environment).
-
-        This function will use the database table field labels as table headers.
-    """
-
-    request = current.request
-    db = current.db
-    T = current.T
-
-    orderby_field = request.vars.orderby
-    if not orderby_field:
-        orderby_field = 'id'
-
-    term = request.vars.term
-    if term and search_enabled:
-        s_query = (db[table].id < 0)
-        for t_field in fields:
-            if db[table][t_field].type == 'string':
-                s_query |= (db[table][t_field].contains(term))
-            if db[table][t_field].type == 'integer' or db[table][t_field].type.split(' ')[0] == 'reference':
-                try:
-                    int(term)
-                    s_query |= (db[table][t_field] == term)
-                except:
-                    pass
-
-        query &= s_query
-
-    if not query:
-        return None
-    pages = ''
-    if paginate:
-        pages, limits = pages_menu(query, request.vars.page, request.vars.ipp)
-    else:
-        # TODO fix this
-        limits = (0, 100)
-
-    orderby = db[table][orderby_field] if not orderby else orderby
-
-    if request.vars.ascendent == 'True' or not request.vars.ascendent:
-        request.vars.ascendent = 'True'
-        rows = db(query).select(db[table].ALL, limitby=limits, orderby=orderby)
-    else:
-        request.vars.ascendent = 'False'
-        rows = db(query).select(db[table].ALL, limitby=limits, orderby=~orderby)
-    if not rows:
-        return None
-
-    thead = TR()
-    if selectable:
-        thead.append(TH(INPUT(_type='checkbox', _id='master_checkbox'), _class="table-selector"))
-    if show_id:
-        fields.insert(0, 'id')
-    if custom_headers:
-        for header in custom_headers:
-            thead.append(TH(T(header)))
-    else:
-        for field in fields:
-            header_class = ''
-            label = db[table][field].label
-            if field == 'id':
-                label = '#'
-                header_class = 'table_id'
-            new_vars = dict(**request.vars)
-            new_vars['orderby'] = field
-            caret = ''
-            # second consecutive click on field name, produces reverse order
-            if request.vars.orderby == field:
-                if request.vars.ascendent == 'True':
-                    caret = 'up'
-                    new_vars['ascendent'] = False
-                else:
-                    caret = 'down'
-                    new_vars['ascendent'] = True
-            order_url = URL(request.controller, request.function, args=request.args, vars=new_vars)
-            thead.append(TH(A(label, _href=order_url), " ", ICON("arrow_drop_%s" % caret), _class=header_class))
-    if options_enabled:
-        thead.append(TH(T('Options'), _class='table-options'))
-    thead = THEAD(thead)
-
-    tbody = TBODY()
-    for row in rows:
-        tr = row_function(row, fields)
-        if selectable:
-            tr.insert(0, INPUT(_type='checkbox', _class='row_checkbox', _value=row.id))
-        if options_enabled:
-            options_td = options_function(row)
-            if extra_options:
-                for extra_option in extra_options(row):
-                    options_td.append(extra_option)
-            tr.append(options_td)
-
-        tbody.append(tr)
-
-    filter_form = FORM(
-        INPUT(_id='table_filter_term', _class="form-control"),
-        INPUT(_type="submit", _value=T('Search')), _id="table_filter", _class="form-inline", **{'_data-index': t_index}
-    )
-    form_script = SCRIPT("$('#table_filter').submit(function (event) {window.location.href = '%s?term=' + $('#table_filter_term').val(); event.preventDefault()})" % URL(request.controller, request.function))
-    if not search_enabled:
-        filter_form = ''
-        form_script = ''
-
-    table = DIV(filter_form, TABLE(thead, tbody, _class="table table-hover"), pages, form_script)
-
-    return table
 
 
 def sqlform_field(id, label, content):
