@@ -20,6 +20,8 @@
     <p>{{=T("No sales reported")}} </p>
   {{else:}}
 
+
+
     {{block left_sidebar}}
       <h1>{{=T("Cash out")}}</h1>
       <h4>{{=T("Seller")}}: {{=seller.first_name}}</h4>
@@ -27,8 +29,13 @@
         <canvas id="payment_opt_distrib" style="width: 100%;"></canvas>
       </div>
 
-      <h3>{{=T('Total')}}: <span class="right">$ {{=total}} </span></h3>
-      <h3>{{=T('Total Cash')}}: <span class="right">$ {{=total_cash}}</span></h3>
+      <h3>{{=T('Total')}}:
+        <span id="total" class="right">$ {{=total}} </span>
+      </h3>
+      <h3>{{=T('Total Cash')}}:
+        <span id="total_cash" class="right">$ {{=total_cash}}</span>
+      </h3>
+
       {{if not cash_out.is_done:}}
         <hr>
         <div class="form-group">
@@ -56,6 +63,8 @@
         </button>
       {{pass}}
     {{end}}
+
+
 
     <h2 class="noprint">{{=T("Sales")}}</h2>
 
@@ -115,6 +124,7 @@
         {{=T('Physical cash')}} : $ <span id="cash_out_cash">{{=DQ(cash_out.cash, True)}}</span>
       </b></h5>
     </div>
+
 
 
 

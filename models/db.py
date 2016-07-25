@@ -503,6 +503,7 @@ db.define_table(
 
 db.define_table(
     "cash_out"
+    , Field('sys_total', 'decimal(16,6)', default=-1, label=T('System total'))
     , Field('sys_cash', 'decimal(16,6)', default=0, label=T('System cash'))
     , Field('cash', 'decimal(16,6)', default=0, label=T('Physical cash'))
     , Field('id_seller', 'reference auth_user', label=T('Seller'))
