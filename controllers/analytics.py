@@ -113,65 +113,70 @@ def sales_for_cash_out():
         payment_opt.c_color = random_color_mix(PRIMARY_COLOR)
         payment_opts_ref[str(payment_opt.id)] = payment_opt
 
-    sales = db(
-        (db.sale.id == db.sale_log.id_sale)
-        & (
-            (db.sale_log.sale_event == SALE_PAID)
-          | (db.sale_log.sale_event == SALE_DEFERED)
-        )
-        & (db.sale.id_store == session.store)
-        & (db.sale.created_by == seller.id)
-        & time_interval_query('sale', start_date, end_date)
-    ).select(db.sale.ALL, orderby=~db.sale.id)
 
-    total = 0
-    total_cash = 0
-    payment_index = 0
+    def payments_iter():
+        return db(
+            (db.sale_log.id_sale == db.sale.id)
+          & (db.payment.id_sale == db.sale.id)
+          & (
+              (db.sale_log.sale_event == SALE_PAID)
+              | (db.sale_log.sale_event == SALE_DEFERED)
+          )
+          & time_interval_query('sale', start_date, end_date)
+        ).iterselect(db.payment.ALL, orderby=~db.payment.id_sale)
 
-    # this will be the total amount of income
-    payments = db(
-        (db.sale_log.id_sale == db.sale.id)
-        & (db.payment.id_sale == db.sale.id)
-        & (
-            (db.sale_log.sale_event == SALE_PAID)
-            | (db.sale_log.sale_event == SALE_DEFERED)
-        )
-        & time_interval_query('sale', start_date, end_date)
-    ).select(db.payment.ALL, orderby=~db.payment.id_sale)
+    def sales_generator():
+        total = 0
+        total_cash = 0
 
-    for sale in sales:
-        sale.total_change = 0
-        sale.payments = {}
-        sale.payments_total = 0
-        sale.change = 0
+        # this will be the total amount of income
+        payments = payments_iter()
 
-        payments_count = 0
-        for payment in payments[payment_index:]:
-            if payment.id_sale != sale.id:
-                break
-            sale.payments_total += payment.amount
-            if not sale.payments.has_key(str(payment.id_payment_opt.id)):
-                sale.payments[str(payment.id_payment_opt.id)] = Storage(dict(amount=payment.amount, change_amount=payment.change_amount))
+        sale = None
+        for payment in payments:
+            if payment.id_sale and payment.id_sale != sale:
+                if sale:
+                    yield sale
+                sale = payment.id_sale
+                sale.total_change = 0
+                sale.payments = {}
+                sale.payments_total = 0
+                sale.change = 0
+
+            sale.payments_total = (sale.payments_total or 0) + payment.amount
+            payment_opt_key = str(payment.id_payment_opt.id)
+            if not sale.payments.has_key(payment_opt_key):
+                sale.payments[payment_opt_key] = Storage(dict(
+                    amount=payment.amount, change_amount=payment.change_amount
+                ))
             else:
-                _payment = sale.payments[str(payment.id_payment_opt.id)]
+                _payment = sale.payments[payment_opt_key]
                 _payment.amount += payment.amount
                 _payment.change_amount += payment.change_amount
+            sale.total_change += payment.change_amount
+            sale.change += payment.change_amount
+        yield sale
+
+    sales = sales_generator()
+
+    # this is ugly but it only happens when the cash out is created
+    if not cash_out.sys_total < 0:
+        payments = payments_iter()
+
+        total = 0
+        total_cash = 0
+        for payment in payments:
             # payments that allow change are considered cash.
             if payment.id_payment_opt.allow_change:
                 total_cash += payment.amount - payment.change_amount
-            sale.total_change += payment.change_amount
-            sale.change += payment.change_amount
             total += payment.amount - payment.change_amount
-            payments_count += 1
 
-        sale.change = DQ(sale.change, True)
-        payment_index += payments_count
-    total = DQ(total, True)
-    total_cash = DQ(total_cash, True)
-
-    if not cash_out.is_done:
+        cash_out.sys_total = total
         cash_out.sys_cash = total_cash
         cash_out.update_record()
+
+    total = DQ(cash_out.sys_total, True)
+    total_cash = DQ(cash_out.sys_cash, True)
 
     return locals()
 
