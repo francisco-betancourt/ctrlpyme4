@@ -168,7 +168,7 @@
 
   {{ if current_stock_item: }}
     var stock_item_id = {{=current_stock_item.id}};
-    var barcode = {{=item_barcode(current_stock_item.id_item)}}
+    var barcode = "{{=item_barcode(current_stock_item.id_item)}}"
     var quantity = $('#current_stock_item input[name="quantity"]');
     var buy_price = $('#current_stock_item input[name="price"]');
     var base_price = $('#current_stock_item input[name="base_price"]');
@@ -199,7 +199,7 @@
 
     function requirement(barcode) {
       // in this case ignore redirection and add one to the quantity instead
-      if (barcode == {{=item_barcode(current_stock_item.id_item)}}) {
+      if (barcode == "{{=item_barcode(current_stock_item.id_item)}}") {
         var qty_input = $('#current_stock_item input[name="quantity"]');
         var new_qty =  parseFloat(qty_input.val()) + 1;
         qty_input.val(new_qty);
