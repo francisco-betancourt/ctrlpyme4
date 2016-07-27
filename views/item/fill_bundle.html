@@ -1,7 +1,8 @@
 {{extend 'layout.html'}}
 <h1>{{=T('Add Items to: ')}} {{=bundle.name}}</h1>
 
-{{=scan_form}}
+<div id="bundle_scanner_container" class="col-sm-offset-3"></div>
+
 {{=bundle_form}}
 {{=form}}
 
@@ -17,13 +18,11 @@
 </a>
 
 
+{{block page_js}}
 <script>
   // bundle_items is a javascript variable sended by the server.
 
   $('#proto_item').hide();
-
-
-
 
   function create_bundle_items_list() {
     var items_string = "";
@@ -112,27 +111,25 @@
   });
 
 
-  $("#scan_form").on('submit', function(event) {
-    event.preventDefault();
 
-    $('#bundle_items_form_group').show();
-
+  function requirement(barcode) {
     var code = $('#no_table_scan_code').val();
     var bundle_item = bundle_items['item_' + code]
     if (bundle_item) {
       add_item(bundle_items['item_' + code]);
       return false;
     }
-    $.ajax({
-      url: "{{=URL('find_by_code')}}.json/" + code
-    })
-    .done(function(data) {
-      index_item(data.item);
-    })
-    .fail(function(data) {
-      alert("{{=T('Item not found!')}}")
-    });
+    return true;
+  }
 
-    return false;
-  });
+  function success_callback(data, barcode) {
+    index_item(data);
+  }
+  function fail_callback(data, barcode) {
+    alert("{{=T('Barcode not found')}}");
+  }
+
+  var scanner = create_scanner('bundle', $('#bundle_scanner_container'));
+  setup_scanner(scanner, success_callback, fail_callback, requirement, null);
 </script>
+{{end}}

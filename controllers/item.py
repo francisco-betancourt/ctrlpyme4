@@ -228,9 +228,6 @@ def fill_bundle():
     bundle = db.item(request.args(0))
     if not bundle:
         raise HTTP(404)
-    scan_form = SQLFORM.factory(
-        Field('scan_code'), buttons=[], _id="scan_form"
-    )
     bundle_form = SQLFORM.factory(
         _id='bundle_form', buttons=[]
     )
