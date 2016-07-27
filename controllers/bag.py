@@ -23,7 +23,7 @@ from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
 from bag_utils import *
-from item_utils import item_stock, discount_data, remove_stocks
+from item_utils import item_stock_qty, discount_data, remove_stocks
 
 
 allow_out_of_stock = True
@@ -51,7 +51,7 @@ def modify_bag_item():
     bag_item.quantity = DQ(bag_item.quantity)
 
     if not allow_out_of_stock:
-        qty = item_stock(db.item(bag_item.id_item), session.store, id_bag=session.current_bag)['quantity']
+        qty = item_stock_qty(db.item(bag_item.id_item), session.store, id_bag=session.current_bag)
         diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
         if qty + diff < bag_item.quantity - old_qty:
             bag_item.quantity = max(old_qty, qty + old_qty)
@@ -102,10 +102,10 @@ def add_bag_item():
                     & (db.bag_item.id_bag == id_bag)
                     ).select().first()
 
-        item_stock_qty = item_stock(item, session.store, id_bag=session.current_bag)['quantity']
+        stock_qty = item_stock_qty(item, session.store, id_bag=session.current_bag)
         if item.has_inventory:
-            item_stock_qty = DQ(item_stock_qty)
-        base_qty = base_qty = 1 if item_stock_qty >= 1 or allow_out_of_stock else item_stock_qty % 1 # modulo to consider fractionary items
+            stock_qty = DQ(stock_qty)
+        base_qty = base_qty = 1 if stock_qty >= 1 or allow_out_of_stock else stock_qty % 1 # modulo to consider fractionary items
         # if there is no stock notify the user
         if base_qty <= 0:
             return dict(status="out of stock")

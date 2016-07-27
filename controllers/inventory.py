@@ -130,12 +130,13 @@ def add_item():
     if not item.has_inventory:
         raise HTTP(400)
 
-    stocks, stock_qty = item_stock(item, session.store).itervalues()
+    stock_qty = item_stock_qty(item, session.store)
 
     # check if theres an inventory item
-    inventory_item = db((db.inventory_item.id_inventory == inventory.id)
-                      & (db.inventory_item.id_item == item.id)
-                       ).select().first()
+    inventory_item = db(
+        (db.inventory_item.id_inventory == inventory.id)
+      & (db.inventory_item.id_item == item.id)
+    ).select().first()
     if not inventory_item:
         inventory_item = db.inventory_item.insert(id_item=item.id, id_inventory=inventory.id, system_qty=stock_qty, physical_qty=stock_qty)
         inventory_item = db.inventory_item(inventory_item)
@@ -263,7 +264,9 @@ def full_inventory_check(inventory):
     missing_items_count = 0
     for missing_item in missing_items:
         # TODO this could use _remove_stocks()
-        stock_items, quantity = item_stock(missing_item, session.store).itervalues()
+        stock_items = item_stock_iterator(missing_item, session.store)
+        quantity = item_stock_qty(missing_item, session.store)
+
         # when there are no stocks (never purchased).
         if not stock_items:
             continue

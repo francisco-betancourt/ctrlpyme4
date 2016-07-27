@@ -62,23 +62,9 @@ def item_taxes(item, price):
     return DQ(total)
 
 
-def item_stock(item, id_store=None, include_empty=False, id_bag=None, max_date=None):
-    """ Returns all the stocks for the specified item and store, if id_store is 0 then the stocks for every store will be retrieved """
+def item_stock_query(item, id_store=None, include_empty=False, max_date=None):
 
     db = current.db
-    stocks = None
-
-    # this is something like a service, it does not have existences, so its always available
-    if not item.has_inventory:
-        return dict(stocks=None, quantity=2**64) # hack since theres a problem including float('inf')
-
-    if item.is_bundle:
-        bundle_items = db(db.bundle_item.id_bundle == item.id).select()
-        min_bundle = float('inf')
-        for bundle_item in bundle_items:
-            stocks, qty = item_stock(bundle_item.id_item, id_store, include_empty, id_bag).itervalues()
-            min_bundle = min(min_bundle, qty / bundle_item.quantity)
-        return dict(stocks=None, quantity=min_bundle)
 
     query = (db.stock_item.id_item == item.id)
     if id_store > 0:
@@ -87,34 +73,72 @@ def item_stock(item, id_store=None, include_empty=False, id_bag=None, max_date=N
         query &= db.stock_item.stock_qty > 0
     if max_date:
         query &= db.stock_item.created_on < max_date
+
+    return query
+
+
+def item_stock_iterator(item, id_store=None, include_empty=False, max_date=None):
+    """ used to get stock items related to the specified item """
+
+    db = current.db
+
+    query = item_stock_query(item, id_store, include_empty, max_date)
+
+    # services and bundles does not have stocks
+    if not item.has_inventory or item.is_bundle:
+        return None
+
+    return db(query).iterselect(orderby=db.stock_item.created_on)
+
+
+def item_stock_qty(item, id_store=None, id_bag=None, max_date=None):
+    """ Returns the current stock for the specified item,
+        if id_bag is specified, then this function will consider the items in
+        the specified bag as not available (removing stock)
+    """
+
+    db = current.db
+    stocks = None
+
+    # services have unlimited qty
+    if not item.has_inventory:
+        return 2**64 # hack since theres a problem using float('inf')
+
+    if item.is_bundle:
+        bundle_items = db(db.bundle_item.id_bundle == item.id).iterselect()
+        min_bundle = float('inf')
+        for bundle_item in bundle_items:
+            qty = item_stock_qty(bundle_item.id_item, id_store, id_bag, max_date)
+            min_bundle = min(min_bundle, qty / bundle_item.quantity)
+        return min_bundle
+
     bag_item_count = 0
     if id_bag:
         # check bundle items containing the specified item
-        bundles = db((db.bundle_item.id_bundle == db.bag_item.id_item)
-                   & (db.bag_item.id_item == db.item.id)
-                   & (db.item.is_bundle == True)
-                   & (db.bag_item.id_bag == id_bag)
-        ).iterselect(db.bag_item.ALL, groupby=db.bag_item.id)
-        for bundle in bundles:
-            bundle_item = db((db.bundle_item.id_bundle == bundle.id_item.id) & (db.bundle_item.id_item == item.id)).select().first()
-            if bundle_item:
-                bag_item_count += bundle_item.quantity * bundle.quantity
-        # this is the same item in bag
-        bag_item = db(
-            (db.bag_item.id_item == item.id) & (db.bag_item.id_bag == id_bag)
-          & (db.bag_item.quantity > 0)
-        ).select().first()
-        bag_item_count += bag_item.quantity if bag_item else 0
-    stocks = db(query).select(orderby=db.stock_item.created_on)
-    if stocks:
-        quantity = 0
-        for stock in stocks:
-            quantity += stock.stock_qty
-        quantity -= bag_item_count
-        return dict(stocks=stocks, quantity=quantity)
-    else:
-        return dict(stocks=None, quantity=0)
+        count_sum = (db.bundle_item.quantity * db.bag_item.quantity).sum()
+        bundle_items_count = db(
+            (db.bundle_item.id_bundle == db.bag_item.id_item)
+           & (db.bag_item.id_item == db.item.id)
+           & (db.bundle_item.id_item == item.id)
+           & (db.item.is_bundle == True)
+           & (db.bag_item.id_bag == id_bag)
+        ).select(count_sum).first()[count_sum] or 0
 
+        # this is the specified item
+        count_sum = db.bag_item.quantity.sum()
+        item_count = db(
+            (db.bag_item.id_item == item.id)
+          & (db.bag_item.id_bag == id_bag)
+          & (db.bag_item.quantity > 0)
+        ).select(count_sum).first()[count_sum] or 0
+
+        bag_item_count = bundle_items_count + item_count
+
+    stock_sum = db.stock_item.stock_qty.sum()
+    query = item_stock_query(item, id_store, None, max_date)
+    stocks_qty = db(query).select(stock_sum).first()[stock_sum] or 0
+
+    return stocks_qty - bag_item_count
 
 
 def item_discounts(item):
@@ -261,7 +285,8 @@ def _remove_stocks(item, remove_qty, sale_date, bag_item=None,
     if not item.has_inventory or not remove_qty:
         return 0, 0
 
-    stock_items, stock_qty = item_stock(item, session.store).itervalues()
+    stock_items = item_stock_iterator(item, session.store)
+    stock_qty = item_stock_qty(item, session.store)
     if not stock_qty:
         return 0, 0
 

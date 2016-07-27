@@ -74,7 +74,7 @@ def create_from_order():
 
     # check if the order items are in stock
     for bag_item in db(db.bag_item.id_bag == order.id_bag.id).iterselect():
-        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
+        quantity = item_stock_qty(bag_item.id_item, session.store)
         order_items_qty = get_ordered_items_count(order.id, bag_item.id_item.id)
         # the needed quantity will be the total amount of required items to satisfy the specified order and the previous orders.
         needed_qty = bag_item.quantity + order_items_qty
@@ -83,7 +83,7 @@ def create_from_order():
             # if the item is a bundle add the contained items to the purchase
             if bag_item.id_item.is_bundle:
                 for bundle_item in db((db.bundle_item.id_bundle == bag_item.id_item.id)).select():
-                    stock, qty = item_stock(bundle_item.id_item, session.store).itervalues()
+                    qty = item_stock_qty(bundle_item.id_item, session.store)
                 item_ready = (quantity >= needed_qty * bundle_item.quantity)
                 if not item_ready:
                     missing_items.append(
