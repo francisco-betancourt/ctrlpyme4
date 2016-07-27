@@ -417,7 +417,9 @@ def complete():
     requires_serials = False  #TODO implement serial numbers
     for bag_item in bag_items:
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
-        stock_qty = item_stock_qty(bag_item.id_item, session.store)
+        stock_qty = item_stock_qty(
+            bag_item.id_item, session.store, bag_item.id_bag.id
+        )
         # Cannot deliver a sale with out of stock items
         if stock_qty < bag_item.quantity:
             session.info = T("You can't create a counter sale with out of stock items")
