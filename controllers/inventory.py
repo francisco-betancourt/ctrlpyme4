@@ -127,7 +127,7 @@ def add_item():
     item = active_item(request.args(1))
     if not inventory or not item:
         raise HTTP(404)
-    if not item.has_inventory:
+    if not item.has_inventory or item.is_bundle:
         raise HTTP(400)
 
     stocks, stock_qty = item_stock(item, session.store).itervalues()
