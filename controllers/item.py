@@ -39,7 +39,7 @@ def categories_tree_html(categories, item=None):
 
 def traits_widget(item=None):
     # get the item traits
-    traits = item.traits if item else []
+    traits = item.traits if item and item.traits else []
 
     def create_tait_data_container():
         return DIV(
@@ -162,8 +162,8 @@ def item_form(item=None, is_bundle=False):
         traits = []
         if item:
             traits = item.traits
-        if form.vars.traits_selected:
-            traits = create_traits_ref_list(form.vars.traits_selected)
+        if request.vars.traits_selected:
+            traits = create_traits_ref_list(request.vars.traits_selected)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
