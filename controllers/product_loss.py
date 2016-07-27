@@ -38,7 +38,7 @@ def create():
     bag_items = db(db.bag_item.id_bag == bag.id).select()
     bag_items_count = len(bag_items)
     for bag_item in bag_items:
-        qty = item_stock(bag_item.id_item, bag.id_store)['quantity']
+        qty = item_stock_qty(bag_item.id_item, bag.id_store)
         bag_item.quantity = min(bag_item.quantity, qty)
         if not bag_item.quantity or not bag_item.id_item.has_inventory:
             bag_item.delete_record()

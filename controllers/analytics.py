@@ -313,7 +313,7 @@ def item_analysis():
     existence = 0
     stocks = None
     if item.has_inventory:
-        existence = item_stock(item, id_store=session.store)['quantity']
+        existence = item_stock_qty(item, id_store=session.store)
         stocks = stocks_table(item)
 
     def out_custom_format(row, fields):

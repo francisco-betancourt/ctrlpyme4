@@ -716,6 +716,7 @@
 'Please fill the following fields: Forma de pago Provider': 'Please fill the following fields: Forma de pago Provider',
 'Please fill the following fields: Forma de pago, Proveedor': 'Please fill the following fields: Forma de pago, Proveedor',
 'Please fill the following fields: Forma de pago, Proveedor.': 'Please fill the following fields: Forma de pago, Proveedor.',
+'please fill the form': 'please fill the form',
 'Please input your certificate': 'Please input your certificate',
 'please input your password again': 'por favor introduzca su contraseña otra vez',
 'Please input your private key': 'Please input your private key',

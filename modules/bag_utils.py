@@ -27,7 +27,7 @@ from uuid import uuid4
 from gluon.storage import Storage
 from common_utils import *
 from constants import BAG_ACTIVE, BAG_COMPLETE, BAG_FOR_ORDER, BAG_ORDER_COMPLETE
-from item_utils import item_discounts, item_barcode, item_stock
+from item_utils import item_discounts, item_barcode, item_stock_qty
 
 
 def auto_bag_selection():
@@ -104,7 +104,7 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
         # delete bag item when the item has 0 quantity
         if bag_item.quantity <= 0:
             db(db.bag_item.id == bag_item.id).delete()
-        qty = item_stock(bag_item.id_item, session.store)['quantity']
+        qty = item_stock_qty(bag_item.id_item, session.store)
         if bag_item.quantity > qty and not allow_out_of_stock:
             out_of_stock_items.append(bag_item)
     if out_of_stock_items and auth.has_membership('Employee'):
@@ -204,9 +204,8 @@ def set_bag_item(bag_item, discounts=[]):
     bag_item.measure_unit = item.id_measure_unit.symbol
 
     bag_item.barcode = item_barcode(item)
-    stocks = item_stock(item, session.store)
+    bag_item.stock = item_stock_qty(item, session.store)
     bag_item.has_inventory = item.has_inventory
-    bag_item.stock = stocks['quantity'] if stocks else 0
     bag_item.discount_percentage = int(discount_p * D(100.0))
     bag_item.real_price = bag_item.sale_price
 
