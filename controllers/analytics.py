@@ -160,7 +160,7 @@ def sales_for_cash_out():
     sales = sales_generator()
 
     # this is ugly but it only happens when the cash out is created
-    if not cash_out.sys_total < 0:
+    if cash_out.sys_total < 0:
         payments = payments_iter()
 
         total = 0
