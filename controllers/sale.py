@@ -420,6 +420,11 @@ def complete():
         stock_qty = item_stock_qty(
             bag_item.id_item, session.store, bag_item.id_bag.id
         )
+        # this has to be done since using item_stock_qty with a bag specified will
+        # consider bagged items as missing, thus we have to add them back,
+        # item_stock_qty must be called with a bag because that way it will
+        # count bundled items with the specified item
+        stock_qty += bag_item.quantity
         # Cannot deliver a sale with out of stock items
         if stock_qty < bag_item.quantity:
             session.info = T("You can't create a counter sale with out of stock items")
@@ -455,7 +460,7 @@ def complete():
     if not auth.has_membership('Sales delivery'):
         redirect(URL('scan_ticket'))
     else:
-        bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+        bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
         remove_stocks(bag_items)
         create_sale_event(sale, SALE_DELIVERED)
         sale.update_record()
@@ -510,6 +515,7 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
+        # TODO remove stocks and that stuff
         create_sale_event(sale, SALE_DELIVERED)
         sale.update_record()
 

@@ -329,7 +329,11 @@ def remove_stocks(bag_items):
     """ Remove stocks for all the bag items specified """
     db = current.db
 
+    id_bag = None
     for bag_item in bag_items:
+        if not id_bag:
+            id_bag = bag_item.id_bag.id
+
         #TODO:50 implement stock removal for bag items with serial number
         if bag_item.id_item.has_serial_number:
             pass
@@ -367,6 +371,9 @@ def remove_stocks(bag_items):
                 bag_item.wavg_days_in_shelf = wavg_days_in_shelf
 
             bag_item.update_record()
+
+    print id_bag
+    db(db.bag.id == id_bag).update(is_delivered=True)
 
 
 def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id):
