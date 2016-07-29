@@ -273,6 +273,15 @@ button.cp-fab:focus{
   animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
   /*animation-direction: alternate-reverse;*/
 }
+.scanner-form>.results {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+.scanner-result-element {
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
 
 
 #item_info>span {

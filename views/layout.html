@@ -232,7 +232,7 @@
       {{ include '../static/js/web2py.js'}}
 
 
-      var DEFAULT_BARCODE_SCANNER_URL = '{{ =URL("item", "find_by_code", extension="json") }}/'
+      var DEFAULT_BARCODE_SCANNER_URL = '{{ =URL("item", "find_by_matching_code", extension="json") }}/'
 
 
       $('#info_close').click(function(event) {

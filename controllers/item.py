@@ -424,6 +424,53 @@ def find_by_code():
     return locals()
 
 
+def find_by_matching_code():
+    """ Returns items with a matching initial barcode
+
+    for example:
+        item1  #7771-a
+        item2  #7771-b
+
+    using barcode #7771 will return both, this is useful to have pseudo repeated
+    barcodes.
+
+    This function will return only the first ten results, and a data to query
+    the next elements.
+    """
+
+    from item_utils import composed_name
+
+    barcode = request.args(0)
+    try:
+        page = int(request.args(1)) or 0
+    except:
+        page = 0
+
+    if not barcode:
+        raise HTTP(405)
+
+    start = page * 10
+    end = start + 10
+
+    items = db(
+          (db.item.sku.startswith(barcode))
+        | (db.item.upc.startswith(barcode))
+        | (db.item.ean.startswith(barcode))
+    ).select(
+        db.item.ALL, limitby=(start, end),
+        orderby=db.item.sku.length & db.item.upc.length & db.item.ean.length
+    )
+
+    # process the items
+    for item in items:
+        item.name = composed_name(item)
+
+    if not items:
+        raise HTTP(404)
+
+    return dict(items=items)
+
+
 @auth.requires(auth.has_membership('Items management')
     or auth.has_membership('Items info')
     or auth.has_membership('Items prices')

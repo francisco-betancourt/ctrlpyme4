@@ -476,3 +476,19 @@ def search_item_query(str_term, category):
         query = db.item.is_active == True
 
     return query
+
+
+def composed_name(item):
+    """ Returns the item name with some extra data, like its traits or short description if any """
+
+    c_name = item.name
+
+    if item.traits:
+        for trait in item.traits:
+            c_name += ' ' + trait.trait_option
+    elif item.description:
+        c_name += ' - ' + item.description[:10]
+        if len(item.description) > 10:
+            c_name += '...'
+
+    return c_name

@@ -1,7 +1,14 @@
+<template id="proto_scanner__result_element">
+  <div class="scanner-result-element">
+  </div>
+</template>
+
 <template id="proto_scanner">
   <form class="scanner-form">
     <div class="form-group">
       <input type="text" class="form-control scanner-input" placeholder="{{=T('Scan a Barcode')}}" style="background-image: url({{=URL('static', 'images/scanner.png')}})">
     </div>
+
+    <div class="results well" hidden> </div>
   </form>
 </template>
