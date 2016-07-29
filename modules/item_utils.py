@@ -372,7 +372,6 @@ def remove_stocks(bag_items):
 
             bag_item.update_record()
 
-    print id_bag
     db(db.bag.id == id_bag).update(is_delivered=True)
 
 
