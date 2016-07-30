@@ -129,7 +129,7 @@
     alert("{{=T('Barcode not found')}}");
   }
 
-  var scanner = create_scanner('bundle', $('#bundle_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, requirement, null);
+  var scanner = BarcodeScanner('bundle', $('#bundle_scanner_container'));
+  scanner.setup(success_callback, fail_callback, requirement, null);
 </script>
 {{end}}

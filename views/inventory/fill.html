@@ -117,8 +117,8 @@
     alert("{{=T('Barcode not found')}}");
   }
 
-  var scanner = create_scanner('inventory', $('#inventory_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, null, null);
+  var scanner = BarcodeScanner('inventory', $('#inventory_scanner_container'));
+  scanner.setup(success_callback, fail_callback, null, null);
 </script>
 
 {{end}}

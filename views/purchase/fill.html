@@ -301,8 +301,8 @@
     });
   }
 
-  var scanner = create_scanner('purchase', $('#purchase_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, requirement, null);
+  var scanner = BarcodeScanner('purchase', $('#purchase_scanner_container'));
+  scanner.setup(success_callback, fail_callback, requirement, null);
 
 </script>
 {{ end }}

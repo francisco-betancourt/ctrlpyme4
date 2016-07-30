@@ -14,7 +14,7 @@
     window.location.href = "{{=URL('sale', 'refund')}}/" + data.sale.id;
   }
 
-  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, null, "{{=URL('get', extension='json')}}/");
+  var scanner = BarcodeScanner('ticket', $('#ticket_scanner_container'));
+  scanner.setup(success_callback, fail_callback, null, "{{=URL('get', extension='json')}}/");
 </script>
 {{end}}

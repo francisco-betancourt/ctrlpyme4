@@ -14,7 +14,7 @@
     window.location.href = "{{=URL('sale', 'create')}}/" + data.sale_order.id_bag;
   }
 
-  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
-  setup_scanner(scanner, order_success_callback, order_fail_callback, null, "{{=URL('sale_order', 'get_by_code', extension='json')}}/", 'sale_order');
+  var scanner = BarcodeScanner('ticket', $('#ticket_scanner_container'));
+  scanner.setup(order_success_callback, order_fail_callback, null, "{{=URL('sale_order', 'get_by_code', extension='json')}}/", 'sale_order');
 </script>
 {{ pass }}
