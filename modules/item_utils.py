@@ -106,6 +106,8 @@ def item_stock_qty(item, id_store=None, id_bag=None, max_date=None):
 
     if item.is_bundle:
         bundle_items = db(db.bundle_item.id_bundle == item.id).iterselect()
+        if not bundle_items:
+            return 0
         min_bundle = float('inf')
         for bundle_item in bundle_items:
             qty = item_stock_qty(bundle_item.id_item, id_store, id_bag, max_date)

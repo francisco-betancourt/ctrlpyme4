@@ -252,17 +252,23 @@ def fill_bundle():
                 continue
             try:
                 item_id, item_qty = pair.split(':')
-                item_qty = int(item_qty)
+                item = db(db.item.id == item_id).select().first()
+                # we dont want bundles to be in bundles
+                if not item or item.is_bundle:
+                    continue
+
+                item_qty = fix_item_quantity(item, item_qty)
                 if not item_qty > 0:
                     continue
-                item = db(db.item.id == item_id)
-                if item and item.is_bundle:
-                    db.bundle_item.insert(
-                        quantity=item_qty,
-                        id_bundle=bundle.id,
-                        id_item=item.id
-                    )
-            except:
+                # update_or_insert used because even if the interface does not support multiple items with the same id the user can modify the string to do such case.
+                db.bundle_item.update_or_insert(
+                      (db.bundle_item.id_bundle == bundle.id)
+                    & (db.bundle_item.id_item == item_id),
+                    quantity=item_qty,
+                    id_bundle=bundle.id,
+                    id_item=item.id
+                )
+            except ValueError:
                 pass
         redirect(URL('index'))
         response.flash = T('form accepted')
@@ -362,30 +368,6 @@ def get_item():
 
     if not item:
         raise HTTP(404)
-
-
-    # in this case we can add a selector for every trait
-    # if same_traits:
-    #     for trait in item.traits:
-    #         trait_category = trait.id_trait_category
-    #         trait_options[str(trait_category.id)] = {
-    #             'name': trait_category.name,
-    #             'options': {}
-    #         }
-    #         trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
-    #             'name': trait.trait_option, 'id': trait.id
-    #         }
-    #     for other_item in other_items:
-    #         for trait in other_item.traits:
-    #             trait_category = trait.id_trait_category
-    #             if trait_options[str(trait_category.id)]['options'].has_key(
-    #                 str(trait.id)
-    #             ):
-    #                 continue
-    #             trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
-    #                 'name': trait.trait_option, 'id': trait.id
-    #             }
-    #     return_data['trait_options'] = trait_options
 
     new_price = item.base_price or 0
     discounts = item_discounts(item)
