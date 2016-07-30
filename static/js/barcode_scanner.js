@@ -38,6 +38,41 @@ function BarcodeScanner(id_suffix, container) {
   }
 
 
+  var create_item_row = function(item, barcode) {
+
+    matched_items['r_item_' + item.id] = item;
+
+    var clone = $(document.importNode(
+      $('#proto_scanner__result_element')[0].content, true)
+    );
+
+    // item thumbnail
+    if (item.thumb)
+      clone.find('.result-thumb').attr('src', item.thumb);
+
+    var clone_data = clone.find('.result-data');
+    clone_data.text(item.name);
+
+    var clone_content = clone.find('.scanner-result-element');
+
+    clone_content[0].dataset.item_id = item.id;
+
+    clone_content.on('click', function (event) {
+      // child was clicked
+      var target = event.target;
+      if (!target.classList.contains('.scanner-result-element'))
+        target = target.parentNode;
+      var item_id = target.dataset.item_id;
+      item = matched_items['r_item_' + item_id];
+      success_callback(item, barcode);
+      // clean previous query results
+      cleanup_data();
+    });
+    SCANNER_HTML.find('.results').append(clone);
+
+  }
+
+
   var fetch_matching = function(barcode) {
     if (last_page == -1) return;
 
@@ -65,26 +100,8 @@ function BarcodeScanner(id_suffix, container) {
 
             // create the matched items list
             for (var index in data.items) {
-              var item = data.items[index];
-              matched_items['r_item_' + item.id] = item;
 
-              var clone = $(document.importNode(
-                $('#proto_scanner__result_element')[0].content, true)
-              );
-              var clone_content = clone.find('.scanner-result-element');
-              clone_content.text(item.name);
-              clone_content[0].dataset.item_id = item.id;
-
-              SCANNER_HTML.find('.results').append(clone);
-
-              clone_content.on('click', function (event) {
-                var item_id = event.target.dataset.item_id;
-                item = matched_items['r_item_' + item_id];
-                success_callback(item, barcode);
-
-                // clean previous query results
-                cleanup_data();
-              });
+              create_item_row(data.items[index], barcode);
             }
 
             // server returned less than 10 items so we are sure there are no more

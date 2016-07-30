@@ -463,7 +463,14 @@ def find_by_matching_code():
 
     # process the items
     for item in items:
+        img = db(db.item_image.id_item == item.id).select().first()
         item.name = composed_name(item)
+
+        if img:
+            thumb = URL('static', 'uploads/' + img.thumb)
+            item.thumb = thumb
+        else:
+            item.thumb = URL('static', 'images/no_image.svg')
 
     if not items:
         raise HTTP(404)

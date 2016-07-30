@@ -278,9 +278,16 @@ button.cp-fab:focus{
   overflow-y: scroll;
 }
 .scanner-result-element {
-  height: 32px;
+  height: 64px;
+  overflow: hidden;
   display: flex;
   align-items: center;
+}
+.scanner-result-element>.result-thumb {
+  background-color: white;
+  width: 48px;
+  /*height: 48px;*/
+  margin-right: 16px;
 }
 
 
