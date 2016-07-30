@@ -33,7 +33,6 @@
       }
     }
     $('#final_bundle_items_list').val(items_string)
-    console.log(items_string);
   }
 
 
@@ -123,6 +122,10 @@
   }
 
   function success_callback(data, barcode) {
+    if (data.is_bundle) {
+      info_card("{{=T('You can not add a bundle to bundle')}}", null, "error");
+      return;
+    }
     index_item(data);
   }
   function fail_callback(data, barcode) {

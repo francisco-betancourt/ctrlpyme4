@@ -250,8 +250,20 @@ def fill_bundle():
         for pair in form.vars.item_ids.split(','):
             if not pair:
                 continue
-            item_id, item_qty = pair.split(':')
-            db.bundle_item.update_or_insert((db.bundle_item.id_bundle == bundle.id) & (db.bundle_item.id_item == item_id), quantity=item_qty, id_bundle=bundle.id, id_item=item_id)
+            try:
+                item_id, item_qty = pair.split(':')
+                item_qty = int(item_qty)
+                if not item_qty > 0:
+                    continue
+                item = db(db.item.id == item_id)
+                if item and item.is_bundle:
+                    db.bundle_item.insert(
+                        quantity=item_qty,
+                        id_bundle=bundle.id,
+                        id_item=item.id
+                    )
+            except:
+                pass
         redirect(URL('index'))
         response.flash = T('form accepted')
     elif form.errors:

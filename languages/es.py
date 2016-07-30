@@ -1119,6 +1119,7 @@
 'You are successfully running web2py': 'Usted está ejecutando web2py exitosamente',
 'You can check your orders in': 'Puedes checar tus ordenes en',
 'You can modify this application and adapt it to your needs': 'Usted puede modificar esta aplicación y adaptarla a sus necesidades',
+'You can not add a bundle to bundle': 'You can not add a bundle to bundle',
 "You can't create a counter sale with out of stock items": 'No puedes crear una venta de mostrador con items fuera de stock',
 "You don't have orders": 'No ha realizado ninguna orden',
 'You have already uploaded a certificate and a key for this store, if you proceed you will replace the old files.': 'Esta tienda ya tiene llave y certificado, si selecciona archivos nuevos reemplazará los anteriores.',
