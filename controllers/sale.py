@@ -27,27 +27,11 @@ from datetime import date, timedelta
 from item_utils import item_discounts, apply_discount, item_stock_qty, remove_stocks, undo_stock_removal, reintegrate_stock
 from constants import *
 
-
-def create_sale_event(sale, event_name, event_date=request.now):
-    sale.last_log_event = event_name
-    sale.last_log_event_date = event_date
-    return db.sale_log.insert(id_sale=sale.id, sale_event=event_name, event_date=event_date)
+import sale_utils
 
 
 def ticket():
     redirect( URL( 'ticket', 'get', vars=dict(id_sale=request.args(0)) ) )
-
-
-def get_payments_data(id_sale):
-    payments = db(db.payment.id_sale == id_sale).select()
-
-    total = 0
-    change = 0
-    for payment in payments:
-        total += (payment.amount or 0)
-        change += (payment.change_amount or 0)
-
-    return total, change, payments
 
 
 def valid_sale(sale):
@@ -71,16 +55,12 @@ def add_payment():
         args: [id_sale, id_payment_opt]
     """
 
+    from cp_errors import CP_PaymentError
+
     sale = db.sale(request.args(0))
     valid_sale(sale)
     if sale.id_bag.is_paid:
         raise HTTP(405, "The bag has been paid and its complete now.")
-
-    # check if the payments total is lower than the total
-    s = db.payment.amount.sum()
-    payments_total = db(db.payment.id_sale == sale.id).select(s).first()[s]
-    if not payments_total < db.sale(sale.id).total:
-        raise HTTP(405, T('Total already covered by the current payments.'))
 
     payment_opt = db.payment_opt(request.args(1))
     if not payment_opt:
@@ -90,31 +70,31 @@ def add_payment():
     if payment_opt.name == 'stripe':
         raise HTTP(405)
 
+    # check if the payments total is lower than the total
+    s = db.payment.amount.sum()
+    payments_total = db(db.payment.id_sale == sale.id).select(s).first()[s]
+    if not payments_total < sale.total:
+        raise HTTP(400,
+            T('Total already covered by the current payments.')
+        )
 
     # only accept credit payments for registered clients
     if payment_opt.credit_days > 0 and not sale.id_client:
-        raise HTTP(405, T('Payments with credit days are only available for registered clients.'))
+        raise HTTP(500,
+            T('Payments with credit days are only available for registered clients.')
+        )
 
-    add_new_payment = False
 
-    # allow multiple payments for the same payment option
-    if payment_opt.requires_account or is_wallet(payment_opt) or sale.is_defered:
-        add_new_payment = True
-    else:
-        # get payments with the same payment option
-        payment = db((db.payment.id_sale == sale.id)
-            & (db.payment.id_payment_opt == payment_opt.id)
-            & (db.payment.is_updatable == True)
-        ).select().first()
-        if not payment:
-            add_new_payment = True
+    try:
+        new_payment_id = sale_utils.add_payment(sale, payment_opt)
+        new_payment = db.payment(new_payment_id)
 
-    if add_new_payment:
-        new_payment = db.payment(db.payment.insert(id_payment_opt=payment_opt.id, id_sale=sale.id))
-    else:
-        raise HTTP(405, T("You already have a payment with that payment option."))
-
-    return dict(payment_opt=payment_opt, payment=new_payment, payments_total=payments_total)
+        return dict(
+            payment_opt=payment_opt, payment=new_payment,
+            payments_total=payments_total
+        )
+    except CP_PaymentError as e:
+        raise HTTP(400, str(e) )
 
 
 @auth.requires_membership('Sales checkout')
@@ -123,6 +103,9 @@ def update_payment():
         args: [id_sale, id_payment]
         vars: [amount, account, wallet_code, delete]
     """
+
+    from cp_errors import CP_PaymentError
+
 
     sale = db.sale(request.args(0))
     valid_sale(sale)
@@ -149,83 +132,17 @@ def update_payment():
     except:
         raise HTTP(417)
 
-    if payment.wallet_code:
-        new_amount = payment.amount
-        wallet_code = payment.wallet_code
+    delete_payment = bool(request.vars.delete)
 
-    if request.vars.delete:
-        new_amount = 0
+    payment_data = dict(
+        amount=D(request.vars.amount or payment.amount),
+        account=request.vars.account or payment.account,
+        wallet_code=request.vars.wallet_code or payment.wallet_code
+    )
 
-    # since calling this function, could cause modification to other payments, we have to store the modified payments, so the client can render the changes
-    extra_updated_payments = []
-    total, change, payments = get_payments_data(sale.id)
-    new_total = total - change - (payment.amount - payment.change_amount) + new_amount
-    if new_total > sale.total:
-        # when the payment does not allow change, cut the amount to the exact remaining
-        if not payment.id_payment_opt.allow_change:
-            new_amount -= new_total - sale.total
-    else:
-        remaining = sale.total - new_total
-        # when the payment modification makes the new total lower than the sale total, we have to find all the payments with change > 0 (if any) and recalculate their amount and their change
-        for other_payment in payments:
-            if not other_payment.id_payment_opt.allow_change or other_payment.id == payment.id:
-                continue
-            if remaining == 0:
-                break
-            if other_payment.change_amount > 0:
-                new_remaining = min(remaining, other_payment.change_amount)
-                new_change = other_payment.change_amount - new_remaining
-                remaining -= new_remaining
-                other_payment.change_amount = new_change
-                other_payment.update_record()
-                extra_updated_payments.append(other_payment)
-
-    change = max(0, new_total - sale.total)
-    account = request.vars.account
-    wallet_code = request.vars.wallet_code
-    # fix payment info
-    if not payment.id_payment_opt.allow_change:
-        change = 0
-    if not payment.id_payment_opt.requires_account:
-         account = None
-    if not is_wallet(payment.id_payment_opt):
-         wallet_code = None
-    else:
-        if payment.wallet_code:
-            # return wallet funds, if the wallet payment is removed or the wallet code is changed
-            if request.vars.delete or wallet_code != payment.wallet_code:
-                wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-                if wallet:
-                    wallet.balance += payment.amount
-                    wallet.update_record()
-        else:
-            new_amount = 0
-
-        # only accept the first wallet code specified
-        if wallet_code != payment.wallet_code:
-            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
-            if wallet:
-                new_amount = min(wallet.balance, sale.total - new_total)
-                wallet.balance -= new_amount
-                wallet.update_record()
-            # if the code is invalid, remove its specified value
-            else:
-                wallet_code = None
-                new_amount = 0
-
-    payment.amount = new_amount
-    payment.change_amount = change
-    payment.account = account
-    payment.wallet_code = wallet_code
-    payment.update_record()
-    if not request.vars.delete:
-        extra_updated_payments.append(payment)
-    elif payment.is_updatable:
-        payment.delete_record()
-
-    # get the total payments data
-    payments_data = get_payments_data(sale.id)
-    payments_total = payments_data[0] - payments_data[1]
+    d = sale_utils.modify_payment(sale, payment, payment_data, delete_payment)
+    extra_updated_payments = d.get('updated_payments')
+    payments_total = d.get('payments_total')
 
     return dict(updated=extra_updated_payments, payments_total=payments_total)
 
@@ -266,6 +183,9 @@ def update():
         args: [id_sale] """
 
     sale = db.sale(request.args(0))
+    if not sale:
+        raise HTTP(404)
+
     valid_sale(sale)
 
     clients = db(db.auth_user.is_client == True).select()
@@ -348,57 +268,9 @@ def create():
         session.info = T('Bag already sold')
         redirect(URL('default', 'index'))
 
-    bag_items = db(db.bag_item.id_bag == bag.id).iterselect()
-    #TODO check discounts coherence
-    for bag_item in bag_items:
-        discounts = item_discounts(bag_item.id_item)
-        original_price = bag_item.sale_price + bag_item.discount
-        if bag_item.sale_price == apply_discount(discounts, original_price):
-            pass
+    new_sale_id = sale_utils.new(bag, session.store, request.now, auth.user)
 
-    # bag was created by a client
-    id_store = bag.id_store.id if bag.id_store else session.store
-    id_client = bag.created_by.id if bag.created_by.is_client else None
-
-    new_sale = db.sale.insert(id_bag=bag.id, subtotal=bag.subtotal, taxes=bag.taxes, total=bag.total, quantity=bag.quantity, reward_points=bag.reward_points, id_store=id_store, id_client=id_client)
-
-    bag.created_by = auth.user.id
-    bag.id_store = session.store
-    bag.is_sold = True
-    bag.status = BAG_COMPLETE
-    bag.update_record()
-
-    if bag.is_paid:
-        stripe_payment_opt = db(db.payment_opt.name == 'stripe').select().first()
-        db.payment.insert(id_payment_opt=stripe_payment_opt.id, id_sale=new_sale, amount=bag.total, stripe_charge_id=bag.stripe_charge_id, is_updatable=False)
-
-    redirect(URL('update', args=new_sale))
-
-
-
-def verify_payments(payments, sale, check_total=True):
-    if not payments:
-        session.info = T('There are no payments')
-        redirect(URL('update', args=sale.id))
-    # verify payments consistency
-    payments_total = 0
-    bad_payments = False
-    for payment in payments:
-        if payment.id_payment_opt.credit_days > 0 and not sale.id_client:
-            session.info = T('Credit payments only allowed for registered clients, please select a client or remove the payment')
-            redirect(URL('update', args=sale.id))
-
-        payments_total += payment.amount - payment.change_amount
-        if payment.amount <= 0:
-            payment.delete_record()
-        elif not valid_account(payment):
-            bad_payments = True
-    if payments_total < sale.total and check_total:
-        session.info = T('Payments amount is lower than the total')
-        redirect(URL('update', args=sale.id))
-    if bad_payments:
-        session.info = T('Some payments requires account')
-        redirect(URL('update', args=sale.id))
+    redirect(URL('update', args=new_sale_id))
 
 
 @auth.requires_membership('Sales checkout')
@@ -406,70 +278,37 @@ def complete():
     """
         args: [id_sale]
     """
+
+    from cp_errors import CP_PaymentError
+
+
     sale = db.sale(request.args(0))
     valid_sale(sale)
 
-    payments = db(db.payment.id_sale == sale.id).select()
-    verify_payments(payments, sale)
-
-    # verify items stock
-    bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
-    requires_serials = False  #TODO implement serial numbers
-    for bag_item in bag_items:
-        # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
-        stock_qty = item_stock_qty(
-            bag_item.id_item, session.store, bag_item.id_bag.id
-        )
-        # this has to be done since using item_stock_qty with a bag specified will
-        # consider bagged items as missing, thus we have to add them back,
-        # item_stock_qty must be called with a bag because that way it will
-        # count bundled items with the specified item
-        stock_qty += bag_item.quantity
-        # Cannot deliver a sale with out of stock items
-        if stock_qty < bag_item.quantity:
-            session.info = T("You can't create a counter sale with out of stock items")
-            redirect(URL('update', args=sale.id))
-        requires_serials |= bag_item.id_item.has_serial_number or False
-
-    # for every payment with a payment option with credit days, set payment to not settled
-    for payment in payments:
-        if payment.id_payment_opt.credit_days > 0:
-            payment.epd = date(request.now.year, request.now.month, request.now.day) + timedelta(days=payment.id_payment_opt.credit_days)
-            payment.is_settled = False
-            payment.update_record();
-
-    store = db(db.store.id == session.store).select(for_update=True).first()
-    sale.consecutive = store.consecutive
-    sale.is_done = True
-    create_sale_event(sale, SALE_PAID)
-    sale.update_record()
-    store.consecutive += 1;
-    store.update_record()
-
-    # if defered sale, remove sale order
-    db(db.sale_order.id_sale == sale.id).delete()
-
-    # add reward points to the client's wallet, we assume that the user has a wallet
-    if sale.id_client and sale.id_client.id_wallet:
-        wallet = db.wallet(sale.id_client.id_wallet.id)
-        wallet.balance += sale.reward_points
-        wallet.update_record()
+    try:
+        sale_utils.complete(sale)
+    except CP_PaymentError as e:
+        session.info = str(e)
+        redirect(URL('update', args=sale.id))
 
     session.info = INFO(T("Sale created"), T("undo"), URL('undo', args=sale.id))
     #TODO check company workflow
     if not auth.has_membership('Sales delivery'):
         redirect(URL('scan_ticket'))
+    # deliver sale
     else:
-        bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
-        remove_stocks(bag_items)
-        create_sale_event(sale, SALE_DELIVERED)
-        sale.update_record()
-        redirect( URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index')) ) )
+        sale_utils.deliver(sale)
+        redirect(
+            URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index')) )
+        )
 
 
 @auth.requires_membership('Sales checkout')
 def defer():
     """ args: [id_sale] """
+
+    from sale_utils import create_sale_event, SALE_DEFERED
+
     sale = db.sale(request.args(0))
     valid_sale(sale)
     if sale.id_bag.is_paid:
@@ -498,7 +337,12 @@ def defer():
 
 @auth.requires_membership('Sales delivery')
 def deliver():
-    """ args: [sale_id] """
+    """
+        this function presents just a deliver button, used when the checkout
+        users cant deliver products.
+
+        args: [sale_id]
+    """
 
     sale = db.sale(request.args(0))
     if not sale:
@@ -515,9 +359,7 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
-        # TODO remove stocks and that stuff
-        create_sale_event(sale, SALE_DELIVERED)
-        sale.update_record()
+        sale_utils.deliver(sale)
 
     return locals()
 
@@ -539,10 +381,11 @@ def undo():
     if not sale:
         err = T('Sale not found')
     if request.now > sale.created_on + timedelta(minutes=5):
+        print sale.created_on
         err = T('Its too late to undo it')
     if err:
         session.info = err
-        redirect('default', 'index')
+        redirect(URL('default', 'index'))
 
     # return wallet payments
     for payment in db(db.payment.id_payment_opt == get_wallet_payment_opt()).select():
@@ -619,15 +462,18 @@ def refund():
         raise HTTP(404)
 
     # check if the sale has been delivered
-    is_delivered = db((db.sale_log.id_sale == sale.id) & (db.sale_log.sale_event == SALE_DELIVERED)).select().first()
+    is_delivered = db(
+        (db.sale_log.id_sale == sale.id) &
+        (db.sale_log.sale_event == SALE_DELIVERED)
+    ).select().first()
     if not is_delivered and not sale.is_defered:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
 
-    payments_total = 0
-    payments = db(db.payment.id_sale == sale.id).select()
-    for payment in payments:
-        payments_total += payment.amount - payment.change_amount
+    payments_sum = (db.payment.amount - payment.change_amount).sum()
+    payments_total = db(
+        (db.payment.id_sale == sale.id)
+    ).select(payments_sum).first()[payments_sum] or 0
 
     invalid = False
     bag_items_data = {}
@@ -635,11 +481,13 @@ def refund():
     returnable_items_qty = 0
 
     if is_delivered:
+        # TODO optimize this
         # obtain all returnable items from the specified sale
-        query_result = db((db.bag_item.id_item == db.item.id)
-                        & (db.bag_item.id_bag == sale.id_bag.id)
-                        & (db.item.is_returnable == True)
-                         ).iterselect(db.bag_item.ALL)
+        query_result = db(
+              (db.bag_item.id_item == db.item.id)
+            & (db.bag_item.id_bag == sale.id_bag.id)
+            & (db.item.is_returnable == True)
+        ).iterselect(db.bag_item.ALL)
         for row in query_result:
             bag_items.append(row)
             bag_items_data[str(row.id)] = row
@@ -650,7 +498,7 @@ def refund():
                (db.credit_note.id_sale == db.sale.id)
              & (db.credit_note_item.id_credit_note == db.credit_note.id)
              & (db.sale.id == sale.id)
-                ).select(db.credit_note_item.ALL)
+        ).select(db.credit_note_item.ALL)
         for row in returned_items:
             bag_items_data[str(row.id_bag_item)].quantity -= row.quantity
             returnable_items_qty -= row.quantity
@@ -658,13 +506,15 @@ def refund():
     # since pure defered sales does not remove stocks, we can only refund all payments once, so we have to make sure that there are no credit notes associated with the specified sale
     elif sale.is_defered:
         credit_note = db(db.credit_note.id_sale == sale.id).select().first()
-        invalid = not not credit_note
+        invalid = bool(credit_note)  # hack to convert to boolean
+
 
     form = SQLFORM.factory(
         Field('wallet_code', label=T('Wallet Code'))
         , Field('returned_items')
         , submit_button=T("Refund")
     )
+
 
     if form.process().accepted:
         r_items = form.vars.returned_items.split(',')

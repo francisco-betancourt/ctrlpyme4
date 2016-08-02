@@ -22,7 +22,7 @@
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
-from bag_utils import *
+import bag_utils
 from item_utils import item_stock_qty, discount_data, remove_stocks
 
 
@@ -40,7 +40,7 @@ def modify_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
-    is_modifiable_bag(bag_item.id_bag)
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
     if not bag_item:
         raise HTTP(404)
 
@@ -74,13 +74,13 @@ def select_bag():
     """
     bag = None
     try:
-        bag = is_modifiable_bag(request.args(0))
+        bag = bag_utils.is_modifiable_bag(request.args(0))
     except:
-        bag = auto_bag_selection()
+        bag = bag_utils.auto_bag_selection()
     if not bag:
         raise HTTP(404)
     session.current_bag = bag.id
-    return bag_selection_return_format(bag)
+    return bag_utils.bag_selection_return_format(bag)
 
 
 @auth.requires(auth.has_membership('Sales bags')
@@ -90,50 +90,25 @@ def add_bag_item():
     """ Creates a bag item with id_item = id_item for the current session bag
         args: [ id_item ] """
 
+    from cp_errors import CP_OutOfStockError
+
     item = db(
         (db.item.id == request.args(0)) & (db.item.is_active == True)
     ).select().first()
-    bag = is_modifiable_bag(session.current_bag)
+
+    bag = bag_utils.is_modifiable_bag(session.current_bag)
     id_bag = bag.id if bag else None
     if not item or not id_bag:
         raise HTTP(404)
     try:
-        bag_item = db((db.bag_item.id_item == item.id)
-                    & (db.bag_item.id_bag == id_bag)
-                    ).select().first()
+        bag_item = bag_utils.add_bag_item(bag, item)
 
-        stock_qty = item_stock_qty(item, session.store, id_bag=session.current_bag)
-        if item.has_inventory:
-            stock_qty = DQ(stock_qty)
-        base_qty = base_qty = 1 if stock_qty >= 1 or allow_out_of_stock else stock_qty % 1 # modulo to consider fractionary items
-        # if there is no stock notify the user
-        if base_qty <= 0:
-            return dict(status="out of stock")
-
-        # create item taxes string, the string contains the tax name and its percentage, see db.py > bag_item table for more info
-        if not bag_item:
-            item_taxes_str = ''
-            for tax in item.taxes:
-                item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
-                if tax != item.taxes[-1]:
-                    item_taxes_str += ','
-            discounts = item_discounts(item)
-            sale_price = discount_data(discounts, item.base_price)[0]
-            discount = item.base_price - sale_price
-            id_bag_item = db.bag_item.insert(id_bag=id_bag, id_item=item.id, quantity=base_qty, sale_price=sale_price, discount=discount, product_name=item.name, item_taxes=item_taxes_str,
-                sale_taxes=item_taxes(item, sale_price))
-            bag_item = db.bag_item(id_bag_item)
-        else:
-            bag_item.quantity += base_qty
-            bag_item.update_record()
-
-        bag_item = set_bag_item(bag_item)
-        bag_data = refresh_bag_data(id_bag)
+        bag_item = bag_utils.set_bag_item(bag_item)
+        bag_data = bag_utils.refresh_bag_data(id_bag)
 
         return dict(bag_item=bag_item, **bag_data)
-    except:
-        import traceback
-        traceback.print_exc()
+    except CP_OutOfStockError as e:
+        return dict(status=e)
 
 
 @auth.requires(auth.has_membership('Sales bags')
@@ -145,20 +120,20 @@ def delete_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
-    is_modifiable_bag(bag_item.id_bag)
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
     db(db.bag_item.id == request.args(0)).delete()
-    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    bag_data = bag_utils.refresh_bag_data(bag_item.id_bag.id)
     return dict(status="ok", **bag_data)
 
 
 @auth.requires_membership('Sales bags')
 def discard_bag():
-    bag = is_modifiable_bag(session.current_bag)
+    bag = bag_utils.is_modifiable_bag(session.current_bag)
     removed_bag = session.current_bag
     db(db.bag_item.id_bag == bag.id).delete()
     db(db.bag.id == bag.id).delete()
 
-    auto_bag_selection()
+    bag_utils.auto_bag_selection()
 
     return dict(other_bag=db.bag(session.current_bag), removed=removed_bag)
 
@@ -174,7 +149,7 @@ def change_bag_item_sale_price():
         access = True
     if not (price_index or bag_item or access_code or access):
         raise HTTP(400)
-    is_modifiable_bag(bag_item.id_bag)
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
     user = db((db.auth_user.access_code == access_code)).select().first() if access_code else None
     is_vip_seller = auth.has_membership(None, user.id, role='VIP seller') or auth.has_membership(None, user.id, role='Admin') or auth.has_membership(None, user.id, role='Manager') if user else access
     if is_vip_seller:
@@ -203,49 +178,41 @@ def change_bag_item_sale_price():
             or auth.has_membership('Clients')
             )
 def complete():
-    """ Check bag consistency and set the its status based on the user role """
+    """ Check bag consistency and set its status based on the user role """
 
-    bag = is_modifiable_bag(session.current_bag)
+    from cp_errors import CP_EmptyBagError
 
-    # check if all the bag items are consistent
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
-    # delete the bag if there are no items
-    if not bag_items:
-        db(db.bag.id == bag.id).delete()
-        auto_bag_selection()
+    bag = bag_utils.is_modifiable_bag(session.current_bag)
+
+    try:
+        bag_utils.complete(bag)
+
+    except CP_EmptyBagError:
+        bag_utils.auto_bag_selection()
         redirection()
-    check_bag_items_integrity(bag_items, True) # allow out of stock items
 
-    # clients create orders
-    if auth.has_membership('Clients'):
-        bag.is_on_hold = True
-        bag.update_record()
+    if auth.has_membership(None, bag.created_by.id, 'Clients'):
         redirect(URL('sale_order', 'create', args=bag.id))
 
-    url = URL('ticket', args=bag.id)
     if auth.has_membership('Sales checkout'):
-        url = URL('sale', 'create', args=bag.id)
-    bag.status = BAG_COMPLETE
-    bag.completed = True
-    bag.update_record()
-    auto_bag_selection()
-    redirect(url)
+        redirect(URL('sale', 'create', args=bag.id))
+    else:
+        redirect(URL('ticket', args=bag.id))
 
-    # SALES_WORKFLOW.next(request.controller, request.function, args, vars)
 
 
 @auth.requires_membership('Stock transfers')
 def stock_transfer():
     """ """
 
-    bag = is_modifiable_bag(session.current_bag)
+    bag = bag_utils.is_modifiable_bag(session.current_bag)
 
     # check if all the bag items are consistent
     bag_items = db(db.bag_item.id_bag == bag.id).select()
     # delete the bag if there are no items
     if not bag_items:
         db(db.bag.id == bag.id).delete()
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
         redirection()
 
     check_bag_items_integrity(bag_items)
@@ -282,8 +249,9 @@ def create():
     """
 
     try:
-        bag = db.bag.insert(id_store=session.store, completed=False)
-        session.current_bag = bag.id
+        id_bag = bag_utils.new(session.store)
+        session.current_bag = id_bag
+        bag = db.bag(id_bag)
 
         return dict(bag=bag)
     except:
