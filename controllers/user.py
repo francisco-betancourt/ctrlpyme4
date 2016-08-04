@@ -265,14 +265,21 @@ def clients():
 
     title = T('clients')
     def client_options(row):
-        edit_btn = OPTION_BTN('edit', URL('get_client', args=row.id))
+        edit_btn = OPTION_BTN(
+            'edit', URL('get_client', args=row.id), title=T('edit')
+        )
         icon_name = 'thumb_down'
         if row.registration_key == 'blocked':
             icon_name = 'thumb_up'
-        ban_btn = OPTION_BTN(icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))))
+        ban_btn = OPTION_BTN(
+            icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), title=T('ban')
+        )
         return edit_btn, ban_btn
+
     query = (db.auth_user.is_client == True)
-    data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False)
+    data = SUPERT(
+        query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False
+    )
     return locals()
 
 
@@ -282,12 +289,21 @@ def index():
 
     title = T('employees')
     def employee_options(row):
-        options = OPTION_BTN('edit', URL('get_employee', args=row.id))
+        options = OPTION_BTN(
+            'edit', URL('get_employee', args=row.id), title=T('edit')
+        )
         if row.registration_key == '':
-            options += OPTION_BTN('visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))))
+            options += OPTION_BTN(
+                'visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))),
+                title=T('hide')
+            )
         else:
-            options += OPTION_BTN('visibility', URL('undelete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))))
+            options += OPTION_BTN(
+                'visibility', URL('undelete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))),
+                title=T('show')
+            )
         return options
+
     employee_group = db(db.auth_group.role == 'Employee').select().first()
     query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id)
     if request.vars.show_hidden != 'yes':

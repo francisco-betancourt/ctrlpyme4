@@ -28,7 +28,14 @@ from common_utils import INFO, DQ
 
 
 def CB(selected=False, _id=""):
-    return INPUT(_id=_id, _type='checkbox', _class="cp-checkbox", _name=_id), LABEL(ICON('check_box_outline_blank', _class="checkbox", html_vars=dict(_value='false')), _for=_id)
+    cb_icon = 'check_box' if selected else 'check_box_outline_blank'
+    return SPAN(
+        INPUT(_id=_id, _type='checkbox', _class="cp-checkbox", _name=_id),
+        LABEL(
+            ICON(cb_icon, _class="checkbox", html_vars=dict(_value='false')
+            ), _for=_id
+        )
+    )
 
 
 def discounts_list(discounts):
@@ -163,11 +170,17 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
     if page == pages_count:
         next_url = '#'
 
-    return prev_url, next_url, (start, end), pages_count
+    return Storage(
+        prev_url=prev_url, next_url=next_url, ipp=ipp,
+        limits=(start, end), pages_count=pages_count,
+        rows_count=total_rows_count
+    )
 
 
 def pages_menu(query, page=0, ipp=10, distinct=None):
     """ Returns a generic pagination menu, paginating over the results of the query """
+
+    T = current.T
 
     try:
         page = int(page or 0)
@@ -175,12 +188,18 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
     except:
         page = 0
         ipp = 10
-    prev_url, next_url, limits, pages_count = pages_menu_bare(query, page, ipp, distinct)
+    p_data = pages_menu_bare(query, page, ipp, distinct)
+    prev_url = p_data.prev_url
+    next_url = p_data.next_url
+    ipp = p_data.ipp
+    rows_count = p_data.rows_count
+    limits = p_data.limits
 
     prev_disabled, next_disabled = '', ''
     prev_link = A(ICON('arrow_back'), _href=prev_url) if prev_url != '#' else ''
     next_link = A(ICON("arrow_forward"), _href=next_url) if next_url != '#' else ''
-    pages_menu = DIV(DIV(prev_link, SPAN(ipp), next_link, _class="cp-pager") )
+    ipp_input = SPAN(T('Showing at most %s items, of %s') % (ipp, rows_count))
+    pages_menu = DIV(DIV(prev_link, ipp_input, next_link, _class="cp-pager") )
 
     return pages_menu, limits
 
