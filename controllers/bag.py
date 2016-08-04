@@ -186,6 +186,7 @@ def complete():
 
     try:
         bag_utils.complete(bag)
+        bag_utils.auto_bag_selection()
 
     except CP_EmptyBagError:
         bag_utils.auto_bag_selection()

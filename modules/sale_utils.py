@@ -361,18 +361,40 @@ def refund(sale, return_items=[]):
     def return_items_iter():
         for return_item in return_items:
             if not full_refund:
-                bag_item_id = return_item[0]
+                bag_item = return_item[0]
                 qty = return_item[1]
             else:
-                bag_item_id = return_item.id
+                bag_item = db.bag_item(return_item.id)
                 qty = return_item.quantity
             yield bag_item_id, qty
+
+    id_new_credit_note = db.credit_note.insert(
+        id_sale=sale.id, is_usable=True
+    )
 
     subtotal = 0
     total = 0
     returned_item_qty = 0
-    for bag_item_id, qty in return_items_iter():
+    for bag_item, qty in return_items_iter():
+        if bag_item.id_bag != sale.id_bag.id:
+            continue
+        max_return_qty = max(min(bag_items_data[id_bag_item].quantity, DQ(quantity)), 0) if bag_items_data[id_bag_item] else 0
+        if max_return_qty:
+            # add the credit note item
+
+            # credit_note_item = db.credit_note_item.insert(
+            #
+            # )
+            credit_note_items[id_bag_item] = max_return_qty
+            subtotal += bag_items_data[id_bag_item].sale_price * max_return_qty
+            total += subtotal + bag_items_data[id_bag_item].sale_taxes * max_return_qty
+            returned_items_qty += max_return_qty
         pass
+
+
+    return credit_note
+
+
 
 
     r_items = form.vars.returned_items.split(',')

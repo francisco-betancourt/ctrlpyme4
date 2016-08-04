@@ -31,8 +31,8 @@ FLOW_BASIC = 0  # seller and manager
 # one person list the items, other checkouts and other delivers
 FLOW_MULTIROLE = 1
 
-# reduce the common employe permissions to the mimimum
-FLOW_DICTATOR = 2
+# reduce the common employee permissions to the mimimum
+FLOW_IRON_FIST = 2
 
 
 
@@ -130,8 +130,8 @@ BAG_ORDER_COMPLETE = 3
 # cache names
 CACHED_POPULAR_ITEMS = 0
 
-TAX_TRANSFER=1
-TAX_RETAIN=2
+TAX_TRANSFER = 1
+TAX_RETAIN = 2
 
 STRIPE_PK = CONF.take('stripe.public_key')
 STRIPE_SK = CONF.take('stripe.secure_key')

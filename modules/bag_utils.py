@@ -37,6 +37,12 @@ from cp_errors import *
 ALLOW_OUT_OF_STOCK = True
 
 
+# bag status constants
+BAG_ACTIVE = 0
+BAG_COMPLETE = 1
+BAG_FOR_ORDER = 2
+BAG_ORDER_COMPLETE = 3
+
 
 def new(id_store, now, user):
     """ """
@@ -127,7 +133,6 @@ def complete(bag):
     bag.status = BAG_COMPLETE
     bag.completed = True
     bag.update_record()
-    auto_bag_selection()
 
 
 def auto_bag_selection():
