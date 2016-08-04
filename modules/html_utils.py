@@ -138,7 +138,8 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
     start = page * ipp
     end = start + ipp
     total_rows_count = db(query).count(distinct=distinct)
-    pages_count = total_rows_count / ipp
+    mod = 1 if not total_rows_count % ipp else 0
+    pages_count = total_rows_count / ipp - mod
     page = int(min(page, pages_count))
     page = int(max(0, page))
 
