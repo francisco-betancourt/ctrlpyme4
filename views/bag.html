@@ -406,8 +406,8 @@
         function fail_callback(data, barcode) { }
 
         var container = $('#barcode_scanner_container');
-        var scanner = create_scanner('bag_scanner', container);
-        setup_scanner(scanner, success_callback, fail_callback, requirement, null);
+        var scanner = BarcodeScanner('bag_scanner', container);
+        scanner.setup(success_callback, fail_callback, requirement, null);
 
 
         function set_sale_price(_price_index, _bag_item_id, _target) {

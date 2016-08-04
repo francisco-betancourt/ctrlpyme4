@@ -23,7 +23,7 @@ import math
 from gluon import *
 from gluon.html import *
 from gluon.storage import Storage
-from item_utils import item_stock, item_taxes, fix_item_price, fix_item_quantity, item_barcode
+from item_utils import item_stock_qty, item_taxes, fix_item_price, fix_item_quantity, item_barcode
 from common_utils import INFO, DQ
 
 
@@ -138,7 +138,8 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
     start = page * ipp
     end = start + ipp
     total_rows_count = db(query).count(distinct=distinct)
-    pages_count = total_rows_count / ipp
+    mod = 1 if not total_rows_count % ipp else 0
+    pages_count = total_rows_count / ipp - mod
     page = int(min(page, pages_count))
     page = int(max(0, page))
 
@@ -167,7 +168,7 @@ def pages_menu_bare(query, page=0, ipp=10, distinct=None, index=None):
 
 def pages_menu(query, page=0, ipp=10, distinct=None):
     """ Returns a generic pagination menu, paginating over the results of the query """
-    
+
     try:
         page = int(page or 0)
         ipp = min(int(ipp or 10), 100)
@@ -193,7 +194,7 @@ def stock_info(item):
     stock = 0
 
     if auth.has_membership('Employee') and item.has_inventory:
-        stock = item_stock(item, session.store)['quantity']
+        stock = item_stock_qty(item, session.store)
         stock = fix_item_quantity(item, stock)
         if stock <= 0:
             stock = SPAN(T('Out of stock'), _class="text-danger")
@@ -201,7 +202,7 @@ def stock_info(item):
         else:
             stock = str(stock) + " %s %s " % (item.id_measure_unit.symbol, T('Available'))
     else:
-        stock = item_stock(item)['quantity']
+        stock = item_stock_qty(item)
         if stock <= 0:
             stock = SPAN(T('Out of stock'), _class="text-danger")
             available = False
@@ -243,13 +244,7 @@ def item_card(item):
     available = "Not available"
     available_class = "label label-danger"
 
-    stock_qty = 0
-    if not session.store:
-        stock_data = item_stock(item)
-        stock_qty = stock_data['quantity']
-    else:
-        stock_data = item_stock(item, session.store)
-        stock_qty = stock_data['quantity']
+    stock_qty = item_stock_qty(item, session.store)
     if stock_qty > 0:
         available_class = "label label-success"
         available = "Available"

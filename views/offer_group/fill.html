@@ -91,8 +91,8 @@
       $('#item_data>.item-name').text(data.name);
       target_id = data.id;
     }
-    var scanner = create_scanner('discount', $('#target_id_item>.scanner_container'));
-    setup_scanner(scanner, success_callback, null, null, null);
+    var scanner = BarcodeScanner('discount', $('#target_id_item>.scanner_container'));
+    scanner.setup(success_callback, null, null, null);
 
     $('#targets_toolbar button').click(function (event) {
       var el_target = $(event.target);

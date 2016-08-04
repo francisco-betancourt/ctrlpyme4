@@ -239,7 +239,7 @@ def validate_ready(form):
     """ Validates if all the items in the order are available """
     ready == True
     for bag_item in db(db.bag_item.id_bag == form.vars.id_bag).select():
-        stock, quantity = item_stock(bag_item.id_item, session.store).itervalues()
+        quantity = item_stock_qty(bag_item.id_item, session.store)
         ready &= (quantity >= bag_item.quantity)
 
     if not ready:
@@ -260,7 +260,7 @@ def ready():
     items = []
 
     def ready_status_format(row, f, global_data):
-        stock, quantity = item_stock(row.id_item, session.store).itervalues()
+        quantity = item_stock_qty(row.id_item, session.store)
 
         order_items_qty = get_ordered_items_count(order.id, row.id_item.id)
         item_ready = quantity >= (row.quantity + order_items_qty)

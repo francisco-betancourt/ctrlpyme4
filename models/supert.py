@@ -304,7 +304,7 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     global t_index
     t_index += 1
 
-    return new_fields, datas
+    return new_fields, datas, query
 
 
 def visibility_g_option():
@@ -321,7 +321,8 @@ def visibility_g_option():
 
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0):
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0
+):
 
     T = current.T
 
@@ -468,7 +469,8 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_data={}, global_options=[visibility_g_option()]):
+def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_data={}, global_options=[visibility_g_option()]
+):
     """ default supert with table output. recognized url parameters:
         term: search term
         orderby: field or fields to orderby, it can be something like items.price+items.barcode
@@ -477,6 +479,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         ipp: the number of items per page
         ids: list of comma separated ids to apply the table to a subset of items
     """
+
     global t_index
     current_t_index = t_index
 
@@ -499,6 +502,11 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         select_args['orderby'] = orderby
     # limits
     distinct = db[base_table_name].id if base_table_name else None
+
+    ids = request.vars['ids_%s' % t_index]
+    ids = ids.split(',') if ids else []
+
+    # pagination
     page = request.vars['page_%s' % t_index]
     ipp = request.vars['ipp_%s' % t_index]
     try:
@@ -507,13 +515,20 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     except:
         page = 0
         ipp = 10
-    prev_url, next_url, limits, pages_count  = pages_menu_bare(query, page, ipp, distinct=distinct, index=t_index)
+    prev_url, next_url, limits, pages_count = pages_menu_bare(
+        query, page, ipp, distinct=distinct, index=t_index
+    )
     select_args['limitby'] = limits
 
-    ids = request.vars['ids_%s' % t_index]
-    ids = ids.split(',') if ids else []
+    new_fields, datas, query = SUPERT_BARE(
+        query, select_fields, select_args, fields, ids, search_term,
+        base_table_name, include_row=True, global_data=global_data
+    )
 
-    new_fields, datas = SUPERT_BARE(query, select_fields, select_args, fields, ids, search_term, base_table_name, include_row=True, global_data=global_data)
+    # unfortunately we have to repeat this operation since SUPERT_BARE provides the fixed query with search terms
+    prev_url, next_url, limits, pages_count = pages_menu_bare(
+        query, page, ipp, distinct=distinct, index=t_index - 1
+    )
 
     if not datas:
         datas = []

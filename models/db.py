@@ -462,6 +462,10 @@ db.define_table("bag",
     , Field("status", "integer", default=BAG_ACTIVE, label=T('Status'))
     , Field("is_sold", "boolean", default=False, label=T('Is sold'))
     , Field("is_paid", "boolean", default=False, label=T('Paid'))
+    # this field is true when the items in the bag were removed from stock
+    # this field is useful since there could be bags that are complete but not
+    # delivered yet, like defered sales.
+    , Field("is_delivered", "boolean", default=False, label=T('Delivered'))
     # used when the bag has been paid using stripe
     , Field("stripe_charge_id", default=None, label=T('Stripe charge id'))
 

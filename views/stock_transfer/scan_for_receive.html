@@ -8,7 +8,7 @@
     window.location.href = "{{=URL('receive')}}/" + barcode;
   }
 
-  var scanner = create_scanner('transfer', $('#ticket_scanner_container'));
-  setup_scanner(scanner, null, null, requirement, 'a');
+  var scanner = BarcodeScanner('transfer', $('#ticket_scanner_container'));
+  scanner.setup(null, null, requirement, 'a');
 </script>
 {{end}}

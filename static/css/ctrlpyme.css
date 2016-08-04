@@ -273,6 +273,22 @@ button.cp-fab:focus{
   animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
   /*animation-direction: alternate-reverse;*/
 }
+.scanner-form>.results {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+.scanner-result-element {
+  height: 64px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.scanner-result-element>.result-thumb {
+  background-color: white;
+  width: 48px;
+  /*height: 48px;*/
+  margin-right: 16px;
+}
 
 
 #item_info>span {

@@ -160,7 +160,7 @@ def sales_for_cash_out():
     sales = sales_generator()
 
     # this is ugly but it only happens when the cash out is created
-    if not cash_out.sys_total < 0:
+    if cash_out.sys_total < 0:
         payments = payments_iter()
 
         total = 0
@@ -313,7 +313,7 @@ def item_analysis():
     existence = 0
     stocks = None
     if item.has_inventory:
-        existence = item_stock(item, id_store=session.store)['quantity']
+        existence = item_stock_qty(item, id_store=session.store)
         stocks = stocks_table(item)
 
     def out_custom_format(row, fields):
@@ -334,14 +334,14 @@ def item_analysis():
         outputs_t = SUPERT(
             (db.bag_item.id_bag == db.bag.id)
             & (db.bag_item.id_item == item.id)
-            & (db.stock_item_removal.id_bag_item == db.bag_item.id)
             & (db.bag.id_store == session.store)
+            & (db.bag.is_delivered == True)
             , select_fields=[
-                db.bag.ALL, db.stock_item_removal.ALL, db.sale.ALL,
+                db.bag.ALL, db.bag_item.ALL, db.sale.ALL,
                 db.product_loss.ALL, db.product_loss.ALL, db.stock_transfer.ALL
             ]
             , select_args=dict(left=[
-                db.sale.on(db.bag.id == db.sale.id_bag),
+                db.sale.on((db.bag.id == db.sale.id_bag)),
                 db.product_loss.on(db.bag.id == db.product_loss.id_bag),
                 db.stock_transfer.on(db.bag.id == db.stock_transfer.id_bag)
             ]),
@@ -352,7 +352,7 @@ def item_analysis():
                     custom_format=out_custom_format
                 ),
                 dict(
-                    fields=['stock_item_removal.qty'],
+                    fields=['bag_item.quantity'],
                     label_as=T('Quantity'),
                     custom_format=lambda r, f : DQ(r[f[0]], True, True)
                 ),
@@ -363,7 +363,7 @@ def item_analysis():
                     custom_format=lambda r, f : "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
                 )
             ],
-            base_table_name='stock_item_removal',
+            base_table_name='bag_item',
             title=T('Output'), searchable=False, options_enabled=False,
             global_options=[]
         )

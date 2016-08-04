@@ -49,8 +49,8 @@
     }
   }
 
-  var scanner = create_scanner('sales', $('#ticket_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, requirement, "{{=URL('sale', 'get_by_barcode', extension='json')}}/");
+  var scanner = BarcodeScanner('sales', $('#ticket_scanner_container'));
+  scaner.setup(scanner, success_callback, fail_callback, requirement, "{{=URL('sale', 'get_by_barcode', extension='json')}}/");
 
   $('#create_btn').click(function (event) {
     window.location.href = "{{=URL('invoice', 'create')}}?sales=" + sales_list;

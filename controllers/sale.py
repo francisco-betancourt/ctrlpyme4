@@ -24,7 +24,7 @@ precheck()
 import json
 from uuid import uuid4
 from datetime import date, timedelta
-from item_utils import item_discounts, apply_discount, item_stock, remove_stocks, undo_stock_removal, reintegrate_stock
+from item_utils import item_discounts, apply_discount, item_stock_qty, remove_stocks, undo_stock_removal, reintegrate_stock
 from constants import *
 
 
@@ -417,7 +417,14 @@ def complete():
     requires_serials = False  #TODO implement serial numbers
     for bag_item in bag_items:
         # since created bags does not remove stock, there could be more bag_items than stock items, so we need to check if theres enough stock to satisfy this sale, and if there is not, then we need to notify the seller or user
-        stocks, stock_qty = item_stock(bag_item.id_item, session.store).itervalues()
+        stock_qty = item_stock_qty(
+            bag_item.id_item, session.store, bag_item.id_bag.id
+        )
+        # this has to be done since using item_stock_qty with a bag specified will
+        # consider bagged items as missing, thus we have to add them back,
+        # item_stock_qty must be called with a bag because that way it will
+        # count bundled items with the specified item
+        stock_qty += bag_item.quantity
         # Cannot deliver a sale with out of stock items
         if stock_qty < bag_item.quantity:
             session.info = T("You can't create a counter sale with out of stock items")
@@ -453,7 +460,7 @@ def complete():
     if not auth.has_membership('Sales delivery'):
         redirect(URL('scan_ticket'))
     else:
-        bag_items = db(db.bag_item.id_bag == sale.id_bag.id).select()
+        bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
         remove_stocks(bag_items)
         create_sale_event(sale, SALE_DELIVERED)
         sale.update_record()
@@ -508,6 +515,7 @@ def deliver():
     form[0].insert(0, sqlform_field("", "", resume))
 
     if form.process().accepted:
+        # TODO remove stocks and that stuff
         create_sale_event(sale, SALE_DELIVERED)
         sale.update_record()
 

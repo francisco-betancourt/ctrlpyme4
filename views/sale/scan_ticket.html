@@ -13,7 +13,7 @@
     window.location.href = "{{=URL('sale', 'create')}}/" + barcode;
   }
 
-  var scanner = create_scanner('ticket', $('#ticket_scanner_container'));
-  setup_scanner(scanner, success_callback, fail_callback, null, "{{=URL('bag', 'get', extension='json')}}/");
+  var scanner = BarcodeScanner('ticket', $('#ticket_scanner_container'));
+  scanner.setup(success_callback, fail_callback, null, "{{=URL('bag', 'get', extension='json')}}/");
 </script>
 {{end}}

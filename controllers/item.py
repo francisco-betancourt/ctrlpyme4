@@ -162,8 +162,8 @@ def item_form(item=None, is_bundle=False):
         traits = []
         if item:
             traits = item.traits
-        if form.vars.traits_selected:
-            traits = create_traits_ref_list(form.vars.traits_selected)
+        if request.vars.traits_selected:
+            traits = create_traits_ref_list(request.vars.traits_selected)
 
         db.item(form.vars.id).update_record(
             url_name=item_url(form.vars.name, form.vars.id),
@@ -228,9 +228,6 @@ def fill_bundle():
     bundle = db.item(request.args(0))
     if not bundle:
         raise HTTP(404)
-    scan_form = SQLFORM.factory(
-        Field('scan_code'), buttons=[], _id="scan_form"
-    )
     bundle_form = SQLFORM.factory(
         _id='bundle_form', buttons=[]
     )
@@ -253,8 +250,26 @@ def fill_bundle():
         for pair in form.vars.item_ids.split(','):
             if not pair:
                 continue
-            item_id, item_qty = pair.split(':')
-            db.bundle_item.update_or_insert((db.bundle_item.id_bundle == bundle.id) & (db.bundle_item.id_item == item_id), quantity=item_qty, id_bundle=bundle.id, id_item=item_id)
+            try:
+                item_id, item_qty = pair.split(':')
+                item = db(db.item.id == item_id).select().first()
+                # we dont want bundles to be in bundles
+                if not item or item.is_bundle:
+                    continue
+
+                item_qty = fix_item_quantity(item, item_qty)
+                if not item_qty > 0:
+                    continue
+                # update_or_insert used because even if the interface does not support multiple items with the same id the user can modify the string to do such case.
+                db.bundle_item.update_or_insert(
+                      (db.bundle_item.id_bundle == bundle.id)
+                    & (db.bundle_item.id_item == item_id),
+                    quantity=item_qty,
+                    id_bundle=bundle.id,
+                    id_item=item.id
+                )
+            except ValueError:
+                pass
         redirect(URL('index'))
         response.flash = T('form accepted')
     elif form.errors:
@@ -354,30 +369,6 @@ def get_item():
     if not item:
         raise HTTP(404)
 
-
-    # in this case we can add a selector for every trait
-    # if same_traits:
-    #     for trait in item.traits:
-    #         trait_category = trait.id_trait_category
-    #         trait_options[str(trait_category.id)] = {
-    #             'name': trait_category.name,
-    #             'options': {}
-    #         }
-    #         trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
-    #             'name': trait.trait_option, 'id': trait.id
-    #         }
-    #     for other_item in other_items:
-    #         for trait in other_item.traits:
-    #             trait_category = trait.id_trait_category
-    #             if trait_options[str(trait_category.id)]['options'].has_key(
-    #                 str(trait.id)
-    #             ):
-    #                 continue
-    #             trait_options[str(trait_category.id)]['options'][str(trait.id)] = {
-    #                 'name': trait.trait_option, 'id': trait.id
-    #             }
-    #     return_data['trait_options'] = trait_options
-
     new_price = item.base_price or 0
     discounts = item_discounts(item)
     for discount in discounts:
@@ -425,6 +416,60 @@ def find_by_code():
     if not item:
         raise HTTP(404)
     return locals()
+
+
+def find_by_matching_code():
+    """ Returns items with a matching initial barcode
+
+    for example:
+        item1  #7771-a
+        item2  #7771-b
+
+    using barcode #7771 will return both, this is useful to have pseudo repeated
+    barcodes.
+
+    This function will return only the first ten results, and a data to query
+    the next elements.
+    """
+
+    from item_utils import composed_name
+
+    barcode = request.args(0)
+    try:
+        page = int(request.args(1)) or 0
+    except:
+        page = 0
+
+    if not barcode:
+        raise HTTP(405)
+
+    start = page * 10
+    end = start + 10
+
+    items = db(
+          (db.item.sku.startswith(barcode))
+        | (db.item.upc.startswith(barcode))
+        | (db.item.ean.startswith(barcode))
+    ).select(
+        db.item.ALL, limitby=(start, end),
+        orderby=db.item.sku.length & db.item.upc.length & db.item.ean.length
+    )
+
+    # process the items
+    for item in items:
+        img = db(db.item_image.id_item == item.id).select().first()
+        item.name = composed_name(item)
+
+        if img:
+            thumb = URL('static', 'uploads/' + img.thumb)
+            item.thumb = thumb
+        else:
+            item.thumb = URL('static', 'images/no_image.svg')
+
+    if not items:
+        raise HTTP(404)
+
+    return dict(items=items)
 
 
 @auth.requires(auth.has_membership('Items management')
@@ -601,7 +646,6 @@ def labels():
             query |= (db.item.id == int(item_id))
         items = db(
             (query) & (db.item.is_active == True)
-            & (db.item.has_inventory == True)
         ).select()
 
         return dict(items=items, layout=layout)
