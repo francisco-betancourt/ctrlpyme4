@@ -22,7 +22,7 @@ from gluon import current
 from gluon import URL
 from gluon.contrib.appconfig import AppConfig
 ## once in production, remove reload=True to gain full speed
-CONF = AppConfig(reload=True)
+CONF = AppConfig()
 
 
 # constants definitions
