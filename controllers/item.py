@@ -646,7 +646,6 @@ def labels():
             query |= (db.item.id == int(item_id))
         items = db(
             (query) & (db.item.is_active == True)
-            & (db.item.has_inventory == True)
         ).select()
 
         return dict(items=items, layout=layout)
