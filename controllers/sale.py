@@ -279,7 +279,7 @@ def complete():
         args: [id_sale]
     """
 
-    from cp_errors import CP_PaymentError
+    from cp_errors import CP_PaymentError, CP_OutOfStockError
 
 
     sale = db.sale(request.args(0))
@@ -287,7 +287,7 @@ def complete():
 
     try:
         sale_utils.complete(sale)
-    except CP_PaymentError as e:
+    except (CP_PaymentError, CP_OutOfStockError) as e:
         session.info = str(e)
         redirect(URL('update', args=sale.id))
 
@@ -315,8 +315,9 @@ def defer():
         raise HTTP(405)
 
     payments = db(db.payment.id_sale == sale.id).select()
-    verify_payments(payments, sale, False)
-    payments = db(db.payment.id_sale == sale.id).select()
+    sale_utils.verify_payments(payments, sale, False)
+
+    payments = db(db.payment.id_sale == sale.id).iterselect()
     # Since this sale will be edited later we have to make sure that current payments will not be modified, so we set them as non updatable
     for payment in payments:
         payment.is_updatable = False;
@@ -328,8 +329,11 @@ def defer():
         create_sale_event(sale, SALE_DEFERED)
         sale.update_record()
 
-        # create sale order based on the
-        db.sale_order.insert(id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id, is_for_defered_sale=True)
+        # create sale order based on the defered sale
+        db.sale_order.insert(
+            id_store=session.store, id_bag=sale.id_bag.id, id_sale=sale.id,
+            is_for_defered_sale=True
+        )
 
     url = URL('default', 'index')
     redirect(URL('ticket', 'get', vars=dict(id_sale=sale.id, next_url=url)))
@@ -470,7 +474,7 @@ def refund():
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
 
-    payments_sum = (db.payment.amount - payment.change_amount).sum()
+    payments_sum = (db.payment.amount - db.payment.change_amount).sum()
     payments_total = db(
         (db.payment.id_sale == sale.id)
     ).select(payments_sum).first()[payments_sum] or 0
@@ -517,78 +521,32 @@ def refund():
 
 
     if form.process().accepted:
-        r_items = form.vars.returned_items.split(',')
-        # stores the returned item quantity, accesed via bag item id
-        credit_note_items = {}
-        # calculate subtotal and total, also validate the specified return items
-        subtotal, total = 0, 0
-        returned_items_qty = 0 # stores the total number of returned items
-        # consider returnable items only if the sale has been delivered
-        if is_delivered:
-            for r_item in r_items:
-                id_bag_item, quantity = r_item.split(':')[0:2]
-                # check if the item was sold in the specified sale
-                max_return_qty = max(min(bag_items_data[id_bag_item].quantity, DQ(quantity)), 0) if bag_items_data[id_bag_item] else 0
-                if max_return_qty:
-                    credit_note_items[id_bag_item] = max_return_qty
-                    subtotal += bag_items_data[id_bag_item].sale_price * max_return_qty
-                    total += subtotal + bag_items_data[id_bag_item].sale_taxes * max_return_qty
-                    returned_items_qty += max_return_qty
-        # set total to payments total
-        elif sale.is_defered:
-            total = payments_total
-            subtotal = total
 
-        # create the credit note
-        if returned_items_qty or sale.is_defered:
-            # select wallet
-            create_new_wallet = False
-            wallet = None
-            if sale.id_client:
-                client = db.auth_user(sale.id_client)
-                wallet = client.id_wallet
-            # add funds to the specified wallet
-            elif form.vars.wallet_code:
-                wallet = db(db.wallet.wallet_code == form.vars.wallet_code).select().first()
-                # if the specified wallet was not found, create a new one
-                create_new_wallet = not wallet
-            else:
-                create_new_wallet = True
-            if create_new_wallet:
-                wallet = db.wallet(new_wallet())
-            # add wallet funds
-            wallet.balance += total
-            wallet.update_record()
+        r_items = map(
+            lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
+        )
+        r_items = (
+            (db.bag_item(int(r_item[0])), D(r_item[1])) for r_item in r_items
+        )
+        credit_note = sale_utils.refund(
+            sale, request.now, auth.user, r_items,
+            wallet_code=form.vars.wallet_code
+        )
+
+        wallet = db(db.wallet.wallet_code == credit_note.code).select().first()
+
+        if sale.id_client:
+            pass
+        else:
+            # new wallet created, and it does not have a client associated
             session.info = INFO(
                 T('Sale returned, your wallet code is: ') + wallet.wallet_code,
                 T('Print'), URL('wallet', 'print_wallet', args=wallet.id), 'blank'
             )
-            id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True, code=wallet.wallet_code)
 
-            # remove sale orders if any
-            if sale.is_defered:
-                db(db.sale_order.id_sale == sale.id).delete()
+        redirect(URL('credit_note', 'get', args=credit_note.id))
 
-            # add the credit note items and reintegrate stocks.
-            if is_delivered:
-                for bag_item_id in credit_note_items.iterkeys():
-                    returned_qty = credit_note_items[bag_item_id]
-                    # add credit note item
-                    db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=returned_qty, id_credit_note=id_new_credit_note)
-                    # return items to stock
-                    bag_item = bag_items_data[bag_item_id]
-                    id_item = bag_item.id_item.id
-                    avg_buy_price = DQ(bag_item.total_buy_price) / DQ(bag_item.quantity)
 
-                    # stock reintegration
-                    if bag_item.id_item.is_bundle:
-                        bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item).select()
-                        avg_buy_price = DQ(bag_item.total_buy_price) / DQ(returned_items) / DQ(len(bundle_items)) if bag_item.total_buy_price else 0
-                        for bundle_item in bundle_items:
-                            reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
-                    else:
-                        reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
-        redirect(URL('credit_note', 'get', args=id_new_credit_note))
     return locals()
 
 

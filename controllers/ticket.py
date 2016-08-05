@@ -180,10 +180,13 @@ def credit_note_ticket(id_credit_note):
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items, concept)
 
-    payments = db(db.payment.id_sale == credit_note.id_sale.id).select()
-    payments_data = ticket_payments_data(payments, credit_note.id_sale.is_defered)
+    payments_data = DIV(
+        DIV('%s : $ %s' % ('total', DQ(credit_note.total, True)) ),
+        _id='payments_data'
+    )
 
-    return ticket_format(store_data, T('Credit note'),
+    return ticket_format(
+        store_data, T('Credit note'),
         DIV(items_list, payments_data),
         credit_note.code, P(T('')),
         date=credit_note.created_on

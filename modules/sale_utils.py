@@ -27,7 +27,7 @@ import common_utils
 from common_utils import D, DQ
 
 from constants import BAG_COMPLETE
-from cp_errors import CP_PaymentError
+from cp_errors import CP_PaymentError, CP_OutOfStockError
 
 import item_utils
 
@@ -130,6 +130,7 @@ def complete(sale):
     """ """
 
     db = current.db
+    T = current.T
 
     payments = db(db.payment.id_sale == sale.id).select()
     verify_payments(payments, sale)
@@ -344,18 +345,24 @@ def deliver(sale):
     sale.update_record()
 
 
-def refund(sale, return_items=[]):
+def refund(sale, now, user, return_items=[], wallet_code=None):
     """
         Given a sale, performs a partial return if return items are specified or
-        a full return otherwise, creating a credit note in the process
+        a full return otherwise, creating a credit note in the process,
+
+        when is delivered is true, it means that items were removed from stock,
+        so we have to reintegrate them, in other case just return the money
     """
+
+    db = current.db
+
 
     full_refund = False
 
-    if not return_item:
+    if not return_items:
         full_refund = True
         return_items = db(
-            db.bag_item.id_sale == sale.id
+            db.bag_item.id_bag == sale.id_bag.id
         ).iterselect(db.bag_item.id, db.bag_item.quantity)
 
     def return_items_iter():
@@ -366,109 +373,80 @@ def refund(sale, return_items=[]):
             else:
                 bag_item = db.bag_item(return_item.id)
                 qty = return_item.quantity
-            yield bag_item_id, qty
+            yield bag_item, qty
+
 
     id_new_credit_note = db.credit_note.insert(
-        id_sale=sale.id, is_usable=True
+        id_sale=sale.id, is_usable=True,
+        created_on=now, modified_on=now, created_by=user.id
     )
 
     subtotal = 0
     total = 0
-    returned_item_qty = 0
-    for bag_item, qty in return_items_iter():
-        if bag_item.id_bag != sale.id_bag.id:
-            continue
-        max_return_qty = max(min(bag_items_data[id_bag_item].quantity, DQ(quantity)), 0) if bag_items_data[id_bag_item] else 0
-        if max_return_qty:
-            # add the credit note item
 
-            # credit_note_item = db.credit_note_item.insert(
-            #
-            # )
-            credit_note_items[id_bag_item] = max_return_qty
-            subtotal += bag_items_data[id_bag_item].sale_price * max_return_qty
-            total += subtotal + bag_items_data[id_bag_item].sale_taxes * max_return_qty
-            returned_items_qty += max_return_qty
-        pass
+    if not sale.is_defered:
+        for bag_item, qty in return_items_iter():
+            if bag_item.id_bag != sale.id_bag.id:
+                continue
+
+            # avoid returning more items than the ones sold
+            qty = max(min(bag_item.quantity, qty), 0)
+            if not qty:
+                continue
+
+            # add the credit note item
+            credit_note_item = db.credit_note_item.insert(
+                id_bag_item=bag_item.id, quantity=qty,
+                id_credit_note=id_new_credit_note
+            )
+            subtotal += bag_item.sale_price * qty
+            total += subtotal + bag_item.sale_taxes * qty
+
+            item_utils.reintegrate_bag_item(bag_item, qty)
+
+    else:
+
+        payments_sum = (db.payment.amount - db.payment.change_amount).sum()
+        payments_total = db(
+            (db.payment.id_sale == sale.id)
+        ).select(payments_sum).first()[payments_sum] or 0
+
+        subtotal = total = payments_total
+        db(db.sale_order.id_sale == sale.id).delete()
+
+
+    create_new_wallet = False
+    wallet = None
+
+    if sale.id_client:
+        client = db.auth_user(sale.id_client)
+        wallet = client.id_wallet
+    # add funds to the specified wallet
+    elif wallet_code:
+        wallet = db(
+            db.wallet.wallet_code == wallet_code
+        ).select().first()
+        # if the specified wallet was not found, create a new one
+        create_new_wallet = not wallet
+    else:
+        create_new_wallet = True
+
+    if create_new_wallet:
+        wallet = db.wallet(common_utils.new_wallet())
+
+    # add wallet funds
+    wallet.balance += total
+    wallet.update_record()
+
+    # update credit note data
+    credit_note = db.credit_note(id_new_credit_note)
+    credit_note.subtotal = subtotal
+    credit_note.total = total
+    credit_note.code = wallet.wallet_code
+    credit_note.update_record()
 
 
     return credit_note
-
-
-
-
-    r_items = form.vars.returned_items.split(',')
-    # stores the returned item quantity, accesed via bag item id
-    credit_note_items = {}
-    # calculate subtotal and total, also validate the specified return items
-    subtotal, total = 0, 0
-    returned_items_qty = 0 # stores the total number of returned items
-    # consider returnable items only if the sale has been delivered
-    if is_delivered:
-        for r_item in r_items:
-            id_bag_item, quantity = r_item.split(':')[0:2]
-            # check if the item was sold in the specified sale
-            max_return_qty = max(min(bag_items_data[id_bag_item].quantity, DQ(quantity)), 0) if bag_items_data[id_bag_item] else 0
-            if max_return_qty:
-                credit_note_items[id_bag_item] = max_return_qty
-                subtotal += bag_items_data[id_bag_item].sale_price * max_return_qty
-                total += subtotal + bag_items_data[id_bag_item].sale_taxes * max_return_qty
-                returned_items_qty += max_return_qty
-    # set total to payments total
-    elif sale.is_defered:
-        total = payments_total
-        subtotal = total
-
-    # create the credit note
-    if returned_items_qty or sale.is_defered:
-        # select wallet
-        create_new_wallet = False
-        wallet = None
-        if sale.id_client:
-            client = db.auth_user(sale.id_client)
-            wallet = client.id_wallet
-        # add funds to the specified wallet
-        elif form.vars.wallet_code:
-            wallet = db(db.wallet.wallet_code == form.vars.wallet_code).select().first()
-            # if the specified wallet was not found, create a new one
-            create_new_wallet = not wallet
-        else:
-            create_new_wallet = True
-        if create_new_wallet:
-            wallet = db.wallet(new_wallet())
-        # add wallet funds
-        wallet.balance += total
-        wallet.update_record()
-        session.info = INFO(
-            T('Sale returned, your wallet code is: ') + wallet.wallet_code,
-            T('Print'), URL('wallet', 'print_wallet', args=wallet.id), 'blank'
-        )
-        id_new_credit_note = db.credit_note.insert(id_sale=sale.id, subtotal=subtotal, total=total, is_usable=True, code=wallet.wallet_code)
-
-        # remove sale orders if any
-        if sale.is_defered:
-            db(db.sale_order.id_sale == sale.id).delete()
-
-        # add the credit note items and reintegrate stocks.
-        if is_delivered:
-            for bag_item_id in credit_note_items.iterkeys():
-                returned_qty = credit_note_items[bag_item_id]
-                # add credit note item
-                db.credit_note_item.insert(id_bag_item=bag_item_id, quantity=returned_qty, id_credit_note=id_new_credit_note)
-                # return items to stock
-                bag_item = bag_items_data[bag_item_id]
-                id_item = bag_item.id_item.id
-                avg_buy_price = DQ(bag_item.total_buy_price) / DQ(bag_item.quantity)
-
-                # stock reintegration
-                if bag_item.id_item.is_bundle:
-                    bundle_items = db(db.bundle_item.id_bundle == bag_item.id_item).select()
-                    avg_buy_price = DQ(bag_item.total_buy_price) / DQ(returned_items) / DQ(len(bundle_items)) if bag_item.total_buy_price else 0
-                    for bundle_item in bundle_items:
-                        reintegrate_stock(bundle_item.id_item, bundle_item.quantity * returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
-                else:
-                    reintegrate_stock(bag_item.id_item, returned_qty, avg_buy_price, 'id_credit_note', id_new_credit_note)
-    pass
 
 
 def commit():

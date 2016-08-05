@@ -397,6 +397,57 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
                              )
 
 
+def reintegrate_bag_item(bag_item, quantity):
+    """ Return removed item to their exact stock item """
+
+    db = current.db
+
+
+    def items_iterator(bag_item):
+        if bag_item.id_item.is_bundle:
+
+            bundle_items = db(
+                db.bundle_item.id_bundle == bag_item.id_item.id
+            ).iterselect()
+
+            for bundle_item in bundle_items:
+                yield bundle_item.id_item
+        else:
+            yield bag_item.id_item
+
+
+    for item in items_iterator(bag_item):
+
+        item_removals = db(
+            (db.stock_item_removal.id_bag_item == bag_item.id) &
+            (db.stock_item_removal.id_item == item.id)
+        ).iterselect()
+
+        # the remaining items to be reintegrated
+        remaining = quantity
+
+        for item_removal in item_removals:
+
+            if not remaining > 0:
+                break
+
+            stock_item = db(
+                db.stock_item.id == item_removal.id_stock_item.id
+            ).select().first()
+
+            # this operation is safe if stock item removals are correct
+            reintegrated_qty = min(quantity, stock_item.purchase_qty)
+            stock_item.stock_qty += reintegrated_qty
+
+            stock_item.update_record()
+
+            remaining -= reintegrated_qty
+
+            # delete stock removal
+            db(db.stock_item_removal.id == item_removal.id).delete()
+
+
+
 def create_traits_ref_list(traits_str):
     """ given a string of encoded traits, create a list of ids for every trait, creating them if they do not exist.
 

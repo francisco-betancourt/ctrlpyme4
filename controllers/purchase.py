@@ -25,6 +25,7 @@ import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
 from item_utils import item_barcode
+import purchase_utils
 # from cfdi import *
 
 
