@@ -12,14 +12,27 @@
   {{if returnable_items_qty:}}
     <table class="table">
       <tbody>
-        {{for bag_item in bag_items:}}
-          <tr>
-            <td>{{=bag_item.product_name}}</td>
-            <td>
-              <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=bag_item.id}}" max={{=bag_item.quantity}} min=0 value="0">
-            </td>
-          </tr>
-        {{pass}}
+
+        {{ max = 0 }}
+        {{ current = removals[0] }}
+        {{ for returnable in removals: }}
+          {{ max += returnable.qty }}
+
+          {{ if current.id_bag_item.id != returnable.id_bag_item.id or returnable.id == removals[-1].id: }}
+            <tr>
+              <td>{{=current.id_bag_item.product_name}}</td>
+              <td>
+                <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=current.id_bag_item.id}}"
+                    max={{=max}} min=0 value="0">
+              </td>
+            </tr>
+            {{ max = 0 }}
+            {{ current = returnable }}
+          {{ pass }}
+
+        {{ pass }}
+
+
       </tbody>
     </table>
 

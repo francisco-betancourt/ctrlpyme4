@@ -335,12 +335,11 @@ def modify_payment(sale, payment, payment_data, delete=False):
 def deliver(sale):
     """ Sets the sale as delivered, removing its items from the stock """
 
-    from item_utils import remove_stocks
 
     db = current.db
 
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
-    remove_stocks(bag_items)
+    item_utils.remove_stocks(bag_items)
     create_sale_event(sale, SALE_DELIVERED)
     sale.update_record()
 

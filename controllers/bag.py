@@ -58,7 +58,7 @@ def modify_bag_item():
     bag_item.quantity = max(0, bag_item.quantity)
 
     bag_item.update_record()
-    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    bag_data = bag_utils.refresh_bag_data(bag_item.id_bag.id)
     return dict(status='ok', bag_item=bag_item, **bag_data)
 
 

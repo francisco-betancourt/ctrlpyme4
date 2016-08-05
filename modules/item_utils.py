@@ -352,7 +352,7 @@ def remove_stocks(bag_items):
                     bundle_items_qty += 1
                     total_buy_price, wavg_days_in_shelf = _remove_stocks(
                         bundle_item.id_item,
-                        bundle_item.quantity,
+                        bundle_item.quantity * bag_item.quantity,
                         bag_item.created_on,
                         bag_item
                     )
@@ -436,15 +436,22 @@ def reintegrate_bag_item(bag_item, quantity):
             ).select().first()
 
             # this operation is safe if stock item removals are correct
-            reintegrated_qty = min(quantity, stock_item.purchase_qty)
+            reintegrated_qty = min(
+                min(quantity, stock_item.purchase_qty), item_removal.qty
+            )
             stock_item.stock_qty += reintegrated_qty
 
             stock_item.update_record()
 
             remaining -= reintegrated_qty
 
-            # delete stock removal
-            db(db.stock_item_removal.id == item_removal.id).delete()
+            item_removal.qty -= reintegrated_qty
+
+            if not item_removal.qty > 0:
+                # delete stock removal
+                item_removal.delete_record()
+            else:
+                item_removal.update_record()
 
 
 

@@ -487,6 +487,18 @@ def refund():
     if is_delivered:
         # TODO optimize this
         # obtain all returnable items from the specified sale
+
+        removals = db(
+              (db.stock_item_removal.id_bag_item == db.bag_item.id)
+            & (db.bag_item.id_bag == sale.id_bag.id)
+            & (db.stock_item_removal.qty > 0)
+        ).select(
+            db.stock_item_removal.ALL,
+            orderby=db.stock_item_removal.id_bag_item
+        )
+        for r in removals:
+            print r.id_bag_item.id, r.qty
+
         query_result = db(
               (db.bag_item.id_item == db.item.id)
             & (db.bag_item.id_bag == sale.id_bag.id)
@@ -507,10 +519,14 @@ def refund():
             bag_items_data[str(row.id_bag_item)].quantity -= row.quantity
             returnable_items_qty -= row.quantity
         invalid = returnable_items_qty <= 0
+
     # since pure defered sales does not remove stocks, we can only refund all payments once, so we have to make sure that there are no credit notes associated with the specified sale
     elif sale.is_defered:
         credit_note = db(db.credit_note.id_sale == sale.id).select().first()
         invalid = bool(credit_note)  # hack to convert to boolean
+
+        session.info = T('The sale already has a credit note')
+        redirect(URL('index'))
 
 
     form = SQLFORM.factory(
