@@ -1,49 +1,56 @@
+{{left_sidebar_enabled = True}}
 {{extend 'layout.html'}}
 
-<h1>{{=T('Refund sale')}} {{=sale.consecutive}}</h1>
-<h3>{{=T('Purchased on store')}}: {{=sale.id_store.name}}</h3>
 
-<p>{{=T('Total')}} $ {{=DQ(payments_total, True)}}</p>
-{{if sale.id_client:}}
-  <p>{{=T('Client')}} {{=sale.id_client.email}}</p>
-{{pass}}
+{{block left_sidebar}}
+  <h1>{{=T('Refund sale')}} {{=sale.consecutive}}</h1>
+  <h3>{{=T('Purchased on store')}}: {{=sale.id_store.name}}</h3>
+
+  <p>{{=T('Total')}} $ {{=DQ(payments_total, True)}}</p>
+  {{if sale.id_client:}}
+    <p>{{=T('Client')}} {{=sale.id_client.email}}</p>
+  {{pass}}
+
+  {{ if not invalid: }}
+    <hr>
+    {{=form}}
+  {{ pass }}
+
+
+{{end}}
+
+
+
+
+<h1>{{=T('Items')}}</h1>
 
 {{ if not invalid: }}
-  {{if returnable_items_qty:}}
+  {{ if not no_more_items: }}
     <table class="table">
       <tbody>
 
-        {{ max = 0 }}
-        {{ current = removals[0] }}
-        {{ for returnable in removals: }}
-          {{ max += returnable.qty }}
-
-          {{ if current.id_bag_item.id != returnable.id_bag_item.id or returnable.id == removals[-1].id: }}
-            <tr>
-              <td>{{=current.id_bag_item.product_name}}</td>
-              <td>
-                <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=current.id_bag_item.id}}"
-                    max={{=max}} min=0 value="0">
-              </td>
-            </tr>
-            {{ max = 0 }}
-            {{ current = returnable }}
-          {{ pass }}
-
+        {{ for current in item_removals.itervalues(): }}
+          <tr>
+            <td>{{=current.product_name}}</td>
+            <td>
+              <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=current.id}}"
+                  max={{=current.max}} min=0 value="0">
+            </td>
+          </tr>
         {{ pass }}
-
 
       </tbody>
     </table>
-
-    {{=form}}
   {{ elif sale.is_defered: }}
     <p>{{=T('Refund all payments')}}</p>
-    {{=form}}
+  {{ else: }}
+    <p>{{=T('No more items to return!')}}</p>
   {{ pass }}
 {{ else: }}
   <p>{{=T('Everything has been returned!')}}</p>
 {{ pass }}
+
+
 
 
 {{block page_js}}

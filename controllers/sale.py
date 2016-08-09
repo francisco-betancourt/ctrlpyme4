@@ -480,45 +480,37 @@ def refund():
     ).select(payments_sum).first()[payments_sum] or 0
 
     invalid = False
-    bag_items_data = {}
-    bag_items = []
-    returnable_items_qty = 0
+    item_removals = {}
+    no_more_items = True
 
     if is_delivered:
-        # TODO optimize this
         # obtain all returnable items from the specified sale
-
-        removals = db(
-              (db.stock_item_removal.id_bag_item == db.bag_item.id)
-            & (db.bag_item.id_bag == sale.id_bag.id)
-            & (db.stock_item_removal.qty > 0)
+        c_items = db(
+            db.bag_item.id_bag == sale.id_bag.id
         ).select(
-            db.stock_item_removal.ALL,
-            orderby=db.stock_item_removal.id_bag_item
+            left=db.credit_note_item.on(
+                db.bag_item.id == db.credit_note_item.id_bag_item
+            ),
+            orderby=db.credit_note_item.id_bag_item
         )
-        for r in removals:
-            print r.id_bag_item.id, r.qty
+        current_data = None
+        current_id = None
+        for r in c_items:
+            if current_id != r.bag_item.id:
 
-        query_result = db(
-              (db.bag_item.id_item == db.item.id)
-            & (db.bag_item.id_bag == sale.id_bag.id)
-            & (db.item.is_returnable == True)
-        ).iterselect(db.bag_item.ALL)
-        for row in query_result:
-            bag_items.append(row)
-            bag_items_data[str(row.id)] = row
-            returnable_items_qty += row.quantity
+                if current_data:
+                    no_more_items &= current_data.max == 0
 
-        # check if there's still unreturned items
-        returned_items = db(
-               (db.credit_note.id_sale == db.sale.id)
-             & (db.credit_note_item.id_credit_note == db.credit_note.id)
-             & (db.sale.id == sale.id)
-        ).select(db.credit_note_item.ALL)
-        for row in returned_items:
-            bag_items_data[str(row.id_bag_item)].quantity -= row.quantity
-            returnable_items_qty -= row.quantity
-        invalid = returnable_items_qty <= 0
+                current_id = r.bag_item.id
+                current_data = Storage(
+                    max=r.bag_item.quantity,
+                    product_name=r.bag_item.product_name,
+                    id=r.bag_item.id
+                )
+                item_removals[str(r.bag_item.id)] = current_data
+
+            if r.credit_note_item.quantity:
+                current_data.max -= r.credit_note_item.quantity
 
     # since pure defered sales does not remove stocks, we can only refund all payments once, so we have to make sure that there are no credit notes associated with the specified sale
     elif sale.is_defered:
@@ -529,20 +521,27 @@ def refund():
         redirect(URL('index'))
 
 
+    btn_text = T('Refund') if item_removals else T('Return all payments')
     form = SQLFORM.factory(
         Field('wallet_code', label=T('Wallet Code'))
         , Field('returned_items')
-        , submit_button=T("Refund")
+        , submit_button=btn_text, formstyle='bootstrap3_stacked'
     )
 
 
     if form.process().accepted:
+        # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
+        def max_available(r_item):
+            return DQ(
+                max(min(D(r_item[1]), item_removals[str(r_item[0])].max), 0)
+            )
+
 
         r_items = map(
             lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
         )
         r_items = (
-            (db.bag_item(int(r_item[0])), D(r_item[1])) for r_item in r_items
+            (db.bag_item(int(r_item[0])), max_available(r_item)) for r_item in r_items
         )
         credit_note = sale_utils.refund(
             sale, request.now, auth.user, r_items,
@@ -552,7 +551,10 @@ def refund():
         wallet = db(db.wallet.wallet_code == credit_note.code).select().first()
 
         if sale.id_client:
-            pass
+            session.info = INFO(
+                T('Sale returned, money added to: ') + wallet.wallet_code,
+                T('Print'), URL('wallet', 'print_wallet', args=wallet.id), 'blank'
+            )
         else:
             # new wallet created, and it does not have a client associated
             session.info = INFO(

@@ -112,7 +112,9 @@ def item_stock_qty(item, id_store=None, id_bag=None, max_date=None):
         for bundle_item in bundle_items:
             qty = item_stock_qty(bundle_item.id_item, id_store, id_bag, max_date)
             min_bundle = min(min_bundle, qty / bundle_item.quantity)
-        return min_bundle
+            if not item.allow_fractions:
+                min_bundle = math.floor(min_bundle)
+        return D(min_bundle)
 
     bag_item_count = 0
     if id_bag:
@@ -381,7 +383,9 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
     db = current.db
     session = current.session
 
-    stock_item = db((db.stock_item[target_field] == target_id) & (db.stock_item.id_item == item.id)).select().first()
+    stock_item = db(
+        (db.stock_item[target_field] == target_id) & (db.stock_item.id_item == item.id)
+    ).select().first()
     if stock_item:
         stock_item.purchase_qty += returned_qty
         stock_item.stock_qty += returned_qty
@@ -404,6 +408,8 @@ def reintegrate_bag_item(bag_item, quantity):
 
 
     def items_iterator(bag_item):
+        # Iterate over all the items referenced by the bag_item, if the bag_item contains a bundle then this iterator will return all the bundle items, in other case it will return just the item
+
         if bag_item.id_item.is_bundle:
 
             bundle_items = db(
@@ -411,12 +417,12 @@ def reintegrate_bag_item(bag_item, quantity):
             ).iterselect()
 
             for bundle_item in bundle_items:
-                yield bundle_item.id_item
+                yield bundle_item.id_item, bundle_item.quantity * quantity
         else:
-            yield bag_item.id_item
+            yield bag_item.id_item, quantity
 
 
-    for item in items_iterator(bag_item):
+    for item, qty in items_iterator(bag_item):
 
         item_removals = db(
             (db.stock_item_removal.id_bag_item == bag_item.id) &
@@ -426,18 +432,20 @@ def reintegrate_bag_item(bag_item, quantity):
         # the remaining items to be reintegrated
         remaining = quantity
 
+
         for item_removal in item_removals:
 
             if not remaining > 0:
                 break
 
+            # the stock from which the items were removed
             stock_item = db(
                 db.stock_item.id == item_removal.id_stock_item.id
             ).select().first()
 
             # this operation is safe if stock item removals are correct
             reintegrated_qty = min(
-                min(quantity, stock_item.purchase_qty), item_removal.qty
+                min(qty, stock_item.purchase_qty), item_removal.qty
             )
             stock_item.stock_qty += reintegrated_qty
 
