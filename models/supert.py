@@ -247,7 +247,7 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     else:
         rows = db(query).select(**copy_select_args)
     if not rows:
-        return None, None
+        return None, None, query
 
     joined = False # true if the query contains joined data
     if base_table_name:
@@ -515,9 +515,9 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     except:
         page = 0
         ipp = 10
-    prev_url, next_url, limits, pages_count = pages_menu_bare(
+    limits = pages_menu_bare(
         query, page, ipp, distinct=distinct, index=t_index
-    )
+    ).limits
     select_args['limitby'] = limits
 
     new_fields, datas, query = SUPERT_BARE(
@@ -526,7 +526,7 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
     )
 
     # unfortunately we have to repeat this operation since SUPERT_BARE provides the fixed query with search terms
-    prev_url, next_url, limits, pages_count = pages_menu_bare(
+    pages_data = pages_menu_bare(
         query, page, ipp, distinct=distinct, index=t_index - 1
     )
 
@@ -534,6 +534,12 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         datas = []
 
     # base_table
-    table = supert_table_format(new_fields, datas, prev_url, next_url, ipp, searchable=searchable, selectable=selectable, options_enabled=options_enabled, options_func=options_func, global_options=global_options, title=title, t_index=current_t_index, page=page, pages_count=pages_count)
+    table = supert_table_format(new_fields, datas,
+        pages_data.prev_url, pages_data.next_url, pages_data.ipp,
+        searchable=searchable, selectable=selectable,
+        options_enabled=options_enabled, options_func=options_func,
+        global_options=global_options, title=title, t_index=current_t_index,
+        page=page, pages_count=pages_data.pages_count
+    )
 
     return table

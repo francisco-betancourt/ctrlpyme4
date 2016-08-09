@@ -633,3 +633,8 @@ body {
 .icon-text a {
   margin-right: 8px;
 }
+
+
+.cp-checkbox {
+  display: none;
+}
