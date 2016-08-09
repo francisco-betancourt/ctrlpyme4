@@ -196,6 +196,11 @@
     new_remaining = {{=sale.total}} - payments_total;
     $('#remaining').text(new_remaining.toFixed(2));
     if (!new_remaining > 0) {
+      // block interface
+      $('.main-container .form-control, .main-container .btn').attr(
+        'disabled', 'disabled'
+      );
+
       $('#remaining_container').removeClass('text-danger');
       $('#remaining_container').addClass('text-success');
       // sale paid, autocomplete
