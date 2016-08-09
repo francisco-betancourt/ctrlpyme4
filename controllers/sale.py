@@ -486,7 +486,10 @@ def refund():
     if is_delivered:
         # obtain all returnable items from the specified sale
         c_items = db(
-            db.bag_item.id_bag == sale.id_bag.id
+              (db.bag_item.id_item == db.item.id)
+            & (db.bag_item.id_bag == sale.id_bag.id)
+            & (db.item.has_inventory == True)
+            & (db.item.is_returnable == True)
         ).select(
             left=db.credit_note_item.on(
                 db.bag_item.id == db.credit_note_item.id_bag_item

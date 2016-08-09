@@ -814,6 +814,7 @@
 'restore': 'restaurar',
 'Retrieve Password': 'Retrieve Password',
 'Retrieve username': 'Recuperar nombre de usuario',
+'Return all payments': 'Return all payments',
 'revert': 'revertir',
 'Review': 'Revisión',
 'Review bag': 'Revise bolsa',
