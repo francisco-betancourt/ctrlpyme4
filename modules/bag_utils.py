@@ -25,15 +25,121 @@ import math
 import json
 from uuid import uuid4
 from gluon.storage import Storage
+
 from common_utils import *
 from constants import BAG_ACTIVE, BAG_COMPLETE, BAG_FOR_ORDER, BAG_ORDER_COMPLETE
+import item_utils
 from item_utils import item_discounts, item_barcode, item_stock_qty
+
+from cp_errors import *
+
+
+ALLOW_OUT_OF_STOCK = True
+
+
+# bag status constants
+BAG_ACTIVE = 0
+BAG_COMPLETE = 1
+BAG_FOR_ORDER = 2
+BAG_ORDER_COMPLETE = 3
+
+
+def new(id_store, now, user):
+    """ """
+
+    db = current.db
+
+    return db.bag.insert(
+        id_store=id_store, completed=False,
+        created_on=now, modified_on=now, created_by=user.id
+    )
+
+
+def add_bag_item(bag, item, quantity=None, sale_price=None):
+    """ """
+
+    db = current.db
+
+    sale_price = sale_price if sale_price else item.base_price
+
+    bag_item = db(
+          (db.bag_item.id_item == item.id)
+        & (db.bag_item.id_bag == bag.id)
+    ).select().first()
+
+    # when quantity is not specified, avoid stock checking (the API user knows what he is doing)
+    if not quantity:
+        stock_qty = item_stock_qty(item, bag.id_store, id_bag=bag.id)
+        if item.has_inventory:
+            stock_qty = DQ(stock_qty)
+
+        base_qty = base_qty = 1 if stock_qty >= 1 or ALLOW_OUT_OF_STOCK else stock_qty % 1 # modulo to consider fractionary items
+        # if there is no stock notify the user
+        if base_qty <= 0:
+            raise CP_OutOfStockError()
+        quantity = base_qty
+
+    # create item taxes string, the string contains the tax name and its percentage, see db.py > bag_item table for more info
+    if not bag_item:
+        item_taxes_str = ''
+        for tax in item.taxes:
+            item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
+            if tax != item.taxes[-1]:
+                item_taxes_str += ','
+        discounts = item_discounts(item)
+        sale_price = item_utils.discount_data(discounts, sale_price)[0]
+        discount = item.base_price - sale_price
+        id_bag_item = db.bag_item.insert(
+            id_bag=bag.id, id_item=item.id, quantity=quantity,
+            sale_price=sale_price, discount=discount,
+            product_name=item.name, item_taxes=item_taxes_str,
+            sale_taxes=item_utils.item_taxes(item, sale_price)
+        )
+        bag_item = db.bag_item(id_bag_item)
+    else:
+        bag_item.quantity += base_qty
+        bag_item.update_record()
+
+    return bag_item
+
+
+def complete(bag):
+
+    db = current.db
+    auth = current.auth
+
+    # delete all items with no quantity
+    db(
+          (db.bag_item.id_bag == bag.id)
+        & ~(db.bag_item.quantity > 0)
+    ).delete()
+
+    # check if all the bag items are consistent
+    bag_items = db(db.bag_item.id_bag == bag.id).iterselect()
+    # delete the bag if there are no items
+    if not bag_items:
+        db(db.bag.id == bag.id).delete()
+        raise CP_EmptyBagError()
+
+    out_of_stock_items = out_of_stock_items_exists(bag_items, True)
+    check_bag_items_integrity(bag_items, True) # allow out of stock items
+
+    # clients create orders
+    if auth.has_membership(None, bag.created_by.id, 'Clients'):
+        bag.is_on_hold = True
+        bag.update_record()
+        return
+
+    bag.status = BAG_COMPLETE
+    bag.completed = True
+    bag.update_record()
 
 
 def auto_bag_selection():
     auth = current.auth
     db = current.db
     session = current.session
+    request = current.request
 
     # admin cannot sell
     if auth.has_membership('Admin'):
@@ -54,7 +160,7 @@ def auto_bag_selection():
 
     # create a new bag if the user does not have one
     if not current_bag:
-        new_bag_id = db.bag.insert(created_by=auth.user.id, completed=False, id_store=session.store)
+        new_bag_id = new(session.store, request.now, auth.user)
         current_bag = db.bag(new_bag_id)
     # in this case the user almost paid a bag but something happened and the bag state was left as BAG_ORDER_COMPLETE, so we have to set it as active
     if current_bag.status == BAG_ORDER_COMPLETE and not current_bag.is_paid and not current_bag.is_sold and auth.user.is_client:
@@ -72,7 +178,7 @@ def refresh_bag_data(id_bag):
     if bag.status != BAG_ACTIVE:
         return
 
-    bag_items = db(db.bag_item.id_bag == bag.id).select()
+    bag_items = db(db.bag_item.id_bag == bag.id).iterselect()
 
     subtotal = D(0)
     taxes = D(0)
@@ -85,13 +191,25 @@ def refresh_bag_data(id_bag):
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
         reward_points += bag_item.id_item.reward_points or 0
+
     bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
-    # subtotal = money_format(DQ(subtotal, True))
-    # taxes = money_format(DQ(taxes, True))
-    # total = money_format(DQ(total, True))
+
     quantity = DQ(quantity, True, True)
 
     return dict(subtotal=subtotal, taxes=taxes, total=total, quantity=quantity)
+
+
+def out_of_stock_items_exists(bag_items, allow_out_of_stock):
+    if allow_out_of_stock:
+        return False
+
+    for bag_item in bag_items:
+        qty = item_stock_qty(bag_item.id_item, bag_item.id_bag.id_store.id)
+        if bag_item.quantity > qty:
+            return True
+
+    return False
+
 
 
 def check_bag_items_integrity(bag_items, allow_out_of_stock=False):

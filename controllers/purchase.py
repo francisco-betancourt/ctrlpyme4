@@ -25,6 +25,7 @@ import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
 from item_utils import item_barcode
+import purchase_utils
 # from cfdi import *
 
 
@@ -36,7 +37,7 @@ def create():
     """
 
     is_xml = request.vars.is_xml == 'True'
-    new_purchase_id = db.purchase.insert(id_store=session.store)
+    new_purchase_id = purchase_utils.new(session.store, request.now, auth.user)
     if not is_xml:
         redirect(URL('fill', args=new_purchase_id))
     else:
@@ -96,7 +97,7 @@ def create_from_order():
                 missing_items.append(dict(item=bag_item.id_item, qty=needed_qty - quantity))
 
     if missing_items:
-        new_purchase = db.purchase.insert(id_store=session.store)
+        new_purchase = purchase_utils.new(session.store, request.now, auth.user)
         for missing_item in missing_items:
             db.stock_item.insert(id_purchase=new_purchase, id_credit_note=None, id_inventory=None, id_store=session.store, purchase_qty=missing_item['qty'], id_item=missing_item['item'].id, base_price=missing_item['item'].base_price, price2=missing_item['item'].price2, price3=missing_item['item'].price3)
     else:
@@ -299,9 +300,7 @@ def add_item_and_stock_item():
 
     # add the traits
     if request.vars.traits and request.vars.traits != 'undefined':
-        print request.vars.traits
         item_data['traits'] = create_traits_ref_list(request.vars.traits)
-        print item_data['traits']
     else:
         item_data['traits'] = None
     if request.vars.taxes and request.vars.taxes != 'undefined':
@@ -425,6 +424,9 @@ def commit():
         args: [purchase_id]
     """
 
+    import purchase_utils
+
+
     purchase = db.purchase(request.args(0))
     valid_purchase(purchase)
 
@@ -444,29 +446,7 @@ def commit():
         session.info = T('Please fill the following fields') + ': ' + ', '.join(missing_fields)
         redirect(URL('fill', args=purchase.id))
 
-    # generate stocks for every purchase item
-    stock_items = db(db.stock_item.id_purchase == purchase.id).iterselect()
-    for stock_item in stock_items:
-        stock_item = postprocess_stock_item(stock_item)
-        stock_item.stock_qty = stock_item.purchase_qty
-        stock_item.id_store = session.store
-        # set the stock quantity to the purchased quantity
-        stock_item.update_record()
-        # update the item prices
-        item = db.item(stock_item.id_item)
-        # base price should not be 0
-        if stock_item.base_price > 0:
-            item.base_price = stock_item.base_price
-            item.price2 = stock_item.price2
-            item.price3 = stock_item.price3
-        item.update_record()
-    purchase.is_done = True
-    purchase.update_record()
-
-    if purchase.id_payment_opt.credit_days > 0:
-        epd = date(request.now.year, request.now.month, request.now.day)
-        epd += timedelta(days=purchase.id_payment_opt.credit_days)
-        db.account_payable.insert(id_purchase=purchase.id, epd=epd)
+    purchase_utils.commit(purchase)
 
     session.info = {
         'text': T('Purchase commited'),
@@ -474,7 +454,6 @@ def commit():
     }
 
     redirect(URL('index'))
-    # redirect()
 
 
 
@@ -518,11 +497,6 @@ def update():
     """
 
     redirect(URL('fill', args=request.args))
-
-
-# @auth.requires_membership('Purchases')
-# def delete():
-#     return common_delete('purchase', request.args)
 
 
 def purchase_options(row):

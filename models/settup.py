@@ -8,10 +8,10 @@ from constants import *
 import gc
 gc.collect()
 
-enable_bootstrap=True
-enable_treeview=True
-enable_css_item_card=True
-enable_navbar=True
-enable_supert=True
-enable_calendar=True
-enable_css_ticket=True
+enable_bootstrap = True
+enable_treeview = True
+enable_css_item_card = True
+enable_navbar = True
+enable_supert = True
+enable_calendar = True
+enable_css_ticket = True
