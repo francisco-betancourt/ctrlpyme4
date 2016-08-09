@@ -481,7 +481,7 @@ def refund():
 
     invalid = False
     item_removals = {}
-    no_more_items = True
+    no_more_items = False
 
     if is_delivered:
         # obtain all returnable items from the specified sale
@@ -497,9 +497,6 @@ def refund():
         current_id = None
         for r in c_items:
             if current_id != r.bag_item.id:
-
-                if current_data:
-                    no_more_items &= current_data.max == 0
 
                 current_id = r.bag_item.id
                 current_data = Storage(

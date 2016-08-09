@@ -93,7 +93,7 @@
 
 
   function index_item(item) {
-    var barcode = item.sku | item.ean | item.upc;
+    var barcode = item.sku || item.ean || item.upc;
     var key = 'item_' + barcode;
     var bundle_item_data = bundle_items[key];
     if (!bundle_item_data) {
@@ -112,10 +112,9 @@
 
 
   function requirement(barcode) {
-    var code = $('#no_table_scan_code').val();
-    var bundle_item = bundle_items['item_' + code]
+    var bundle_item = bundle_items['item_' + barcode]
     if (bundle_item) {
-      add_item(bundle_items['item_' + code]);
+      add_item(bundle_items['item_' + barcode]);
       return false;
     }
     return true;
