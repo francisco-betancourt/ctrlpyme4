@@ -237,10 +237,10 @@ def get_by_code():
 
 def validate_ready(form):
     """ Validates if all the items in the order are available """
-    ready == True
+    is_ready = True
     for bag_item in db(db.bag_item.id_bag == form.vars.id_bag).select():
         quantity = item_stock_qty(bag_item.id_item, session.store)
-        ready &= (quantity >= bag_item.quantity)
+        is_ready &= (quantity >= bag_item.quantity)
 
     if not ready:
         form.errors.default = T('Some items are not available')
@@ -255,7 +255,6 @@ def ready():
     order = db.sale_order(request.args(0))
     if not order:
         raise HTTP(404)
-    ready = True
     # check if the order items are in stock
     items = []
 
@@ -289,8 +288,16 @@ def ready():
     is_ready = global_data['is_ready']
 
     buttons = [] if is_ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
-    if not buttons:
+    if not buttons and order.id_sale.id_client:
         form = SQLFORM.factory(submit_button=T('Notify buyer'), formstyle='bootstrap')
+    elif order.is_for_defered_sale and is_ready:
+        buttons = [
+            A(
+                T('Go to sale'), _class="btn btn-primary",
+                _href=URL('sale', 'update', args=order.id_sale.id)
+            )
+        ]
+        form = SQLFORM.factory(buttons=buttons)
     else:
         form = SQLFORM.factory(buttons=buttons)
     if form.process(onvalidation=validate_ready).accepted:

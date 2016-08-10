@@ -88,6 +88,8 @@ def new(bag, id_store, now, user):
 def verify_payments(payments, sale, check_total=True):
     """ """
 
+    T = current.T
+
     err = ""
 
     if not payments:

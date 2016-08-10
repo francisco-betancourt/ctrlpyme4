@@ -4,9 +4,14 @@
 
 {{=data}}
 
+<hr>
 <p>
   {{if is_ready:}}
-    {{=T('All the items are ready to be delivered in this store, press the notify buyer button to notify the buyer about its order')}}
+    {{if order.is_for_defered_sale: }}
+      {{=T('All the items are ready to be delivered in this store, press the Go to sale button to deliver or update the sale')}}
+    {{else:}}
+      {{=T('All the items are ready to be delivered in this store, press the notify buyer button to notify the buyer about its order')}}
+    {{pass}}
   {{else:}}
     {{=T('Some items in the order are not available, press the purchase order button to create a purchase that contains the order items')}}
   {{pass}}
