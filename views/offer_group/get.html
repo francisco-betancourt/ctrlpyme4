@@ -3,7 +3,7 @@
 
 {{block left_sidebar}}
 <hr>
-<div class="offer-group-highlight-header highlight shadow-1" style="background-image: url({{=URL('default', 'download', args=offer_group.bg_image)}})">
+<div class="offer-group-highlight-header highlight shadow-1" style="background-image: url({{=URL('static', 'uploads/'+offer_group.bg_image)}})">
   <div class="data">
     <h2>{{=offer_group.name}}</h2>
     <p>{{=offer_group.starts_on.strftime('%a %d %B %Y')}} -  {{=offer_group.ends_on.strftime('%a %d %B %Y')}}</p>

@@ -673,7 +673,6 @@ db.define_table(
     , Field('bg_image', 'upload', label=T('Background image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     # deprecated
     , Field("code", "string", default=None, label=T('Code'))
-    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
     , auth.signature
 )
 db.offer_group.name.requires = not_empty_requires
