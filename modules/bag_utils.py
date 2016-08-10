@@ -154,9 +154,10 @@ def auto_bag_selection():
     if session.current_bag:
         session_bag_query = base_bag_query & (db.bag.id == session.current_bag)
         current_bag = db(session_bag_query).select().first()
-        # check if there exist some active bag
-        if not current_bag:
-            current_bag = db(base_bag_query).select().first()
+
+    # check if there exist some active bag
+    if not current_bag:
+        current_bag = db(base_bag_query).select().first()
 
     # create a new bag if the user does not have one
     if not current_bag:
