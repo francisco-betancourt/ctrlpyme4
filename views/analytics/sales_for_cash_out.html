@@ -10,6 +10,7 @@
 
 <div class="cash-out-report">
   <h1 class="noprint">{{=T('Details')}}</h1>
+  <h3>{{=cash_out.created_on}}</h3>
   <h3 class="print">
     {{=T('Cash out report')}} {{=T('for')}}:
     {{=seller.first_name}} {{=seller.last_name}}
@@ -24,7 +25,14 @@
 
     {{block left_sidebar}}
       <h1>{{=T("Cash out")}}</h1>
-      <h4>{{=T("Seller")}}: {{=seller.first_name}}</h4>
+
+      <h4>{{=T("Date")}}:
+        <span class="right">{{=cash_out.created_on}}</span>
+      </h4>
+      <h4>{{=T("Seller")}}:
+        <span class="right">{{=seller.first_name}}</span>
+      </h4>
+      <hr>
       <div>
         <canvas id="payment_opt_distrib" style="width: 100%;"></canvas>
       </div>

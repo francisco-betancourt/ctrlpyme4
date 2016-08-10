@@ -273,7 +273,7 @@
 'Database %s select': 'selección en base de datos %s',
 'database administration': 'administración de base de datos',
 'Database Administration (appadmin)': 'Administración de Base de Datos (appadmin)',
-'Date': 'Date',
+'Date': 'Fecha',
 'Date and Time': 'Fecha y Hora',
 'DB': 'BDD',
 'db': 'bdd',
