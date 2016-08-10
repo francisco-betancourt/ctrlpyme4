@@ -510,9 +510,9 @@ def search_item_query(str_term, category):
     term = str_term.split(' ')
 
     query = (db.item.name.contains(term))
-    query |= db.item.sku == term[0]
-    query |= db.item.ean == term[0]
-    query |= db.item.upc == term[0]
+    query |= db.item.sku.like(term[0] + '%')
+    query |= db.item.ean.like(term[0] + '%')
+    query |= db.item.upc.like(term[0] + '%')
 
     categories_data_script = SCRIPT()
     if not category:

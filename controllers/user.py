@@ -19,6 +19,9 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+import common_utils
+
+
 @auth.requires_membership('Employee')
 def employee_profile():
     return dict()
@@ -314,8 +317,13 @@ def index():
 
 @auth.requires_login()
 def post_login():
-    if auth.has_membership('Clients') or auth.user.is_client:
-        auto_bag_selection()
+    if not auth.has_membership('Clients') or auth.user.is_client:
+        common_utils.select_store(True)
+
+    auto_bag_selection()
+    if request.vars.__next:
+        request.vars._next = request.vars.__next
+        del request.vars.__next
 
     redirection()
 

@@ -98,7 +98,7 @@ mail.settings.login = CONF.take('smtp.login')
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
-auth.settings.login_next = URL('user', 'post_login')
+auth.settings.login_next = URL('user', 'post_login', vars=request.vars)
 auth.settings.logout_next = URL('user', 'post_logout')
 
 #########################################################################
@@ -673,7 +673,6 @@ db.define_table(
     , Field('bg_image', 'upload', label=T('Background image'), uploadfolder=os.path.join(request.folder, 'static/uploads'))
     # deprecated
     , Field("code", "string", default=None, label=T('Code'))
-    , Field("is_combinable", "boolean", default=None, label=T('Is combinable'))
     , auth.signature
 )
 db.offer_group.name.requires = not_empty_requires

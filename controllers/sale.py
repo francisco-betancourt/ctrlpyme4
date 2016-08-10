@@ -299,7 +299,7 @@ def complete():
     else:
         sale_utils.deliver(sale)
         redirect(
-            URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index')) )
+            URL( 'ticket', 'get', vars=dict(id_sale=sale.id, next_url=URL('default', 'index'), _print=True) )
         )
 
 

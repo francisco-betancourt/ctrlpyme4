@@ -3,7 +3,7 @@
 {{for image in images:}}
   <span class="image-container">
     <a class="btn btn-default" href="{{=URL('delete', args=image.id)}}" style="position:absolute">{{=T('Remove')}}</a>
-    <img src="{{=URL('default', 'download', args=image.sm)}}" alt="">
+    <img src="{{=URL('static', 'uploads/'+image.sm)}}" alt="">
   </span>
 {{pass}}
 {{=form}}
