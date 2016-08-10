@@ -284,6 +284,43 @@ def valid_account(payment):
 
 
 
+def select_store(only_auto_select=False):
+    """ Goes to store selection screen if there are multiple stores, and
+        auto selects the only store in other case, use only_auto_select
+        to avoid going to store_selection page and just auto select when only
+        one store is available
+    """
+
+    auth = current.auth
+    session = current.session
+    request = current.request
+    db = current.db
+
+    if not auth.user or auth.user.is_client or session.store:
+        return
+
+    q = (db.store.id < 0)
+    store_memberships = db(
+        (db.auth_membership.group_id == db.auth_group.id) &
+        (db.auth_membership.user_id == auth.user.id) &
+        (db.auth_group.role.like('Store %'))
+    ).iterselect(db.auth_group.role)
+    for store_membership in store_memberships:
+        store_id = int(store_membership.role.split(' ')[1])
+        q |= db.store.id == store_id
+    stores = db((q) & (db.store.is_active == True)).select()
+
+    if len(stores) == 1:
+        session.store = stores.first().id
+    elif not only_auto_select:
+        if auth.has_membership('Admin'):
+            return
+        redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
+        )
+
+    return
+
+
 def precheck():
     """ user prechecks """
     auth = current.auth
@@ -291,18 +328,7 @@ def precheck():
     request = current.request
     db = current.db
 
-    if auth.user and not auth.user.is_client:
-        # select the first store if theres only one
-        if not session.store:
-            stores = db(db.store.is_active == True).select()
-            if len(stores) == 1:
-                session.store = stores.first().id
-            else:
-                # store selection page
-                # admin has access to all the stores
-                if not auth.has_membership('Store %s' % session.store) and not auth.has_membership('Admin'):
-                    redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
-                    )
+    select_store()
 
 
 def css_path(file_name):

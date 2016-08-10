@@ -118,6 +118,12 @@ else:
     response.auth_menu += [
         (T('guest'), False, None, [
             (T('Lost password'), False, URL('default', 'user/retrieve_password'), [ ]),
-            (T('Login'), False, URL('default', 'user/login', vars=dict(_next=URL(request.controller, request.function, args=request.args, vars=request.vars) )), [ ])
+            (T('Login'), False, URL(
+                'default', 'user/login',
+                vars=dict(
+                    __next=URL(request.controller, request.function,
+                    args=request.args, vars=request.vars)
+                )), [ ]
+            )
         ])
     ]

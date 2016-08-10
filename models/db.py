@@ -98,7 +98,7 @@ mail.settings.login = CONF.take('smtp.login')
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
-auth.settings.login_next = URL('user', 'post_login')
+auth.settings.login_next = URL('user', 'post_login', vars=request.vars)
 auth.settings.logout_next = URL('user', 'post_logout')
 
 #########################################################################

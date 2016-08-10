@@ -77,6 +77,7 @@ def user():
         @auth.requires_permission('read','table name',record_id)
     to decorate functions that need access control
     """
+
     return dict(form=auth())
 
 
