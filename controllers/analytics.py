@@ -430,7 +430,7 @@ def item_analysis():
         global_options=[]
     )
 
-    wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
+    avg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 
     return locals()
 

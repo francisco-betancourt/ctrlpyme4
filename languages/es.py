@@ -527,6 +527,7 @@
 'left': 'disponibles',
 'left spacing': 'espaciado izquierdo',
 'left spacing (cm)': 'left spacing (cm)',
+'Less than a day': 'Menos de un día',
 'License for': 'Licencia para',
 'List': 'Lista',
 'Live Chat': 'Chat en vivo',

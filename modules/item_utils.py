@@ -35,19 +35,22 @@ def item_barcode(item):
 
 
 def get_wavg_days_in_shelf(item, id_store=None):
+    """ for the specified item returns the total avg_days_in_shelf obtained from all its bag items """
+
     db = current.db
-    q = (db.bag_item.id_bag == db.bag.id) & (db.bag_item.id_item == item)  & (db.bag_item.wavg_days_in_shelf != None)
+
+    avg = db.bag_item.wavg_days_in_shelf.avg()
+
+    q = (db.bag_item.id_bag == db.bag.id) & (db.bag_item.id_item == item)  & (db.bag_item.wavg_days_in_shelf >= 0)
     if id_store:
         q &= db.bag.id_store == id_store
-    days = db(q).select(db.bag_item.wavg_days_in_shelf)
-    if not days:
-        return None
-    avg_days_in_shelf = 0
-    for day in days:
-        avg_days_in_shelf += day.wavg_days_in_shelf
-    days_q = len(days) if len(days) else 1
 
-    return avg_days_in_shelf / len(days)
+    avg_days_in_shelf = db(q).select(avg).first()[avg]
+
+    if avg_days_in_shelf < 0:
+        return None
+
+    return avg_days_in_shelf
 
 
 def item_url(_name, _id):

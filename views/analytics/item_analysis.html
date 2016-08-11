@@ -12,7 +12,7 @@
     <h4>{{=T('Existences')}}
       <span class="right">
         {{ if item.has_inventory: }}
-          {{ =DQ(existence, True) }}
+          {{ =DQ(existence, True, True) }}
         {{ else: }}
           {{ =T('Unlimited') }}
         {{ pass }}
@@ -21,10 +21,12 @@
 
     {{ if item.has_inventory: }}
     <h4>{{=T('Average days in shelf')}} <span class="right">
-      {{if not wavg_days_in_shelf: }}
+      {{ if avg_days_in_shelf < 0: }}
         ???
-      {{else:}}
-        {{=wavg_days_in_shelf}}
+      {{ elif avg_days_in_shelf < 1: }}
+        {{=T('Less than a day')}}
+      {{ else: }}
+        {{=avg_days_in_shelf}}
       {{pass}}
       </span>
     </h4>
