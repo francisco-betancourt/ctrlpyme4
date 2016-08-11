@@ -192,7 +192,7 @@ def pages_menu(query, page=0, ipp=10, distinct=None):
     prev_url = p_data.prev_url
     next_url = p_data.next_url
     ipp = p_data.ipp
-    rows_count = p_data.rows_count
+    rows_count = p_data.rows_count + 1
     limits = p_data.limits
 
     prev_disabled, next_disabled = '', ''

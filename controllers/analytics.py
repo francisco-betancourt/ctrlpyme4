@@ -42,7 +42,7 @@ def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
     """ Returns all income payments in the specified time interval, performed in the specified store """
     payments = db(
         (db.payment.id_sale == db.sale.id)
-        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
+        & ((db.sale.is_done == True) | (db.sale.is_deferred == True))
         & (db.sale.id_store == id_store)
         & (db.payment.created_on >= start_date)
         & (db.payment.created_on <= end_date)
@@ -262,15 +262,27 @@ def stocks_table(item):
         # the stock is from purchase
 
         if row.id_purchase:
-            return A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id))
+            return A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id), _target='_blank')
         # stock is from inventory
         elif row.id_inventory:
-            return A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id))
+            return A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id), _target='_blank')
         # stock is from credit note
         elif row.id_credit_note:
-            return A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))
+            return A(
+                T('Credit note'),
+                _href=URL(
+                    'ticket', 'show_ticket',
+                    vars=dict(id_credit_note=row.id_credit_note.id)
+                ), _target='_blank'
+            )
         elif row.id_stock_transfer:
-            return A(T('Stock transfer'), _href=URL('stock_transfer', 'ticket', args=row.id_stock_transfer.id))
+            return A(
+                T('Stock transfer'),
+                _href=URL(
+                    'stock_transfer', 'ticket',
+                    vars=dict(id_stock_transfer=ow.id_stock_transfer.id)
+                ), _target='_blank'
+            )
 
     return SUPERT(
         (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store),
@@ -319,11 +331,28 @@ def item_analysis():
     def out_custom_format(row, fields):
         link = ''
         if row.sale.id:
-            link = A('%s %s' % (T('Sale'), row.sale.consecutive), _href=URL('sale', 'ticket', args=row.sale.id))
+            link = A(
+                '%s %s' % (T('Sale'), row.sale.consecutive),
+                _href=URL(
+                    'ticket', 'show_ticket', vars=dict(id_sale=row.sale.id)
+                ),
+                _target='_blank'
+            )
         elif row.product_loss.id:
-            link = A('%s %s' % (T('Product loss'), row.product_loss.id), _href=URL('product_loss', 'get', args=row.product_loss.id))
+            link = A(
+                '%s %s' % (T('Product loss'), row.product_loss.id),
+                _href=URL('product_loss', 'get', args=row.product_loss.id),
+                _target='_blank'
+            )
         elif row.stock_transfer.id:
-            link = A('%s %s' % (T('Stock transfer'), row.stock_transfer.id), _href=URL('stock_transfer', 'ticket', args=row.stock_transfer.id))
+            link = A(
+                '%s %s' % (T('Stock transfer'), row.stock_transfer.id),
+                _href=URL(
+                    'ticket', 'show_ticket',
+                    vars=dict(id_stock_transfer=ow.stock_transfer.id)
+                ),
+                _target='_blank'
+            )
         return link
 
 
@@ -382,7 +411,7 @@ def item_analysis():
                 dict(
                     fields=[''],
                     label_as=T('Concept'),
-                    custom_format=lambda r, f : A(T('Sale') + ' %s' % r.sale.consecutive, _href=URL('sale', 'ticket', args=r.sale.id))
+                    custom_format=lambda r, f : A(T('Sale') + ' %s' % r.sale.consecutive, _href=URL('ticket', 'show_ticket', vars=dict(id_sale=r.sale.id)), _target='_blank')
                 ),
                 dict(
                     fields=['bag_item.quantity'],
@@ -411,7 +440,9 @@ def item_analysis():
             dict(
                 fields=[''],
                 label_as=T('Inventory'),
-                custom_format=lambda r, f : A(r.inventory.id, _href=URL('inventory', 'get', args=r.inventory.id))
+                custom_format=lambda r, f : A(
+                    r.inventory.id, _href=URL('inventory', 'get', args=r.inventory.id), _target='_blank'
+                )
             ),
             dict(
                 fields=['stock_item_removal.qty'],
@@ -430,7 +461,7 @@ def item_analysis():
         global_options=[]
     )
 
-    wavg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
+    avg_days_in_shelf = get_wavg_days_in_shelf(item, session.store)
 
     return locals()
 

@@ -481,7 +481,7 @@ db.define_table("bag_item",
     Field("id_bag", "reference bag", label=T('Bag')),
     Field("quantity", "decimal(16,6)", default=1, label=T('Quantity')),
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
-    Field("wavg_days_in_shelf", "integer", default=None, label=T('Average shelf life')),
+    Field("wavg_days_in_shelf", "integer", default=-1, label=T('Average shelf life')),
     # price minus discount
     Field("sale_price", "decimal(16,6)", default=None, label=T('Sale price')),
     Field("discount", "decimal(16,6)", default=0, label=T('Discount')),
@@ -533,7 +533,7 @@ db.define_table("sale",
     # true if the products in sale has been delivered and the sale has been paid
     Field("is_done", "boolean", default=False, writable=False, readable=False),
     # true if the sale has been defered for later payment
-    Field("is_defered", "boolean", default=False, writable=False, readable=False),
+    Field("is_deferred", "boolean", default=False, writable=False, readable=False),
     Field("last_log_event", label=T('Last event')),
     Field("last_log_event_date", 'datetime', label=T('Last event date')),
     auth.signature)

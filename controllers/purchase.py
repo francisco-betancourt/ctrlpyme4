@@ -482,7 +482,11 @@ def get():
 
 
     purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
-    purchase_items_table = SUPERT(db.stock_item.id_purchase == purchase.id, fields=['id_item', 'purchase_qty', 'price', 'taxes'], options_enabled=False, searchable=False)
+    purchase_items_table = SUPERT(
+        db.stock_item.id_purchase == purchase.id,
+        fields=['id_item.name', 'purchase_qty', 'price', 'taxes'],
+        options_enabled=False, searchable=False
+    )
 
     return locals()
 

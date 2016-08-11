@@ -122,7 +122,7 @@ def update_payment():
 
     # Accept updates for certain amount of time (7 minutes) when the sale has been defered, this prevents sellers to modify previous sale payments
     if (request.now - payment.created_on).seconds / 60.0 / 7.0 > 1:
-        if sale.is_defered:
+        if sale.is_deferred:
             payment.is_updatable = False
             payment.update_record()
             raise HTTP(405)
@@ -155,7 +155,7 @@ def cancel():
     sale = db.sale(request.args(0))
     valid_sale(sale)
     # cannot cancel a defered sale, without credit note and all that stuff
-    if sale.is_defered or sale.id_bag.is_paid:
+    if sale.is_deferred or sale.id_bag.is_paid:
         raise HTTP(405)
 
     # return wallet payments
@@ -216,7 +216,7 @@ def set_sale_client():
     sale = db.sale(request.args(0))
     valid_sale(sale)
     # we cannot modify defered sale or online purchased bag
-    if sale.is_defered or sale.id_bag.is_paid:
+    if sale.is_deferred or sale.id_bag.is_paid:
         raise HTTP(405)
     client = db((db.auth_user.is_client == True)
                 & (db.auth_user.registration_key == '')
@@ -324,8 +324,8 @@ def defer():
         payment.update_record()
 
     # if defered function is called on a defered sale, we skip the following steps
-    if not sale.is_defered:
-        sale.is_defered = True
+    if not sale.is_deferred:
+        sale.is_deferred = True
         create_sale_event(sale, SALE_DEFERED)
         sale.update_record()
 
@@ -455,6 +455,13 @@ def scan_for_refund():
 
 
 @auth.requires_membership('Sales returns')
+def scan_for_update():
+    """ used to update deferred sales """
+
+    return dict()
+
+
+@auth.requires_membership('Sales returns')
 def refund():
     """ Performs the logic to refund a sale
 
@@ -470,7 +477,7 @@ def refund():
         (db.sale_log.id_sale == sale.id) &
         (db.sale_log.sale_event == SALE_DELIVERED)
     ).select().first()
-    if not is_delivered and not sale.is_defered:
+    if not is_delivered and not sale.is_deferred:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
 
@@ -513,7 +520,7 @@ def refund():
                 current_data.max -= r.credit_note_item.quantity
 
     # since pure defered sales does not remove stocks, we can only refund all payments once, so we have to make sure that there are no credit notes associated with the specified sale
-    elif sale.is_defered:
+    elif sale.is_deferred:
         credit_note = db(db.credit_note.id_sale == sale.id).select().first()
         invalid = bool(credit_note)  # hack to convert to boolean
 
@@ -572,7 +579,13 @@ def refund():
 @auth.requires_membership("Sales invoices")
 def index():
     def sale_options(row):
-        return OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
+        buttons = ()
+        if row.is_deferred:
+            buttons += OPTION_BTN(
+                'edit', URL('update', args=row.id), title=T('update')
+            ),
+        buttons += OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'), OPTION_BTN('description', URL('invoice', 'create')),
+        return buttons
 
     def status_format(r, f):
         if r[f[0]]:

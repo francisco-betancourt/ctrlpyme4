@@ -203,7 +203,7 @@ def sale_ticket(id_sale):
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
     payments = db(db.payment.id_sale == sale.id).select()
-    payments_data = ticket_payments_data(payments, sale.is_defered)
+    payments_data = ticket_payments_data(payments, sale.is_deferred)
     totals = [ '%s : $ %s' % (T('subtotal'), DQ(sale.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
     totals += [ '%s : $ %s' % (T('total'), DQ(sale.total, True)) ]
@@ -274,7 +274,7 @@ def get():
 
 
 def show_ticket():
-    """ vars: [id_credit_note, id_sale, id_bag] """
+    """ vars: [id_credit_note, id_sale, id_bag, id_stock_transfer] """
 
     ticket_html = None
     if request.vars.id_credit_note:
