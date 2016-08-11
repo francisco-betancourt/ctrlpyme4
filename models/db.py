@@ -533,7 +533,7 @@ db.define_table("sale",
     # true if the products in sale has been delivered and the sale has been paid
     Field("is_done", "boolean", default=False, writable=False, readable=False),
     # true if the sale has been defered for later payment
-    Field("is_defered", "boolean", default=False, writable=False, readable=False),
+    Field("is_deferred", "boolean", default=False, writable=False, readable=False),
     Field("last_log_event", label=T('Last event')),
     Field("last_log_event_date", 'datetime', label=T('Last event date')),
     auth.signature)

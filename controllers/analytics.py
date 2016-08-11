@@ -42,7 +42,7 @@ def get_payments_in_range(start_date, end_date, id_store, id_seller=None):
     """ Returns all income payments in the specified time interval, performed in the specified store """
     payments = db(
         (db.payment.id_sale == db.sale.id)
-        & ((db.sale.is_done == True) | (db.sale.is_defered == True))
+        & ((db.sale.is_done == True) | (db.sale.is_deferred == True))
         & (db.sale.id_store == id_store)
         & (db.payment.created_on >= start_date)
         & (db.payment.created_on <= end_date)

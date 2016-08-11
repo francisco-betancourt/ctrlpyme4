@@ -19,7 +19,14 @@
 {{ user_is_employee = auth.has_membership('Employee') }}
 {{ # employess only, bag selector and add bag button }}
 {{ if user_is_employee and not bag_only_items_list: }}
-  <a href="{{=URL('sale', 'scan_order_ticket')}}" class="btn btn-default btn-block" id="scan_order_btn">{{=T('Scan order')}}</a>
+  <div class="btn-group btn-group-justified" role="group" aria-label="...">
+    <div class="btn-group" role="group">
+      <a href="{{=URL('sale', 'scan_order_ticket')}}" class="btn btn-default btn-block bag-scan-btn">{{=T('Scan order')}}</a>
+    </div>
+    <div class="btn-group" role="group">
+      <a href="{{=URL('sale', 'scan_for_update')}}" class="btn btn-default btn-block bag-scan-btn">{{=T('Scan sale')}}</a>
+    </div>
+  </div>
 
   <div class="btn-group btn-group-justified" role="group" aria-label="...">
     <div class="btn-group" role="group">

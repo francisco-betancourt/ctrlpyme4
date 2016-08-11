@@ -18,7 +18,7 @@
   <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
 
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
-  {{ if not sale.is_defered: }}
+  {{ if not sale.is_deferred: }}
     <select name="" class="form-control" id="client_selector" {{if sale.id_bag.is_paid: }} disabled {{pass}} >
       <option value=""></option>
       {{for client in clients:}}
@@ -43,7 +43,7 @@
     {{ if not sale.id_bag.is_paid: }}
     <a href="{{=URL('defer', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Defer')}}</a>
     {{pass}}
-    {{ if not sale.is_defered and not sale.id_bag.is_paid: }}
+    {{ if not sale.is_deferred and not sale.id_bag.is_paid: }}
       <a href="{{=URL('cancel', args=sale.id)}}" class="btn btn-default btn-block">{{=T('Cancel')}}</a>
     {{ pass }}
   </div>

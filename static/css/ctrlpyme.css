@@ -235,7 +235,7 @@ button.cp-fab:focus{
 }
 
 
-#scan_order_btn {
+#scan_order_btn, .bag-scan-btn {
   margin-bottom: 10px;
 }
 #current_bag>.panel-body {

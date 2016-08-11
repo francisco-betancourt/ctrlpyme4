@@ -191,7 +191,7 @@ def add_payment(sale, payment_opt):
     add_new_payment = False
 
     # allow multiple payments for the same payment option
-    if payment_opt.requires_account or common_utils.is_wallet(payment_opt) or sale.is_defered:
+    if payment_opt.requires_account or common_utils.is_wallet(payment_opt) or sale.is_deferred:
 
         add_new_payment = True
     else:
@@ -385,7 +385,7 @@ def refund(sale, now, user, return_items=[], wallet_code=None):
     subtotal = 0
     total = 0
 
-    if not sale.is_defered:
+    if not sale.is_deferred:
         for bag_item, qty in return_items_iter():
             if bag_item.id_bag != sale.id_bag.id:
                 continue
