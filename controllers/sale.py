@@ -581,7 +581,9 @@ def index():
     def sale_options(row):
         buttons = ()
         if row.is_deferred:
-            buttons += OPTION_BTN('edit', URL('update', args=row.id)),
+            buttons += OPTION_BTN(
+                'edit', URL('update', args=row.id), title=T('update')
+            ),
         buttons += OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'), OPTION_BTN('description', URL('invoice', 'create')),
         return buttons
 
