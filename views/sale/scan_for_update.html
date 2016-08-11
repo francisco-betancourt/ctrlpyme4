@@ -1,0 +1,20 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Scan deferred sale')}}</h1>
+
+<div id="sale_scanner_container"></div>
+
+{{block page_js}}
+<script>
+  function fail_callback(data, barcode) {
+    alert(data.msg);
+  }
+
+  function success_callback(data, barcode) {
+    window.location.href = "{{=URL('sale', 'update')}}/" + data.sale.id;
+  }
+
+  var scanner = BarcodeScanner('sale', $('#sale_scanner_container'));
+  scanner.setup(success_callback, fail_callback, null, "{{=URL('get', extension='json')}}/");
+</script>
+{{end}}
