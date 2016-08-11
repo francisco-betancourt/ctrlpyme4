@@ -319,11 +319,28 @@ def item_analysis():
     def out_custom_format(row, fields):
         link = ''
         if row.sale.id:
-            link = A('%s %s' % (T('Sale'), row.sale.consecutive), _href=URL('sale', 'ticket', args=row.sale.id))
+            link = A(
+                '%s %s' % (T('Sale'), row.sale.consecutive),
+                _href=URL(
+                    'ticket', 'show_ticket', vars=dict(id_sale=row.sale.id)
+                ),
+                _target='_blank'
+            )
         elif row.product_loss.id:
-            link = A('%s %s' % (T('Product loss'), row.product_loss.id), _href=URL('product_loss', 'get', args=row.product_loss.id))
+            link = A(
+                '%s %s' % (T('Product loss'), row.product_loss.id),
+                _href=URL('product_loss', 'get', args=row.product_loss.id),
+                _target='_blank'
+            )
         elif row.stock_transfer.id:
-            link = A('%s %s' % (T('Stock transfer'), row.stock_transfer.id), _href=URL('stock_transfer', 'ticket', args=row.stock_transfer.id))
+            link = A(
+                '%s %s' % (T('Stock transfer'), row.stock_transfer.id),
+                _href=URL(
+                    'ticket', 'show_ticket',
+                    vars=dict(id_stock_transfer=ow.stock_transfer.id)
+                ),
+                _target='_blank'
+            )
         return link
 
 

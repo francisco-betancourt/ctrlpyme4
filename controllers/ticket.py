@@ -274,7 +274,7 @@ def get():
 
 
 def show_ticket():
-    """ vars: [id_credit_note, id_sale, id_bag] """
+    """ vars: [id_credit_note, id_sale, id_bag, id_stock_transfer] """
 
     ticket_html = None
     if request.vars.id_credit_note:

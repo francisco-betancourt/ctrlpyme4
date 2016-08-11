@@ -29,11 +29,15 @@ from gluon.storage import Storage
 t_index = 0
 
 
-def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title=''):
+def OPTION_BTN(icon_name='', url='#', text='', _onclick='', title='',
+    _target=''
+):
     if _onclick:
         return A(ICON(icon_name), text, _onclick=_onclick, _title=title)
     else:
-        return A(ICON(icon_name), text, _href=url, _title=title)
+        return A(
+            ICON(icon_name), text, _href=url, _title=title, _target=_target
+        )
 
 
 def supert_default_options(row):

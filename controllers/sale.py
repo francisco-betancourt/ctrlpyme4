@@ -572,7 +572,7 @@ def refund():
 @auth.requires_membership("Sales invoices")
 def index():
     def sale_options(row):
-        return OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket')), OPTION_BTN('description', URL('invoice', 'create'))
+        return OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'), OPTION_BTN('description', URL('invoice', 'create'))
 
     def status_format(r, f):
         if r[f[0]]:
