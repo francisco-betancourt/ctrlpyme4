@@ -262,15 +262,27 @@ def stocks_table(item):
         # the stock is from purchase
 
         if row.id_purchase:
-            return A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id))
+            return A(T('Purchase'), _href=URL('purchase', 'get', args=row.id_purchase.id), _target='_blank')
         # stock is from inventory
         elif row.id_inventory:
-            return A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id))
+            return A(T('Inventory'), _href=URL('inventory', 'get', args=row.id_inventory.id), _target='_blank')
         # stock is from credit note
         elif row.id_credit_note:
-            return A(T('Credit note'), _href=URL('credit_note', 'get', args=row.id_credit_note.id))
+            return A(
+                T('Credit note'),
+                _href=URL(
+                    'ticket', 'show_ticket',
+                    vars=dict(id_credit_note=row.id_credit_note.id)
+                ), _target='_blank'
+            )
         elif row.id_stock_transfer:
-            return A(T('Stock transfer'), _href=URL('stock_transfer', 'ticket', args=row.id_stock_transfer.id))
+            return A(
+                T('Stock transfer'),
+                _href=URL(
+                    'stock_transfer', 'ticket',
+                    vars=dict(id_stock_transfer=ow.id_stock_transfer.id)
+                ), _target='_blank'
+            )
 
     return SUPERT(
         (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store),
@@ -399,7 +411,7 @@ def item_analysis():
                 dict(
                     fields=[''],
                     label_as=T('Concept'),
-                    custom_format=lambda r, f : A(T('Sale') + ' %s' % r.sale.consecutive, _href=URL('sale', 'ticket', args=r.sale.id))
+                    custom_format=lambda r, f : A(T('Sale') + ' %s' % r.sale.consecutive, _href=URL('ticket', 'show_ticket', vars=dict(id_sale=r.sale.id)), _target='_blank')
                 ),
                 dict(
                     fields=['bag_item.quantity'],
@@ -428,7 +440,9 @@ def item_analysis():
             dict(
                 fields=[''],
                 label_as=T('Inventory'),
-                custom_format=lambda r, f : A(r.inventory.id, _href=URL('inventory', 'get', args=r.inventory.id))
+                custom_format=lambda r, f : A(
+                    r.inventory.id, _href=URL('inventory', 'get', args=r.inventory.id), _target='_blank'
+                )
             ),
             dict(
                 fields=['stock_item_removal.qty'],
