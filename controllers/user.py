@@ -66,7 +66,7 @@ def client_profile():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def create_client():
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
@@ -86,7 +86,7 @@ def create_client():
     return dict(form=form)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def create():
     """ Create employee """
 
@@ -107,7 +107,7 @@ def get():
     pass
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def rand_employee_password():
     """ sets a random password for the specified user (only employees)
         args [employee_id]
@@ -128,7 +128,7 @@ def rand_employee_password():
         redirect(URL('user', 'get_employee', args=employee.id))
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def get_employee():
     """
         args: [id_user]
@@ -144,7 +144,7 @@ def get_employee():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def remove_employee_membership():
     """
         args: [id_user, group_name]
@@ -163,7 +163,7 @@ def remove_employee_membership():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def add_employee_membership():
     """
         args: [id_user, group_name]
@@ -180,7 +180,7 @@ def add_employee_membership():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def set_access_card():
     user = db.auth_user(request.args(0))
     if not user:
@@ -215,16 +215,18 @@ def set_access_card():
     return dict()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def update():
     return common_update('auth_user', request.args)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def delete():
     user = db.auth_user(request.args(0))
     if not user:
         raise HTTP(404)
+    if user.id == auth.user.id:
+        raise HTTP(405)
 
     user.is_active = False
     user.registration_key = 'blocked'
@@ -233,7 +235,7 @@ def delete():
     redirection()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def undelete():
     user = db.auth_user(request.args(0))
     if not user:
@@ -246,7 +248,7 @@ def undelete():
     redirection()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def ban():
     user = db.auth_user(request.args(0))
     if not user:
@@ -262,7 +264,7 @@ def ban():
     # redirection()
 
 
-@auth.requires(auth.has_membership('Admin'))
+@auth.requires(auth.has_membership('Admin config'))
 def clients():
     """ List of clients """
 
@@ -286,7 +288,7 @@ def clients():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def index():
     """ List of employees """
 
