@@ -250,7 +250,7 @@ def create():
     """
 
     try:
-        id_bag = bag_utils.new(session.store)
+        id_bag = bag_utils.new(session.store, request.now, auth.user)
         session.current_bag = id_bag
         bag = db.bag(id_bag)
 
