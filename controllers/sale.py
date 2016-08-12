@@ -580,7 +580,7 @@ def refund():
 def index():
     def sale_options(row):
         buttons = ()
-        if row.is_deferred:
+        if row.is_deferred or not row.last_log_event:
             buttons += OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),

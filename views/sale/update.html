@@ -52,7 +52,7 @@
 
 <h1>{{=T('Review')}}</h1>
 {{ for bag_item in bag_items: }}
-  <p> {{ =DQ(bag_item.quantity, True, True) }} x {{ =bag_item.id_item.name }} </p>
+  <p> {{ =DQ(bag_item.quantity, True, True) }} x <a href="{{=URL('item', 'get_item', args=bag_item.id_item.id)}}" target='_blank'>{{ =bag_item.id_item.name }}</a> </p>
 {{ pass }}
 
 
