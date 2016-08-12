@@ -575,7 +575,10 @@ def browse():
 
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(limitby=limits)
+    items = db(query).select(
+        limitby=limits,
+        orderby=~db.item.name.contains(term)
+    )
 
     selected_categories = [category.id] if category else []
     categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))
