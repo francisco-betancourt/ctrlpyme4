@@ -512,7 +512,7 @@ def search_item_query(str_term, category):
 
     term = str_term.split(' ')
 
-    query = (db.item.name.contains(term))
+    query = (db.item.name.contains(term, all=True))
     query |= db.item.sku.like(term[0] + '%')
     query |= db.item.ean.like(term[0] + '%')
     query |= db.item.upc.like(term[0] + '%')
