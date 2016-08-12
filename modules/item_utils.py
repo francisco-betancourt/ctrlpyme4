@@ -395,13 +395,14 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
         stock_qty.update_record()
     else:
         target_data = {target_field: target_id}
-        db.stock_item.insert(id_item=item.id,
-                             purchase_qty=returned_qty,
-                             price=avg_buy_price,
-                             stock_qty=returned_qty,
-                             id_store=session.store,
-                             taxes=0, **target_data
-                             )
+        db.stock_item.insert(
+            id_item=item.id,
+            purchase_qty=returned_qty,
+            price=avg_buy_price,
+            stock_qty=returned_qty,
+            id_store=session.store,
+            taxes=0, **target_data
+        )
 
 
 def reintegrate_bag_item(bag_item, quantity):
