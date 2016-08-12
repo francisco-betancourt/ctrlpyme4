@@ -388,7 +388,7 @@ button.cp-fab:focus{
   border-radius: 25px;
   display: flex;
   align-items: flex-end;
-  margin-right: 8px;
+  margin-right: 16px;
 }
 .highlight>.data {
   background-color: rgba(0,0,0,.5);

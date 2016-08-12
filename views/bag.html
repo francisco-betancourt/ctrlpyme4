@@ -232,11 +232,50 @@
         var item = $('#bag_items_list').find('#bag_item_' + bag_item.id)[0];
         if (item) $(item).find('.item_qty').val(bag_item.quantity);
         else {
-          $('#bag_items_list').prepend(clone_proto_item(bag_item, bag_item.barcode));
+          $('#bag_items_list').prepend(
+            clone_proto_item(bag_item, bag_item.barcode)
+          );
         }
         set_bag_data(res);
         info_card("{{=T('Added item to bag')}}");
         show_container('bag_container');
+      }
+
+
+      function lock_bag() {
+        $('#current_bag input').each(function (index) {
+          this.setAttribute('disabled', 'disabled');
+        });
+        $('#current_bag .close').each(function (index) {
+          $(this).hide();
+        });
+      }
+      M.lock_bag = lock_bag;
+
+
+      function unlock_bag() {
+        $('#current_bag input').each(function (index) {
+          this.removeAttribute('disabled');
+        });
+        $('#current_bag .close').each(function (index) {
+          $(this).show();
+        });
+      }
+      M.unlock_bag = unlock_bag;
+
+
+      function hard_lock_bag() {
+        lock_bag();
+        $('#bag_buttons .btn').each(function (index) {
+          this.setAttribute('disabled', 'disabled');
+        });
+      }
+
+      function hard_unlock_bag() {
+        unlock_bag();
+        $('#bag_buttons .btn').each(function (index) {
+          this.removeAttribute('disabled');
+        });
       }
 
 
@@ -317,13 +356,27 @@
           })
         })
 
-        new_item.find('.item_qty').change(function (event) {
+        var qty_input = new_item.find('.item_qty');
+        qty_input.data('old_value', qty_input.val());
+
+        qty_input.bind(
+          'change propertychange paste click mouseleave', function (event)
+        {
+
+          var old_qty = qty_input.data('old_value');
+          if (old_qty == $(this).val()) return;
+
+          $(this).data('old_value', $(this).val());
+
+          hard_lock_bag();
+
           $.ajax({
             url: "{{=URL('bag', 'modify_bag_item', extension='json')}}/" + data.id + '?quantity=' + $(this).val()
           })
           .done(function (data) {
             new_item.find('.item_qty').val(data.bag_item.quantity);
-            set_bag_data(data)
+            set_bag_data(data);
+            hard_unlock_bag();
           })
         });
 
@@ -344,28 +397,6 @@
         })
       }
       M.add_bag_item = add_bag_item;
-
-
-      function lock_bag() {
-        $('#current_bag input').each(function (index) {
-          this.setAttribute('disabled', 'disabled');
-        });
-        $('#current_bag .close').each(function (index) {
-          $(this).hide();
-        });
-      }
-      M.lock_bag = lock_bag;
-
-
-      function unlock_bag() {
-        $('#current_bag input').each(function (index) {
-          this.removeAttribute('disabled');
-        });
-        $('#current_bag .close').each(function (index) {
-          $(this).show();
-        });
-      }
-      M.unlock_bag = unlock_bag;
 
 
 
@@ -435,17 +466,17 @@
             url: "{{=URL('bag', 'create', extension='json')}}"
           })
           .done(function (data) {
-            load_bag(data.bag);
+            load_bag(data.bag.id);
 
             // add the new bag to the active bags list
             var bag_selector = document.createElement('a');
-            bag_selector.id = 'bag_selector_' + data.bag;
-            bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
+            bag_selector.id = 'bag_selector_' + data.bag.id;
+            bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag.id;
             bag_selector.href = '#';
             bag_selector.className = 'list-group-item';
             $('#active_bags').append(bag_selector);
-            $('#bag_selector_' + data.bag).click(function(event) {
-              load_bag(data.bag);
+            $('#bag_selector_' + data.bag.id).click(function(event) {
+              load_bag(data.bag.id);
             });
           })
         }
@@ -492,23 +523,7 @@
     });
 
     $('#add_bag_btn').on('click', function(event) {
-      $.ajax({
-        url: "{{=URL('bag', 'create', extension='json')}}"
-      })
-      .done(function (data) {
-        BAG.load_bag(data.bag);
-
-        // add the new bag to the active bags list
-        var bag_selector = document.createElement('a');
-        bag_selector.id = 'bag_selector_' + data.bag;
-        bag_selector.innerHTML = '{{=T("Bag")}} ' + data.bag;
-        bag_selector.href = '#';
-        bag_selector.className = 'list-group-item';
-        $('#active_bags').append(bag_selector);
-        $('#bag_selector_' + data.bag).click(function(event) {
-          BAG.load_bag(data.bag);
-        });
-      })
+      BAG.add_bag();
     });
 
 
