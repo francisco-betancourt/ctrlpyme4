@@ -136,6 +136,8 @@ def get_employee():
     employee = db.auth_user(request.args(0))
     if not employee:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     stores = db(db.store.is_active == True).select()
 
@@ -155,6 +157,8 @@ def remove_employee_membership():
 
     if not employee or not group:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     db((db.auth_membership.group_id == group.id)
      & (db.auth_membership.user_id == employee.id)
@@ -174,6 +178,8 @@ def add_employee_membership():
 
     if not employee or not group:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     db.auth_membership.insert(user_id=employee.id, group_id=group.id)
 
@@ -187,6 +193,8 @@ def set_access_card():
         raise HTTP(404)
     if not auth.has_membership(None, user.id, 'Employee'):
         raise HTTP(401)
+    if user.id == auth.user.id:
+        redirect(URL('default', 'index'))
     card_index = int(request.args(1))
 
     try:
@@ -310,7 +318,7 @@ def index():
         return options
 
     employee_group = db(db.auth_group.role == 'Employee').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id)
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
     data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
