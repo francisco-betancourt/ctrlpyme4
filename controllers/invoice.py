@@ -32,10 +32,15 @@ def items_consolidate(items):
             consolidated[(id_item,sale_price)]=[item]
     return consolidated
 
+
 @auth.requires_membership('Sales invoices')
 def create():
     """vars: [ sales ]"""
-    sales_ids=map(int,request.vars.sales.split(','))
+
+    if not requests.vars.sales:
+        raise HTTP(404)
+
+    sales_ids = map(int, request.vars.sales.split(','))
     if not sales_ids:
         raise HTTP(404)
     items=db((db.sale.id.belongs(sales_ids))&
@@ -43,5 +48,3 @@ def create():
     #Check if products are the same and have same price
     items_con=items_consolidate(items)
     return dict(items=items,items_con=items_con)
-    
-    
