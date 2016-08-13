@@ -2,6 +2,8 @@
 {{include_bag = False}}
 {{extend 'layout.html'}}
 
+{{import item_utils}}
+
 {{block left_sidebar}}
   <h1>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></h1>
 
@@ -52,7 +54,11 @@
 
 <h1>{{=T('Review')}}</h1>
 {{ for bag_item in bag_items: }}
-  <p> {{ =DQ(bag_item.quantity, True, True) }} x <a href="{{=URL('item', 'get_item', args=bag_item.id_item.id)}}" target='_blank'>{{ =bag_item.id_item.name }}</a> </p>
+  <p>
+    {{ =DQ(bag_item.quantity, True, True) }} x <a href="{{=URL('item', 'get_item', args=bag_item.id_item.id)}}" target='_blank'>
+      {{=item_utils.composed_name(bag_item.id_item)}}
+    </a>
+  </p>
 {{ pass }}
 
 
