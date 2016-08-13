@@ -24,6 +24,7 @@ precheck()
 import json
 from uuid import uuid4
 from datetime import date, timedelta
+import item_utils
 from item_utils import item_discounts, apply_discount, item_stock_qty, remove_stocks, undo_stock_removal, reintegrate_stock
 from constants import *
 
