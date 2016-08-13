@@ -493,7 +493,13 @@ db.define_table("bag_item",
     Field("product_name", "string", default=None, label=T('Product name')),
     Field("sale_code", "string", default=None, label=T('Sale code')),
     Field("serial_number", "string", default=None, label=T('Serial number')),
-    auth.signature)
+
+    # used by bag items that are services (does not have inventory to specify who performed the service)
+    Field("performed_by", "reference auth_user", default=None,
+        label=T('Performed by')
+    ),
+    auth.signature
+)
 
 
 db.define_table(

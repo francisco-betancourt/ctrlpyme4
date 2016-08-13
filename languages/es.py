@@ -721,6 +721,7 @@
 'Payments with credit days are only available for registered clients.': 'Pagos con días de crédito están solo disponibles para clientes registrados',
 'Peeking at file': 'Visualizando archivo',
 'Percentage': 'Porcentaje',
+'Performed by': 'Realizado por',
 'Phone': 'Teléfono',
 'Phone number': 'Número de teléfono',
 'Physical': 'Físico',

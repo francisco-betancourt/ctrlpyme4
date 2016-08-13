@@ -29,6 +29,30 @@ from item_utils import item_stock_qty, discount_data, remove_stocks
 allow_out_of_stock = True
 
 
+@auth.requires_membership( 'Sales bags' )
+def set_bag_service_performer():
+    """
+        modifies the bag_service performer.
+        args: [ bag_item (service), id_user ]
+
+    """
+
+    bag_item = db.bag_item(request.args(0))
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
+    if not bag_item or bag_item.id_item.has_inventory:
+        raise HTTP(404)
+
+    user = db.auth_user(request.args(1))
+    if not user or user.is_client or user.registration_key != '':
+        raise HTTP(404)
+
+    bag_item.performed_by = user.id
+    bag_item.update_record()
+
+    return dict()
+
+
+
 @auth.requires(auth.has_membership('Sales bags')
             or auth.has_membership('Clients')
             )
