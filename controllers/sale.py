@@ -162,9 +162,12 @@ def cancel():
     wallet_opt = get_wallet_payment_opt()
     payments = db((db.payment.id_payment_opt == wallet_opt.id) & (db.payment.id_sale == sale.id)).select()
     for payment in payments:
-        wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-        wallet.balance += payment.amount
-        wallet.update_record()
+        wallet = db(
+            db.wallet.wallet_code == payment.wallet_code
+        ).select().first()
+        if wallet:
+            wallet.balance += payment.amount
+            wallet.update_record()
 
     # delete the bag and all its bag items
     db(db.bag_item.id_bag == sale.id_bag.id).delete()
