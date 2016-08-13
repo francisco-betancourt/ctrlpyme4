@@ -317,11 +317,19 @@ def index():
             )
         return options
 
-    employee_group = db(db.auth_group.role == 'Employee').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
+    query = (db.auth_membership.user_id == db.auth_user.id) & \
+            (db.auth_membership.user_id == db.auth_group.id) & \
+            (db.auth_group.role == 'Employee') & \
+            (db.auth_membership.user_id != auth.user.id)
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
-    data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
+
+    data = SUPERT(
+        query,
+        [db.auth_user.ALL],
+        select_args=dict(distinct=db.auth_user.id),
+        fields=[ 'first_name', 'last_name', 'email' ],
+        options_func=employee_options)
     return locals()
 
 
