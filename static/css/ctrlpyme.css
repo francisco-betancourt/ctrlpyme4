@@ -638,3 +638,8 @@ body {
 .cp-checkbox {
   display: none;
 }
+
+
+.employee-selector {
+  margin-top: 8px;
+}

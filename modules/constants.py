@@ -75,6 +75,11 @@ def get_workflows():
     return [
         Workflow([
             AccessCard({
+                'name': T('Services'),
+                'description': T('Employees that only performs services'),
+                'groups': []
+            }),
+            AccessCard({
                 'name': T('Seller'),
                 'description': T('Employees with this card can create and delete and sell bags (checkout and deliver items), modify basic items information like its name, categories and pictures, return items'),
                 'groups': ['Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sale orders']
@@ -83,6 +88,12 @@ def get_workflows():
                 'name': T('Manager'),
                 'description': T('Manager employees can create inventories, make purchases, change item prices, sell items at diferent prices, create invoices, make cash outs and view analytic data'),
                 'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss', 'Safe config'
+                ]
+            }),
+            AccessCard({
+                'name': T('Manager+'),
+                'description': T('Manager+ employees have all the manager rights plus the ability to perform most of the admin actions'),
+                'groups': ['Manager', 'Inventories', 'Purchases', 'Items management', 'Items prices', 'Items info', 'Sales bags', 'Sales checkout', 'Sales invoices', 'Sales delivery', 'Sales returns', 'Sales invoices', 'VIP seller', 'Analytics', 'Sale orders', 'Stock transfers', 'Offers', 'Accounts payable', 'Accounts receivable', 'Highlights', 'Cash out', 'Product loss', 'Safe config', 'Config', 'Admin config'
                 ]
             })
         ], {}),

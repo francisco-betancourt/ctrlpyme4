@@ -120,17 +120,42 @@
     <p><span class="item_price base_price"></span></p>
     {{ # multiprice only available for employees }}
     {{ if user_is_employee: }}
-      <p> <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
+      <p>
+        <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
           <a type="button" class="btn btn-default item_price"></a>
           <a type="button" class="btn btn-default price2"></a>
           <a type="button" class="btn btn-default price3"></a>
-        </div> </p>
+        </div>
+      </p>
     {{ pass }}
     <div class="input-group">
       <div class="input-group-addon">{{=T('Quantity')}}</div>
       <input type="number" class="form-control item_qty">
       <div class="input-group-addon munit"></div>
     </div>
+
+    {{ users = db(
+         (db.auth_user.is_client == False) &
+         (db.auth_user.registration_key == '')
+       ).select()
+    }}
+    {{ if users: }}
+      <div class="employee-selector input-group">
+        <div class="input-group-addon">{{=T('Performed by')}}</div>
+        <select name="performed_by" class="performed_by form-control">
+
+          <option value=""> </option>
+          {{ for user in users: }}
+
+            <option value="{{=user.id}}">
+              {{=user.first_name}}
+              {{=user.last_name}}
+            </option>
+          {{ pass }}
+
+        </select>
+      </div>
+    {{ pass }}
   </div>
 </div>
 
@@ -345,6 +370,29 @@
 
         new_item.find('.item_qty').val(data.quantity);
         new_item.find('.munit').text(data.measure_unit);
+
+        var el_emp_selector = new_item.find('.employee-selector');
+        if (data.has_inventory) {
+          
+          el_emp_selector.remove();
+        } else {
+
+          if (data.performed_by) {
+            el_emp_selector.find(
+              'option[value='+data.performed_by+']'
+            ).attr('selected', 'selected');
+          }
+
+          el_emp_selector.change(function (event) {
+            $.ajax({
+              url: "{{=URL('bag', 'set_bag_service_performer', extension='json')}}/" + data.id + '/' + event.target.value
+            })
+            .done(function(res) {
+              info_card("{{=T('Saved')}}", null, 'success');
+            })
+          });
+
+        }
 
         new_item.find('.close').click(function(event) {
           $.ajax({

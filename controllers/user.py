@@ -66,7 +66,7 @@ def client_profile():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def create_client():
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
@@ -86,7 +86,7 @@ def create_client():
     return dict(form=form)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def create():
     """ Create employee """
 
@@ -107,7 +107,7 @@ def get():
     pass
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def rand_employee_password():
     """ sets a random password for the specified user (only employees)
         args [employee_id]
@@ -128,7 +128,7 @@ def rand_employee_password():
         redirect(URL('user', 'get_employee', args=employee.id))
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def get_employee():
     """
         args: [id_user]
@@ -136,6 +136,8 @@ def get_employee():
     employee = db.auth_user(request.args(0))
     if not employee:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     stores = db(db.store.is_active == True).select()
 
@@ -144,7 +146,7 @@ def get_employee():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def remove_employee_membership():
     """
         args: [id_user, group_name]
@@ -155,6 +157,8 @@ def remove_employee_membership():
 
     if not employee or not group:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     db((db.auth_membership.group_id == group.id)
      & (db.auth_membership.user_id == employee.id)
@@ -163,7 +167,7 @@ def remove_employee_membership():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def add_employee_membership():
     """
         args: [id_user, group_name]
@@ -174,19 +178,23 @@ def add_employee_membership():
 
     if not employee or not group:
         raise HTTP(404)
+    if employee.id == auth.user.id:
+        redirect(URL('default', 'index'))
 
     db.auth_membership.insert(user_id=employee.id, group_id=group.id)
 
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def set_access_card():
     user = db.auth_user(request.args(0))
     if not user:
         raise HTTP(404)
     if not auth.has_membership(None, user.id, 'Employee'):
         raise HTTP(401)
+    if user.id == auth.user.id:
+        redirect(URL('default', 'index'))
     card_index = int(request.args(1))
 
     try:
@@ -215,16 +223,18 @@ def set_access_card():
     return dict()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def update():
     return common_update('auth_user', request.args)
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def delete():
     user = db.auth_user(request.args(0))
     if not user:
         raise HTTP(404)
+    if user.id == auth.user.id:
+        raise HTTP(405)
 
     user.is_active = False
     user.registration_key = 'blocked'
@@ -233,7 +243,7 @@ def delete():
     redirection()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def undelete():
     user = db.auth_user(request.args(0))
     if not user:
@@ -246,7 +256,7 @@ def undelete():
     redirection()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def ban():
     user = db.auth_user(request.args(0))
     if not user:
@@ -262,7 +272,7 @@ def ban():
     # redirection()
 
 
-@auth.requires(auth.has_membership('Admin'))
+@auth.requires(auth.has_membership('Admin config'))
 def clients():
     """ List of clients """
 
@@ -286,7 +296,7 @@ def clients():
     return locals()
 
 
-@auth.requires_membership('Admin')
+@auth.requires_membership('Admin config')
 def index():
     """ List of employees """
 
@@ -308,7 +318,7 @@ def index():
         return options
 
     employee_group = db(db.auth_group.role == 'Employee').select().first()
-    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id)
+    query = (db.auth_membership.user_id == db.auth_user.id) & (db.auth_membership.group_id == employee_group.id) & (db.auth_membership.user_id != auth.user.id)
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
     data = SUPERT(query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=employee_options)
