@@ -20,6 +20,7 @@
 
 
 from bag_utils import get_valid_bag, check_bag_owner
+import item_utils
 
 
 def ticket_store_data(store):
@@ -57,6 +58,7 @@ def ticket_item_list(items, concept=''):
     if concept:
         items_list.append(TR(
             TD('--', _class="qty"), TD(concept, _class="name"),
+            TD('--'),
             TD('$ --', _class="price"),
             _class="item"
         ))
@@ -73,6 +75,7 @@ def ticket_item_list(items, concept=''):
                 continue
             item_name = bag_item.product_name
             item_price = bag_item.sale_price
+            item_barcode = item_utils.item_barcode(bag_item.id_item)
             # get item taxes
             try:
                 if bag_item.item_taxes:
@@ -93,6 +96,7 @@ def ticket_item_list(items, concept=''):
 
             items_list.append(TR(
                 TD(item_quantity, _class="qty"),
+                TD(item_barcode, _class="bc"),
                 TD(item_name, _class="name"),
                 TD('$ %s' % item_price, _class="price"),
                 _class="item"
@@ -101,6 +105,7 @@ def ticket_item_list(items, concept=''):
     items_list = TABLE(
         THEAD(TR(
             TH(T('QTY'), _class="qty"),
+            TH(T('COD'), _class="qty"),
             TH(T('CONCEPT'), _class="name"),
             TH(T('PRICE'), _class="price"),
             _class="item"
