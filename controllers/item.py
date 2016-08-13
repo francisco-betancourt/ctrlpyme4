@@ -551,9 +551,11 @@ def browse():
     title = T('Items')
 
     query = (db.item.is_active == True)
+    orderby = db.item.created_on
 
     if term:
         query = search_item_query(term, category)
+        orderby = ~db.item.name.contains(term)
 
     if category:
         query &= db.item.categories.contains(category.id)
@@ -577,7 +579,7 @@ def browse():
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(
         limitby=limits,
-        orderby=~db.item.name.contains(term)
+        orderby=orderby
     )
 
     selected_categories = [category.id] if category else []
