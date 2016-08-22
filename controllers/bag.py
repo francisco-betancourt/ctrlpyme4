@@ -144,6 +144,10 @@ def delete_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
+
+    if not bag_item:
+        raise HTTP(404)
+
     bag_utils.is_modifiable_bag(bag_item.id_bag)
     db(db.bag_item.id == request.args(0)).delete()
     bag_data = bag_utils.refresh_bag_data(bag_item.id_bag.id)
