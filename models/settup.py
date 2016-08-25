@@ -15,3 +15,17 @@ enable_navbar = True
 enable_supert = True
 enable_calendar = True
 enable_css_ticket = True
+enable_item_cards = True
+
+item_options = []
+if auth.has_membership('Employee'):
+    if (auth.has_membership('Items info') or
+        auth.has_membership('Items management') or
+        auth.has_membership('Items prices')
+    ):
+        item_options.append(( T('Update'), URL('item', 'update') ))
+        item_options.append(( T('Print labels'), URL('item', 'labels') ))
+        item_options.append(( T('Add images'), URL('item_image', 'create') ))
+
+    if auth.has_membership('Analytics'):
+        item_options.append((T('Analysis'), URL('analytics', 'item_analysis')))

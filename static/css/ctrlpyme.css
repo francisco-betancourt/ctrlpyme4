@@ -548,7 +548,7 @@ body {
   border-radius: 4px;
   overflow: auto;
   background-color: white;
-  min-height: 400px;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
 }
 .card>.left-content {
   flex: 1;
@@ -568,13 +568,33 @@ body {
 }
 
 .card.vertical>.right-content {
-  flex: initial;;
+  flex: initial;
 }
 .rounded-card {
   border-radius: 25px;
   display: flex;
   background-color: white;
 }
+
+
+@keyframes appear {
+  0% {
+    transform: scale(.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.appear {
+  animation: appear .2s ease-in-out;
+}
+.invisible {
+  opacity: 0 !important;
+}
+
 
 
 #current_stock_item .header .barcode {

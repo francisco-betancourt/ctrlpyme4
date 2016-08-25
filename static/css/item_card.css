@@ -9,6 +9,10 @@
   margin-top: 20px;
   margin-bottom: 40px;
 }
+.items-container>* {
+  margin-bottom: 8px;
+  margin-right: 8px;
+}
 .items-container.no-wrap {
   flex-wrap: nowrap;
   overflow-x: scroll;
@@ -113,10 +117,119 @@
 }
 
 
+
+
+
+
+
+.card .card-content {
+  width: 100%;
+  padding: 24px 16px 24px 16px;
+  flex-grow: 1;
+}
+.card .card-image {
+  height: 240px;
+  max-height: 240px;
+  min-height: 240px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.card .card-options {
+  border-top: 1px solid rgba(0,0,0,.07);
+  padding: 12px 16px 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.card .subtitle {
+  padding-top: 0px;
+  color: #888888;
+  margin: 0px;
+}
+
+.card .subtitle {
+  margin-bottom: 16px;
+}
+.cp-item-card {
+  max-width: 240px;
+  min-width: 240px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  flex-direction: column;
+}
+.cp-item-card-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-item-card-title>h3 {
+  margin: 0px;
+  overflow: hidden;
+  word-wrap: break-word;
+  padding-right: 16px;
+}
+
+.cp-item-card .card-options {
+  justify-content: space-between;
+  flex-direction: row-reverse
+}
+
+.cp-item-card .availability {
+  font-weight: bold;
+}
+
+.cp-item-card .price-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-item-card .price-data>* {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.cp-item-card .price-data .price-container {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+.cp-item-card .price-data .price-container h4 {
+  margin: 0px;
+}
+.cp-item-card .price-data .price-container .old-price,
+.cp-item-card .price-data .price-container .discount {
+  display: none
+}
+
+.cp-item-card .item-options .dropdown-menu {
+  left: auto;
+  right: 0px;
+}
+
+.cp-item-card .options-dropdown, .cp-item-card .add-to-bag {
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
 @media(max-width: 700px) {
   .items-container {
-    flex-flow: column;
-    overflow-x: auto;
+    /*flex-flow: column;
+    overflow-x: auto;*/
   }
   .item-card {
     flex: auto;
@@ -151,17 +264,81 @@
       margin-right: 0px;
     }
   }
-}
 
-@media(max-width: 500px) {
-  .item-card .item-available {
-    width: 14px;
-    height: 14px;
-    border-radius: 100%;
-    overflow: hidden;
-    color: transparent;
-    margin: 0px;
-    margin-top: 8px;
-    margin-right: 8px;
+
+  /*.card .card-body {
+    flex-grow: 1;
   }
+  .card .card-image {
+    width: 117px;
+    max-width: 117px;
+    min-width: 117px;
+    height: 208px;
+    max-height: 208px;
+    min-height: 208px;
+  }
+  .card .card-options {
+    border-top: 1px solid rgba(0,0,0,.07);
+    padding: 12px 16px 12px 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  .card .subtitle {
+    padding-top: 0px;
+    color: #888888;
+    margin: 0px;
+  }
+  .card .subtitle {
+    margin-bottom: 16px;
+  }
+  .card .card-content {
+    width: 100%;
+    padding: 16px;
+    flex-grow: 1;
+  }
+  .card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cp-item-card {
+    max-height: 208px;
+    width: 100%;
+    max-width: inherit;
+    flex-direction: row;
+  }
+  .cp-item-card-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cp-item-card-title>h3 {
+    margin: 0px;
+    overflow: hidden;
+    word-wrap: break-word;
+    padding-right: 16px;
+  }
+
+  .cp-item-card .availability {
+    font-weight: bold;
+  }
+  .cp-item-card .old-price-container, .cp-item-card .discount-container {
+    display: none;
+  }
+  .cp-item-card .price-data .price-container {
+    display: flex;
+  }
+  .cp-item-card .price-data .price-container .old-price,
+  .cp-item-card .price-data .price-container .discount {
+    display: block;
+    margin-right: 16px;
+  }
+  .cp-item-card .dropup .dropdown-menu {
+    top: inherit;
+    bottom: auto;
+  }*/
+
 }

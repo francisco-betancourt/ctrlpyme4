@@ -19,8 +19,10 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 import json
+from datetime import date
 from gluon.storage import Storage
 from item_utils  import *
+import item_utils
 
 
 def categories_tree_html(categories, item=None):
@@ -658,3 +660,47 @@ def labels():
         return dict(items=items, layout=layout)
 
     redirect(URL('default', 'index'))
+
+
+def get_item_card_data():
+    """ Returns information for an item card """
+
+    item = db.item(request.args(0))
+    if not item:
+        raise HTTP(404)
+
+    item_utils.data_for_card(item)
+
+    return json.dumps(item)
+
+
+def get_popular_items():
+    """ Returns a list of popular items """
+
+    # best sellers this month
+    start_date = date(request.now.year, request.now.month, 1)
+    end_date = date(request.now.year, request.now.month + 1, 1)
+
+    values = db(
+          (db.bag_item.id_item == db.item.id)
+        & (db.bag_item.created_on >= start_date)
+        & (db.bag_item.created_on <= end_date)
+    ).iterselect(
+        db.item.ALL, db.bag_item.quantity.sum(),
+        groupby=db.item.id, limitby=(0, 10),
+        orderby=~db.bag_item.quantity.sum()
+    )
+    popular_items = [item_utils.data_for_card(v.item) for v in values]
+    random.shuffle(popular_items)
+
+    return dict(items=popular_items)
+
+
+def get_new_items():
+    new_items = db(
+        db.item.is_active == True
+    ).iterselect(orderby=~db.item.created_on, limitby=(0, 10))
+
+    new_items = [item_utils.data_for_card(v) for v in new_items]
+
+    return dict(items=new_items)

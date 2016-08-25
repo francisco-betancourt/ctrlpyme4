@@ -552,17 +552,92 @@ def search_item_query(str_term, category):
     return query
 
 
-def composed_name(item):
-    """ Returns the item name with some extra data, like its traits or short description if any """
+def composed_name_data(item):
+    """ Returns extra data that can be added to the item name """
 
-    c_name = item.name
+    c_name = ""
 
     if item.traits:
         for trait in item.traits:
             c_name += ' ' + trait.trait_option
     elif item.description:
-        c_name += ' - ' + item.description[:10]
+        c_name += item.description[:10]
         if len(item.description) > 10:
             c_name += '...'
 
     return c_name
+
+
+def composed_name(item):
+    """ Returns the item name with some extra data, like its traits or short description if any """
+
+    return item.name + composed_name_data(item)
+
+
+def data_for_card(item):
+    """ Returns item information to fill a card """
+
+    session = current.session
+    T = current.T
+    db = current.db
+    auth = current.auth
+
+
+    if not item:
+        return None
+
+    available = "Not available"
+    stock_qty = item_stock_qty(item, session.store)
+    if stock_qty > 0:
+        available = "Available"
+    item.availability = Storage( available=stock_qty > 0, text=str(T(available)) )
+
+    image = db(
+        (db.item_image.id_item == db.item.id)
+      & (db.item.id == item.id)
+      & (db.item.is_active == True)
+    ).select(db.item_image.sm).first()
+    item.image_path = URL('static', 'uploads/' + image.sm) if image else URL('static', 'images/no_image.svg')
+
+
+    item_price = (item.base_price or 0) + item_taxes(item, item.base_price)
+    fix_item_price(item, item.base_price)
+    item.price = item.discounted_price
+
+    item.barcode = None
+
+    # extra options for employees
+    item.options = []
+    if auth.has_membership('Employee'):
+        item.barcode = item_barcode(item)
+
+        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+            item.options.append((
+                T('Update'), URL('item', 'update', args=item.id)
+            ))
+            item.options.append((
+                T('Print labels'), URL('item', 'labels', args=item.id)
+            ))
+            item.options.append((
+                T('Add images'), URL('item_image', 'create', args=item.id)
+            ))
+        if auth.has_membership('Analytics'):
+            item.options.append((
+                T('Analysis'), URL('analytics', 'item_analysis', args=item.id)
+            ))
+
+    item = Storage(
+        id=item.id,
+        name=item.name,
+        name_extra=composed_name_data(item),
+        availability=item.availability,
+        image_path=item.image_path,
+        brand=Storage(
+            id=item.id_brand.id,
+            name=item.id_brand.name
+        ),
+        base_price=float(item.base_price),
+        discount=float(item.discount_percentage),
+        price=float(item.price)
+    )
+    return item

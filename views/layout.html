@@ -105,6 +105,10 @@
   <body>
     <!--[if lt IE 8]><p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p><![endif]-->
 
+
+    <!--templates-->
+    {{include "components/item_card.html"}}
+
     <!-- Info card -->
     {{if response.flash and not session.info:}}
       {{session.info = {'text': response.flash} }}
@@ -280,6 +284,9 @@
       {{ pass }}
       {{ if enable_navbar: }}
         {{ include '../static/js/navbar.js'}}
+      {{ pass }}
+      {{ if enable_item_cards: }}
+        {{ include '../static/js/item_card.js'}}
       {{ pass }}
     </script>
 
