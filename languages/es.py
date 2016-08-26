@@ -351,6 +351,7 @@
 'Ends on': 'Termina en',
 'enter a number between %(min)g and %(max)g': 'introduzca un número entre %(min)g y %(max)g',
 'Enter a number between %(min)g and %(max)g': 'Enter a number between %(min)g and %(max)g',
+'Enter a valid email address': 'Enter a valid email address',
 'enter a value': 'introduzca un valor',
 'Enter an integer between %(min)g and %(max)g': 'Enter an integer between %(min)g and %(max)g',
 'enter an integer between %(min)g and %(max)g': 'introduzca un entero entre %(min)g y %(max)g',

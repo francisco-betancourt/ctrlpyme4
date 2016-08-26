@@ -226,7 +226,7 @@ db.define_table("store",
     )
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', address_format)
 db.store.name.requires = not_empty_requires
-db.store.email.requires = IS_EMAIL()
+db.store.email.requires = IS_EMPTY_OR(IS_EMAIL())
 
 
 highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))

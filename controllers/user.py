@@ -319,10 +319,12 @@ def index():
             )
         return options
 
-    query = (db.auth_membership.user_id == db.auth_user.id) & \
-            (db.auth_membership.user_id == db.auth_group.id) & \
-            (db.auth_group.role == 'Employee') & \
-            (db.auth_membership.user_id != auth.user.id)
+    query = (
+        (db.auth_membership.user_id == db.auth_user.id) &
+        (db.auth_membership.group_id == db.auth_group.id) &
+        (db.auth_group.role == 'Employee') &
+        (db.auth_membership.user_id != auth.user.id)
+    )
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
 
