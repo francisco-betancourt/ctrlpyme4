@@ -65,6 +65,55 @@ def create_groups():
         auth.add_group(key, new_groups[key])
 
 
+def create_admin_user(email, password):
+    db = current.db
+
+    admin_roles = [
+          "Admin"
+        # , "Inventories"
+        # , "Purchases"
+        , "Items info"
+        , "Items management"
+        , "Items prices"
+        # , "Sales bags"
+        # , "Sales checkout"
+        # , "Sales delivery"
+        # , "Sales invoices"
+        # , "Sales returns"
+        # , "Clients"
+        , "Page layout"
+        # , "VIP seller"
+        # , "Employee"
+        , "Analytics"
+        # , "Sale orders"
+        # , "Stock transfers"
+        , "Offers"
+        # , 'Accounts payable'
+        # , 'Accounts receivable'
+        , 'Highlights'
+        , 'Config'
+        , 'Safe config'
+        , 'Admin config'
+        # , 'Product loss'
+        # , 'Cash out'
+    ]
+
+    admin = db.auth_user.validate_and_insert(
+        first_name='Admin',
+        last_name='user',
+        email=email,
+        password=password
+    )
+
+    for role in admin_roles:
+        group = db(db.auth_group.role == role).select().first()
+
+        db.auth_membership.insert(
+            user_id=admin,
+            group_id=group.id
+        )
+
+
 def settup():
     db = current.db
 
