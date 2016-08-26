@@ -108,6 +108,19 @@ def get():
 
 
 @auth.requires_membership('Admin config')
+def update_client():
+    client = db.auth_user(request.args(0))
+    if not client or not client.is_client:
+        raise HTTP(404)
+    form = SQLFORM(db.auth_user, client)
+    if form.process().accepted:
+        response.flash = 'form accepted'
+    elif form.errors:
+        response.flash = 'form has errors'
+    return dict(form=form)
+
+
+@auth.requires_membership('Admin config')
 def rand_employee_password():
     """ sets a random password for the specified user (only employees)
         args [employee_id]
@@ -279,7 +292,7 @@ def clients():
     title = T('clients')
     def client_options(row):
         edit_btn = OPTION_BTN(
-            'edit', URL('get_client', args=row.id), title=T('edit')
+            'edit', URL('update_client', args=row.id), title=T('edit')
         )
         icon_name = 'thumb_down'
         if row.registration_key == 'blocked':
