@@ -733,3 +733,15 @@ db.define_table("invoice",
     Field("cancel_date", "datetime", default=None, label=T('Cancel date')),
     Field("acknowledgement", "text", default=None, label=T('Acknowledgement')),
     auth.signature)
+
+db.define_table("migration_table",
+    Field("table_name",required=True,writable=False),
+    Field("csv_file",type="upload",uploadfolder=request.folder+'/static/migrations/'),
+    auth.signature
+)
+
+db.define_table("migration_dictionary",
+    Field("id_migration_table"),
+    Field("old_id",type="integer"),
+    Field("new_id",type="integer")
+)

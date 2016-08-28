@@ -389,8 +389,10 @@ def get_item():
     images = db(db.item_image.id_item == item.id).select()
 
     page_title = item.name
-    page_description = item.description + ' ' + ', '.join([cat.name for cat in  item.categories])
-
+    page_description = item.description
+    if item.categories:
+        page_description+= ' ' + ', '.join([cat.name for cat in  item.categories])
+    
     return_data['item'] = item
     return_data['images'] = images
     return_data['page_title'] = page_title
