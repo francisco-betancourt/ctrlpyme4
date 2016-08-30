@@ -373,7 +373,7 @@ db.trait.trait_option.requires = not_empty_requires
 
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
-    Field("categories", "list:reference category", label=T('Categories')),
+    Field("categories", "list:reference category", default=[], label=T('Categories')),
     Field("traits", "list:reference trait", label=T("Traits"), readable=False, writable=False),
     Field("name", "string", default='', label=T('Name')),
     Field("description", "text", default='', label=T('Description')),
