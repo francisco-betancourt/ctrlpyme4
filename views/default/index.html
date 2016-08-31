@@ -36,12 +36,16 @@
 </div>
 
 
-<div>
+<div class="categories-container">
   <hr>
-  <h2 class="section-header" style="margin-top: 0px">{{=T('Some categories')}}</h2>
+  <h2 class="section-header" style="margin-top: 0px">
+    {{=T('Some categories')}}
+  </h2>
+  <div class="category-links">
     {{for category in rand_categories:}}
       <a href="{{=URL('item', 'browse', vars=dict(category=category.id))}}" class="category-link">{{=category.name}}</a>
     {{pass}}
+  </div>
   <hr>
 </div>
 
