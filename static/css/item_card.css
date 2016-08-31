@@ -1,7 +1,14 @@
 .section-header {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
   margin-right: 20px;
 }
+.section-header i {
+  margin-right: 16px;
+}
+
 .items-container {
   display: flex;
   flex-wrap: wrap;
@@ -167,7 +174,6 @@
 .cp-item-card-title {
   display: flex;
   flex-direction: row;
-  align-items: center;
   justify-content: space-between;
 }
 .cp-item-card-title>h3 {
@@ -175,6 +181,7 @@
   overflow: hidden;
   word-wrap: break-word;
   padding-right: 16px;
+  font-size: 22px;
 }
 
 .cp-item-card .card-options {
