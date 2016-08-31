@@ -73,6 +73,28 @@ class LineParser:
     def __init__(self, spec):
         self.spec = spec
 
+
+    def _apply_parser(self, f_parser, value, d_item):
+        parsed_value = f_parser.parse(value)
+
+        if f_parser.field_type == FIELD_WRITE:
+            d_item[f_parser.field] = parsed_value
+
+        elif f_parser.field_type == FIELD_APPEND:
+            if not d_item[f_parser.field]:
+                d_item[f_parser.field] = []
+            d_item[f_parser.field].append(parsed_value)
+
+        elif f_parser.field_type == FIELD_CONCAT:
+            if not d_item[f_parser.field]:
+                d_item[f_parser.field] = parsed_value
+            else:
+                if f_parser.mode == FIELD_MODE_APPEND:
+                    d_item[f_parser.field] += ' ' + parsed_value
+                elif f_parser.mode == FIELD_MODE_PREPEND:
+                    d_item[f_parser.field] = parsed_value + ' ' + d_item[f_parser.field]
+
+
     def parse(self, line):
         d_item = Storage(is_active=True)
 
@@ -83,27 +105,17 @@ class LineParser:
 
         for index, value in enumerate(values):
             field_parser = self.spec[index]
-            if not field_parser:
-                continue
-            parsed_value = field_parser.parse(value)
 
-            if field_parser.field_type == FIELD_WRITE:
-                d_item[field_parser.field] = parsed_value
+            parsers = []
+            if type(field_parser) is list:
+                parsers = field_parser
+            else:
+                parsers.append(field_parser)
 
-            elif field_parser.field_type == FIELD_APPEND:
-                if not d_item[field_parser.field]:
-                    d_item[field_parser.field] = []
-                d_item[field_parser.field].append(parsed_value)
-
-            elif field_parser.field_type == FIELD_CONCAT:
-                if not d_item[field_parser.field]:
-                    d_item[field_parser.field] = parsed_value
-                else:
-                    if field_parser.mode == FIELD_MODE_APPEND:
-                        d_item[field_parser.field] += ' ' + parsed_value
-                    elif field_parser.mode == FIELD_MODE_PREPEND:
-                        d_item[field_parser.field] = parsed_value + ' ' + d_item[field_parser.field]
-
+            for parser in parsers:
+                if not parser:
+                    continue
+                self._apply_parser(parser, value, d_item)
 
         return d_item
 
@@ -111,7 +123,6 @@ class LineParser:
 
 def price_parser_function(data):
     return DQ(data)
-    # item_params.base_price = item.base_price / DQ(1.16)
 
 
 def name_parser_function(data):
@@ -188,7 +199,7 @@ def file_parser_generator(file_path, line_parser):
 
 
 def parse_file(filename, line_parser, item_format_function=None):
-    """ Do not place data in the first row of the csv """
+    """ DO NOT place data in the first row of the csv """
 
     db = current.db
     T = current.T
@@ -204,6 +215,7 @@ def parse_file(filename, line_parser, item_format_function=None):
             item_format_function(item_data)
         print item_data
         db.item.insert(**item_data)
+        db.commit()
 
 
 
@@ -220,6 +232,12 @@ def category_parser_function(data):
 def parse():
     db = current.db
 
+
+    def custom_category_parser_function(data):
+        data = data[1:]
+        return category_parser_function(data)
+
+
     def custom_catalog_parser_function(data):
         data = data[1:]
         return data
@@ -229,22 +247,28 @@ def parse():
         par_measure_unit = db.measure_unit.insert(
             name='par', symbol='par'
         )
-    piece_measure_unit = db(db.measure_unit.name == 'par').select().first()
+    piece_measure_unit = db(db.measure_unit.name == 'pieza').select().first()
     if not piece_measure_unit:
         piece_measure_unit = db.measure_unit.insert(
             name='pieza', symbol='pieza'
         )
     def item_custom_format(item_data):
-        item_data.id_measure_unit = par_measure_unit
+        item_data.id_measure_unit = piece_measure_unit
         item_data.allow_fractions = False
         item_data.taxes = []
 
 
     lparser = LineParser([
-        FieldParser('name',
-            parse_function=custom_catalog_parser_function,
-            field_type=FIELD_CONCAT, mode=FIELD_MODE_PREPEND
-        ),
+        [
+            FieldParser('name',
+                parse_function=custom_catalog_parser_function,
+                field_type=FIELD_CONCAT, mode=FIELD_MODE_PREPEND
+            ),
+            FieldParser('categories',
+                parse_function=custom_category_parser_function,
+                field_type=FIELD_APPEND
+            ),
+        ],
         FieldParser('id_brand', parse_function=brand_parser_function),
         FieldParser('name', field_type=FIELD_CONCAT, mode=FIELD_MODE_APPEND ),
         FieldParser('traits', field_type=FIELD_APPEND,
@@ -270,7 +294,7 @@ def parse():
 
 
     lparser_cklass = LineParser([
-        FieldParser('name', field_type=FIELD_CONCAT, mode=FIELD_MODE_APPEND ),
+        FieldParser( 'name', field_type=FIELD_CONCAT, mode=FIELD_MODE_APPEND ),
         FieldParser('traits', field_type=FIELD_APPEND,
             parse_function=color_trait_parse_function
         ),
@@ -280,7 +304,15 @@ def parse():
         FieldParser('base_price', parse_function=price_parser_function),
         None,
         FieldParser('sku'),
-        FieldParser('name', field_type=FIELD_CONCAT, mode=FIELD_MODE_PREPEND ),
+        [
+            FieldParser(
+                'name', field_type=FIELD_CONCAT, mode=FIELD_MODE_PREPEND
+            ),
+            FieldParser(
+                'categories', field_type=FIELD_APPEND,
+                parse_function=category_parser_function
+            ),
+        ],
         None,
         None
     ])
