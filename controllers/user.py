@@ -27,24 +27,6 @@ def employee_profile():
     return dict()
 
 
-def create_admin():
-    """ This function is used to create an admin user, given a validation token, only on admin per app is allowed
-    """
-    # admin_u = db((db.auth_membership.group_id == db.auth_group.id)
-    #            & (db.auth_membership.user_id == db.auth_user.id)
-    #            & (db.auth_group.role == 'Admin')
-    #            ).select(db.auth_user.ALL).first()
-    # if admin_u:
-    #     session.info = T("Admin user already created")
-    #     redirect(URL('default', 'index'))
-    #
-    # admin_u = db.auth_user.insert()
-    # admin_roles = ['Admin', 'Analytics', 'Config', 'Safe config']
-    # for admin_role in admin_roles:
-    #
-    # return locals()
-    pass
-
 
 def profile():
     if auth.has_membership('Clients'):
@@ -105,6 +87,19 @@ def create():
 @auth.requires_membership('Admin')
 def get():
     pass
+
+
+@auth.requires_membership('Admin config')
+def update_client():
+    client = db.auth_user(request.args(0))
+    if not client or not client.is_client:
+        raise HTTP(404)
+    form = SQLFORM(db.auth_user, client)
+    if form.process().accepted:
+        response.flash = 'form accepted'
+    elif form.errors:
+        response.flash = 'form has errors'
+    return dict(form=form)
 
 
 @auth.requires_membership('Admin config')
@@ -279,7 +274,7 @@ def clients():
     title = T('clients')
     def client_options(row):
         edit_btn = OPTION_BTN(
-            'edit', URL('get_client', args=row.id), title=T('edit')
+            'edit', URL('update_client', args=row.id), title=T('edit')
         )
         icon_name = 'thumb_down'
         if row.registration_key == 'blocked':
@@ -291,7 +286,14 @@ def clients():
 
     query = (db.auth_user.is_client == True)
     data = SUPERT(
-        query, [db.auth_user.ALL], fields=[ 'first_name', 'last_name', 'email' ], options_func=client_options, selectable=False
+        query, [db.auth_user.ALL], fields=[
+            'first_name', 'last_name', 'email',
+            dict(
+                fields=['id_wallet.balance'],
+                custom_format=lambda r, f : '$ %s' % DQ(r[f[0]], True),
+                label_as=T('Wallet balance')
+            )
+        ], options_func=client_options, selectable=False
     )
     return locals()
 
@@ -317,10 +319,12 @@ def index():
             )
         return options
 
-    query = (db.auth_membership.user_id == db.auth_user.id) & \
-            (db.auth_membership.user_id == db.auth_group.id) & \
-            (db.auth_group.role == 'Employee') & \
-            (db.auth_membership.user_id != auth.user.id)
+    query = (
+        (db.auth_membership.user_id == db.auth_user.id) &
+        (db.auth_membership.group_id == db.auth_group.id) &
+        (db.auth_group.role == 'Employee') &
+        (db.auth_membership.user_id != auth.user.id)
+    )
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
 

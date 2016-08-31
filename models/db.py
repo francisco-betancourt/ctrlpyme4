@@ -226,7 +226,7 @@ db.define_table("store",
     )
 db.store.id_address.requires=IS_IN_DB( db, 'address.id', address_format)
 db.store.name.requires = not_empty_requires
-db.store.email.requires = IS_EMAIL()
+db.store.email.requires = IS_EMPTY_OR(IS_EMAIL())
 
 
 highlight_image_validator = IS_IMAGE(extensions=('jpeg', 'png'), maxsize=(1000, 1000))
@@ -373,10 +373,10 @@ db.trait.trait_option.requires = not_empty_requires
 
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
-    Field("categories", "list:reference category", label=T('Categories')),
+    Field("categories", "list:reference category", default=[], label=T('Categories')),
     Field("traits", "list:reference trait", label=T("Traits"), readable=False, writable=False),
-    Field("name", "string", default=None, label=T('Name')),
-    Field("description", "text", default=None, label=T('Description')),
+    Field("name", "string", default='', label=T('Name')),
+    Field("description", "text", default='', label=T('Description')),
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
     Field("sku", "string", length=20, default=None, label=T('SKU')),
@@ -387,7 +387,7 @@ db.define_table("item",
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
     Field("taxes", "list:reference tax", label=T('Taxes')),
-    Field("url_name", "string", default=None, label=T('URL Name'), readable=False, writable=False),
+    Field("url_name", "string", default='', label=T('URL Name'), readable=False, writable=False),
     Field("extra_data1", "string", default=None, label=T('Extra Data')+" 1"),
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
@@ -733,3 +733,15 @@ db.define_table("invoice",
     Field("cancel_date", "datetime", default=None, label=T('Cancel date')),
     Field("acknowledgement", "text", default=None, label=T('Acknowledgement')),
     auth.signature)
+
+db.define_table("migration_table",
+    Field("table_name",required=True,writable=False),
+    Field("csv_file",type="upload",uploadfolder=request.folder+'/static/migrations/'),
+    auth.signature
+)
+
+db.define_table("migration_dictionary",
+    Field("id_migration_table"),
+    Field("old_id",type="integer"),
+    Field("new_id",type="integer")
+)

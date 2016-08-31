@@ -345,4 +345,10 @@ def time_interval_query(tablename, start_date, end_date):
     return (db[tablename].created_on >= start_date) & (db[tablename].created_on < end_date)
 
 
+def host_base_url():
+    """ Returns the app base url """
+
+    return URL('', '', host=True).split('/' + request.controller)[0]
+
+
 # def error_dict(msg)

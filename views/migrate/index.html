@@ -1,0 +1,11 @@
+{{extend 'layout.html'}}
+
+<h1>{{=T('Migrate table')}}</h1>
+
+<div class="row">
+  {{for i in range(len(allow_import_table)):}}
+  <div class="col-xs-6 col-md-3">
+    <a class="btn btn-large{{if allow_import_table[i] in already_uploaded:}} disabled{{pass}}" href="{{=URL('migrate','migrate_table',vars={'table_name':allow_import_table[i]})}}">{{if btn_class_tables[i]:}}<i class="material-icons">{{=btn_class_tables[i]}}</i>{{pass}} {{=allow_import_table[i].capitalize()}}</a>
+  </div>
+  {{pass}}
+</div>

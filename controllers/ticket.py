@@ -178,7 +178,6 @@ def credit_note_ticket(id_credit_note):
     credit_note = db.credit_note(id_credit_note)
     store_data = ticket_store_data(credit_note.id_sale.id_store)
     items = db(
-        # (db.credit_note_item.id_bag_item == db.bag_item.id)
         (db.credit_note_item.id_credit_note == credit_note.id)
     ).select()
     concept = None if items else T('Defered sale')
