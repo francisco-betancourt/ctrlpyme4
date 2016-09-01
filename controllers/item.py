@@ -394,7 +394,7 @@ def get_item():
     page_description = item.description
     if item.categories:
         page_description+= ' ' + ', '.join([cat.name for cat in  item.categories])
-    
+
     return_data['item'] = item
     return_data['images'] = images
     return_data['page_title'] = page_title
@@ -581,10 +581,13 @@ def browse():
 
 
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
-    items = db(query).select(
+    items = db(query).iterselect(
         limitby=limits,
         orderby=orderby
     )
+    items = [item_utils.data_for_card(v) for v in items]
+    items_data_script = SCRIPT("var items_data = %s" % json.dumps(items))
+    del items
 
     selected_categories = [category.id] if category else []
     categories_data_script = SCRIPT("var categories_tree_data = %s" % json_categories_tree(selected_categories=selected_categories))

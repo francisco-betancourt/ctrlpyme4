@@ -30,13 +30,6 @@
 <section id="items_list">
   <h1>{{=title}}</h1>
   <div class="items-container">
-    {{ if items: }}
-      {{for item in items:}}
-        {{=item_card(item)}}
-      {{pass}}
-    {{ else: }}
-      <h4>{{ =no_items_msg }}</h4>
-    {{ pass }}
   </div>
   {{=pages}}
 </section>
@@ -44,6 +37,7 @@
 
 {{block page_js}}
 {{=categories_data_script}}
+{{=items_data_script}}
 <script>
   window.location.hash = '#items_list';
 
@@ -102,7 +96,10 @@
   // when the category is not visible, we have reveal it
   var selected_node = $('#categories_tree').treeview('getSelected')[0];
   if (selected_node) {
-    $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true } ]);
+    $('#categories_tree').treeview('revealNode', [ selected_node.nodeId, { silent: true }
+    ]);
   }
+
+  ITEM_CARDS.create_item_cards(items_data, $('.items-container'));
 </script>
 {{end}}

@@ -73,6 +73,7 @@ ITEM_CARDS = (function () {
       container.append(clone);
     }
   }
+  M.create_item_cards = create_item_cards;
 
 
   function fetch_items(url, container) {
