@@ -707,3 +707,13 @@ def get_new_items():
     new_items = [item_utils.data_for_card(v) for v in new_items]
 
     return dict(items=new_items)
+
+
+def get_some_services():
+    records = db(
+        (db.item.is_active == True) & (db.item.has_inventory == False)
+    ).iterselect(orderby='<random>', limitby=(0, 10))
+
+    services = [item_utils.data_for_card(v) for v in records]
+
+    return dict(items=services)
