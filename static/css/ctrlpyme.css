@@ -235,8 +235,16 @@ button.cp-fab:focus{
 }
 
 
+
+
 #scan_order_btn, .bag-scan-btn {
   margin-bottom: 10px;
+}
+#current_bag.panel-default {
+  margin-right: -8px;
+  margin-left: -8px;
+  border: none;
+  border-radius: 0px;
 }
 #current_bag>.panel-body {
   padding-left: 0px;

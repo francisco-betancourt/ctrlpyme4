@@ -50,7 +50,7 @@
 
 
 <!-- Bag -->
-<div class="panel panel-default" id="current_bag">
+<div class="panel panel-default card-shadow" id="current_bag">
   <div class="panel-heading">
     <h3>{{=T('Bag')}} {{ if user_is_employee: }}<span id="bag_id"></span> {{ pass }} (<span class="bag_quantity"></span> {{=T('items')}})
       {{=ICON('expand_less', _class="right collapse_bag")}}
@@ -373,7 +373,7 @@
 
         var el_emp_selector = new_item.find('.employee-selector');
         if (data.has_inventory) {
-          
+
           el_emp_selector.remove();
         } else {
 
