@@ -76,17 +76,21 @@ ITEM_CARDS = (function () {
   M.create_item_cards = create_item_cards;
 
 
-  function fetch_items(url, container) {
+  function fetch_items(url, container, custom_callback) {
     $.ajax({
       url: url
     })
     .done(function (res) {
 
       create_item_cards(res.items, container);
+      if (custom_callback) {
+        custom_callback(res.items, container);
+      }
     })
     .fail(function (res) {
       console.log(res);
     });
+
   }
   M.fetch_items = fetch_items;
 

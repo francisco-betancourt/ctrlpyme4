@@ -376,6 +376,9 @@ button.cp-fab:focus{
   flex-direction: row;
   overflow-x: auto;
 }
+.highlights>*:first-child {
+  margin-left: 15px;
+}
 .highlights>.highlight {
   background-size: cover;
   background-position: center;
