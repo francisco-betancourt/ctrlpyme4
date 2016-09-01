@@ -13,24 +13,6 @@ import random
 
 
 def index():
-    # best sellers this month
-    start_date = date(request.now.year, request.now.month, 1)
-    end_date = date(request.now.year, request.now.month + 1, 1)
-
-    values = db(
-        (db.bag_item.id_item == db.item.id)
-        & (db.bag_item.created_on >= start_date)
-        & (db.bag_item.created_on <= end_date)
-    ).iterselect(db.item.ALL, db.bag_item.quantity.sum(),
-        groupby=db.item.id, limitby=(0, 10),
-        orderby=~db.bag_item.quantity.sum()
-    )
-    popular_items = [v.item for v in values]
-    random.shuffle(popular_items)
-
-    new_items = db(
-        db.item.is_active == True
-    ).iterselect(orderby=~db.item.created_on, limitby=(0, 10))
 
     services = db(
         (db.item.is_active == True) & (db.item.has_inventory == False)

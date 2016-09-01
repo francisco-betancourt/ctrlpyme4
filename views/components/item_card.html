@@ -1,0 +1,57 @@
+<template id="proto_item_card">
+  <div>
+    <div class="cp-item-card card appear">
+      <a href="{{=URL('item', 'get_item')}}" class="card-image"></a>
+
+        <div class="card-body">
+
+          <div class="card-content">
+            <div class="card-title cp-item-card-title">
+              <h3 class="item-card-name"></h3>
+
+
+              {{ if item_options: }}
+                <div class="item-options dropup">
+                  <span class="options-dropdown"
+                          data-toggle="dropdown" type="button" data-target="#"
+                          aria-expanded="false">
+                    {{=ICON('more_vert', _class='card-options-icons')}}
+                  </span>
+                  <ul class="dropdown-menu options-dropdown-list">
+                    {{ for option in item_options: }}
+                      <li> <a href="{{=option[1]}}">{{=option[0]}}</a> </li>
+                    {{ pass }}
+                  </ul>
+                </div>
+              {{ pass }}
+
+            </div>
+            <p class="item-card-brand subtitle"></p>
+            <p class="text-content"></p>
+
+            <section class="price-data">
+              <span class="old-price-container">
+                <span>{{=T('before')}}:</span>
+                <span class="old-price"></span>
+              </span>
+              <span class="discount-container">
+                <span>{{=T('discount')}}:</span>
+                <span class="discount text-danger"></span>
+              </span>
+              <span class="price-container">
+                <span class="old-price"></span>
+                <span class="discount text-danger"></span>
+                <h4 class="price"></h4>
+              </span>
+            </section>
+          </div>
+          <div class="card-options">
+            {{=ICON('shopping_basket', _class='add-to-bag')}}
+            <span class="availability"></span>
+          </div>
+        </div>
+
+    </div>
+  </div>
+
+</template>

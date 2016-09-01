@@ -27,34 +27,34 @@
 </div>
 {{ pass }}
 
-{{ if popular_items: }}
-  <div style="background-color: {{=main_bg_color}}" class="items-container-full">
-    <h2 class="section-header accent-color-text">{{=ICON('star')}} {{=T('Popular items')}}</h2>
-    <div class="items-container no-wrap">
-      {{for popular_item in popular_items:}}
-        {{=item_card(popular_item)}}
-      {{pass}}
-    </div>
+
+<div style="background-color: {{=main_bg_color}}" class="items-container-full" hidden="hidden">
+  <h2 class="section-header accent-color-text">{{=ICON('star')}} {{=T('Popular items')}}</h2>
+  <div class="items-container no-wrap" id="popular_items">
+
   </div>
-{{ pass }}
+</div>
 
 
-<div>
+<div class="categories-container">
   <hr>
-  <h2 class="section-header" style="margin-top: 0px">{{=T('Some categories')}}</h2>
+  <h2 class="section-header" style="margin-top: 0px">
+    {{=T('Some categories')}}
+  </h2>
+  <div class="category-links">
     {{for category in rand_categories:}}
       <a href="{{=URL('item', 'browse', vars=dict(category=category.id))}}" class="category-link">{{=category.name}}</a>
     {{pass}}
+  </div>
   <hr>
 </div>
 
 
-<h2 class="section-header">{{=ICON('new_releases')}} {{=T('New items')}}</h2>
-<div class="items-container full no-wrap">
-  {{for new_item in new_items:}}
-    {{=item_card(new_item)}}
-  {{pass}}
+<div hidden="hidden" class="items-container-full">
+  <h2 class="section-header">{{=ICON('new_releases')}} {{=T('New items')}}</h2>
+  <div class="items-container full no-wrap" id="new_items"> </div>
 </div>
+
 
 {{ if services: }}
   <div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full">
@@ -115,7 +115,29 @@
 {{block page_js}}
 <script>
   $('.highlight').each(function (i, e) {
-    $(e).css('min-width', Math.min(window.innerWidth - 30, 400) + 'px');
+    $(e).css('min-width', Math.min(window.innerWidth - 80, 400) + 'px');
   })
+
+  function is_container_visible(container) {
+    
+  }
+
+
+  function toggle_items_container(items, container) {
+    if (items.length) {
+      container.parent().show();
+    }
+  }
+
+  $(document).ready(function () {
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_popular_items', extension='json')}}", $('#popular_items'), toggle_items_container
+    );
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_new_items', extension='json')}}", $('#new_items'),
+      toggle_items_container
+    );
+  })
+
 </script>
 {{end}}

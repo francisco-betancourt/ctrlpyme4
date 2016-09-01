@@ -755,6 +755,7 @@
 'previous %s rows': 'previous %s rows',
 'previous 100 rows': '100 filas anteriores',
 'previous cash outs': 'cortes de caja anteriores',
+'price': 'price',
 'Price': 'Precio',
 'PRICE': 'PRECIO',
 'Price 2': 'Precio 2',
