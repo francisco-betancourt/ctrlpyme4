@@ -13,11 +13,6 @@ import random
 
 
 def index():
-
-    services = db(
-        (db.item.is_active == True) & (db.item.has_inventory == False)
-    ).iterselect(orderby='<random>', limitby=(0, 10))
-
     rand_categories = db(
         db.category.is_active == True
     ).select(orderby='<random>', limitby=(0, 10))

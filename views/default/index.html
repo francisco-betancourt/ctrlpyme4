@@ -30,9 +30,7 @@
 
 <div style="background-color: {{=main_bg_color}}" class="items-container-full" hidden="hidden">
   <h2 class="section-header accent-color-text">{{=ICON('star')}} {{=T('Popular items')}}</h2>
-  <div class="items-container no-wrap" id="popular_items">
-
-  </div>
+  <div class="items-container no-wrap" id="popular_items"> </div>
 </div>
 
 
@@ -56,16 +54,13 @@
 </div>
 
 
-{{ if services: }}
-  <div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full">
-    <h2 class="section-header accent-color-text">{{=T('Services')}}</h2> <a class="accent-color-text" href="{{=URL('item', 'browse', vars=dict(is_service='yes'))}}">{{=T('More')}}</a>
-    <div  class="items-container no-wrap">
-      {{for service in services:}}
-        {{=item_card(service)}}
-      {{pass}}
-    </div>
-  </div>
-{{ pass }}
+<div style="background-color: {{=random_color_mix(ACCENT_COLOR)}}" class="items-container-full" hidden="hidden">
+    <h2 class="section-header accent-color-text services-header">
+      {{=T('Services')}}
+    </h2>
+    <a class="accent-color-text section-header" href="{{=URL('item', 'browse', vars=dict(is_service='yes'))}}">{{=T('More')}}</a>
+  <div class="items-container no-wrap" id="some_services"> </div>
+</div>
 
 {{ if stores: }}
 <div class="items-container-full base-color-dim">
@@ -119,7 +114,7 @@
   })
 
   function is_container_visible(container) {
-    
+
   }
 
 
@@ -135,6 +130,10 @@
     );
     ITEM_CARDS.fetch_items(
       "{{=URL('item', 'get_new_items', extension='json')}}", $('#new_items'),
+      toggle_items_container
+    );
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_some_services', extension='json')}}", $('#some_services'),
       toggle_items_container
     );
   })
