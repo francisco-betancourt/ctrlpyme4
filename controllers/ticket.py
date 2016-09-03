@@ -74,6 +74,9 @@ def ticket_item_list(items, concept=''):
             if not bag_item:
                 continue
             item_name = bag_item.product_name
+            if bag_item.id_item.traits:
+                for trait in bag_item.id_item.traits:
+                    item_name += ' ' + trait.trait_option
             item_price = bag_item.sale_price
             item_barcode = item_utils.item_barcode(bag_item.id_item)
             # get item taxes
