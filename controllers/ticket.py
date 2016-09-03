@@ -206,6 +206,12 @@ def credit_note_ticket(id_credit_note):
         raise HTTP(404)
 
     credit_note = db.credit_note(id_credit_note)
+    if not credit_note:
+        raise HTTP(404)
+
+    if MERGE_CREDIT_NOTES_IN_SALE:
+        return sale_ticket(credit_note.id_sale)
+
     store_data = ticket_store_data(credit_note.id_sale.id_store)
     data = credit_note_ticket_data(credit_note)
     items_list = data['items_list']
@@ -236,21 +242,22 @@ def sale_ticket(id_sale):
     total_data = ticket_total_data(totals)
 
     credit_notes_tickets = DIV()
-    credit_notes = db(
-        (db.credit_note.id_sale == sale.id) &
-        (db.credit_note.is_usable == True)
-    ).iterselect()
-    for credit_note in credit_notes:
-        credit_note_data = credit_note_ticket_data(credit_note)
-        credit_notes_tickets.append(mini_ticket_format(
-            T('Credit note'),
-            DIV(
-                credit_note_data['items_list'],
-                credit_note_data['payments_data']
-            ),
-            credit_note.code,
-            date=credit_note.created_on
-        ))
+    if MERGE_CREDIT_NOTES_IN_SALE:
+        credit_notes = db(
+            (db.credit_note.id_sale == sale.id) &
+            (db.credit_note.is_usable == True)
+        ).iterselect()
+        for credit_note in credit_notes:
+            credit_note_data = credit_note_ticket_data(credit_note)
+            credit_notes_tickets.append(mini_ticket_format(
+                T('Credit note'),
+                DIV(
+                    credit_note_data['items_list'],
+                    credit_note_data['payments_data']
+                ),
+                credit_note.code,
+                date=credit_note.created_on
+            ))
 
     return ticket_format(store_data, T('Sale'),
         DIV(

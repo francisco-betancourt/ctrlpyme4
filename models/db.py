@@ -289,6 +289,11 @@ db.define_table(
   # 1 day default cash out interval
   , Field('cash_out_interval_days', 'integer', default=1, label=T('Cash out interval days'))
 
+  , Field(
+        'merge_credit_notes_in_sale', 'boolean', default=False,
+        label=T('Show credit notes in sale ticket')
+    )
+
 
   # some chached data
   # the mount of time in minutes that the cached data will be available

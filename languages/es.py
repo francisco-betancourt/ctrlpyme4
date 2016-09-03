@@ -900,6 +900,7 @@
 'shop': 'tienda',
 'Shop online': 'Compra en linea',
 'shop online': 'compra en linea',
+'Show credit notes in sale ticket': 'Mostrar notas de crédito en ticket de venta',
 'show hidden': 'mostrar ocultos',
 'Show name': 'Monstrar nombre',
 'Show price': 'Mostrar precio',

@@ -52,6 +52,9 @@ ENABLE_STRIPE = False
 
 TOP_CATEGORIES_STRING = ''
 
+# use it to show the credit notes in the sale ticket, this is useful for people that want to keep the original ticket and print sale ticket with credit note data
+MERGE_CREDIT_NOTES_IN_SALE = False
+
 
 main_settings = db(db.settings.id_store == None).select().first()
 if main_settings:
@@ -93,6 +96,9 @@ if main_settings:
 
     if main_settings.cash_out_interval_days:
         CASH_OUT_INTERVAL = timedelta(days=main_settings.cash_out_interval_days)
+
+    if main_settings.merge_credit_notes_in_sale:
+        MERGE_CREDIT_NOTES_IN_SALE = True
 
 
 LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPACE_X * (LABEL_COLS - 1))) / LABEL_COLS
