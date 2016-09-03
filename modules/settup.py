@@ -65,8 +65,12 @@ def create_groups():
         auth.add_group(key, new_groups[key])
 
 
-def create_admin_user(email, password):
+def create_admin_user(email):
     db = current.db
+    auth = current.auth
+
+    password = auth.random_password()
+    print password
 
     admin_roles = [
           "Admin"
