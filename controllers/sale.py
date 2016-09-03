@@ -492,7 +492,7 @@ def refund():
 
     invalid = False
     item_removals = {}
-    no_more_items = False
+    no_more_items = True
 
     if is_delivered:
         # obtain all returnable items from the specified sale
@@ -511,7 +511,6 @@ def refund():
         current_id = None
         for r in c_items:
             if current_id != r.bag_item.id:
-
                 current_id = r.bag_item.id
                 current_data = Storage(
                     max=r.bag_item.quantity,
@@ -522,6 +521,9 @@ def refund():
 
             if r.credit_note_item.quantity:
                 current_data.max -= r.credit_note_item.quantity
+
+        for d in item_removals.itervalues():
+            no_more_items &= d.max == 0
 
     # since pure defered sales does not remove stocks, we can only refund all payments once, so we have to make sure that there are no credit notes associated with the specified sale
     elif sale.is_deferred:
@@ -540,7 +542,7 @@ def refund():
     )
 
 
-    if form.process().accepted:
+    if form.process().accepted and not no_more_items and not invalid:
         # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
         def max_available(r_item):
             return DQ(

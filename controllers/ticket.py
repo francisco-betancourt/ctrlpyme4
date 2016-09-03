@@ -159,27 +159,34 @@ def ticket_payments_data(payments, include_payment_date=False):
     return payments_data
 
 
+def mini_ticket_format(title, content=None, barcode="", date=None):
+    """ Used to create ticket extra data, basically appending multiple tickets into one """
+    return DIV(
+        DIV(P(title), P(date), _class="right head"),
+        content,
+        DIV(_id="barcode%s" % barcode, _class="barcode"),
+        SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
+        SCRIPT('$("#barcode%s").barcode({code: "%s", crc: false}, "code39");' % (barcode, barcode)),
+        _class="extra-ticket"
+    )
+
+
 def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None):
     return DIV(
         P(IMG(_class="logo", _src=COMPANY_LOGO_URL)),
-        DIV(P(title), P(COMPANY_NAME), P(date), _class="right head"),
+        DIV(P(COMPANY_NAME), P(title), P(date), _class="right head"),
         content,
         store_data,
         P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
         DIV(footer),
-        DIV(_id="barcode"),
+        DIV(_id="barcode", _class="barcode"),
         SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"
     )
 
 
-def credit_note_ticket(id_credit_note):
-    if not auth.has_membership('Sales returns'):
-        raise HTTP(404)
-
-    credit_note = db.credit_note(id_credit_note)
-    store_data = ticket_store_data(credit_note.id_sale.id_store)
+def credit_note_ticket_data(credit_note):
     items = db(
         (db.credit_note_item.id_credit_note == credit_note.id)
     ).select()
@@ -191,6 +198,18 @@ def credit_note_ticket(id_credit_note):
         DIV('%s : $ %s' % ('total', DQ(credit_note.total, True)) ),
         _id='payments_data'
     )
+    return dict(items_list=items_list, payments_data=payments_data)
+
+
+def credit_note_ticket(id_credit_note):
+    if not auth.has_membership('Sales returns'):
+        raise HTTP(404)
+
+    credit_note = db.credit_note(id_credit_note)
+    store_data = ticket_store_data(credit_note.id_sale.id_store)
+    data = credit_note_ticket_data(credit_note)
+    items_list = data['items_list']
+    payments_data = data['payments_data']
 
     return ticket_format(
         store_data, T('Credit note'),
@@ -216,8 +235,28 @@ def sale_ticket(id_sale):
     totals += [ '%s : $ %s' % (T('total'), DQ(sale.total, True)) ]
     total_data = ticket_total_data(totals)
 
+    credit_notes_tickets = DIV()
+    credit_notes = db(
+        (db.credit_note.id_sale == sale.id) &
+        (db.credit_note.is_usable == True)
+    ).iterselect()
+    for credit_note in credit_notes:
+        credit_note_data = credit_note_ticket_data(credit_note)
+        credit_notes_tickets.append(mini_ticket_format(
+            T('Credit note'),
+            DIV(
+                credit_note_data['items_list'],
+                credit_note_data['payments_data']
+            ),
+            credit_note.code,
+            date=credit_note.created_on
+        ))
+
     return ticket_format(store_data, T('Sale'),
-        DIV(items_list, total_data, payments_data),
+        DIV(
+            DIV(items_list, total_data, payments_data),
+            credit_notes_tickets
+        ),
         "%010d" % sale.id, '', date=sale.modified_on
     )
 
