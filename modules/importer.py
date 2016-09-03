@@ -53,21 +53,6 @@ class FieldParser:
         return self.parse_function(data)
 
 
-
-
-
-counter = 1300
-items = []
-
-brands = []
-brands_map = {}
-
-categories = []
-categories_map = {}
-
-used_bc = []
-
-
 class LineParser:
 
     def __init__(self, spec):
@@ -168,23 +153,61 @@ def trait_parser_function(container, trait_category_id, data):
 
 
 SIZES = {}
+SIZE_TRAIT_CATEGORY = None
 def size_parser_function(data):
     db = current.db
-    size_trait_category = db(db.trait_category.name == 'talla').select().first()
-    if not size_trait_category:
-        size_trait_category = db.trait_category.insert(name='talla')
-    return trait_parser_function(SIZES, size_trait_category, data)
+    if not SIZE_TRAIT_CATEGORY:
+        SIZE_TRAIT_CATEGORY = db(
+            db.trait_category.name == 'talla'
+        ).select().first()
+    if not SIZE_TRAIT_CATEGORY:
+        SIZE_TRAIT_CATEGORY = db.trait_category.insert(name='talla')
+    return trait_parser_function(SIZES, SIZE_TRAIT_CATEGORY, data)
 
 
-COLORS = {}
-def color_trait_parse_function(data):
-    db = current.db
-    color_trait_category = db(
-        db.trait_category.name == 'color'
-    ).select().first()
-    if not color_trait_category:
-        color_trait_category = db.trait_category.insert(name='talla')
-    return trait_parser_function(COLORS, color_trait_category, data)
+class SizeFieldParser(FieldParser):
+    SIZES = {}
+    SIZE_TRAIT_CATEGORY = None
+
+    def __init__( self ):
+        self.field = "traits"
+        self.field_type = FIELD_APPEND
+
+
+    def parse(self, data):
+        db = current.db
+        if not self.SIZE_TRAIT_CATEGORY:
+            self.SIZE_TRAIT_CATEGORY = db(
+                db.trait_category.name == 'talla'
+            ).select().first()
+        if not self.SIZE_TRAIT_CATEGORY:
+            self.SIZE_TRAIT_CATEGORY = db.trait_category.insert(name='talla')
+        return trait_parser_function(
+            self.SIZES, self.SIZE_TRAIT_CATEGORY, data
+        )
+
+
+
+class ColorFieldParser(FieldParser):
+    COLORS = {}
+    COLOR_TRAIT_CATEGORY = None
+
+    def __init__( self ):
+        self.field = "traits"
+        self.field_type = FIELD_APPEND
+
+
+    def parse(self, data):
+        db = current.db
+        if not self.COLOR_TRAIT_CATEGORY:
+            self.COLOR_TRAIT_CATEGORY = db(
+                db.trait_category.name == 'color'
+            ).select().first()
+        if not self.COLOR_TRAIT_CATEGORY:
+            self.COLOR_TRAIT_CATEGORY = db.trait_category.insert(name='color')
+        return trait_parser_function(
+            self.COLORS, self.COLOR_TRAIT_CATEGORY, data
+        )
 
 
 
@@ -210,12 +233,18 @@ def parse_file(filename, line_parser, item_format_function=None):
 
     generator = file_parser_generator(path, line_parser)
 
+    commit_max = 100
+    counter = 0
+
     for item_data in generator:
         if item_format_function:
             item_format_function(item_data)
         print item_data
         db.item.insert(**item_data)
-        db.commit()
+        if counter % commit_max == 0:
+            db.commit()
+        counter += 1
+    db.commit()
 
 
 
