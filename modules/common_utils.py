@@ -137,9 +137,16 @@ def get_wallet_payment_opt():
     return db(db.payment_opt.name == 'wallet').select().first()
 
 
-def json_categories_tree(item=None, selected_categories=[], visible_categories=[]):
+def json_categories_tree(
+    item=None, selected_categories=None, visible_categories=None
+):
     """ Creates a json representation of the categories tree, this representation is used with bootstrap treeview """
     db = current.db
+
+    if selected_categories is None:
+        selected_categories = []
+    if visible_categories is None:
+        visible_categories = []
 
     subs = db(
         (db.category.is_active == True)

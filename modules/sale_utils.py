@@ -346,7 +346,7 @@ def deliver(sale):
     sale.update_record()
 
 
-def refund(sale, now, user, return_items=[], wallet_code=None):
+def refund(sale, now, user, return_items=None, wallet_code=None):
     """
         Given a sale, performs a partial return if return items are specified or
         a full return otherwise, creating a credit note in the process,
@@ -354,6 +354,9 @@ def refund(sale, now, user, return_items=[], wallet_code=None):
         when is delivered is true, it means that items were removed from stock,
         so we have to reintegrate them, in other case just return the money
     """
+
+    if return_items is None:
+        return_items = []
 
     db = current.db
 

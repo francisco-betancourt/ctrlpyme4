@@ -58,9 +58,13 @@ def common_undelete(table_name, args, _vars=None):
     redirect(URL('index', vars=request.vars))
 
 
-def common_index(table_name, fields=[], supert_vars={}):
+def common_index(table_name, fields=None, supert_vars=None):
     """
     """
+    if fields is None:
+        fields = []
+    if supert_vars is None:
+        supert_vars = {}
 
     show_hidden = request.vars.show_hidden == 'yes'
     query = db[table_name].is_active == True if not show_hidden else db[table_name].id > 0

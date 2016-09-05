@@ -64,7 +64,9 @@ def discounts_list(discounts):
     return ul
 
 
-def ICON(icon_name, _id="", _class="", html_vars={}):
+def ICON(icon_name, _id="", _class="", html_vars=None):
+    if html_vars is None:
+        html_vars = {}
     # icon_name = icon_name.replace('-', '_')
     return I(icon_name, _class="material-icons %s" % (_class), _id=_id, **html_vars)
 
@@ -94,7 +96,9 @@ def INFO_CARD():
     return content
 
 
-def MENU_ELEMENTS(submenu_prefix = '', menu=current.response.menu):
+def MENU_ELEMENTS(submenu_prefix = '', menu=None):
+    if menu is None:
+        menu = current.response.menu
     # elements = []
     i = 0
     for menu_item in menu:

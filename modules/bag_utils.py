@@ -293,8 +293,12 @@ def bag_item_taxes(bag_item, price):
         return D(0)
 
 
-def set_bag_item(bag_item, discounts=[]):
+def set_bag_item(bag_item, discounts=None):
     """ modifies bag item data, in order to display it properly, this method does not modify the database """
+
+    if discounts is None:
+        discounts = []
+
     session = current.session
 
     item = bag_item.id_item
