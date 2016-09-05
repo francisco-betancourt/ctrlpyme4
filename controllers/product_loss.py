@@ -92,10 +92,71 @@ def get():
 
 
 @auth.requires_membership('Product loss')
+def create_reason():
+    form = SQLFORM(db.product_loss_reason)
+    if form.process().accepted:
+        response.flash = T('form accepted')
+        redirect(URL('index'))
+    elif form.errors:
+        response.flash = T('form has errors')
+    return dict(form=form)
+
+@auth.requires_membership('Product loss')
+def update_reason():
+    reason = db.product_loss_reason(request.args(0))
+    form = SQLFORM(db.product_loss_reason, reason)
+    if form.process().accepted:
+        response.flash = T('form accepted')
+        redirect(URL('index'))
+    elif form.errors:
+        response.flash = T('form has errors')
+    return dict(form=form)
+
+# @auth.requires_membership('Product loss')
+# def hide_reason():
+#     pass
+#
+# @auth.requires_membership('Product loss')
+# def unhide_reason():
+#     pass
+
+
+@auth.requires_membership('Product loss')
 def index():
     def options(row):
         return OPTION_BTN('info', URL('get', args=row.id), title=T('details'))
-    query = (db.product_loss.id_store == session.store)
-    data = SUPERT(query, fields=['id_store.name', 'created_on', {'fields': ['created_by.first_name', 'created_by.last_name'], 'label_as': T('Created by')}, 'notes'], options_func=options, global_options=[])
+
+    data = SUPERT(
+        (db.product_loss.id_store == session.store),
+        fields=[
+            'id_store.name', 'created_on',
+            {
+                'fields': ['created_by.first_name', 'created_by.last_name'],
+                'label_as': T('Created by')
+            }, 'notes', 'id_reason.name'
+        ],
+        options_func=options, global_options=[]
+    )
+
+
+    def reason_options(row):
+        options = OPTION_BTN(
+            'edit', URL('update_reason', args=row.id), title=T('update')
+        )
+        # if row.is_active:
+        #     options += OPTION_BTN(
+        #         'visibility_off', URL('hide_reason', args=row.id), title=T('hide')
+        #     ),
+        # else:
+        #     options += OPTION_BTN(
+        #         'visibility', URL('unhide_reason', args=row.id), title=T('unhide')
+        #     ),
+
+        return options
+
+    reasons = SUPERT(
+        (db.product_loss_reason.is_active == True),
+        fields=[ 'name' ], options_func=reason_options
+    )
 
     return locals()

@@ -508,16 +508,27 @@ db.define_table("bag_item",
 
 
 db.define_table(
+  'product_loss_reason'
+  , Field('name', label=T('name'))
+  , auth.signature
+)
+
+db.define_table(
   'product_loss'
   , Field('id_store', 'reference store', label=T('Store'), readable=False, writable=False)
   , Field('id_bag', 'reference bag', label=T('Bag'), readable=False, writable=False)
+  , Field('id_reason', "reference product_loss_reason", label=T('Reason'))
   , Field('notes', 'text', label=T('Notes'))
   , auth.signature
 )
+db.product_loss.id_reason.requires = IS_EMPTY_OR(IS_IN_DB(
+    db, 'product_loss_reason.id', "%(name)s"
+))
 
 
 db.define_table(
     "cash_out"
+    # -1 is used to calculate the sys_total for the first time
     , Field('sys_total', 'decimal(16,6)', default=-1, label=T('System total'))
     , Field('sys_cash', 'decimal(16,6)', default=0, label=T('System cash'))
     , Field('cash', 'decimal(16,6)', default=0, label=T('Physical cash'))
