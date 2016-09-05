@@ -315,9 +315,6 @@ def SUPERT_BARE(query, select_fields=None, select_args=None, fields=None, ids=No
     else:
         rows = db(query).iterselect(**select_args)
 
-    dd = db(query).select(**select_args)
-    print len(dd)
-
     datas = data_iterator(
         rows, joined, new_fields, global_data, base_table_name
     )
@@ -501,7 +498,6 @@ def SUPERT(query, select_fields=None, select_args=None, fields=None, options_fun
         ids: list of comma separated ids to apply the table to a subset of items
     """
 
-    print query, select_args
     if select_args is None:
         select_args = {}
     if fields is None:
