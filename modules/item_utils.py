@@ -407,10 +407,14 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
         )
 
 
-def reintegrate_bag_item(bag_item, quantity):
+def reintegrate_bag_item(bag_item, quantity, new_stock=False,
+    target=None, target_id=None
+):
     """ Return removed item to their exact stock item """
 
     db = current.db
+    request = current.request
+    session = current.session
 
 
     def items_iterator(bag_item):
@@ -438,24 +442,48 @@ def reintegrate_bag_item(bag_item, quantity):
         # the remaining items to be reintegrated
         remaining = quantity
 
+        # instead of reintegrating to the exact stock, create a new one.
+        if new_stock:
+            # get avg removals data
+            price = 0
+            taxes = 0
+            count = 0
+            for item_removal in item_removals:
+                price += item_removal.id_stock_item.price
+                taxes += item_removal.id_stock_item.taxes
+                count += 1
+            price /= count
+            taxes /= count
 
-        for item_removal in item_removals:
-
-            if not remaining > 0:
-                break
-
-            # the stock from which the items were removed
-            stock_item = db(
-                db.stock_item.id == item_removal.id_stock_item.id
-            ).select().first()
-
-            # this operation is safe if stock item removals are correct
-            reintegrated_qty = min(
-                min(qty, stock_item.purchase_qty), item_removal.qty
+            if not target or not target_id:
+                raise ValueError("target or target id not specified")
+            params = dict(
+                purchase_qty=remaining, stock_qty=remaining,
+                id_store=session.store, id_item=item.id,
+                price=price, taxes=taxes
             )
-            stock_item.stock_qty += reintegrated_qty
+            params[target] = target_id
+            params['created_on'] = request.now
+            params['modified_on'] = request.now
+            new_id = db.stock_item.insert( **params )
+        else:
+            for item_removal in item_removals:
 
-            stock_item.update_record()
+                if not remaining > 0:
+                    break
+
+                # the stock from which the items were removed
+                stock_item = db(
+                    db.stock_item.id == item_removal.id_stock_item.id
+                ).select().first()
+
+                # this operation is safe if stock item removals are correct
+                reintegrated_qty = min(
+                    min(qty, stock_item.purchase_qty), item_removal.qty
+                )
+                stock_item.stock_qty += reintegrated_qty
+
+                stock_item.update_record()
 
             remaining -= reintegrated_qty
 
