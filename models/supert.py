@@ -274,8 +274,6 @@ def SUPERT_BARE(query, select_fields=None, select_args=None, fields=None, ids=No
         # if not joined we infer the table name using the result
         # FIXME under certain circumstances the query returns wrong data, so the base table name is wrong, usually this data is at the beginning, but i dont know if it could happen elsewhere, for now it is safe to do this until something bad happen.
         base_table_name = rows.colnames[-1].split('.')[0]
-        #if not select_fields:
-        #    select_fields = [db[base_table_name].ALL]
 
     # default order, newest first
     if not select_args.has_key('orderby'):
@@ -309,11 +307,16 @@ def SUPERT_BARE(query, select_fields=None, select_args=None, fields=None, ids=No
                 search_query |= new_field.search
     if search_query:
         query = query & search_query
+        if not joined:
+            select_args['distinct'] = db[base_table_name].id
 
     if select_fields:
         rows = db(query).iterselect(*select_fields, **select_args)
     else:
         rows = db(query).iterselect(**select_args)
+
+    dd = db(query).select(**select_args)
+    print len(dd)
 
     datas = data_iterator(
         rows, joined, new_fields, global_data, base_table_name
