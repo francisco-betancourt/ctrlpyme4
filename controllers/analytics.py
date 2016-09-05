@@ -285,7 +285,10 @@ def stocks_table(item):
             )
 
     return SUPERT(
-        (db.stock_item.id_item == item.id) & (db.stock_item.id_store == session.store),
+        (
+            (db.stock_item.id_item == item.id) &
+            (db.stock_item.id_store == session.store)
+        ),
         fields=[
             {
                 'fields': ['id'],

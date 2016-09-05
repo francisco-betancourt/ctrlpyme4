@@ -406,7 +406,9 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
             subtotal += bag_item.sale_price * qty
             total += subtotal + bag_item.sale_taxes * qty
 
-            item_utils.reintegrate_bag_item(bag_item, qty)
+            item_utils.reintegrate_bag_item(
+                bag_item, qty, True, 'id_credit_note', id_new_credit_note
+            )
 
     else:
 
