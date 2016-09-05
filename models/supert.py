@@ -342,7 +342,7 @@ def visibility_g_option():
 
 
 
-def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0
+def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False, selectable=False, options_enabled=False, options_func=supert_default_options, global_options=[], title='', page=None, pages_count=None, t_index=0, search_term=""
 ):
 
     T = current.T
@@ -436,7 +436,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
     if searchable:
         search_form = FORM(_class="form-inline st-search-form")
         search_form.append(
-            INPUT(_class="form-control st-search-input", _name='supert_search')
+            INPUT(_class="form-control st-search-input", _name='supert_search', _value=search_term)
         )
         search_form.append(
             BUTTON(ICON('search'), _class="btn btn-default st-search-form-btn")
@@ -568,7 +568,7 @@ def SUPERT(query, select_fields=None, select_args=None, fields=None, options_fun
         searchable=searchable, selectable=selectable,
         options_enabled=options_enabled, options_func=options_func,
         global_options=global_options, title=title, t_index=current_t_index,
-        page=page, pages_count=pages_data.pages_count
+        page=page, pages_count=pages_data.pages_count, search_term=search_term
     )
 
     return table
