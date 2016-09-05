@@ -55,7 +55,9 @@ def supert_default_options(row):
     return update_btn, hide_btn
 
 
-def row_data_from_field(row, field, global_data={}):
+def row_data_from_field(row, field, global_data=None):
+    if global_data is None:
+        global_data = {}
     keys = field.split('.')
     data = row
     for key in keys:
@@ -65,7 +67,9 @@ def row_data_from_field(row, field, global_data={}):
     return data
 
 
-def base_multifield_format(row, subfields, global_data={}):
+def base_multifield_format(row, subfields, global_data=None):
+    if global_data is None:
+        global_data = {}
     data = ''
     for sub_field in subfields:
         data += '%s ' % row_data_from_field(row, sub_field)
@@ -218,7 +222,7 @@ def data_iterator(rows, joined, new_fields, global_data, base_table_name):
 
 
 
-def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], search_term=None, base_table_name=None, include_row=False, global_data={}):
+def SUPERT_BARE(query, select_fields=None, select_args=None, fields=None, ids=None, search_term=None, base_table_name=None, include_row=False, global_data=None):
     """
     about fields, fields is an array of <value> where every <value> is either
     a dict or a string.
@@ -242,6 +246,15 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
     """
     db = current.db
 
+    if select_args is None:
+        select_args = {}
+    if fields is None:
+        fields = []
+    if ids is None:
+        ids = []
+    if global_data is None:
+        global_data = {}
+
     # this query is used to get table or tables name(s), since this value is not specified, and only a query is given
     rows = None
     copy_select_args = select_args.copy() if select_args else dict()
@@ -259,7 +272,8 @@ def SUPERT_BARE(query, select_fields=None, select_args={}, fields=[], ids=[], se
         joined = type(rows.first()) == type(rows.first()[base_table_name])
     if not joined:
         # if not joined we infer the table name using the result
-        base_table_name = rows.colnames[0].split('.')[0]
+        # FIXME under certain circumstances the query returns wrong data, so the base table name is wrong, usually this data is at the beginning, but i dont know if it could happen elsewhere, for now it is safe to do this until something bad happen.
+        base_table_name = rows.colnames[-1].split('.')[0]
         #if not select_fields:
         #    select_fields = [db[base_table_name].ALL]
 
@@ -473,7 +487,7 @@ def supert_table_format(fields, datas, prev_url, next_url, ipp, searchable=False
 
 
 
-def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_data={}, global_options=[visibility_g_option()]
+def SUPERT(query, select_fields=None, select_args=None, fields=None, options_func=supert_default_options, options_enabled=True, selectable=False, searchable=True, base_table_name=None, title='', global_data=None, global_options=[visibility_g_option()]
 ):
     """ default supert with table output. recognized url parameters:
         term: search term
@@ -483,6 +497,14 @@ def SUPERT(query, select_fields=None, select_args={}, fields=[], options_func=su
         ipp: the number of items per page
         ids: list of comma separated ids to apply the table to a subset of items
     """
+
+    print query, select_args
+    if select_args is None:
+        select_args = {}
+    if fields is None:
+        fields = []
+    if global_data is None:
+        global_data = {}
 
     global t_index
     current_t_index = t_index
