@@ -553,6 +553,8 @@ def browse():
     brand = db.brand(request.vars.brand)
 
     title = T('Items')
+    if term:
+        title = T('Searching items matching "%s"') % term
 
     query = (db.item.is_active == True)
     orderby = db.item.created_on

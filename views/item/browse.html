@@ -28,7 +28,16 @@
 {{end}}
 
 <section id="items_list">
-  <h1>{{=title}}</h1>
+  <h1>
+    {{=title}}
+    {{ if term: }}
+      {{v = request.vars.copy()}}
+      {{ del v['term']}}
+      <a href="{{=URL('browse', vars=v)}}">
+        {{=ICON('close')}}
+      </a>
+    {{ pass }}
+  </h1>
   <div class="items-container items-container-list">
   </div>
   {{=pages}}

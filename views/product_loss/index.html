@@ -7,3 +7,10 @@
 {{else:}}
   {{=T('No records found')}}
 {{pass}}
+
+<hr>
+<h1>{{=T("Product loss reasons")}}</h1>
+{{=reasons}}
+<a href="{{=URL('product_loss', 'create_reason')}}" class="right btn btn-primary" style="margin-top: 15px">
+  {{=T("Create new reason")}}
+</a>
