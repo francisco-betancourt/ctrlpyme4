@@ -584,13 +584,18 @@ def refund():
 
 @auth.requires_membership("Sales invoices")
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def sale_options(row):
         buttons = ()
         if row.is_deferred or not row.last_log_event:
-            buttons += OPTION_BTN(
+            buttons += supert.OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),
-        buttons += OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'), OPTION_BTN('description', URL('invoice', 'create')),
+        buttons += supert.OPTION_BTN(
+            'receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'
+            ), supert.OPTION_BTN('description', URL('invoice', 'create')),
         return buttons
 
     def status_format(r, f):
@@ -598,7 +603,7 @@ def index():
             return A(T(r[f[0]]), _href=URL('index', vars=dict(term_0=r[f[0]]) ))
         return '???'
 
-    data = SUPERT(
+    data = Supert.SUPERT(
         (db.sale.id_store == session.store)
         , fields=['consecutive', 'subtotal', 'total',
             dict(

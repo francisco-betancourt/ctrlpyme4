@@ -66,9 +66,12 @@ def scan_for_receive():
 
 @auth.requires_membership('Stock transfers')
 def index():
-    data = SUPERT(db.stock_transfer, fields=[
+    import supert
+    Supert = supert.Supert()
+
+    data = Supert.SUPERT(db.stock_transfer, fields=[
         'id_store_from.name', 'id_store_to.name', 'is_done'
-        ], options_func=lambda row: [OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket'))]
+        ], options_func=lambda row: [supert.OPTION_BTN('receipt', URL('ticket', args=row.id), title=T('view ticket'))]
         , selectable=False, searchable=False
     )
 

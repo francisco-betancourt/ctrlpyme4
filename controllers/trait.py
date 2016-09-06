@@ -52,12 +52,15 @@ def update():
 
 @auth.requires_membership('Items management')
 def index():
+    import supert
+    Supert = supert.Supert()
+
     trait_category = db.trait_category(request.vars.trait_category)
     if not trait_category:
         raise HTTP(400)
 
     query = (db.trait.is_active == True) & (db.trait.id_trait_category == trait_category.id)
-    data = SUPERT(query, fields=['trait_option'])
+    data = Supert.SUPERT(query, fields=['trait_option'])
 
     return locals()
 

@@ -20,8 +20,11 @@
 
 @auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def index():
+    import supert
+    Supert = supert.Supert()
+
     title = T('paper sizes')
-    data = SUPERT(db.paper_size, fields=[
+    data = Supert.SUPERT(db.paper_size, fields=[
         'name', 'width', 'height'
     ], options_enabled=False, global_options=[])
 

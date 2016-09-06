@@ -42,7 +42,9 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
-    data = common_index('trait_category', ['name'], dict(options_func=lambda row: supert_default_options(row) + (OPTION_BTN('details', URL('get', args=row.id), title=T('values')),) ) )
+    import supert
+
+    data = common_index('trait_category', ['name'], dict(options_func=lambda row: supert.supert_default_options(row) + (supert.OPTION_BTN('details', URL('get', args=row.id), title=T('values')),) ) )
     return locals()
 
 

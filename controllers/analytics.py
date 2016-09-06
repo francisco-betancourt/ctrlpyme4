@@ -257,7 +257,8 @@ def monthly_analysis(query, tablename, field, month, year):
     return data_set
 
 
-def stocks_table(item):
+def stocks_table(item, Supert):
+
     def stock_row(row, fields):
         # the stock is from purchase
 
@@ -284,7 +285,7 @@ def stocks_table(item):
                 ), _target='_blank'
             )
 
-    return SUPERT(
+    return Supert.SUPERT(
         (
             (db.stock_item.id_item == item.id) &
             (db.stock_item.id_store == session.store)
@@ -319,6 +320,9 @@ def item_analysis():
         args: [id_item]
     """
 
+    import supert
+    Supert = supert.Supert()
+
     item = db.item(request.args(0))
     if not item:
         session.info = T('Item not found')
@@ -329,7 +333,7 @@ def item_analysis():
     stocks = None
     if item.has_inventory:
         existence = item_stock_qty(item, id_store=session.store)
-        stocks = stocks_table(item)
+        stocks = stocks_table(item, Supert)
 
     def out_custom_format(row, fields):
         link = ''
@@ -363,7 +367,7 @@ def item_analysis():
     # every stock removal is stored in a stock_item_removal_record
     outputs_t = None
     if item.has_inventory:
-        outputs_t = SUPERT(
+        outputs_t = Supert.SUPERT(
             (db.bag_item.id_bag == db.bag.id)
             & (db.bag_item.id_item == item.id)
             & (db.bag.id_store == session.store)
@@ -400,7 +404,7 @@ def item_analysis():
             global_options=[]
         )
     else:
-        outputs_t = SUPERT(
+        outputs_t = Supert.SUPERT(
             (db.bag_item.id_bag == db.bag.id)
             & (db.bag_item.id_item == item.id)
             & (db.bag.id_store == session.store)
@@ -433,7 +437,7 @@ def item_analysis():
             global_options=[]
         )
 
-    out_inventories_t = SUPERT(
+    out_inventories_t = Supert.SUPERT(
         (db.inventory_item.id_inventory == db.inventory.id)
         & (db.inventory_item.id_item == item.id)
         & (db.stock_item_removal.id_inventory_item == db.inventory_item.id)
@@ -544,6 +548,9 @@ def dashboard():
 
 @auth.requires_membership("Analytics")
 def index():
+    import supert
+    Supert = supert.Supert()
+
     if auth.has_membership('Admin'):
         redirect(URL('dashboard'))
 
@@ -566,7 +573,7 @@ def index():
         & (db.auth_membership.group_id == checkout_group.id)
         & (db.auth_user.registration_key == '')
     )
-    employees_data = SUPERT(
+    employees_data = Supert.SUPERT(
         employees_query,
         select_fields=[db.auth_user.ALL],
         fields=[
@@ -576,11 +583,11 @@ def index():
             ), 'email'
         ],
         options_func=lambda row : (
-            OPTION_BTN('attach_money',
+            supert.OPTION_BTN('attach_money',
                 URL('cash_out', 'create', args=row.id),
                 title=T('cash out')
             ),
-            OPTION_BTN('archive', URL('cash_out', 'index',
+            supert.OPTION_BTN('archive', URL('cash_out', 'index',
                 args=row.id), title=T('previous cash outs'))
             )
         , global_options=[], title=T("Cash out")

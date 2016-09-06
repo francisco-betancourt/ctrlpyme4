@@ -355,6 +355,8 @@ def fill():
     args: [purchase_id, current_stock_item]
 
     """
+    import supert
+    Supert = supert.Supert()
 
     purchase = db.purchase(request.args(0))
     valid_purchase(purchase)
@@ -373,12 +375,12 @@ def fill():
 
 
     def stock_item_options(row):
-        return OPTION_BTN('edit',
+        return supert.OPTION_BTN('edit',
             url=URL('fill', args=[purchase.id, row.id], vars=request.vars)
             , title=T("modify")
         )
 
-    stock_items_table = SUPERT(
+    stock_items_table = Supert.SUPERT(
         db.stock_item.id_purchase == purchase.id
         , fields=[
             dict(fields=[ 'id_item.name' ], label_as=T('Name')),
@@ -467,6 +469,9 @@ def get():
     """
         args: [purchase_id]
     """
+    import supert
+    Supert = supert.Supert()
+
     purchase = db.purchase(request.args(0))
     if not purchase:
         raise HTTP(404)
@@ -482,7 +487,7 @@ def get():
 
 
     purchase_items = db(db.stock_item.id_purchase == purchase.id).select()
-    purchase_items_table = SUPERT(
+    purchase_items_table = Supert.SUPERT(
         db.stock_item.id_purchase == purchase.id,
         fields=['id_item.name', 'purchase_qty', 'price', 'taxes'],
         options_enabled=False, searchable=False
@@ -504,13 +509,15 @@ def update():
 
 
 def purchase_options(row):
+    import supert
+
     buttons = ()
     # edit option
     if not row.is_done:
-        buttons += OPTION_BTN('edit', URL('update', args=row.id), title=T('edit')),
+        buttons += supert.OPTION_BTN('edit', URL('update', args=row.id), title=T('edit')),
     else:
-        buttons += OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
-        buttons += OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
+        buttons += supert.OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
+        buttons += supert.OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
     # buttons += supert_default_options(row)[1],
     return buttons
 

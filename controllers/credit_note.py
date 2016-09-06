@@ -30,6 +30,8 @@ def get():
 
 @auth.requires_membership('Sales returns')
 def index():
-    data = common_index('credit_note', ['subtotal', 'total', 'created_on'], supert_vars=dict(options_func=lambda row: OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_credit_note=row.id)), _target='_blank'), global_options=[] ))
+    import supert
+
+    data = common_index('credit_note', ['subtotal', 'total', 'created_on'], supert_vars=dict(options_func=lambda row: supert.OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_credit_note=row.id)), _target='_blank'), global_options=[] ))
 
     return locals()

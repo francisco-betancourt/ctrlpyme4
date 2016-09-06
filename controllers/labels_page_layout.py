@@ -21,16 +21,20 @@
 
 @auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def index():
+    import supert
+    Supert = supert.Supert()
+
     title = T('labels page layouts')
-    data = SUPERT(db.labels_page_layout, fields=[
+    data = Supert.SUPERT(db.labels_page_layout, fields=[
         'name', {
             'fields': ['label_cols', 'label_rows'],
             'label_as': T('Cols x Rows'),
             'custom_format': lambda row, fields: '%s x %s' % (row[fields[0]], row[fields[1]])
         }
-    ], options_func=lambda row : supert_default_options(row)[0], global_options=[] )
+    ], options_func=lambda row : supert.supert_default_options(row)[0], global_options=[] )
 
     return locals()
+    
 
 @auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def create():

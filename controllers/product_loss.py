@@ -123,10 +123,15 @@ def update_reason():
 
 @auth.requires_membership('Product loss')
 def index():
-    def options(row):
-        return OPTION_BTN('info', URL('get', args=row.id), title=T('details'))
+    import supert
+    Supert = supert.Supert()
 
-    data = SUPERT(
+    def options(row):
+        return supert.OPTION_BTN(
+            'info', URL('get', args=row.id), title=T('details')
+        )
+
+    data = Supert.SUPERT(
         (db.product_loss.id_store == session.store),
         fields=[
             'id_store.name', 'created_on',
@@ -140,7 +145,7 @@ def index():
 
 
     def reason_options(row):
-        options = OPTION_BTN(
+        options = supert.OPTION_BTN(
             'edit', URL('update_reason', args=row.id), title=T('update')
         )
         # if row.is_active:
@@ -154,7 +159,7 @@ def index():
 
         return options
 
-    reasons = SUPERT(
+    reasons = Supert.SUPERT(
         (db.product_loss_reason.is_active == True),
         fields=[ 'name' ], options_func=reason_options
     )
