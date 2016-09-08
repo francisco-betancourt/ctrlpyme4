@@ -156,6 +156,7 @@ def sales_for_cash_out():
                 _payment.change_amount += payment.change_amount
             sale.total_change += payment.change_amount
             sale.change += payment.change_amount
+        sale.total = sale.total - (sale.discount or 0)
         yield sale
 
     sales = sales_generator()
