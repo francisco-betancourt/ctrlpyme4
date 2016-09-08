@@ -23,8 +23,7 @@ from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor
 import bag_utils
-from item_utils import item_stock_qty, discount_data, remove_stocks
-
+import item_utils
 
 allow_out_of_stock = True
 
@@ -75,7 +74,9 @@ def modify_bag_item():
     bag_item.quantity = DQ(bag_item.quantity)
 
     if not allow_out_of_stock:
-        qty = item_stock_qty(db.item(bag_item.id_item), session.store, id_bag=session.current_bag)
+        qty = item_utils.item_stock_qty(
+            db.item(bag_item.id_item), session.store, id_bag=session.current_bag
+        )
         diff = (old_qty - bag_item.quantity) if (old_qty - bag_item.quantity) > 0 else 0
         if qty + diff < bag_item.quantity - old_qty:
             bag_item.quantity = max(old_qty, qty + old_qty)
@@ -244,13 +245,13 @@ def stock_transfer():
         bag_utils.auto_bag_selection()
         redirection()
 
-    check_bag_items_integrity(bag_items)
+    bag_utils.check_bag_items_integrity(bag_items)
 
     # create stock transfer record
     new_stock_transfer_id = db.stock_transfer.insert(id_store_from=bag.id_store.id, id_bag=bag.id)
     bag.status = BAG_COMPLETE
     bag.update_record()
-    remove_stocks(bag_items)
+    item_utils.remove_stocks(bag_items)
 
     redirect(URL('stock_transfer', 'ticket', args=new_stock_transfer_id))
 

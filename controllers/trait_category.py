@@ -52,8 +52,10 @@ def index():
 def search():
     """ args: [term] """
 
-    term = request.raw_args.split('/')[0] or ''
+    if not request.raw_args:
+        raise HTTP(404)
 
+    term = request.raw_args.split('/')[0] or ''
     match = db(db.trait_category.name.contains(term)).iterselect(
         db.trait_category.name, db.trait_category.id
     )

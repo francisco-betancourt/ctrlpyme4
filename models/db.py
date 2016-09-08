@@ -133,29 +133,29 @@ not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
 
 
 db.define_table("brand",
-    Field("name", "string", default=None, label=T('Name')),
-    Field("logo", "upload", default=None, label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field("name", "string", default="", label=T('Name')),
+    Field("logo", "upload", default="", label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     auth.signature)
 db.brand.name.requires = not_empty_requires
 
 
 db.define_table("trait_category",
-    Field("name", "string", default=None, label=T('Name')),
+    Field("name", "string", default="", label=T('Name')),
     auth.signature)
 db.trait_category.name.requires = not_empty_requires
 
 
 db.define_table("measure_unit",
-    Field("name", "string", default=None, label=T('Name')),
-    Field("symbol", "string", default=None, label=T('Symbol')),
+    Field("name", "string", default="", label=T('Name')),
+    Field("symbol", "string", default="", label=T('Symbol')),
     auth.signature)
 db.measure_unit.name.requires = not_empty_requires
 
 
 db.define_table("tax",
-    Field("name", "string", default=None, label=T('Name')),
+    Field("name", "string", default="", label=T('Name')),
     Field("percentage", "integer", default=1, label=T('Percentage')),
-    Field("symbol", "string", default=None, label=T('Symbol')),
+    Field("symbol", "string", default="", label=T('Symbol')),
     Field("tax_type", "integer", default=1, label=T('Tax Type')),
     auth.signature,
     format='%(name)s')
