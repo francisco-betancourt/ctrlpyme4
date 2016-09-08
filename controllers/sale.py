@@ -651,7 +651,17 @@ def index():
 
     data = Supert.SUPERT(
         query
-        , fields=['consecutive', 'subtotal', 'total',
+        , fields=['consecutive', 'subtotal',
+            dict(
+                fields=['discount_percentage'],
+                label_as=T('Discount percentage'),
+                custom_format=lambda r, f : "%s %%" % DQ(r[f[0]], True, True)
+            ),
+            dict(
+                fields=['total'],
+                label_as=T('total'),
+                custom_format=lambda r, f : r.total - (r.discount or 0)
+            ),
             dict(
                 fields=['last_log_event'],
                 label_as=T("Status"),
