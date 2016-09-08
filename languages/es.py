@@ -310,6 +310,7 @@
 'Discount': 'Descuento',
 'discount': 'descuento',
 'Discount added': 'Descuento agregado',
+'Discount percentage': 'Porcentaje de descuento',
 'Discounts': 'Descuentos',
 'Discounts only applicable when paid online': 'Los descuentos solo se aplican cuando se paga en línea',
 'Discounts will not be applied': 'Los descuentos no serán aplicados',
