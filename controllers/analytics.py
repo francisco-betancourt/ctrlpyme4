@@ -136,6 +136,7 @@ def sales_for_cash_out():
         for payment in payments:
             if payment.id_sale and payment.id_sale != sale:
                 if sale:
+                    sale.total = sale.total - (sale.discount or 0)
                     yield sale
                 sale = payment.id_sale
                 sale.total_change = 0
