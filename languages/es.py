@@ -1016,6 +1016,7 @@
 'Tax ID': 'R.F.C.',
 'Tax Type': 'Tipo de impuesto',
 'Taxes': 'Impuestos',
+'Tel': 'Tel',
 'test': 'probar',
 'Testing application': 'Probando aplicación',
 'Thank you for your order': 'Gracias por su orden',

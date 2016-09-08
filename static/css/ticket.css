@@ -2,7 +2,11 @@
   font-family: monospace;
   font-size: 12px;
   min-width: 2.25in;
-  padding: .5cm;
+  padding: .05cm;
+}
+
+.ticket .center {
+  text-align: center;
 }
 
 .ticket p {
