@@ -32,6 +32,20 @@ def get():
 def index():
     import supert
 
-    data = common_index('credit_note', ['subtotal', 'total', 'created_on'], supert_vars=dict(options_func=lambda row: supert.OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_credit_note=row.id)), _target='_blank'), global_options=[] ))
+    def client_format(row, fields):
+        if row.id_sale and row.id_sale.id_client:
+            return "%s %s" % (row.id_sale.id_client.first_name, row.id_sale.id_client.last_name)
+        return "--"
+
+    data = common_index(
+        'credit_note', [
+            'subtotal', 'total', 'created_on',
+            dict(
+                fields=['id_sale.id_client.first_name', 'id_sale.id_client.last_name'],
+                label_as=T('Client'),
+                custom_format=client_format
+            )
+        ], supert_vars=dict(options_func=lambda row: supert.OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_credit_note=row.id)), _target='_blank'), global_options=[] )
+    )
 
     return locals()

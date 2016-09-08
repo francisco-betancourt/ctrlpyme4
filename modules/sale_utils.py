@@ -106,7 +106,8 @@ def verify_payments(payments, sale, check_total=True):
             payment.delete_record()
         elif not common_utils.valid_account(payment):
             bad_payments = True
-    if payments_total < sale.total and check_total:
+    total = sale.total - sale.discount
+    if payments_total < sale.total - sale.discount and check_total:
         err = T('Payments amount is lower than the total')
     if bad_payments:
         err = T('Some payments requires account')
@@ -257,12 +258,12 @@ def modify_payment(sale, payment, payment_data, delete=False):
     extra_updated_payments = []
     total, change, payments = get_payments_data(sale.id)
     new_total = total - change - (payment.amount - payment.change_amount) + new_amount
-    if new_total > sale.total:
+    if new_total > (sale.total - sale.discount):
         # when the payment does not allow change, cut the amount to the exact remaining
         if not payment.id_payment_opt.allow_change:
-            new_amount -= new_total - sale.total
+            new_amount -= new_total - (sale.total - sale.discount)
     else:
-        remaining = sale.total - new_total
+        remaining = (sale.total - sale.discount) - new_total
         # when the payment modification makes the new total lower than the sale total, we have to find all the payments with change > 0 (if any) and recalculate their amount and their change
         for other_payment in payments:
             if not other_payment.id_payment_opt.allow_change or other_payment.id == payment.id:
@@ -277,7 +278,7 @@ def modify_payment(sale, payment, payment_data, delete=False):
                 other_payment.update_record()
                 extra_updated_payments.append(other_payment)
 
-    change = max(0, new_total - sale.total)
+    change = max(0, new_total - (sale.total - sale.discount))
     account = payment_data.get('account')
     wallet_code = payment_data.get('wallet_code')
     # fix payment info
@@ -302,7 +303,7 @@ def modify_payment(sale, payment, payment_data, delete=False):
         if wallet_code != payment.wallet_code:
             wallet = db(db.wallet.wallet_code == wallet_code).select().first()
             if wallet:
-                new_amount = min(wallet.balance, sale.total - new_total)
+                new_amount = min(wallet.balance, (sale.total - sale.discount) - new_total)
                 wallet.balance -= new_amount
                 wallet.update_record()
             # if the code is invalid, remove its specified value
@@ -403,8 +404,10 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
                 id_bag_item=bag_item.id, quantity=qty,
                 id_credit_note=id_new_credit_note
             )
-            subtotal += bag_item.sale_price * qty
-            total += subtotal + bag_item.sale_taxes * qty
+            sale_price = bag_item.sale_price * (1 - sale.discount_percentage / 100)
+            subtotal += sale_price * qty
+            taxes = bag_item.sale_taxes * (1 - sale.discount_percentage / 100)
+            total += subtotal + taxes * qty
 
             item_utils.reintegrate_bag_item(
                 bag_item, qty, True, 'id_credit_note', id_new_credit_note
@@ -449,6 +452,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     credit_note.subtotal = subtotal
     credit_note.total = total
     credit_note.code = wallet.wallet_code
+    credit_note.id_wallet = wallet.id
     credit_note.update_record()
 
 

@@ -4,7 +4,7 @@ from gluon import current
 def create_payment_methods():
     db = current.db
 
-    db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False)
+    db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False, requires_account=False)
     db.payment_opt.update_or_insert(db.payment_opt.name == 'stripe', name='stripe', allow_change=False)
 
 

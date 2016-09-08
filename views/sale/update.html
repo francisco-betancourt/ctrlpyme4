@@ -5,7 +5,7 @@
 {{import item_utils}}
 
 {{block left_sidebar}}
-  <h1>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></h1>
+  <h1>{{=T('Total')}} <span class="right sale-total">$ {{=DQ(sale.total - sale.discount, True)}}</span></h1>
 
   <hr>
     <h3 {{if remaining > 0:}} class="text-danger" {{pass}} id="remaining_container">
@@ -16,8 +16,14 @@
 
   <p>{{=T('Subtotal')}} <span class="right">$ {{=DQ(sale.subtotal, True)}}</span></p>
   <p>{{=T('Taxes')}} <span class="right">$ {{=DQ(sale.taxes, True)}}</span></p>
-  <p>{{=T('Total')}} <span class="right">$ {{=DQ(sale.total, True)}}</span></p>
+  <p>{{=T('Total')}} <span class="right sale-total">$ {{=DQ(sale.total - sale.discount, True)}}</span></p>
   <p>{{=T('Reward points')}} <span class="right">$ {{=DQ(sale.reward_points, True)}}</span></p>
+
+  <h4 style="margin-top: 30px;">{{=T("Discount")}}</h4>
+  <div class="input-group">
+    <input type="number" class="form-control" id="sale_discount" value="{{=DQ(sale.discount_percentage, True, True)}}">
+    <span class="input-group-addon">%</span>
+  </div>
 
   <h4 style="margin-top: 30px;">{{=T('Client')}}</h4>
   {{ if not sale.is_deferred: }}
@@ -89,6 +95,7 @@
         </div>
       </div>
 
+      {{ is_wallet_payment = is_wallet(payment_opt) }}
       <div id="proto_payment_{{=payment_opt.id}}" hidden="hidden" class="form-inline">
         <div class="input-group">
           <span class="input-group-addon">{{=T('Amount')}}</span>
@@ -100,16 +107,16 @@
             <input type="text" class="form-control change" disabled>
           </div>
         {{pass}}
-        {{if payment_opt.requires_account:}}
+        {{if payment_opt.requires_account and not is_wallet_payment:}}
           <div class="input-group">
             <span class="input-group-addon">{{=T('Account')}}</span>
             <input type="text" name="account" class="form-control account" dissabled>
           </div>
         {{pass}}
-        {{if is_wallet(payment_opt):}}
+        {{if is_wallet_payment:}}
           <div class="input-group">
             <span class="input-group-addon">{{=T('Code')}}</span>
-            <input type="text" name="wallet_code" class="form-control wallet_code" disabled>
+            <input type="text" name="wallet_code" class="form-control wallet_code">
           </div>
         {{pass}}
         {{=ICON('times', _class="delete")}}
@@ -123,6 +130,9 @@
 
 {{block page_js}}
 <script>
+  var payments_total = {{=payments_total}};
+  var sale_discount = {{=sale.discount}};
+
   // show client data wallet
   {{if sale.id_client and sale.id_client.id_wallet:}}
     $('#client_wallet_data').show();
@@ -134,6 +144,14 @@
   {{else:}}
     var client_wallet_code = null;
   {{pass}}
+
+
+  $("#sale_discount").change(function (event) {
+    info_card("{{=T('Saving...')}}");
+    var target = $(event.target);
+    window.location.href = "{{=URL('set_sale_discount', args=sale.id)}}/" + target.val();
+  });
+
 
   // client selection
   $('#client_selector').change(function (event) {
@@ -199,7 +217,7 @@
 
 
   function refresh_remaining(payments_total) {
-    new_remaining = {{=sale.total}} - payments_total;
+    new_remaining = {{=sale.total}} - sale_discount - payments_total;
     $('#remaining').text(new_remaining.toFixed(2));
     if (!new_remaining > 0) {
       // block interface

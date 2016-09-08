@@ -7,6 +7,13 @@
     {{=employee.first_name}} {{=employee.last_name}} | {{=employee.email}}
   </h4>
 
+  <h3>{{=T('Max discount')}}</h3>
+  <div class="input-group">
+    <input type="number" class="form-control" id="max_discount" value="{{=DQ(employee.max_discount, True, True)}}">
+    <span class="input-group-addon">%</span>
+  </div>
+
+
   <h3>{{=T('Stores')}}</h3>
   <ul class="list-group">
     {{for store in stores:}}
@@ -61,6 +68,25 @@
     var group_name = event.target.value;
 
     url = "{{=URL('user', 'set_access_card', args=employee.id, extension='json')}}/" + group_name
+
+    info_card('{{=T("Saving")}}...');
+
+    $.ajax({
+      url: url
+    })
+    .done(function (res) {
+      info_card('{{=T("Saved")}}', null, "success");
+    })
+    .fail(function (res) {
+      info_card('{{=T("Failed")}}', null, "error");
+    });
+  });
+
+
+  $('#max_discount').change(function (event) {
+    var target = $(event.target);
+
+    url = "{{=URL('user', 'set_employee_max_discount', args=employee.id, extension='json')}}/" + target.val()
 
     info_card('{{=T("Saving")}}...');
 

@@ -198,6 +198,10 @@ def credit_note_ticket_data(credit_note):
         DIV('%s : $ %s' % ('total', DQ(credit_note.total, True)) ),
         _id='payments_data'
     )
+    if credit_note.id_sale.discount:
+        payments_data.insert(0,
+            DIV('%s : $ %s%%' % (T('discount'), DQ(credit_note.id_sale.discount_percentage, True, True)) )
+        )
     return dict(items_list=items_list, payments_data=payments_data)
 
 
@@ -238,7 +242,9 @@ def sale_ticket(id_sale):
     payments_data = ticket_payments_data(payments, sale.is_deferred)
     totals = [ '%s : $ %s' % (T('subtotal'), DQ(sale.subtotal, True)) ]
     totals += ticket_taxes_data(taxes, taxes_percentages)
-    totals += [ '%s : $ %s' % (T('total'), DQ(sale.total, True)) ]
+    if sale.discount:
+        totals += [ '%s : %s%%' % (T('discount'), DQ(sale.discount_percentage, True, True)) ]
+    totals += [ '%s : $ %s' % (T('total'), DQ(sale.total - (sale.discount or 0), True)) ]
     total_data = ticket_total_data(totals)
 
     credit_notes_tickets = DIV()

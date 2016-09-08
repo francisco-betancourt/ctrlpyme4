@@ -83,6 +83,7 @@ auth.settings.extra_fields['auth_user'] = [
       , Field('access_card_index', 'integer', readable=False, writable=False)
       , Field('is_client', 'boolean', default=False, readable=False, writable=False)
       , Field('stripe_customer_id', default=None, readable=False, writable=False)
+      , Field('max_discount', "decimal(16,6)", default=0, readable=False, writable=False)
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -547,6 +548,10 @@ db.define_table("sale",
     Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'), readable=False, writable=False),
     Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'), readable=False, writable=False),
     Field("total", "decimal(16,6)", default=None, label=T('Total'), readable=False, writable=False),
+
+    Field("discount", "decimal(16,6)", default=0, label=T('Discount')),
+    Field("discount_percentage", "decimal(16,6)", default=0, label=T('Discount percentage')),
+
     Field("quantity", "decimal(16,6)", default=None, label=T('Quantity'), readable=False, writable=False),
     Field("reward_points", "integer", default=None, label=T('Reward Points'), readable=False, writable=False),
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
@@ -558,7 +563,8 @@ db.define_table("sale",
     Field("is_deferred", "boolean", default=False, writable=False, readable=False),
     Field("last_log_event", label=T('Last event')),
     Field("last_log_event_date", 'datetime', label=T('Last event date')),
-    auth.signature)
+    auth.signature
+)
 db.sale.id_client.requires = IS_EMPTY_OR(IS_IN_DB(db((db.auth_user.is_client == True) & (db.auth_user.registration_key == "")), 'auth_user.id', '%(email)s'))
 
 
@@ -574,6 +580,7 @@ db.define_table("credit_note",
     Field("total", "decimal(16,6)", default=None, label=T('Total')),
     Field("is_usable", "boolean", default=None, label=T('Is usable')),
     Field("code", "string", default=None, label=T('Code')),
+    Field("id_wallet", "reference wallet", default=None, label=T('wallet')),
     auth.signature)
 
 db.define_table("credit_note_item",

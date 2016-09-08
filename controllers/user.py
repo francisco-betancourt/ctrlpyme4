@@ -145,6 +145,26 @@ def get_employee():
 
 
 @auth.requires_membership('Admin config')
+def set_employee_max_discount():
+    employee = db.auth_user(request.args(0))
+    if not employee or employee.id == auth.user.id:
+        raise HTTP(404)
+
+    discount = 0
+    try:
+        discount = D(request.args(1))
+        discount = min(max(0, discount), 100)
+    except:
+        raise HTTP(405, T("Invalid amount"))
+
+    employee.max_discount = discount
+    employee.update_record()
+
+    return locals()
+
+
+
+@auth.requires_membership('Admin config')
 def remove_employee_membership():
     """
         args: [id_user, group_name]
@@ -279,13 +299,13 @@ def clients():
 
     title = T('clients')
     def client_options(row):
-        edit_btn = OPTION_BTN(
+        edit_btn = supert.OPTION_BTN(
             'edit', URL('update_client', args=row.id), title=T('edit')
         )
         icon_name = 'thumb_down'
         if row.registration_key == 'blocked':
             icon_name = 'thumb_up'
-        ban_btn = OPTION_BTN(
+        ban_btn = supert.OPTION_BTN(
             icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), title=T('ban')
         )
         return edit_btn, ban_btn
