@@ -94,6 +94,10 @@ def get_employee():
 
     permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW].cards()
 
+    groups = db(
+        user_utils.extra_roles_query(employee, COMPANY_WORKFLOW)
+    ).iterselect()
+
     return locals()
 
 
@@ -124,12 +128,17 @@ def remove_employee_membership():
     """
 
     employee = db.auth_user(request.args(0))
-    group = db(db.auth_group.role == request.args(1).replace('_', ' ')).select().first()
+    group = db(
+        db.auth_group.role == request.args(1).replace('_', ' ')
+    ).select().first()
 
     if not employee or not group:
         raise HTTP(404)
     if employee.id == auth.user.id:
         redirect(URL('default', 'index'))
+
+    if group.role in user_utils.static_roles_list(employee, COMPANY_WORKFLOW):
+        raise HTTP(405)
 
     db((db.auth_membership.group_id == group.id)
      & (db.auth_membership.user_id == employee.id)
@@ -145,12 +154,17 @@ def add_employee_membership():
     """
 
     employee = db.auth_user(request.args(0))
-    group = db(db.auth_group.role == request.args(1).replace('_', ' ')).select().first()
+    group = db(
+        db.auth_group.role == request.args(1).replace('_', ' ')
+    ).select().first()
 
     if not employee or not group:
         raise HTTP(404)
     if employee.id == auth.user.id:
         redirect(URL('default', 'index'))
+
+    if group.role in user_utils.static_roles_list(employee, COMPANY_WORKFLOW):
+        raise HTTP(405)
 
     db.auth_membership.insert(user_id=employee.id, group_id=group.id)
 

@@ -48,6 +48,7 @@ if auth.has_membership('Safe config') or auth.has_membership('Config'):
         , (T('Highlights'), False, URL('highlight', 'index'), None)
     ]
 
+if config_menu_items:
     response.menu += [(T('Configuration'),False,None, config_menu_items)]
 
 # items menu

@@ -61,6 +61,27 @@
 </form>
 
 
+<h1>{{=T('Extra roles')}}</h1>
+<div class="extra-roles">
+  <div class="list-group base-color-text">
+
+    {{ for group in groups: }}
+      <a href="#" class="list-group-item" style="display: flex">
+        <input type="checkbox"
+          {{if auth.has_membership(group.id, employee.id):}} checked="True" {{pass}}
+          value="{{=group.role}}"
+        >
+        <div style="padding-left: 24px">
+          <h4 class="list-group-item-heading">{{=T(group.role)}}</h4>
+          <p class="list-group-item-text">{{=T(group.description)}}</p>
+        </div>
+      </a>
+    {{ pass }}
+
+  </div>
+</div>
+
+
 
 
 <script>

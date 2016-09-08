@@ -30,14 +30,14 @@ def create_groups():
         , "Inventories": "Create and apply inventories"
         , "Purchases": "Make Purchases"
         , "Items info": "Modify basic item information"
-        , "Items management": "Modify brands, categories, hide and show items and create promotions, item drops (lost or damaged items), create items"
+        , "Items management": "Modify brands, categories, hide and show items and create promotions, create items"
         , "Items prices": "Allows item price modification"
 
         , "Sales bags": "Bag creation and modification"
         , "Sales checkout": "Users in this group will be able to create a sale, register money income"
         , "Sales delivery": "Allows the modification of stocks and serial number capture for sold items"
         , "Sales invoices": "Invoice creation and cancellation, folios management"
-        , "Sales returns": "Items returns"
+        , "Sales returns": "Items returns, create credit notes"
 
         , "Clients": "Member of this group are clients"
         , "Page layout": "Menus, pages, colors, logo and visual configuration"
@@ -51,17 +51,20 @@ def create_groups():
         , 'Accounts payable': 'Settle payable accounts'
         , 'Accounts receivable': 'Settle receivable accounts'
 
-        , 'Highlights': 'Create an edit highlighted things'
+        , 'Highlights': 'Create and edit highlighted things'
 
         , 'Config': 'App configuration'
-        , 'Safe config': 'Non critical app configuration '
+        , 'Safe config': 'Non critical app configuration, like logo, page colors, ticket footer, cash out time interval '
         , 'Admin config': 'Critical configuration only for admin '
         , "Clients management": "Create, ban and unban clients"
         , 'Product loss': 'Create product losses'
-        , 'Cash out': 'Create cash outs'
+        , 'Cash out': 'Create and view cash outs'
     }
     for key in new_groups.iterkeys():
-        if db(db.auth_group.role == key).select().first():
+        group = db(db.auth_group.role == key).select().first()
+        if group:
+            group.description = new_groups[key]
+            group.update_record()
             continue
         auth.add_group(key, new_groups[key])
 

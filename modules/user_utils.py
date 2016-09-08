@@ -66,3 +66,41 @@ def update_employees_access_cards():
             import traceback as tb
             tb.print_exc()
             continue
+
+
+def static_roles_list(user, company_workflow):
+    """ This is the list of roles that can't be changed using the single role
+        add / remove
+    """
+
+    roles = [
+        'Admin',
+        'Admin config',
+        'Employee',
+        'Clients',
+        'Config',
+        'Manager',
+        'Analytics',
+        'Cash out',
+        'Sales bags',
+        'Sales delivery',
+        'Sales checkout',
+        'Page layout',
+    ]
+    current_card = constants.WORKFLOW_DATA[company_workflow].card(
+        user.access_card_index
+    )
+    for role in current_card.groups():
+        roles.append(role)
+
+    return roles
+
+
+def extra_roles_query(user, company_workflow):
+    db = current.db
+
+    query = (db.auth_group.role.like('Store%'))
+    for role in static_roles_list(user, company_workflow):
+        query |= db.auth_group.role == role
+
+    return ~(query)
