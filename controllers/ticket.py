@@ -24,11 +24,17 @@ import item_utils
 
 
 def ticket_store_data(store):
-    store_data = P()
+    store_data = DIV(_class="store-data")
     if store:
-        store_data.append(T('Store') + ': %s' % store.name)
-        store_data.append(BR())
-        store_data.append("%s %s %s %s %s %s %s %s" % (
+        store_data.append(P(T('Store') + ': %s' % store.name))
+        if store.phone_number_1:
+            store_data.append(P(T('Tel') + ': %s' % store.phone_number_1))
+        if store.phone_number_2:
+            store_data.append(P(T('Tel') + ': %s' % store.phone_number_2))
+        if store.email:
+            store_data.append(P(T('Email') + ': %s' % store.email))
+
+        store_data.append(P("%s %s %s %s %s %s %s %s" % (
             store.id_address.street
             , store.id_address.exterior
             , store.id_address.interior
@@ -37,7 +43,7 @@ def ticket_store_data(store):
             , store.id_address.municipality
             , store.id_address.state_province
             , store.id_address.country
-        ))
+        )))
     return store_data
 
 
@@ -171,10 +177,18 @@ def mini_ticket_format(title, content=None, barcode="", date=None):
     )
 
 
-def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None):
+def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None, user=None, author=None):
+
+    user = P("%s: %s" % (T("Client"), user), _class="center") if user else ""
+    author = P("%s: %s" % (T("Created by"), author), _class="center") if author else ""
+
     return DIV(
         P(IMG(_class="logo", _src=COMPANY_LOGO_URL)),
-        DIV(P(COMPANY_NAME), P(title), P(date), _class="right head"),
+        H2(COMPANY_NAME, _class="center"),
+        H4(title, _class="center"),
+        P(date, _class="center"),
+        author,
+        user,
         content,
         store_data,
         P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
@@ -265,12 +279,25 @@ def sale_ticket(id_sale):
                 date=credit_note.created_on
             ))
 
+    client = None
+    if sale.id_client:
+        client = "%s %s <%s>" % (
+            sale.id_client.first_name, sale.id_client.last_name,
+            sale.id_client.email
+        )
+    author = None
+    if sale.created_by:
+        author = "%s %s <%s>" % (
+            sale.created_by.first_name,
+            sale.created_by.last_name, sale.created_by.email
+        )
+
     return ticket_format(store_data, T('Sale'),
         DIV(
             DIV(items_list, total_data, payments_data),
             credit_notes_tickets
         ),
-        "%010d" % sale.id, '', date=sale.modified_on
+        "%010d" % sale.id, '', date=sale.modified_on, user=client, author=author
     )
 
 
