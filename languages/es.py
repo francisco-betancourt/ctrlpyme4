@@ -202,6 +202,7 @@
 'client': 'cliente',
 'Client IP': 'IP del Cliente',
 'Clients': 'Clientes',
+'clients': 'clients',
 'Close': 'Cerrar',
 'COD': 'COD',
 'code': 'código',

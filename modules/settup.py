@@ -56,6 +56,7 @@ def create_groups():
         , 'Config': 'App configuration'
         , 'Safe config': 'Non critical app configuration '
         , 'Admin config': 'Critical configuration only for admin '
+        , "Clients management": "Create, ban and unban clients"
         , 'Product loss': 'Create product losses'
         , 'Cash out': 'Create cash outs'
     }
