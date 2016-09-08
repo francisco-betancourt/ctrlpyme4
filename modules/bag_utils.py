@@ -27,9 +27,9 @@ from uuid import uuid4
 from gluon.storage import Storage
 
 from common_utils import *
-from constants import BAG_ACTIVE, BAG_COMPLETE, BAG_FOR_ORDER, BAG_ORDER_COMPLETE
 import item_utils
-from item_utils import item_discounts, item_barcode, item_stock_qty
+
+from constants import BAG_ACTIVE, BAG_COMPLETE, BAG_FOR_ORDER, BAG_ORDER_COMPLETE
 
 from cp_errors import *
 
@@ -69,7 +69,7 @@ def add_bag_item(bag, item, quantity=None, sale_price=None):
 
     # when quantity is not specified, avoid stock checking (the API user knows what he is doing)
     if not quantity:
-        stock_qty = item_stock_qty(item, bag.id_store, id_bag=bag.id)
+        stock_qty = item_utils.item_stock_qty(item, bag.id_store, id_bag=bag.id)
         if item.has_inventory:
             stock_qty = DQ(stock_qty)
 
@@ -86,7 +86,7 @@ def add_bag_item(bag, item, quantity=None, sale_price=None):
             item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
             if tax != item.taxes[-1]:
                 item_taxes_str += ','
-        discounts = item_discounts(item)
+        discounts = item_utils.item_discounts(item)
         sale_price = item_utils.discount_data(discounts, sale_price)[0]
         discount = item.base_price - sale_price
         id_bag_item = db.bag_item.insert(
@@ -205,7 +205,9 @@ def out_of_stock_items_exists(bag_items, allow_out_of_stock):
         return False
 
     for bag_item in bag_items:
-        qty = item_stock_qty(bag_item.id_item, bag_item.id_bag.id_store.id)
+        qty = item_utils.item_stock_qty(
+            bag_item.id_item, bag_item.id_bag.id_store.id
+        )
         if bag_item.quantity > qty:
             return True
 
@@ -223,7 +225,7 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
         # delete bag item when the item has 0 quantity
         if bag_item.quantity <= 0:
             db(db.bag_item.id == bag_item.id).delete()
-        qty = item_stock_qty(bag_item.id_item, session.store)
+        qty = item_utils.item_stock_qty(bag_item.id_item, session.store)
         if bag_item.quantity > qty and not allow_out_of_stock:
             out_of_stock_items.append(bag_item)
     if out_of_stock_items and auth.has_membership('Employee'):
@@ -303,6 +305,8 @@ def set_bag_item(bag_item, discounts=None):
 
     item = bag_item.id_item
 
+    bag_item.product_name = item.name + " " + item_utils.concat_traits(item)
+
     # stores the price without discounts
     real_price = bag_item.sale_price + (bag_item.discount or 0)
     # discount percentage
@@ -326,8 +330,8 @@ def set_bag_item(bag_item, discounts=None):
 
     bag_item.measure_unit = item.id_measure_unit.symbol
 
-    bag_item.barcode = item_barcode(item)
-    bag_item.stock = item_stock_qty(item, session.store)
+    bag_item.barcode = item_utils.item_barcode(item)
+    bag_item.stock = item_utils.item_stock_qty(item, session.store)
     bag_item.has_inventory = item.has_inventory
     bag_item.discount_percentage = int(discount_p * D(100.0))
     bag_item.real_price = bag_item.sale_price
@@ -346,7 +350,10 @@ def bag_selection_return_format(bag):
         real_total += bag_item.price_no_discount
     quantity = DQ(bag.quantity, True, True)
 
-    return dict(bag=bag, bag_items=bag_items, subtotal=bag.subtotal, total=bag.total, taxes=bag.taxes, quantity=quantity, real_total=real_total)
+    return dict(
+        bag=bag, bag_items=bag_items, subtotal=bag.subtotal, total=bag.total,
+        taxes=bag.taxes, quantity=quantity, real_total=real_total
+    )
 
 
 def get_valid_bag(id_bag, completed=False):

@@ -580,15 +580,23 @@ def search_item_query(str_term, category):
     return query
 
 
-def composed_name_data(item):
-    """ Returns extra data that can be added to the item name """
-
+def concat_traits(item):
     c_name = ""
 
     if item.traits:
         for trait in item.traits:
             c_name += ' ' + trait.trait_option
-    elif item.description:
+
+    return c_name
+
+
+def composed_name_data(item):
+    """ Returns extra data that can be added to the item name """
+
+    c_name = ""
+
+    c_name = concat_traits(item)
+    if not c_name and item.description:
         c_name += item.description[:10]
         if len(item.description) > 10:
             c_name += '...'
