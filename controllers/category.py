@@ -86,13 +86,16 @@ def delete():
 
 @auth.requires_membership('Items management')
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def category_options(row):
-        update_btn, hide_btn = supert_default_options(row)
-        return update_btn, hide_btn, OPTION_BTN('details', URL('index', args=row.id), title=T('subcategories'))
+        update_btn, hide_btn = supert.supert_default_options(row)
+        return update_btn, hide_btn, supert.OPTION_BTN('details', URL('index', args=row.id), title=T('subcategories'))
     query = db.category.parent == request.args(0)
     if not request.vars.show_hidden == 'yes':
         query &= db.category.is_active == True
 
     request.vars.orderby = 'name'
-    data = SUPERT(query, fields=['name'], options_func=category_options)
+    data = Supert.SUPERT(query, fields=['name'], options_func=category_options)
     return locals()

@@ -61,17 +61,23 @@ def delete():
 
 @auth.requires_membership('Config')
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def store_options(row):
-        update_btn, hide_btn = supert_default_options(row)
-        return update_btn, hide_btn, OPTION_BTN('vpn_key', URL('seals', args=row.id),title=T('upload seals'))
+        update_btn, hide_btn = supert.supert_default_options(row)
+        return update_btn, hide_btn, supert.OPTION_BTN(
+            'vpn_key', URL('seals', args=row.id),title=T('upload seals')
+        )
     title = T('stores')
-    data = SUPERT(db.store, fields=[
+    data = Supert.SUPERT(db.store, fields=[
         'name', {
             'fields': ['id_address.street', 'id_address.exterior'],
             'label_as': T('Address')
         }
     ], options_func=store_options)
     return locals()
+
 
 def read_certificate(certificate):
     """Read a certificate number and returns its base64 representation"""
@@ -93,7 +99,7 @@ def change_encoded_name_extension(filename,new_extension,table,field):
 	new_filename=b16decode(coded_name[3].upper())[:-4]+new_extension
 	return table+"."+field+"."+coded_name[2]+"."+b16encode(new_filename).lower()+new_extension
 
-def clean_up_private_key(store_id,files_to_delete):    
+def clean_up_private_key(store_id,files_to_delete):
     sdel_command="from sh import %s as sdel"%CONF.take('secure_delete.sdel')
     exec(sdel_command)
     for delete in files_to_delete:
@@ -148,7 +154,7 @@ def check_key_cert_match(path_key,path_cer,key_pass):
 def validate_private_key(form):
     """Validate private key"""
     #If no private key is included there's nothing to do
-    if form.vars.private_key==None or form.vars.private_key=="":    
+    if form.vars.private_key==None or form.vars.private_key=="":
         return
     #If the private_key is a string it's already read, if the private key is PEM skip
     elif isinstance(form.vars.private_key,str) and form.vars.private_key[-3:]=='pem':
@@ -175,7 +181,7 @@ def validate_private_key(form):
         #Save the new path to the key
         db(db.store.id==form.vars.id).update(private_key=path_crypt)
         #Now lets check if the certificate and the key match
-        if not check_key_cert_match(path_crypt,path_cer,new_pass): 
+        if not check_key_cert_match(path_crypt,path_cer,new_pass):
             session.flash=T("The certificate doesn't match the key file")
             clean_up_private_key(form.vars.id,[path_cer,path_key,path_pem,path_crypt])
             redirect(URL('store','index'))
@@ -213,7 +219,7 @@ def validate_certificate(form):
         return
     form.vars.certificate_number=cert_number
     form.vars.certificate_base64=cert64
-    
+
 
 @auth.requires_membership('Config')
 def seals():

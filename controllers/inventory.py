@@ -45,12 +45,15 @@ def create():
 def fill():
     """ args [ id_inventory, id_inventory_item ] """
 
+    import supert
+    Supert = supert.Supert()
+
     inventory = db.inventory(request.args(0))
     is_partial = inventory.is_partial
     is_valid_inventory(inventory)
 
     def inventory_item_options(row):
-        return OPTION_BTN('edit', URL('fill', args=[inventory.id, row.id], vars=request.vars))
+        return supert.OPTION_BTN('edit', URL('fill', args=[inventory.id, row.id], vars=request.vars))
 
     inventory_item = None
     if request.args(1):
@@ -59,7 +62,7 @@ def fill():
             & (db.inventory_item.id_inventory == inventory.id)
         ).select().first()
 
-    inventory_items_table = SUPERT(
+    inventory_items_table = Supert.SUPERT(
         (db.inventory_item.id_inventory == inventory.id)
         , fields=['id_item.name', 'system_qty',
             dict(
@@ -153,6 +156,9 @@ def get():
         args [ id_inventory ]
     """
 
+    import supert
+    Supert = supert.Supert()
+
     inventory = db.inventory(request.args(0))
     if not inventory.is_done:
         raise HTTP(405, T("Inventory is not done"))
@@ -169,7 +175,7 @@ def get():
         elif row.physical_qty > row.system_qty:
             return I(_class='status-circle bg-success'), SPAN(row[f[0]]), diff,
 
-    data = SUPERT(
+    data = Supert.SUPERT(
         db.inventory_item.id_inventory == inventory.id
         , fields=[
             'id_item.name',
@@ -411,14 +417,16 @@ def delete():
 
 
 def inventory_options(row):
+    import supert
+
     buttons = ()
     # edit option
     if not row.is_done:
-        buttons += OPTION_BTN('edit', URL('fill', args=row.id), title=T('edit')),
-        buttons += OPTION_BTN('delete', URL('delete', args=row.id), title=T('delete')),
+        buttons += supert.OPTION_BTN('edit', URL('fill', args=row.id), title=T('edit')),
+        buttons += supert.OPTION_BTN('delete', URL('delete', args=row.id), title=T('delete')),
     else:
-        buttons += OPTION_BTN('undo', URL('undo', args=row.id), title=T('undo')),
-        buttons += OPTION_BTN('assignment', URL('get', args=row.id), title=T('details')),
+        buttons += supert.OPTION_BTN('undo', URL('undo', args=row.id), title=T('undo')),
+        buttons += supert.OPTION_BTN('assignment', URL('get', args=row.id), title=T('details')),
     return buttons
 
 

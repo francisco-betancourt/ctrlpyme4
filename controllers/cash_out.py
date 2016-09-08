@@ -112,6 +112,9 @@ def index():
         args: [seller_id]
     """
 
+    import supert
+    Supert = supert.Supert()
+
     seller = db.auth_user(request.args(0))
     if not seller:
         raise HTTP(404)
@@ -119,7 +122,7 @@ def index():
         raise HTTP(404)
 
     def cash_out_options(row):
-        options = OPTION_BTN(
+        options = supert.OPTION_BTN(
             'assignment', URL('analytics', 'sales_for_cash_out', args=row.id),
             title=T('details')
         )
@@ -149,7 +152,7 @@ def index():
     elif status == 'ok':
         query &= db.cash_out.sys_cash == db.cash_out.cash
 
-    data = SUPERT(
+    data = Supert.SUPERT(
         query
         , fields=[
             'start_date', 'end_date', 'sys_cash', 'cash', 'is_done',

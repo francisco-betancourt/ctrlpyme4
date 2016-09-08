@@ -206,10 +206,47 @@ def update():
             payment.delete_record()
             continue
         payments_total += payment.amount - payment.change_amount
-    remaining = sale.total - payments_total
+    remaining = sale.total - sale.discount - payments_total
     payments = db(db.payment.id_sale == sale.id).select()
 
     return locals()
+
+
+@auth.requires_membership('Sales checkout')
+def set_sale_discount():
+    """ Set the total sale discount """
+    sale = db.sale(request.args(0))
+    valid_sale(sale)
+    # we cannot modify defered sale or online purchased bag
+    if sale.is_deferred or sale.id_bag.is_paid:
+        raise HTTP(405)
+
+    discount = 0
+    try:
+        discount = D(request.args(1))
+        if not auth.has_membership("VIP seller"):
+            discount = min(discount, auth.user.max_discount)
+        discount = min(max(0, discount), 100)
+    except:
+        raise HTTP(405, "Invalid amount")
+
+    sale.discount_percentage = discount
+    sale.discount = sale.total * discount / 100
+    sale.update_record()
+
+    sale.total -= sale.discount
+
+    # remove all payments
+    for payment in db(db.payment.id_sale == sale.id).iterselect():
+        sale_utils.modify_payment(sale, payment, {}, True)
+
+    redirect(URL('sale', 'update', args=sale.id))
+
+    return dict(
+        sale_total=sale.total, sale_discount=discount,
+        sale_discount_percentage=sale.discount_percentage
+    )
+
 
 
 @auth.requires_membership('Sales checkout')
@@ -584,13 +621,18 @@ def refund():
 
 @auth.requires_membership("Sales invoices")
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def sale_options(row):
         buttons = ()
         if row.is_deferred or not row.last_log_event:
-            buttons += OPTION_BTN(
+            buttons += supert.OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),
-        buttons += OPTION_BTN('receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'), OPTION_BTN('description', URL('invoice', 'create')),
+        buttons += supert.OPTION_BTN(
+            'receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'
+            ), supert.OPTION_BTN('description', URL('invoice', 'create')),
         return buttons
 
     def status_format(r, f):
@@ -598,15 +640,34 @@ def index():
             return A(T(r[f[0]]), _href=URL('index', vars=dict(term_0=r[f[0]]) ))
         return '???'
 
-    data = SUPERT(
-        (db.sale.id_store == session.store)
+    query = (db.sale.id_store == session.store)
+    if not auth.has_membership('Admin config'):
+        query &= db.sale.created_by == auth.user.id
+
+    def user_format(r, f):
+        if r[f[0]]:
+            return "%s %s" % (r[f[0]].first_name, r[f[0]].last_name)
+        return "--"
+
+    data = Supert.SUPERT(
+        query
         , fields=['consecutive', 'subtotal', 'total',
             dict(
                 fields=['last_log_event'],
                 label_as=T("Status"),
                 custom_format=status_format
             ),
-            'created_on'
+            dict(
+                fields=['id_client'],
+                label_as=T('Client'),
+                custom_format=user_format
+            ),
+            'created_on',
+            dict(
+                fields=['created_by'],
+                label_as=T('Created by'),
+                custom_format=user_format
+            )
         ],
         options_func=sale_options, global_options=[])
     return locals()

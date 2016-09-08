@@ -36,8 +36,15 @@ def settle():
 
 @auth.requires_membership('Accounts payable')
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def ar_options(row):
-        return OPTION_BTN('receipt', URL('purchase', 'get', args=row.id_purchase.id), title=T('view')), OPTION_BTN('done', URL('settle', args=row.id), title=T('settle'))
-    data = SUPERT(db.account_payable.is_settled == False,
+        return supert.OPTION_BTN(
+            'receipt', URL('purchase', 'get', args=row.id_purchase.id), title=T('view')
+            ), supert.OPTION_BTN(
+                'done', URL('settle', args=row.id), title=T('settle')
+            )
+    data = Supert.SUPERT(db.account_payable.is_settled == False,
         fields=['id_purchase', 'epd'], options_func=ar_options)
     return locals()

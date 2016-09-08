@@ -144,14 +144,17 @@ def dates_custom_format(row, subfields):
 
 @auth.requires_membership('Offers')
 def index():
+    import supert
+    Supert = supert.Supert()
+
     def offer_options(row):
-        return supert_default_options(row) + (OPTION_BTN('local_offer', URL('fill', args=row.id), title=T("modify discounts")), )
+        return supert.supert_default_options(row) + (supert.OPTION_BTN('local_offer', URL('fill', args=row.id), title=T("modify discounts")), )
 
     title = T('offer groups')
     offers_query = (db.offer_group.is_active == True)
     if not auth.has_membership('Admin'):
         offers_query &= db.offer_group.id_store == session.store
-    data = SUPERT(offers_query, fields=[
+    data = Supert.SUPERT(offers_query, fields=[
         'name', 'starts_on', 'ends_on'
     ], options_func=offer_options)
 

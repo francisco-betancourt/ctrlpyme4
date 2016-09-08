@@ -23,6 +23,8 @@ from datetime import date
 from gluon.storage import Storage
 from item_utils  import *
 import item_utils
+import supert
+
 
 
 def categories_tree_html(categories, item=None):
@@ -503,11 +505,16 @@ def item_options(row):
     buttons = ()
     if auth.has_membership('Items info') or auth.has_membership('Items prices') or auth.has_membership('Items management'):
         _vars = {'is_bundle': True} if row.is_bundle else {}
-        buttons += OPTION_BTN('edit', URL('update', args=row.id, vars=_vars), title=T('edit')),
+        buttons += supert.OPTION_BTN(
+            'edit', URL('update', args=row.id, vars=_vars), title=T('edit')
+        ),
     # hide button
     if auth.has_membership('Items management'):
-        buttons += supert_default_options(row)[1],
-    buttons += OPTION_BTN('shopping_basket', _onclick="add_bag_item(%s);" % row.id, title=T('add to bag')),
+        buttons += supert.supert_default_options(row)[1],
+    buttons += supert.OPTION_BTN(
+        'shopping_basket', _onclick="add_bag_item(%s);" % row.id,
+        title=T('add to bag')
+    ),
 
     return buttons
 
@@ -531,7 +538,11 @@ def index():
     if request.vars.show_hidden == 'yes':
         query = (db.item.id > 0)
 
-    data = SUPERT(query, fields=fields, options_func=item_options, global_options=[visibility_g_option()])
+    Supert = supert.Supert()
+    data = Supert.SUPERT(
+        query, fields=fields, options_func=item_options,
+        global_options=[supert.visibility_g_option()]
+    )
 
     return locals()
 

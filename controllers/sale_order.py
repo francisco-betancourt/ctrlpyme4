@@ -252,6 +252,9 @@ def ready():
         args [order_id]
     """
 
+    import supert
+    Supert = supert.Supert()
+
     order = db.sale_order(request.args(0))
     if not order:
         raise HTTP(404)
@@ -271,7 +274,7 @@ def ready():
             return I(_class='status-circle bg-danger'), SPAN(T('no')),
 
     global_data = {'is_ready': True}
-    data = SUPERT(
+    data = Supert.SUPERT(
         db.bag_item.id_bag == order.id_bag.id
         , fields=['product_name', 'quantity',
             dict(
@@ -316,16 +319,18 @@ def delete():
 
 @auth.requires_membership('Sale orders')
 def index():
+    import supert
+    Supert = supert.Supert()
 
     def order_options(row):
         buttons = ()
         if row.is_for_defered_sale:
-            buttons += OPTION_BTN(
+            buttons += supert.OPTION_BTN(
                 'receipt', URL(
                     'ticket', 'show_ticket', vars=dict(id_sale=row.id_sale)
                 ), _target='_blank'
             ),
-        buttons += OPTION_BTN(
+        buttons += supert.OPTION_BTN(
             'playlist_add_check', URL('sale_order', 'ready', args=row.id)
         ),
 
@@ -333,7 +338,7 @@ def index():
 
 
     q = (db.sale_order.id_store == session.store) & (db.sale_order.is_active == True) & (db.sale_order.is_ready == False)
-    data = SUPERT(q,
+    data = Supert.SUPERT(q,
         fields=['is_ready', 'is_for_defered_sale', 'created_on'],
         options_func=order_options , global_options=[],
         searchable=False

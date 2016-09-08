@@ -61,6 +61,9 @@ def common_undelete(table_name, args, _vars=None):
 def common_index(table_name, fields=None, supert_vars=None):
     """
     """
+    import supert
+    Supert = supert.Supert()
+
     if fields is None:
         fields = []
     if supert_vars is None:
@@ -68,4 +71,6 @@ def common_index(table_name, fields=None, supert_vars=None):
 
     show_hidden = request.vars.show_hidden == 'yes'
     query = db[table_name].is_active == True if not show_hidden else db[table_name].id > 0
-    return SUPERT(query, [db[table_name].ALL], fields=fields, **supert_vars)
+    return Supert.SUPERT(
+        query, [db[table_name].ALL], fields=fields, **supert_vars
+    )

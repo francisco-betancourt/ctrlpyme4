@@ -37,9 +37,12 @@ def profile():
 
 @auth.requires_membership('Clients')
 def client_profile():
-    orders_data = SUPERT(db.sale_order.id_client == auth.user.id,
+    import supert
+    Supert = supert.Supert()
+
+    orders_data = Supert.SUPERT(db.sale_order.id_client == auth.user.id,
         fields=['id', 'is_ready'], searchable=False,
-        options_func=lambda r: OPTION_BTN('receipt', URL('ticket', 'get', vars=dict(id_bag=r.id_bag.id)), title=T('ticket') )
+        options_func=lambda r: supert.OPTION_BTN('receipt', URL('ticket', 'get', vars=dict(id_bag=r.id_bag.id)), title=T('ticket') )
     )
     wallet_balance = 0
     if auth.user.id_wallet:
@@ -139,6 +142,26 @@ def get_employee():
     permission_cards = WORKFLOW_DATA[COMPANY_WORKFLOW].cards()
 
     return locals()
+
+
+@auth.requires_membership('Admin config')
+def set_employee_max_discount():
+    employee = db.auth_user(request.args(0))
+    if not employee or employee.id == auth.user.id:
+        raise HTTP(404)
+
+    discount = 0
+    try:
+        discount = D(request.args(1))
+        discount = min(max(0, discount), 100)
+    except:
+        raise HTTP(405, T("Invalid amount"))
+
+    employee.max_discount = discount
+    employee.update_record()
+
+    return locals()
+
 
 
 @auth.requires_membership('Admin config')
@@ -271,21 +294,24 @@ def ban():
 def clients():
     """ List of clients """
 
+    import supert
+    Supert = supert.Supert()
+
     title = T('clients')
     def client_options(row):
-        edit_btn = OPTION_BTN(
+        edit_btn = supert.OPTION_BTN(
             'edit', URL('update_client', args=row.id), title=T('edit')
         )
         icon_name = 'thumb_down'
         if row.registration_key == 'blocked':
             icon_name = 'thumb_up'
-        ban_btn = OPTION_BTN(
+        ban_btn = supert.OPTION_BTN(
             icon_name, URL('ban', args=row.id, vars=dict(_next=URL('user', 'clients'))), title=T('ban')
         )
         return edit_btn, ban_btn
 
     query = (db.auth_user.is_client == True)
-    data = SUPERT(
+    data = Supert.SUPERT(
         query, [db.auth_user.ALL], fields=[
             'first_name', 'last_name', 'email',
             dict(
@@ -302,18 +328,21 @@ def clients():
 def index():
     """ List of employees """
 
+    import supert
+    Supert = supert.Supert()
+
     title = T('employees')
     def employee_options(row):
-        options = OPTION_BTN(
+        options = supert.OPTION_BTN(
             'edit', URL('get_employee', args=row.id), title=T('edit')
         )
         if row.registration_key == '':
-            options += OPTION_BTN(
+            options += supert.OPTION_BTN(
                 'visibility_off', URL('delete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))),
                 title=T('hide')
             )
         else:
-            options += OPTION_BTN(
+            options += supert.OPTION_BTN(
                 'visibility', URL('undelete', args=row.id, vars=dict(_next=URL('user', 'index', vars=request.vars))),
                 title=T('show')
             )
@@ -328,7 +357,7 @@ def index():
     if request.vars.show_hidden != 'yes':
         query &= db.auth_user.registration_key == ''
 
-    data = SUPERT(
+    data = Supert.SUPERT(
         query,
         [db.auth_user.ALL],
         select_args=dict(distinct=db.auth_user.id),
