@@ -224,7 +224,7 @@ def set_sale_discount():
     discount = 0
     try:
         discount = D(request.args(1))
-        if not auth.has_membership("VIP seller"):
+        if not auth.has_membership("Manager"):
             discount = min(discount, auth.user.max_discount)
         discount = min(max(0, discount), 100)
     except:

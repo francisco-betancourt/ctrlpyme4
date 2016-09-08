@@ -32,11 +32,14 @@ if auth.has_membership('Config'):
         (T('Settings'), False, URL('settings', 'update_main'), None)
         , (T('Stores'), False, URL('store', 'index'), None)
         , (T('Employees'), False, URL('user', 'index'), None)
-        , (T('Clients'), False, URL('user', 'clients'), None)
         , (T('Addresses'), False, URL('address', 'index'), None)
         , (T('Payment Options'), False, URL('payment_opt', 'index'), None)
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
+    ]
+if auth.has_membership('Clients management'):
+    config_menu_items += [
+        (T('Clients'), False, URL('client', 'index'), None)
     ]
 if auth.has_membership('Safe config') or auth.has_membership('Config'):
     config_menu_items += [
@@ -45,6 +48,7 @@ if auth.has_membership('Safe config') or auth.has_membership('Config'):
         , (T('Highlights'), False, URL('highlight', 'index'), None)
     ]
 
+if config_menu_items:
     response.menu += [(T('Configuration'),False,None, config_menu_items)]
 
 # items menu
