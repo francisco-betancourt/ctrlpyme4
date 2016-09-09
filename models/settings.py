@@ -105,6 +105,10 @@ LABEL_WIDTH = (PAPER_WIDTH - (PAPER_MARGIN_LEFT + PAPER_MARGIN_RIGHT + LABEL_SPA
 LABEL_HEIGHT = (PAPER_HEIGHT - (PAPER_MARGIN_TOP + PAPER_MARGIN_BOTTOM + LABEL_SPACE_Y * (LABEL_ROWS - 1))) / LABEL_ROWS
 
 
+# disable registration if the the store only allows whitelisted clients
+if USE_CLIENTS_WHITELIST:
+    auth.settings.actions_disabled = ['register']
+
 
 
 
