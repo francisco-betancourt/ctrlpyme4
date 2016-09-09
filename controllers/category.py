@@ -29,7 +29,7 @@ def create():
 
     if parent:
         redirect_url = URL('index', args=parent.id)
-    form = SQLFORM(db.category, fields=['name', 'description', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
+    form = SQLFORM(db.category, fields=['name', 'description', 'icon'])
 
     form.vars.parent = parent.id if parent else None
 
@@ -66,7 +66,7 @@ def update():
 
     if parent:
         redirect_url = URL('index', args=parent.id)
-        form = SQLFORM(db.category, category, fields=['name', 'description', 'url_name', 'icon', 'trait_category1', 'trait_category2', 'trait_category3'])
+        form = SQLFORM(db.category, category, fields=['name', 'description', 'url_name', 'icon'])
 
     if form.process().accepted:
         url_name = "%s%s" % (urlify_string(form.vars.name), form.vars.id)
