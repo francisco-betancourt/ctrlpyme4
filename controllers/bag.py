@@ -198,7 +198,7 @@ def change_bag_item_sale_price():
     else:
         raise HTTP(401)
 
-    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    bag_data = bag_utils.refresh_bag_data(bag_item.id_bag.id)
 
     return dict(status="ok", **bag_data)
 

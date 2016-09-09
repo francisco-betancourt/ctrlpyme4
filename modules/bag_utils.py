@@ -306,6 +306,8 @@ def set_bag_item(bag_item, discounts=None):
     item = bag_item.id_item
 
     bag_item.product_name = item.name + " " + item_utils.concat_traits(item)
+    if discounts is None:
+        discounts = []
 
     # stores the price without discounts
     real_price = bag_item.sale_price + (bag_item.discount or 0)

@@ -240,63 +240,7 @@ button.cp-fab:focus{
 #scan_order_btn, .bag-scan-btn {
   margin-bottom: 10px;
 }
-#current_bag.panel-default {
-  margin-right: -8px;
-  margin-left: -8px;
-  border: none;
-  border-radius: 0px;
-}
-#current_bag>.panel-body {
-  padding-left: 0px;
-  padding-right: 0px;
-  transition: height .2s ease;
-  overflow: hidden;
-}
-#current_bag>.panel-body>#barcode_scanner_container {
-  margin-bottom: 30px;
-}
-#current_bag>.panel-body .list-group-item {
-  border-radius: 0px;
-  border: 1px solid #eee;
-}
-#current_bag>.panel-body .list-group-item:hover {
-  background-color: transparent !important;
-}
-#current_bag>.panel-body .list-group-item:hover {
-  background-color: white;
-}
-#current_bag>.panel-body .list-group-item:hover:not(.node-disabled) {
-  background-color: white;
-}
 
-@keyframes bc_scanner_laser {
-  0% { background-position: -20px; }
-  100% { background-position: calc(100% + 20px); }
-}
-.scanner-input {
-  max-width: 500px;
-  background-repeat: no-repeat;
-  background-position: -20px;
-  animation: bc_scanner_laser 1s infinite;
-  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
-  /*animation-direction: alternate-reverse;*/
-}
-.scanner-form>.results {
-  max-height: 300px;
-  overflow-y: scroll;
-}
-.scanner-result-element {
-  height: 64px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-.scanner-result-element>.result-thumb {
-  background-color: white;
-  width: 48px;
-  /*height: 48px;*/
-  margin-right: 16px;
-}
 
 
 #item_info>span {
@@ -664,6 +608,44 @@ body {
 .icon-text a {
   margin-right: 8px;
 }
+
+
+
+/* Barcode scanner */
+@keyframes bc_scanner_laser {
+  0% { background-position: -20px; }
+  100% { background-position: calc(100% + 20px); }
+}
+.scanner-input {
+  max-width: 500px;
+  background-repeat: no-repeat;
+  background-position: -20px;
+  animation: bc_scanner_laser 1s infinite;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
+}
+.scanner-form .scanner-input:focus {
+  /*border: 1px solid red;
+  box-shadow: 0px 0px 4px rgba(255, 0, 0, .5);*/
+  /*background-color: red;
+  color: white;*/
+}
+.scanner-form>.results {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+.scanner-result-element {
+  height: 64px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.scanner-result-element>.result-thumb {
+  background-color: white;
+  width: 48px;
+  /*height: 48px;*/
+  margin-right: 16px;
+}
+
 
 
 .cp-checkbox {

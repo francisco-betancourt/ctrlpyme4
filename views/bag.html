@@ -49,8 +49,9 @@
 {{ pass }}
 
 
+
 <!-- Bag -->
-<div class="panel panel-default card-shadow" id="current_bag">
+<div class="panel panel-default card-shadow bag" id="current_bag">
   <div class="panel-heading">
     <h3>{{=T('Bag')}} {{ if user_is_employee: }}<span id="bag_id"></span> {{ pass }} (<span class="bag_quantity"></span> {{=T('items')}})
       {{=ICON('expand_less', _class="right collapse_bag")}}
@@ -60,13 +61,16 @@
 
     {{ # barcode is only available for employees }}
     {{ if user_is_employee: }}
-      <div id='barcode_scanner_container' style="padding-left: 15px; padding-right: 15px;">
-      </div>
+      <div id='barcode_scanner_container'> </div>
     {{ pass }}
 
+
+
     <!-- list of items in bag -->
-    <div class="list-group" id="bag_items_list"> </div>
+    <div class="bag-items" id="bag_items_list"> </div>
   </div>
+
+
 
   <div class="panel-footer">
     {{ if user_is_employee: }}
@@ -111,28 +115,44 @@
 {{ pass }}
 
 
-<div id="proto_bag_item" class="list-group-item" hidden="hidden">
+<div id="proto_bag_item" class="bag-item" hidden="hidden">
+
   <div>
-    <h4><span class="item_name"></span> <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}}*</span>
-      {{=ICON("close", _class="right close")}}
-    </h4>
-    <p><span class="item_stock"></span></p>
-    <p><span class="item_price base_price"></span></p>
-    {{ # multiprice only available for employees }}
-    {{ if user_is_employee: }}
-      <p>
-        <div class="btn-group btn-group-justified extra_prices" role="group" aria-label="...">
-          <a type="button" class="btn btn-default item_price"></a>
-          <a type="button" class="btn btn-default price2"></a>
-          <a type="button" class="btn btn-default price3"></a>
-        </div>
-      </p>
-    {{ pass }}
-    <div class="input-group">
-      <div class="input-group-addon">{{=T('Quantity')}}</div>
-      <input type="number" class="form-control item_qty">
-      <div class="input-group-addon munit"></div>
+    <div class=head>
+      <span class="item_name"></span>
+      <span>{{=ICON("close", _class="close")}}</span>
     </div>
+    <div class="price-section">
+      <span class="prices-container">
+
+        {{ # multiprice only available for employees }}
+        {{ if user_is_employee: }}
+          <div class="dropdown">
+            <span data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="prices-menu-button">
+              {{=ICON("arrow_drop_down", _class="prices-caret")}}
+              <span class="current_price"> </span>
+            </span>
+            <ul class="dropdown-menu prices-menu">
+              <li class="item_price"></li>
+              <li class="price2"></li>
+              <li class="price3"></li>
+            </ul>
+          </div>
+        {{ else: }}
+          <span class="item_price base_price current_price"></span>
+        {{ pass }}
+
+      </span>
+      <span class="text-danger"><span class="discount"></span>% {{=T('OFF')}}*</span>
+    </div>
+    <span class="quantity-container">
+      <span class="item_stock"></span>
+      <div class="quantity-input-group">
+        <span>{{=T("Quantity")}}</span>
+        <input type="number" class="item_qty">
+      </div>
+    </span>
+
 
     {{ users = db(
          (db.auth_user.is_client == False) &
@@ -140,9 +160,9 @@
        ).select()
     }}
     {{ if users: }}
-      <div class="employee-selector input-group">
-        <div class="input-group-addon">{{=T('Performed by')}}</div>
-        <select name="performed_by" class="performed_by form-control">
+      <div class="employee-selector">
+        <span>{{=T('Performed by')}}</span>
+        <select name="performed_by" class="performed_by">
 
           <option value=""> </option>
           {{ for user in users: }}
@@ -156,7 +176,11 @@
         </select>
       </div>
     {{ pass }}
+
+
   </div>
+
+
 </div>
 
 
@@ -330,9 +354,11 @@
           new_item.find('.item_price').text(data.total_sale_price);
         {{ else: }}
           new_item.find('.item_price').text(data.base_price);
+          var current_price = new_item.find('.current_price');
+          current_price.text(data.real_price);
 
           if (data.price2 || data.price3) {
-            new_item.find('.base_price').parent().remove();
+
             var base_price_btn = new_item.find('.item_price');
             var price2_btn = new_item.find('.price2');
             var price3_btn = new_item.find('.price3');
@@ -360,7 +386,10 @@
             }
             else { price3_btn.remove(); }
           }
-          else { new_item.find('.extra_prices').remove(); }
+          else {
+            new_item.find('.prices-menu').remove();
+            new_item.find('.prices-caret').remove();
+          }
         {{ pass }}
 
         if (data.discount_percentage == 0)
@@ -460,7 +489,11 @@
             $(target).parent().find('.btn-primary').removeClass('btn-primary');
             $(target).addClass('btn-primary');
 
-            set_bag_data(data)
+            set_bag_data(data);
+
+            // ugly
+            var new_price = $(target).text();
+            $(target).parent().parent().find(".current_price").text(new_price);
 
             $('#common_modal').modal('hide');
             $('#access_code').val('');
