@@ -1,1 +1,119 @@
+.bag.panel-default {
+  margin-right: -8px;
+  margin-left: -8px;
+  border: none;
+  border-radius: 0px;
+}
 
+.bag .panel-footer {
+  padding-top: 30px;
+}
+.bag #bag_buttons hr {
+  border-color: transparent;
+}
+
+.bag>.bag-items {
+  padding-left: 0px;
+  padding-right: 0px;
+  transition: height .2s ease;
+  overflow: hidden;
+}
+#barcode_scanner_container {
+  margin-bottom: 30px;
+}
+
+
+.bag-items .bag-item {
+  margin-left: -15px;
+  margin-right: -15px;
+  padding: 24px 15px 24px 15px;
+  border-top: 1px solid #eee;
+}
+.bag-items .bag-item:last-child {
+  border-bottom: 1px solid #eee;
+}
+.bag-items .bag-item .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+.bag-items .bag-item .head .item_name {
+  font-size: 18px;
+}
+.bag-items .bag-item:hover {
+  background-color: transparent !important;
+}
+.bag-items .bag-item:hover {
+  background-color: white;
+}
+.bag-items .bag-item:hover:not(.node-disabled) {
+  background-color: white;
+}
+
+.bag-item .price-section,
+.bag-item .quantity-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.bag-item .price-section {
+  flex-direction: row-reverse;
+}
+.bag-item .price-section .current_price {
+  font-size: 16px;
+}
+.bag-item .price-section .prices-menu-button {
+  display: flex;
+  align-items: center;
+}
+
+.bag-item .price-section .prices-menu {
+  right: 0px;
+  left:auto;
+  max-width: 120px;
+  min-width: 120px;
+  width: 120px;
+  font-size: 16px;
+}
+.bag-item .price-section .prices-menu li {
+  padding: 8px 16px 8px 16px;
+}
+
+.bag-item .quantity-input-group,
+.bag-item .employee-selector {
+  display: flex;
+}
+.bag-item .item_qty {
+  max-width: 60px;
+  width: 60px;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,.2);
+  margin-left: 16px;
+}
+.bag-item .item_qty:focus {
+  border-width: 2px;
+}
+
+.bag-item .employee-selector select {
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,.2);
+  flex: auto;
+  margin-left: 16px;
+}
+
+
+
+
+.scanner-input {
+  max-width: 500px;
+  background-repeat: no-repeat;
+  background-position: -20px;
+  animation: bc_scanner_laser 1s infinite;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
+  /*animation-direction: alternate-reverse;*/
+  border: 1px solid red;
+  box-shadow: 0px 0px 4px red;
+}
