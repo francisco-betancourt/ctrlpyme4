@@ -485,6 +485,7 @@
             url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
           })
           .done(function (data) {
+            console.log(data);
             $('#modal').modal('hide');
             $(target).parent().find('.btn-primary').removeClass('btn-primary');
             $(target).addClass('btn-primary');
@@ -499,6 +500,8 @@
             $('#access_code').val('');
           })
           .fail(function (data) {
+            console.log(data);
+            $('#access_code').val("");
             $('#common_modal').modal('hide');
             alert('{{=T("Invalid access")}}');
           });
@@ -599,10 +602,6 @@
     }());
 
 
-    $('#common_modal').find('.submit').click(function (event) {
-      BAG.validate_access_code();
-    });
-
     $('#add_bag_btn').on('click', function(event) {
       BAG.add_bag();
     });
@@ -612,7 +611,12 @@
       set_modal(
         "{{=T('Manager access')}}",
         $('#access_code_modal_body').detach(),
-        $('#access_code_modal_footer').detach());
+        $('#access_code_modal_footer').detach()
+      );
+
+      $('#common_modal').find('.submit').click(function (event) {
+        BAG.validate_access_code();
+      });
     {{ pass }}
 
     BAG.load_bag({{=session.current_bag}});

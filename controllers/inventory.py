@@ -234,7 +234,7 @@ def partial_inventory_check(inventory):
                 avg_item_price = db(
                     (db.stock_item.id_store == session.store)
                     & (db.stock_item.id_item == inventory_item.id_item.id)
-                ).select(avg).first()[avg]
+                ).select(avg).first()[avg] or 0
             #  add items to an inventory stock
             db.stock_item.insert(
                 id_item=inventory_item.id_item.id
