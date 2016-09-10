@@ -208,7 +208,12 @@
               {{pass}}
             {{else:}}
               <h2>{{=T('Bag')}}</h2>
-              <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login ')}}</a>  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a> {{=T('to add items to your bag')}}
+              <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login ')}}</a>
+                {{ if not USE_CLIENTS_WHITELIST: }}
+                  {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a>
+                {{ pass }} 
+                
+                {{=T('to add items to your bag')}}
             {{pass}}
           </div>
         </section>
