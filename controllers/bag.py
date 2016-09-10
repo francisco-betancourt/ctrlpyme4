@@ -198,7 +198,7 @@ def change_bag_item_sale_price():
     else:
         raise HTTP(401)
 
-    bag_data = refresh_bag_data(bag_item.id_bag.id)
+    bag_data = bag_utils.refresh_bag_data(bag_item.id_bag.id)
 
     return dict(status="ok", **bag_data)
 
@@ -241,9 +241,20 @@ def stock_transfer():
     bag_items = db(db.bag_item.id_bag == bag.id).select()
     # delete the bag if there are no items
     if not bag_items:
-        db(db.bag.id == bag.id).delete()
-        bag_utils.auto_bag_selection()
+        session.flash = T('There are no items in the bag')
         redirection()
+
+    # counts services, since services cant be transfered
+    count = 0
+    for bag_item in bag_items:
+        if not bag_item.id_item.has_inventory:
+            count += 1
+
+    # the bag contains services
+    if count:
+        session.flash = T('You should not be transfering services')
+        auto_bag_selection()
+        redirect(URL('default', 'index'))
 
     bag_utils.check_bag_items_integrity(bag_items)
 

@@ -410,7 +410,7 @@ def reintegrate_stock(item, returned_qty, avg_buy_price, target_field, target_id
 def reintegrate_bag_item(bag_item, quantity, new_stock=False,
     target=None, target_id=None
 ):
-    """ Return removed item to their exact stock item """
+    """ Return removed item to their exact stock item, except when the target is credit_note, in that case this will create a new stock """
 
     db = current.db
     request = current.request
@@ -449,8 +449,8 @@ def reintegrate_bag_item(bag_item, quantity, new_stock=False,
             taxes = 0
             count = 0
             for item_removal in item_removals:
-                price += item_removal.id_stock_item.price
-                taxes += item_removal.id_stock_item.taxes
+                price += item_removal.id_stock_item.price or 0
+                taxes += item_removal.id_stock_item.taxes or 0
                 count += 1
             price /= count
             taxes /= count

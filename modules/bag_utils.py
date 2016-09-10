@@ -219,12 +219,15 @@ def check_bag_items_integrity(bag_items, allow_out_of_stock=False):
     """ verify item stocks and remove unnecessary items """
     session = current.session
     db = current.db
+    auth = current.auth
+    T = current.T
 
     out_of_stock_items = []
     for bag_item in bag_items:
         # delete bag item when the item has 0 quantity
         if bag_item.quantity <= 0:
             db(db.bag_item.id == bag_item.id).delete()
+
         qty = item_utils.item_stock_qty(bag_item.id_item, session.store)
         if bag_item.quantity > qty and not allow_out_of_stock:
             out_of_stock_items.append(bag_item)
@@ -306,6 +309,8 @@ def set_bag_item(bag_item, discounts=None):
     item = bag_item.id_item
 
     bag_item.product_name = item.name + " " + item_utils.concat_traits(item)
+    if discounts is None:
+        discounts = []
 
     # stores the price without discounts
     real_price = bag_item.sale_price + (bag_item.discount or 0)
