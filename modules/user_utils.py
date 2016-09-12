@@ -88,7 +88,7 @@ def static_roles_list(user, company_workflow):
         'Page layout',
     ]
     current_card = constants.WORKFLOW_DATA[company_workflow].card(
-        user.access_card_index
+        user.access_card_index or 0
     )
     for role in current_card.groups():
         roles.append(role)
