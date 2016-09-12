@@ -80,7 +80,7 @@ db.define_table(
 auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
-      , Field('access_card_index', 'integer', readable=False, writable=False)
+      , Field('access_card_index', 'integer', readable=False, writable=False, default=0)
       , Field('is_client', 'boolean', default=False, readable=False, writable=False)
       , Field('stripe_customer_id', default=None, readable=False, writable=False)
       , Field('max_discount', "decimal(16,6)", default=0, readable=False, writable=False)
@@ -544,18 +544,18 @@ db.define_table(
 
 db.define_table("sale",
     Field("id_bag", "reference bag", label=T('Bag'), readable=False, writable=False),
-    Field("consecutive", "integer", default=None, label=T('Consecutive'), readable=False, writable=False),
-    Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal'), readable=False, writable=False),
-    Field("taxes", "decimal(16,6)", default=None, label=T('Taxes'), readable=False, writable=False),
-    Field("total", "decimal(16,6)", default=None, label=T('Total'), readable=False, writable=False),
+    Field("consecutive", "integer", default=0, label=T('Consecutive'), readable=False, writable=False),
+    Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal'), readable=False, writable=False),
+    Field("taxes", "decimal(16,6)", default=0, label=T('Taxes'), readable=False, writable=False),
+    Field("total", "decimal(16,6)", default=0, label=T('Total'), readable=False, writable=False),
 
     Field("discount", "decimal(16,6)", default=0, label=T('Discount')),
     Field("discount_percentage", "decimal(16,6)", default=0, label=T('Discount percentage')),
 
-    Field("quantity", "decimal(16,6)", default=None, label=T('Quantity'), readable=False, writable=False),
-    Field("reward_points", "integer", default=None, label=T('Reward Points'), readable=False, writable=False),
+    Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'), readable=False, writable=False),
+    Field("reward_points", "integer", default=0, label=T('Reward Points'), readable=False, writable=False),
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
-    Field("is_invoiced", "boolean", default=None, label=T('Is invoiced'), readable=False, writable=False),
+    Field("is_invoiced", "boolean", default=False, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
     # true if the products in sale has been delivered and the sale has been paid
     Field("is_done", "boolean", default=False, writable=False, readable=False),

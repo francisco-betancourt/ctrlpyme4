@@ -206,7 +206,7 @@ def update():
             payment.delete_record()
             continue
         payments_total += payment.amount - payment.change_amount
-    remaining = sale.total - sale.discount - payments_total
+    remaining = (sale.total or 0) - (sale.discount or 0) - payments_total
     payments = db(db.payment.id_sale == sale.id).select()
 
     return locals()
