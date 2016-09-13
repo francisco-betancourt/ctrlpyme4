@@ -80,7 +80,9 @@ db.define_table(
 auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
-      , Field('access_card_index', 'integer', readable=False, writable=False, default=0)
+      , Field('access_card_index', 'integer', readable=False, writable=False,
+              default=0
+        )
       , Field('is_client', 'boolean', default=False, readable=False, writable=False)
       , Field('stripe_customer_id', default=None, readable=False, writable=False)
       , Field('max_discount', "decimal(16,6)", default=0, readable=False, writable=False)
