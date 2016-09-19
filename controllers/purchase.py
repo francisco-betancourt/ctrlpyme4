@@ -186,6 +186,7 @@ def create_new_stock_item(purchase, item):
         price3=item.price3
     )
 
+    purchase.items_subtotal += price
     purchase.items_total += price + price * taxes
     purchase.update_record()
     
@@ -240,6 +241,7 @@ def delete_stock_item():
     valid_purchase(stock_item.id_purchase)
 
     purchase = db.purchase(stock_item.id_purchase.id)
+    purchase.items_subtotal -= stock_items_buy_price(stock_item) - stock_item.taxes * stock_item.purchase_qty
     purchase.items_total -= stock_items_buy_price(stock_item)
     purchase.update_record()
     stock_item.delete_record()
@@ -304,6 +306,7 @@ def update_stock_item_price():
             raise HTTP(405)
 
     old_total_price = stock_items_buy_price(stock_item)
+    old_subtotal_price = old_total_price - stock_item.taxes * stock_item.purchase_qty
 
     new_price = stock_item[target]
     purchase_price = D(stock_item.price or 0) + D(stock_item.taxes or 0)
@@ -317,8 +320,13 @@ def update_stock_item_price():
     stock_item.update_record()
 
     new_total_price = stock_items_buy_price(stock_item)
+    new_subtotal_price = new_total_price - stock_item.taxes * stock_item.purchase_qty
     price_diff = old_total_price - new_total_price
     purchase.items_total -= price_diff
+
+    subprice_diff = old_subtotal_price - new_subtotal_price
+
+    purchase.items_subtotal -= subprice_diff
     purchase.update_record()
 
     res = response_stock_item(stock_item)
@@ -345,6 +353,7 @@ def modify_stock_item():
 
         old_price = stock_items_buy_price(stock_item)
         old_price_only = old_price / stock_item.purchase_qty
+        old_price_no_tax = old_price - stock_item.taxes * stock_item.purchase_qty
 
         param_name = request.args(1)
         param_value = request.args(2)
@@ -373,6 +382,11 @@ def modify_stock_item():
         new_price = stock_items_buy_price(stock_item)
         price_diff = old_price - new_price
         purchase.items_total -= price_diff
+
+        new_price_no_tax = new_price - stock_item.taxes * stock_item.purchase_qty
+        subtotal_diff = old_price_no_tax - new_price_no_tax
+        purchase.items_subtotal -= subtotal_diff
+
         purchase.update_record()
 
         return response_stock_item(stock_item)
