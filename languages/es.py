@@ -528,6 +528,7 @@
 'Items per page %s, Total items %s': 'Items per page %s, Total items %s',
 'Items prices': 'Precios de items',
 'Items returns': 'Items returns',
+'Items returns, create credit notes': 'Items returns, create credit notes',
 'Its too late to undo it': 'Es muy tarde para deshacerla',
 'January': 'Enero',
 'JSON': 'JSON',

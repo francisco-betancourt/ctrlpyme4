@@ -251,7 +251,7 @@ def credit_note_ticket(id_credit_note):
         DIV(items_list, payments_data),
         credit_note.code, P(T('')),
         date=credit_note.created_on,
-        user=credit_note.id_sale.id_client,
+        client=credit_note.id_sale.id_client,
         author=credit_note.created_by
     )
 
