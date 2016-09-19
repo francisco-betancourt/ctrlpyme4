@@ -85,6 +85,10 @@ h1 {
   /* Support for IE. */
   font-feature-settings: 'liga';
 }
+input[type=checkbox], input[type=radio] {
+  margin: 0px;
+  margin-right: 8px;
+}
 @media(max-width: 767px) {
   .left-sidebar>.panel {
     margin-left: -15px;
@@ -673,3 +677,23 @@ body {
 .section-header.services-header {
   margin-bottom: 8px;
 }
+
+
+
+
+
+/*==============================================================*/
+/* Purchases */
+
+#current_brand_earning_percentage {
+  margin-bottom: 16px;
+}
+#current_brand_earning_percentage .form-inline {
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-group .form-control.number, .form-control.number {
+  width: 100px;
+}
+/*==============================================================*/
