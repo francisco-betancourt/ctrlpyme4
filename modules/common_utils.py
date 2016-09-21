@@ -27,7 +27,7 @@ import random
 import os
 from uuid import uuid4
 
-from gluon import *
+from gluon import current, URL, redirect
 from gluon.storage import Storage
 # from gluon import current
 
@@ -69,7 +69,7 @@ def get_notifications():
     db = current.db
     T = current.T
 
-    memberships = dict([(v, true) for v in auth.user_groups.values()])
+    memberships = dict([(v, True) for v in auth.user_groups.values()])
 
     notifications = []
     # check pending orders
@@ -176,10 +176,10 @@ def json_categories_tree(
             if child.has_key('state'):
                 child['state']['selected'] = True
             else:
-                child['state'] = {'selected': True};
+                child['state'] = {'selected': True}
         if item:
             if category.id in item.categories:
-                child['state'] = {'checked': True};
+                child['state'] = {'checked': True}
                 categories_selected_text += str(category.id) + ','
         if categories_children.has_key(category.id):
             child['nodes'] = categories_children[category.id]
@@ -239,7 +239,7 @@ def bright_hex(hexv):
     return rgb_to_hex(min(255, r + 20), min(255, g + 20), min(255, b + 20))
 
 def random_color_mix(hexv):
-    r,g,b = hex_to_rgb(hexv);
+    r,g,b = hex_to_rgb(hexv)
 
     r = int((r + random.randint(0, 255)) / 2)
     g = int((g + random.randint(0, 255)) / 2)
@@ -252,8 +252,8 @@ def random_color_mix(hexv):
 
 
 def color_mix(hex1, hex2):
-    r1,g1,b1 = hex_to_rgb(hex1);
-    r2,g2,b2 = hex_to_rgb(hex2);
+    r1,g1,b1 = hex_to_rgb(hex1)
+    r2,g2,b2 = hex_to_rgb(hex2)
 
     r = int((r1 + r2) / 2)
     g = int((g1 + g2) / 2)
