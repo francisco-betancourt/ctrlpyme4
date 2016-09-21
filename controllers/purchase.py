@@ -215,10 +215,11 @@ def add_stock_item():
         (db.stock_item.id_item == item.id) &
         (db.stock_item.id_purchase == purchase.id)
     ).select().first()
+
     if not stock_item:
         stock_item_id = create_new_stock_item(purchase, item)
+
     redirect(URL('fill', args=[purchase.id, stock_item_id]))
-    return locals()
 
 
 def stock_items_buy_price(stock_item):
@@ -476,6 +477,18 @@ def update_value():
         purchase = db.purchase(request.args(0))
         return {field_name: purchase[field_name]}
     return locals()
+
+
+@auth.requires_membership('Purchases')
+def set_total_and_subtotal():
+    purchase = db.purchase(request.args(0))
+    valid_purchase(purchase)
+
+    purchase.total = purchase.items_total
+    purchase.subtotal = purchase.items_subtotal
+    purchase.update_record()
+
+    return dict(total=purchase.total, subtotal=purchase.subtotal)
 
 
 @auth.requires_membership('Purchases')

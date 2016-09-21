@@ -170,6 +170,43 @@
   });
 
 
+  // Add some buttons to total and subtotal
+  function update_total_and_subtotal() {
+    $.ajax({
+      url: "{{=URL('purchase', 'set_total_and_subtotal', extension='json', args=purchase.id)}}"
+    })
+    .done(function (res) {
+      console.log(res);
+      $('#purchase_total').val(res.total);
+      $('#purchase_subtotal').val(res.subtotal);
+    })
+    .fail(function (res) {
+
+    })
+  }
+
+  function modify_total_input(id) {
+    var div = document.createElement('div');
+    div.classList.add('input-group');
+
+    div.appendChild($('#' + id).detach()[0]);
+
+    var apply_system_q_addon = document.createElement('span');
+    apply_system_q_addon.classList.add('input-group-btn');
+    var apply_system_q_btn = document.createElement('button');
+    apply_system_q_btn.classList.add('btn', 'btn-default');
+    apply_system_q_btn.type = 'button';
+    apply_system_q_btn.textContent = '{{=T("Calculate")}}'
+    apply_system_q_btn.addEventListener('click', update_total_and_subtotal);
+
+    apply_system_q_addon.appendChild(apply_system_q_btn);
+    div.appendChild(apply_system_q_addon);
+
+    document.getElementById(id + "__row").appendChild(div);
+  }
+  modify_total_input('purchase_total');
+
+
   function refresh_stock_item(pitem) {
     var key = "#current_stock_item";
 
@@ -183,8 +220,8 @@
 
     // update earning percentages
     $("#item_earnp_base").val(pitem.earnp_base_price);
-    $("#item_earnp_2").val(pitem.earnp_price2)
-    $("#item_earnp_3").val(pitem.earnp_price3)
+    $("#item_earnp_2").val(pitem.earnp_price2);
+    $("#item_earnp_3").val(pitem.earnp_price3);
   }
 
 

@@ -332,9 +332,6 @@ button.cp-fab:focus{
 .icon-text a {
   margin-right: 8px;
 }
-#items_list {
-  margin-bottom: 15px;
-}
 
 .cp-checkbox {
   display: none;
@@ -699,6 +696,9 @@ body {
 /*==============================================================*/
 /* Purchases */
 /*==============================================================*/
+#items_list {
+  margin-bottom: 15px;
+}
 #current_stock_item .header .barcode {
   opacity: .5;
   margin-left: 16px;
