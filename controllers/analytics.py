@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-if not auth.has_membership('Admin'):
+if not 'Admin' in auth.user_groups.values():
     precheck()
 
 import calendar
@@ -550,6 +550,9 @@ def dashboard():
 
 @auth.requires_membership("Analytics")
 def index():
+    if 'Admin' in auth.user_groups.values():
+        precheck()
+
     import supert
     Supert = supert.Supert()
 

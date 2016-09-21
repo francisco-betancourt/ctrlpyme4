@@ -128,14 +128,15 @@ if not memberships.get('Employee') and not memberships.get('Admin'):
 
 response.auth_menu = []
 if auth.is_logged_in():
-    auth_menu = [
-            (T('Profile'), False, URL('user', 'profile'), [ ]),
-            (T('Logout'), False, URL('default', 'user/logout'), [ ])
-        ]
-    
+    auth_menu = []
+
     if memberships.get('Admin'):
         auth_menu += [
             (T('Change store'), False, URL('user', 'change_store'), [])
+        ]
+    auth_menu += [
+            (T('Profile'), False, URL('user', 'profile'), [ ]),
+            (T('Logout'), False, URL('default', 'user/logout'), [ ])
         ]
 
     response.auth_menu += [

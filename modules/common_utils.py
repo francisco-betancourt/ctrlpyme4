@@ -69,22 +69,24 @@ def get_notifications():
     db = current.db
     T = current.T
 
+    memberships = dict([(v, true) for v in auth.user_groups.values()])
+
     notifications = []
     # check pending orders
-    if auth.has_membership('Sale orders'):
+    if memberships.get('Sale orders'):
         pending_orders = db(db.sale_order.is_ready == False).select()
         if pending_orders:
             notifications.append(Storage(
                 title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
             ))
 
-    if auth.has_membership('Accounts payable'):
+    if memberships.get('Accounts payable'):
         accounts_r = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
                 title=T("Accounts receivable"), description=T('Accounts receivable')+' '+T('unsettled'), url=URL('account_receivable', 'index')
             ))
-    if auth.has_membership('Accounts receivable'):
+    if memberships.get('Accounts receivable'):
         accounts_p = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
