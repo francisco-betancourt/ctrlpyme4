@@ -83,7 +83,6 @@ def admin_roles():
         , "Sales delivery"
         , "Sales invoices"
         , "Sales returns"
-        # , "Clients"
         , "Page layout"
         , "VIP seller"
         , "Employee"
@@ -99,6 +98,7 @@ def admin_roles():
         , 'Admin config'
         , 'Product loss'
         , 'Cash out'
+        , "Clients management"
     ]
 
 
