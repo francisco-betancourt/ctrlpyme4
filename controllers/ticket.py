@@ -182,15 +182,15 @@ def ticket_format(store_data=None, title="", content=None, barcode="", footer=No
     _user = ""
     _author = ""
     if user:
-        _user = P("%s: %s %s <%s>" % (
+        _user = P("%s: %s %s" % (
             T("Client"),
-            user.first_name, user.last_name, user.email
+            user.first_name, user.last_name
         ))
     if author:
-        _author = P("%s: %s %s <%s>" % (
+        _author = P("%s: %s %s" % (
             T("Created by"),
             author.first_name,
-            author.last_name, author.email
+            author.last_name
         ))
 
     return DIV(

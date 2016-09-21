@@ -134,11 +134,28 @@ not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
 """ database class object creation (initialization) """
 
 
+EARNING_VALIDATOR = IS_DECIMAL_IN_RANGE(0, error_message="")
+
 db.define_table("brand",
     Field("name", "string", default="", label=T('Name')),
     Field("logo", "upload", default="", label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field(
+        "earnp_base", "decimal(16,6)", default=0, 
+        label=T("Earning percentage base")
+    ),
+    Field(
+        "earnp_2", "decimal(16,6)", default=0,
+        label=T("Earning percentage 2")
+    ),
+    Field(
+        "earnp_3", "decimal(16,6)", default=0,
+        label=T("Earning percentage 3")
+    ),
     auth.signature)
 db.brand.name.requires = not_empty_requires
+db.brand.earnp_base.requires = EARNING_VALIDATOR
+db.brand.earnp_2.requires = EARNING_VALIDATOR
+db.brand.earnp_3.requires = EARNING_VALIDATOR
 
 
 db.define_table("trait_category",
@@ -390,9 +407,25 @@ db.define_table("item",
     Field("sku", "string", length=20, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
+    
     Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
+
+    # last earning percentage reported, used to calculate the sale prices based on purchase price
+    Field(
+        "earnp_base", "decimal(16,6)", default=0,
+        label=T("Earning percentage base")
+    ),
+    Field(
+        "earnp_2", "decimal(16,6)", default=0,
+        label=T("Earning percentage 2")
+    ),
+    Field(
+        "earnp_3", "decimal(16,6)", default=0,
+        label=T("Earning percentage 3")
+    ),
+
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
     Field("taxes", "list:reference tax", label=T('Taxes')),
     Field("url_name", "string", default='', label=T('URL Name'), readable=False, writable=False),
@@ -403,7 +436,8 @@ db.define_table("item",
     Field("reward_points", "integer", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
-    auth.signature)
+    auth.signature
+)
 db.item.name.requires = not_empty_requires
 db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
 db.item.id_measure_unit.requires=IS_IN_DB( db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s')
@@ -447,9 +481,10 @@ db.define_table("purchase",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
     Field("id_supplier", "reference supplier", label=T('Supplier')),
     Field("id_store", "reference store", label=T('Store')),
-    Field("invoice_number", "integer", default=None, label=T('Invoice number')),
+    Field("invoice_number", default=None, label=T('Invoice number')),
     Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=0, label=T('Total')),
+    Field("items_subtotal", "decimal(16,6)", default=0, label=T('Subotal'), readable=False, writable=False), 
     Field("items_total", "decimal(16,6)", default=0, label=T('Total'), readable=False, writable=False),
     Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),

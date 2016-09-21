@@ -285,6 +285,16 @@ def post_logout():
     redirect(URL('default', 'index'))
 
 
+@auth.requires_membership('Admin')
+def change_store():
+    """ Change the store once logged in """
+
+    session.store = None
+
+    redirect(URL('store_selection'))
+
+
+
 @auth.requires_login()
 def store_selection():
     """ """

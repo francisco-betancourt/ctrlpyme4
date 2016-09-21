@@ -27,7 +27,7 @@ import random
 import os
 from uuid import uuid4
 
-from gluon import *
+from gluon import current, URL, redirect
 from gluon.storage import Storage
 # from gluon import current
 
@@ -69,22 +69,24 @@ def get_notifications():
     db = current.db
     T = current.T
 
+    memberships = dict([(v, True) for v in auth.user_groups.values()])
+
     notifications = []
     # check pending orders
-    if auth.has_membership('Sale orders'):
+    if memberships.get('Sale orders'):
         pending_orders = db(db.sale_order.is_ready == False).select()
         if pending_orders:
             notifications.append(Storage(
                 title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
             ))
 
-    if auth.has_membership('Accounts payable'):
+    if memberships.get('Accounts payable'):
         accounts_r = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
                 title=T("Accounts receivable"), description=T('Accounts receivable')+' '+T('unsettled'), url=URL('account_receivable', 'index')
             ))
-    if auth.has_membership('Accounts receivable'):
+    if memberships.get('Accounts receivable'):
         accounts_p = db(db.account_receivable.is_settled == False).select()
         if accounts_r:
             notifications.append(Storage(
@@ -174,10 +176,10 @@ def json_categories_tree(
             if child.has_key('state'):
                 child['state']['selected'] = True
             else:
-                child['state'] = {'selected': True};
+                child['state'] = {'selected': True}
         if item:
             if category.id in item.categories:
-                child['state'] = {'checked': True};
+                child['state'] = {'checked': True}
                 categories_selected_text += str(category.id) + ','
         if categories_children.has_key(category.id):
             child['nodes'] = categories_children[category.id]
@@ -237,7 +239,7 @@ def bright_hex(hexv):
     return rgb_to_hex(min(255, r + 20), min(255, g + 20), min(255, b + 20))
 
 def random_color_mix(hexv):
-    r,g,b = hex_to_rgb(hexv);
+    r,g,b = hex_to_rgb(hexv)
 
     r = int((r + random.randint(0, 255)) / 2)
     g = int((g + random.randint(0, 255)) / 2)
@@ -250,8 +252,8 @@ def random_color_mix(hexv):
 
 
 def color_mix(hex1, hex2):
-    r1,g1,b1 = hex_to_rgb(hex1);
-    r2,g2,b2 = hex_to_rgb(hex2);
+    r1,g1,b1 = hex_to_rgb(hex1)
+    r2,g2,b2 = hex_to_rgb(hex2)
 
     r = int((r1 + r2) / 2)
     g = int((g1 + g2) / 2)
@@ -320,8 +322,6 @@ def select_store(only_auto_select=False):
     if len(stores) == 1:
         session.store = stores.first().id
     elif not only_auto_select:
-        if auth.has_membership('Admin'):
-            return
         redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
         )
 

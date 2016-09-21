@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-if not auth.has_membership('Admin'):
+if not 'Admin' in auth.user_groups.values():
     precheck()
 
 import calendar
@@ -550,18 +550,20 @@ def dashboard():
 
 @auth.requires_membership("Analytics")
 def index():
+    if 'Admin' in auth.user_groups.values():
+        precheck()
+
     import supert
     Supert = supert.Supert()
-
-    if auth.has_membership('Admin'):
-        redirect(URL('dashboard'))
 
     day_data = day_report_data(None, None, None)
     income = day_data['income']
     expenses = day_data['expenses']
     today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
 
-    store_group = db(db.auth_group.role == 'Store %s' % session.store).select().first()
+    store_group = db(
+        db.auth_group.role == 'Store %s' % session.store
+    ).select().first()
     checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
     # query the employees with current store membership
     store_employees_ids = [r.id for r in db(

@@ -59,6 +59,8 @@ def item_url(_name, _id):
 
 
 def item_taxes(item, price):
+    """ Returns the amoutn of taxes for the given item and price """
+    
     total = 0
     if not item.taxes:
         return 0

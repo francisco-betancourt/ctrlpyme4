@@ -440,14 +440,21 @@ def find_by_matching_code():
 
     from item_utils import composed_name
 
-    barcode = request.args(0)
     try:
-        page = int(request.args(1)) or 0
+        index = request.raw_args.rindex('/')
+    except:
+        raise HTTP(405)
+
+    barcode = request.raw_args[:index]
+
+    try:
+        page = int(request.raw_args[index + 1:] or 0)
     except:
         page = 0
 
     if not barcode:
         raise HTTP(405)
+
 
     start = page * 10
     end = start + 10

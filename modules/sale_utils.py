@@ -163,14 +163,14 @@ def complete(sale):
         if payment.id_payment_opt.credit_days > 0:
             payment.epd = date(request.now.year, request.now.month, request.now.day) + timedelta(days=payment.id_payment_opt.credit_days)
             payment.is_settled = False
-            payment.update_record();
+            payment.update_record()
 
     store = db(db.store.id == sale.id_store.id).select(for_update=True).first()
     sale.consecutive = store.consecutive
     sale.is_done = True
     create_sale_event(sale, SALE_PAID)
     sale.update_record()
-    store.consecutive += 1;
+    store.consecutive += 1
     store.update_record()
 
     # if defered sale, remove sale order
@@ -178,7 +178,9 @@ def complete(sale):
 
     # add reward points to the client's wallet, we assume that the user has a wallet
     if sale.id_client and sale.id_client.id_wallet:
-        wallet = db.wallet(sale.id_client.id_wallet.id)
+        wallet = db(
+            db.wallet.id == sale.id_client.id_wallet.id
+        ).select(for_update=True).first()
         wallet.balance += sale.reward_points
         wallet.update_record()
 
@@ -292,7 +294,9 @@ def modify_payment(sale, payment, payment_data, delete=False):
         if payment.wallet_code:
             # return wallet funds, if the wallet payment is removed or the wallet code is changed
             if delete or wallet_code != payment.wallet_code:
-                wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
+                wallet = db(
+                    db.wallet.wallet_code == payment.wallet_code
+                ).select(for_update=True).first()
                 if wallet:
                     wallet.balance += payment.amount
                     wallet.update_record()
@@ -301,7 +305,9 @@ def modify_payment(sale, payment, payment_data, delete=False):
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
-            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
+            wallet = db(
+                db.wallet.wallet_code == wallet_code
+            ).select(for_update=True).first()
             if wallet:
                 new_amount = min(wallet.balance, (sale.total - sale.discount) - new_total)
                 wallet.balance -= new_amount

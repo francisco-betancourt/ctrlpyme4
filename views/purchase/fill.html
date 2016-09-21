@@ -34,6 +34,7 @@
   <div id="items_list">
 
     {{ if current_stock_item: }}
+    
 
     {{bg_url = URL('static', 'images/no_image.svg')}}
 
@@ -70,21 +71,56 @@
 
           <div class="form-group">
             <label>{{=T('Taxes')}}</label>
-            <input type="text" class="form-control taxes" placeholder="{{=T('Taxes')}}" disabled value="{{=DQ(current_stock_item.taxes, True)}}">
+            <input type="text" class="form-control taxes number" placeholder="{{=T('Taxes')}}" disabled value="{{=DQ(current_stock_item.taxes, True)}}">
           </div>
 
           <!-- Prices -->
           <div class="form-group">
             <label class="">{{=T('Base Price')}}</label>
-            <input type="text" class="form-control base_price" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.base_price, True)}}">
+            
+            <div class="inputs">
+              <div class="input-group">
+                <input type="number" class="form-control number" name="item_earnp_base" placeholder="{{=T('percentage')}}" value="{{=current_stock_item.earnp_base_price}}"
+                  id="item_earnp_base" data-target="base_price"
+                >
+                <span class="input-group-addon">%</span>
+              </div>
+              <input type="text" class="form-control base_price number" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.base_price, True)}}"
+                id="item_base_price"
+              >
+            </div>
+            
           </div>
           <div class="form-group">
             <label class="">{{=T('Price 2')}}</label>
-            <input type="text" class="form-control price2" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price2, True) or ''}}">
+
+            <div class="inputs">
+              <div class="input-group">
+                <input type="number" class="form-control number" name="item_earnp_2" placeholder="{{=T('percentage')}}" value="{{=current_stock_item.earnp_price2}}"
+                  id="item_earnp_2" data-target="price2"
+                >
+                <span class="input-group-addon">%</span>
+              </div>
+              <input type="text" class="form-control price2 number" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price2, True) or ''}}"
+                id="item_price_2"
+              >
+            </div>
+            
           </div>
           <div class="form-group">
             <label>{{=T('Price 3')}}</label>
-            <input type="text" class="form-control price3" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price3, True) or ''}}">
+            <div class="inputs">
+              <div class="input-group">
+                <input type="number" class="form-control number" name="item_earnp_3" placeholder="{{=T('percentage')}}" value="{{=current_stock_item.earnp_price3}}"
+                  id="item_earnp_3" data-target="price3"
+                >
+                <span class="input-group-addon">%</span>
+              </div>
+              <input type="text" class="form-control price3 number" placeholder="{{=T('Sale Price')}}" value="{{=DQ(current_stock_item.price3, True) or ''}}"
+                id="item_price_3"
+              >
+            </div>
+
           </div>
         </div>
       </section>
@@ -134,6 +170,43 @@
   });
 
 
+  // Add some buttons to total and subtotal
+  function update_total_and_subtotal() {
+    $.ajax({
+      url: "{{=URL('purchase', 'set_total_and_subtotal', extension='json', args=purchase.id)}}"
+    })
+    .done(function (res) {
+      console.log(res);
+      $('#purchase_total').val(res.total);
+      $('#purchase_subtotal').val(res.subtotal);
+    })
+    .fail(function (res) {
+
+    })
+  }
+
+  function modify_total_input(id) {
+    var div = document.createElement('div');
+    div.classList.add('input-group');
+
+    div.appendChild($('#' + id).detach()[0]);
+
+    var apply_system_q_addon = document.createElement('span');
+    apply_system_q_addon.classList.add('input-group-btn');
+    var apply_system_q_btn = document.createElement('button');
+    apply_system_q_btn.classList.add('btn', 'btn-default');
+    apply_system_q_btn.type = 'button';
+    apply_system_q_btn.textContent = '{{=T("Calculate")}}'
+    apply_system_q_btn.addEventListener('click', update_total_and_subtotal);
+
+    apply_system_q_addon.appendChild(apply_system_q_btn);
+    div.appendChild(apply_system_q_addon);
+
+    document.getElementById(id + "__row").appendChild(div);
+  }
+  modify_total_input('purchase_total');
+
+
   function refresh_stock_item(pitem) {
     var key = "#current_stock_item";
 
@@ -144,6 +217,11 @@
     $(key).find('.price2').val(pitem.price2);
     $(key).find('.price3').val(pitem.price3);
     $(key).find('.serial_numbers').val(pitem.serial_numbers);
+
+    // update earning percentages
+    $("#item_earnp_base").val(pitem.earnp_base_price);
+    $("#item_earnp_2").val(pitem.earnp_price2);
+    $("#item_earnp_3").val(pitem.earnp_price3);
   }
 
 
@@ -151,7 +229,6 @@
     if (!param_value) {return false}
 
     info_card("{{=T('Saving')}}...");
-    $('#item_' + barcode).css('background-color', '#FCF8E3');
     $.ajax({
       url: '{{=URL("modify_stock_item", extension="json")}}/' + stock_item_id + '/' + param_name + '/' + param_value
     })
@@ -171,9 +248,9 @@
     var barcode = "{{=item_barcode(current_stock_item.id_item)}}"
     var quantity = $('#current_stock_item input[name="quantity"]');
     var buy_price = $('#current_stock_item input[name="price"]');
-    var base_price = $('#current_stock_item input[name="base_price"]');
-    var price2 = $('#current_stock_item input[name="price2"]');
-    var price3 = $('#current_stock_item input[name="price3"]');
+    var base_price = $('#item_base_price');
+    var price2 = $('#item_price_2');
+    var price3 = $('#item_price_3');
 
     quantity.on('change', function() {
       call_stock_item_modifier(stock_item_id, 'purchase_qty', parseFloat($(this).val()), barcode);
@@ -190,6 +267,30 @@
     price3.on('change', function() {
       call_stock_item_modifier(stock_item_id, 'price3', parseFloat($(this).val()), barcode);
     });
+
+
+
+    $("#item_earnp_base,#item_earnp_2,#item_earnp_3").on('change', function() {
+      var input = $(this);
+      var target = input.data('target');
+      var ep = input.val()
+
+      info_card("{{=T('Saving')}}...");
+
+      $.ajax({
+        url: '{{=URL("update_stock_item_price", extension="json")}}/' + stock_item_id + '?target=' + target + '&ep=' + ep
+      })
+      .done(function (res) {
+        refresh_stock_item(res);
+        info_card("{{=T('Saved')}}", null, "success");
+      })
+      .fail(function (res) {
+        
+      })
+
+      return;
+    });
+
 
 
     $('#remove_stock_item_btn').click(function (event) {
@@ -273,7 +374,6 @@
             url += prop + '=' + item_data[prop] + '&'
           }
         }
-        console.log(url);
         $.ajax({
           url: url
         })
