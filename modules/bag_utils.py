@@ -141,9 +141,6 @@ def auto_bag_selection():
     session = current.session
     request = current.request
 
-    # admin cannot sell
-    if auth.has_membership('Admin'):
-        return
     # Automatic bag creation
 
     current_bag = None

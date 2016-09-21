@@ -104,7 +104,17 @@ if auth.has_membership('Inventories'):
     response.menu += [(T('Inventory'), False, URL('inventory', 'index'), [ ])]
 
 if auth.has_membership("Analytics"):
-    response.menu += [(T('Analytics'), False, URL('analytics', 'index'), [ ])]
+    if auth.has_membership('Admin'):
+        response.menu += [
+            (T('Analytics'), False, None, [ 
+                (T('Cash out'), False, URL('analytics', 'index'), [ ]),
+                (T('Stores'), False, URL('analytics', 'dashboard'), [ ])
+            ])
+        ]
+    else:
+        response.menu += [
+            (T('Analytics'), False, URL('analytics', 'index'), [ ])
+        ]
 
 if not auth.has_membership('Employee') and not auth.has_membership('Admin'):
     response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
@@ -112,11 +122,18 @@ if not auth.has_membership('Employee') and not auth.has_membership('Admin'):
 
 response.auth_menu = []
 if auth.is_logged_in():
-    response.auth_menu += [
-        (auth.user.first_name, False, None, [
+    auth_menu = [
             (T('Profile'), False, URL('user', 'profile'), [ ]),
             (T('Logout'), False, URL('default', 'user/logout'), [ ])
-        ])
+        ]
+    
+    if auth.has_membership('Admin'):
+        auth_menu += [
+            (T('Change store'), False, URL('user', 'change_store'), [])
+        ]
+
+    response.auth_menu += [
+        (auth.user.first_name, False, None, auth_menu)
     ]
 else:
     response.auth_menu += [

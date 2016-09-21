@@ -320,8 +320,6 @@ def select_store(only_auto_select=False):
     if len(stores) == 1:
         session.store = stores.first().id
     elif not only_auto_select:
-        if auth.has_membership('Admin'):
-            return
         redirect(URL('user', 'store_selection', vars=dict(_next=URL(request.controller, request.function, args=request.args or [], vars=request.vars or {})))
         )
 

@@ -31,6 +31,11 @@ def create():
     if form.process().accepted:
         # insert store group
         db.auth_group.insert(role='Store %s' % form.vars.id)
+
+        # update admins
+        import settup
+        settup.update_admins()
+
         response.flash = T('form accepted')
         redirect(URL('index'))
     elif form.errors:

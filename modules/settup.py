@@ -15,7 +15,7 @@ def create_locale_setting():
     """ creates some locale default settings """
     db.measure_unit.update_or_insert(db.measure_unit.name == T('unit'), name=T('unit'), symbol='u')
     db.brand.update_or_insert(db.brand.name == T('no brand'), name=T('no brand'))
-    db.payment_opt.update_or_insert(db.payment_opt.name == T('cash'), name=T('cash'), allow_change=True)
+    db.payment_opt.update_or_insert(db.payment_opt.name == T('cash'), name=T('cash'), allow_change=True, requires_account=False)
 
 
 
@@ -69,42 +69,46 @@ def create_groups():
         auth.add_group(key, new_groups[key])
 
 
+
+def admin_roles():
+    return [
+          "Admin"
+        , "Inventories"
+        , "Purchases"
+        , "Items info"
+        , "Items management"
+        , "Items prices"
+        , "Sales bags"
+        , "Sales checkout"
+        , "Sales delivery"
+        , "Sales invoices"
+        , "Sales returns"
+        # , "Clients"
+        , "Page layout"
+        , "VIP seller"
+        , "Employee"
+        , "Analytics"
+        , "Sale orders"
+        , "Stock transfers"
+        , "Offers"
+        , 'Accounts payable'
+        , 'Accounts receivable'
+        , 'Highlights'
+        , 'Config'
+        , 'Safe config'
+        , 'Admin config'
+        , 'Product loss'
+        , 'Cash out'
+    ]
+
+
+
 def create_admin_user(email):
     db = current.db
     auth = current.auth
 
     password = auth.random_password()
     print password
-
-    admin_roles = [
-          "Admin"
-        # , "Inventories"
-        # , "Purchases"
-        , "Items info"
-        , "Items management"
-        , "Items prices"
-        # , "Sales bags"
-        # , "Sales checkout"
-        # , "Sales delivery"
-        # , "Sales invoices"
-        # , "Sales returns"
-        # , "Clients"
-        , "Page layout"
-        # , "VIP seller"
-        # , "Employee"
-        , "Analytics"
-        # , "Sale orders"
-        # , "Stock transfers"
-        , "Offers"
-        # , 'Accounts payable'
-        # , 'Accounts receivable'
-        , 'Highlights'
-        , 'Config'
-        , 'Safe config'
-        , 'Admin config'
-        # , 'Product loss'
-        # , 'Cash out'
-    ]
 
     admin = db.auth_user.validate_and_insert(
         first_name='Admin',
@@ -113,13 +117,46 @@ def create_admin_user(email):
         password=password
     )
 
-    for role in admin_roles:
+    for role in admin_roles():
         group = db(db.auth_group.role == role).select().first()
 
         db.auth_membership.insert(
             user_id=admin,
             group_id=group.id
         )
+
+
+def update_admins():
+    db = current.db
+
+    admin_group = db(db.auth_group.role == 'Admin').select().first()
+
+    admins = db(
+        (db.auth_membership.user_id == db.auth_user.id) &
+        (db.auth_membership.group_id == admin_group.id)
+    ).select(db.auth_user.id, distinct=db.auth_membership.user_id)
+
+    # also consider the store groups
+    admin_groups = db(
+        (db.auth_group.role.belongs(admin_roles())) |
+        (db.auth_group.role.like("Store %"))
+    ).select()    
+
+    # maybe not the most efficient thing but this functions should not be used often
+    for admin in admins:
+        for group in admin_groups:
+            membership = db(
+                (db.auth_membership.user_id == admin.id) &
+                (db.auth_membership.group_id == group.id)
+            ).select().first()
+
+            if not membership:
+                db.auth_membership.insert(
+                    user_id=admin,
+                    group_id=group.id
+                )
+                print "Inserted membership %s" % group.role
+
 
 
 def settup():

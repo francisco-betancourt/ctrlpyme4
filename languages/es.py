@@ -187,6 +187,7 @@
 'Change Password': 'Cambie la Contraseña',
 'Change password': 'Cambie la contraseña',
 'change password': 'cambie la contraseña',
+'Change store': 'Cambiar tienda',
 'check all': 'marcar todos',
 'Check it out': 'Ver',
 'Check map': 'Ver mapa',
