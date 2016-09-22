@@ -327,7 +327,7 @@ button.cp-fab:focus{
 }
 
 .icon-text i {
-  margin-right: 18px;
+  margin-right: 8px;
 }
 .icon-text a {
   margin-right: 8px;
@@ -464,8 +464,12 @@ button.cp-fab:focus{
   border-bottom-right-radius: 25px;
 }
 .highlight>.data>h2 {
+  font-size: 20px;
   margin-top: 0px;
   font-weight: bold;
+}
+.highlight>.data>p {
+  font-size: 16px;
 }
 .highlight>.data>a.btn {
   text-shadow: none;
