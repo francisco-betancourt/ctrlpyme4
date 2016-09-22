@@ -354,6 +354,7 @@ def time_interval_query(tablename, start_date, end_date):
 
 def host_base_url():
     """ Returns the app base url """
+    request = current.request
 
     return URL('', '', host=True).split('/' + request.controller)[0]
 
