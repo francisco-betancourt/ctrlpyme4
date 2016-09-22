@@ -321,14 +321,16 @@ def _remove_stocks(item, remove_qty, sale_date, bag_item=None,
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
                 id_bag_item=bag_item.id,
-                id_item=item.id
+                id_item=item.id,
+                id_store=stock_item.id_store.id
             )
         elif inventory_item:
             db.stock_item_removal.insert(
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
                 id_inventory_item=inventory_item.id,
-                id_item=item.id
+                id_item=item.id,
+                id_store=stock_item.id_store.id
             )
 
     wavg_days_in_shelf /= remove_qty

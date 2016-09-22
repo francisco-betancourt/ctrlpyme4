@@ -301,7 +301,8 @@ def full_inventory_check(inventory):
                 id_stock_item=stock_item.id,
                 qty=removed_from_stock,
                 id_inventory_item=new_inventory_item_id,
-                id_item=stock_item.id_item.id
+                id_item=stock_item.id_item.id,
+                id_store=id_stock_item.id_store.id
             )
         missing_items_count += 1
 

@@ -507,13 +507,17 @@ def dashboard():
         'datasets': []
     }
 
-    stocks_sum = db.stock_item.stock_qty.sum()
+    stocks_sum = db.stock_item.purchase_qty.sum()
+    removals_sum = db.stock_item_removal.qty.sum()
+
     stores = db(db.store.is_active == True).select()
     for store in stores:
         store.c_color = random_color_mix(PRIMARY_COLOR)
         store.c_label = store.name
         # select this month payments
-        payments = get_payments_in_range(start_date, end_date, store.id).as_list()
+        payments = get_payments_in_range(
+            start_date, end_date, store.id
+        ).as_list()
         store.c_value = 0
         for payment in payments:
             store.c_value += payment['amount'] - payment['change_amount']
@@ -523,21 +527,45 @@ def dashboard():
         )
 
         # query items quantity monthly
+        month_start = year_start_date
+        month_end = year_start_date + timedelta(days=30)
         current_max_stock_date = year_start_date
         stocks_qty_data = []
-        while current_max_stock_date < end_date:
+
+
+        stock_accumulated = 0
+        rem_accumulated = 0
+
+        while month_end < end_date:
             # add labels if this is the first time that we add data
             if not items_data['datasets']:
                 month_name = str(T(current_max_stock_date.strftime('%B')))
                 items_data['labels'].append(month_name)
+
             current_items = db(
                 (db.stock_item.id_store == store.id)
-                & (db.stock_item.created_on < current_max_stock_date)
-                ).select(stocks_sum).first()[stocks_sum]
-            stocks_qty_data.append(float(current_items or 0))
-            # select next month assuming that the end date is the last month of the current year
-            current_max_stock_date = date(current_max_stock_date.year, current_max_stock_date.month + 1, 1)
-        items_data['datasets'].append(dataset_format(store.name, stocks_qty_data, store.c_color))
+                & (db.stock_item.created_on < month_end)
+                & (db.stock_item.created_on >= month_start)
+            ).select(stocks_sum).first()[stocks_sum]
+
+            removals = db(
+                (db.stock_item_removal.id_store == store.id)
+                & (db.stock_item_removal.created_on < month_end)
+                & (db.stock_item_removal.created_on >= month_start)
+            ).select(removals_sum).first()[removals_sum]
+
+            stock_accumulated += current_items or 0
+            stock_accumulated -= removals or 0
+
+            stocks_qty_data.append(float(stock_accumulated))
+
+            month_start = month_end
+            month_end += timedelta(days=30) # estimated month end
+
+        items_data['datasets'].append(
+            dataset_format(store.name, stocks_qty_data, store.c_color)
+        )
+
 
     script_stores_income = SCRIPT('var stores_income_data = %s;' % json.dumps(pie_data_format(stores)))
     script_stores_sales = SCRIPT('var stores_sales_data = %s;' % json.dumps(sales_data))
