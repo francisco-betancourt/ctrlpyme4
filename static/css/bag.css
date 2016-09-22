@@ -103,17 +103,3 @@
   flex: auto;
   margin-left: 16px;
 }
-
-
-
-
-.scanner-input {
-  max-width: 500px;
-  background-repeat: no-repeat;
-  background-position: -20px;
-  animation: bc_scanner_laser 1s infinite;
-  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
-  /*animation-direction: alternate-reverse;*/
-  border: 1px solid red;
-  box-shadow: 0px 0px 4px red;
-}

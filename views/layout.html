@@ -41,9 +41,9 @@
     <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{=URL('static', 'css/bag.css')}}">
 
     <link rel="shortcut icon" href="{{=URL('static','images/favicon.ico')}}" type="image/x-icon">
+
 
     <!-- Add to homescreen for Chrome on Android -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -77,13 +77,18 @@
         include_bag = True
       pass
     }}
-    <style>
-      {{ if enable_bootstrap: }}
-        {{ include '../static/css/bootstrap.min.css' }}
-        {{ if enable_treeview: }}
-          {{ include '../static/css/bootstrap-treeview.min.css' }}
-        {{ pass }}
+
+
+    {{ if enable_bootstrap: }}
+      <link rel="stylesheet" href="{{=URL('static', 'css/bootstrap.min.css')}}">
+      {{ if enable_treeview: }}
+        <link rel="stylesheet" 
+          href="{{=URL('static', 'css/bootstrap-treeview.min.css')}}"
+        >
       {{ pass }}
+    {{ pass }}
+
+    <style>
       {{ include '../static/css/ctrlpyme.css' }}
       {{ if enable_css_item_card: }}
         {{ include '../static/css/item_card.css' }}
@@ -100,6 +105,8 @@
       {{ if enable_css_ticket: }}
         {{ include '../static/css/ticket.css' }}
       {{ pass }}
+      
+      {{include '../static/css/bag.css'}}
     </style>
     {{include "style.html"}}
   </head>
@@ -238,10 +245,10 @@
 
 
     <!-- The javascript =============================== -->
+    <script src="{{=URL('static', 'js/calendar.js')}}"></script>
+    <script src="{{=URL('static', 'js/web2py.js')}}"></script>
+    
     <script type="text/javascript">
-      {{ include '../static/js/calendar.js'}}
-      {{ include '../static/js/web2py.js'}}
-
 
       var DEFAULT_BARCODE_SCANNER_URL = '{{ =URL("item", "find_by_matching_code", extension="json") }}/'
 

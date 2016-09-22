@@ -662,11 +662,20 @@ def purchase_options(row):
     else:
         buttons += supert.OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
         buttons += supert.OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
-    # buttons += supert_default_options(row)[1],
     return buttons
 
 
 @auth.requires_membership('Purchases')
 def index():
-    data = common_index('purchase', ['invoice_number', 'subtotal', 'total', 'created_on'], dict(options_func=purchase_options, global_options=[]))
+
+    import supert
+    Supert = supert.Supert()
+
+    query = db.purchase.id_store == session.store
+    data = Supert.SUPERT(
+        query,
+        fields=[ 'invoice_number', 'subtotal', 'total', 'created_on' ],
+        options_func=purchase_options, global_options=[]
+    )
+
     return locals()

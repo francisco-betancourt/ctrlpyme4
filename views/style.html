@@ -299,9 +299,33 @@
       0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
 
+
   .search-icon {
-    border-color: rgba(0,0,0,.2);
+    border-color: rgba(0, 0, 0, .2);
   }
+  {{ # very cheap and crappy }}
+  {{ if primary_color != "#FFFFFF": }}
+    #search_form input {
+      background-color: {{=primary_color_dim}};
+      color: {{=primary_color_text}};
+    }
+    #search_form input:not(:focus) {
+      border-color: rgba(0, 0, 0, .2);
+    }
+    #search_form input::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+      color:    {{=primary_color_text}};
+      opacity:  .5;
+    }
+    #search_form input::-moz-placeholder { /* Mozilla Firefox 19+ */
+      color:    {{=primary_color_text}};
+      opacity:  .5;
+    }
+    #search_form input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+      color:    {{=primary_color_text}};
+      opacity:  .5;
+    }
+  {{ pass }}
+
 </style>
 
 <meta name="theme-color" content="{{=primary_color}}">

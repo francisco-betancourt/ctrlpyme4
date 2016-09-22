@@ -692,11 +692,13 @@ db.define_table("stock_item",
 
 db.define_table(
     'stock_item_removal'
+    , Field("id_store", "reference store", label=T('Store'))
     , Field('id_bag_item', 'reference bag_item', default=None)
     , Field('id_inventory_item', 'reference inventory_item', default=None)
     , Field('id_stock_item', 'reference stock_item', default=None)
     , Field('id_item', 'reference item', default=None)
     , Field('qty', 'decimal(16,6)', label=T('Quantity'))
+    , auth.signature
 )
 
 
