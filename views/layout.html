@@ -89,8 +89,6 @@
     {{ pass }}
 
     <style>
-      {{include '../static/css/bag.css'}}
-
       {{ include '../static/css/ctrlpyme.css' }}
       {{ if enable_css_item_card: }}
         {{ include '../static/css/item_card.css' }}
@@ -107,6 +105,8 @@
       {{ if enable_css_ticket: }}
         {{ include '../static/css/ticket.css' }}
       {{ pass }}
+      
+      {{include '../static/css/bag.css'}}
     </style>
     {{include "style.html"}}
   </head>
