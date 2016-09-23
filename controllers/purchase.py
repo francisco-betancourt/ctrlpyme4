@@ -146,8 +146,9 @@ def response_stock_item(stock_item):
         price = DQ(stock_item.price) + DQ(stock_item.taxes)
         for target in ['base_price', 'price2', 'price3']:
             earnp = DQ(
-                (stock_item[target] or 0 / price - 1) * 100, True, True
+                ((stock_item[target] or 0) / price - 1) * 100, True, True
             )
+            earnp = max(0, earnp)
             res['earnp_' + target] = earnp
 
     return res

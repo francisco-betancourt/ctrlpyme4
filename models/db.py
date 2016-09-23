@@ -409,8 +409,8 @@ db.define_table("item",
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
 
     Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
-    Field("price2", "decimal(16,6)", default=0, label=T('Price')+" 2"),
-    Field("price3", "decimal(16,6)", default=0, label=T('Price')+" 3"),
+    Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
+    Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
 
     # last earning percentage reported, used to calculate the sale prices based on purchase price
     Field(
