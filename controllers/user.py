@@ -64,9 +64,10 @@ def create_admin_user():
 
     admin_group = db(db.auth_group.role == 'Admin').select().first()
 
-    if db(db.auth_membership.group_id == admin_group).select().first():
+    if db(db.auth_membership.group_id == admin_group.id).select().first():
         session.info = T("There is already an admin user")
         redirect(URL('default', 'index'))
+
 
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
@@ -78,6 +79,7 @@ def create_admin_user():
         redirect(URL('default', 'user/login'))
     elif form.errors:
         response.flash = T('Errors in form')
+
     return dict(form=form)
 
 

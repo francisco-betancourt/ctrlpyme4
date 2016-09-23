@@ -82,7 +82,7 @@
     {{ if enable_bootstrap: }}
       <link rel="stylesheet" href="{{=URL('static', 'css/bootstrap.min.css')}}">
       {{ if enable_treeview: }}
-        <link rel="stylesheet" 
+        <link rel="stylesheet"
           href="{{=URL('static', 'css/bootstrap-treeview.min.css')}}"
         >
       {{ pass }}
@@ -105,7 +105,7 @@
       {{ if enable_css_ticket: }}
         {{ include '../static/css/ticket.css' }}
       {{ pass }}
-      
+
       {{include '../static/css/bag.css'}}
     </style>
     {{include "style.html"}}
@@ -218,8 +218,8 @@
               <a href="{{=URL('default', 'user/login', vars=dict(_next=current_url() ))}}">{{=T('Login ')}}</a>
                 {{ if not USE_CLIENTS_WHITELIST: }}
                   {{=T('or')}} <a href="{{=URL('default', 'user/register')}}">{{=T('Register')}}</a>
-                {{ pass }} 
-                
+                {{ pass }}
+
                 {{=T('to add items to your bag')}}
             {{pass}}
           </div>
@@ -247,7 +247,7 @@
     <!-- The javascript =============================== -->
     <script src="{{=URL('static', 'js/calendar.js')}}"></script>
     <script src="{{=URL('static', 'js/web2py.js')}}"></script>
-    
+
     <script type="text/javascript">
 
       var DEFAULT_BARCODE_SCANNER_URL = '{{ =URL("item", "find_by_matching_code", extension="json") }}/'
@@ -348,7 +348,11 @@
         }
       }
 
-     {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
+     {{ try: }}
+       {{vars_string = URL(vars=request.vars).split('?')[1] if request.vars else ""}}
+     {{except:}}
+       {{vars_string = ""}}
+     {{pass}}
 
      function delete_rows(ids, controller, vars) {
        if(confirm('{{=T("Are you sure you want to hide the selected elements?")}}')) {
