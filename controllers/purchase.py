@@ -146,8 +146,9 @@ def response_stock_item(stock_item):
         price = DQ(stock_item.price) + DQ(stock_item.taxes)
         for target in ['base_price', 'price2', 'price3']:
             earnp = DQ(
-                (stock_item[target] / price - 1) * 100, True, True
+                ((stock_item[target] or 0) / price - 1) * 100, True, True
             )
+            earnp = max(0, earnp)
             res['earnp_' + target] = earnp
 
     return res
@@ -182,14 +183,14 @@ def create_new_stock_item(purchase, item):
         price=price,
         taxes=price * taxes,
         base_price=item.base_price,
-        price2=item.price2,
-        price3=item.price3
+        price2=item.price2 or 0,
+        price3=item.price3 or 0
     )
 
     purchase.items_subtotal += price
     purchase.items_total += price + price * taxes
     purchase.update_record()
-    
+
     return stock_item
 
 
@@ -223,7 +224,7 @@ def add_stock_item():
 
 
 def stock_items_buy_price(stock_item):
-    """ Returns the total stock item buy price, considering taxes and 
+    """ Returns the total stock item buy price, considering taxes and
         quantity """
     return (D(stock_item.price or 0) + D(stock_item.taxes or 0)) * D(stock_item.purchase_qty or 0)
 
@@ -360,7 +361,7 @@ def modify_stock_item():
         param_value = request.args(2)
 
         if param_name in ['purchase_qty', 'price', 'base_price', 'price2', 'price3']:
-            
+
             stock_item[param_name] = DQ(param_value)
             stock_item = postprocess_stock_item(stock_item)
 
@@ -369,7 +370,7 @@ def modify_stock_item():
             if param_name == 'price':
                 for target in ['base_price', 'price2', 'price3']:
                     earnp = DQ(
-                        (stock_item[target] / old_price_only - 1), 
+                        (stock_item[target] / old_price_only - 1),
                         True, True
                     )
                     new_total_price = stock_item.price + stock_item.taxes

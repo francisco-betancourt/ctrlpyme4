@@ -140,7 +140,7 @@ db.define_table("brand",
     Field("name", "string", default="", label=T('Name')),
     Field("logo", "upload", default="", label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field(
-        "earnp_base", "decimal(16,6)", default=0, 
+        "earnp_base", "decimal(16,6)", default=0,
         label=T("Earning percentage base")
     ),
     Field(
@@ -407,7 +407,7 @@ db.define_table("item",
     Field("sku", "string", length=20, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
-    
+
     Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
@@ -484,7 +484,7 @@ db.define_table("purchase",
     Field("invoice_number", default=None, label=T('Invoice number')),
     Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=0, label=T('Total')),
-    Field("items_subtotal", "decimal(16,6)", default=0, label=T('Subotal'), readable=False, writable=False), 
+    Field("items_subtotal", "decimal(16,6)", default=0, label=T('Subotal'), readable=False, writable=False),
     Field("items_total", "decimal(16,6)", default=0, label=T('Total'), readable=False, writable=False),
     Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
