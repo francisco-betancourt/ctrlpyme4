@@ -304,7 +304,7 @@
     border-color: rgba(0, 0, 0, .2);
   }
   {{ # very cheap and crappy }}
-  {{ if primary_color != "#FFFFFF": }}
+  {{ if primary_color.lower() != "#ffffff": }}
     #search_form input {
       background-color: {{=primary_color_dim}};
       color: {{=primary_color_text}};

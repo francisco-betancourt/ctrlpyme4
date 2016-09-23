@@ -53,6 +53,35 @@ def create():
     return dict(form=form)
 
 
+
+
+def create_admin_user():
+    """ Create an admin user if there is no admin user """
+
+    if not URL.verify(request, hmac_key=CONF.take('hmac.key')):
+        raise HTTP(403)
+
+
+    admin_group = db(db.auth_group.role == 'Admin').select().first()
+
+    if db(db.auth_membership.group_id == admin_group).select().first():
+        session.info = T("There is already an admin user")
+        redirect(URL('default', 'index'))
+
+    form = SQLFORM(db.auth_user)
+    if form.process().accepted:
+        import settup
+
+        settup.settup_admin_user(form.vars.id)
+
+        response.flash = T('Admin') + ' ' + T('created')
+        redirect(URL('default', 'user/login'))
+    elif form.errors:
+        response.flash = T('Errors in form')
+    return dict(form=form)
+
+
+
 @auth.requires_membership('Admin')
 def get():
     pass
