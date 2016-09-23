@@ -182,8 +182,8 @@ def create_new_stock_item(purchase, item):
         price=price,
         taxes=price * taxes,
         base_price=item.base_price,
-        price2=item.price2,
-        price3=item.price3
+        price2=item.price2 or 0,
+        price3=item.price3 or 0
     )
 
     purchase.items_subtotal += price
