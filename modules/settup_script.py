@@ -43,7 +43,6 @@ def main(email):
             app_url=create_admin_url
         )
     )
-    print create_admin_url
 
 
 if __name__ == "__main__":
