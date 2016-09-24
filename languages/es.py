@@ -611,6 +611,7 @@
 'Missing': 'Faltante',
 'Missing items': 'Items faltantes',
 'Missing money': 'Dinero faltante',
+'Mobile number': 'Número movil',
 'Modal': 'Modal',
 'Models': 'Modelos',
 'models': 'modelos',

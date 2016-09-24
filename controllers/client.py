@@ -44,6 +44,7 @@ def update():
     form = SQLFORM(db.auth_user, client)
     if form.process().accepted:
         response.flash = T('form accepted')
+        redirect(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
@@ -109,6 +110,16 @@ def index():
     data = Supert.SUPERT(
         query, [db.auth_user.ALL], fields=[
             'first_name', 'last_name', 'email',
+            dict(
+                fields=['phone_number'],
+                custom_format=lambda r, f : A(r[f[0]], _href="tel:%s" % r[f[0]])
+                , label_as=T('Phone number')
+            ),
+            dict(
+                fields=['mobile_number'],
+                custom_format=lambda r, f : A(r[f[0]], _href="tel:%s" % r[f[0]])
+                , label_as=T('Mobile number')
+            ),
             dict(
                 fields=['id_wallet.balance'],
                 custom_format=lambda r, f : '$ %s' % DQ(r[f[0]], True),
