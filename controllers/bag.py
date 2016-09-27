@@ -253,7 +253,7 @@ def stock_transfer():
     # the bag contains services
     if count:
         session.flash = T('You should not be transfering services')
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
         redirect(URL('default', 'index'))
 
     bag_utils.check_bag_items_integrity(bag_items)
