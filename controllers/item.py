@@ -564,7 +564,7 @@ def browse():
         vars: {category, sort, categories, is_service, brand, term}
     """
 
-    term = request.vars.term;
+    term = request.vars.term
 
     category = db.category(request.vars.category)
     is_service = request.vars.is_service == 'yes'
@@ -737,3 +737,30 @@ def get_some_services():
     services = [item_utils.data_for_card(v) for v in records]
 
     return dict(items=services)
+
+
+
+def get_affinity_items():
+    """ args: item_id """
+
+    item_id = request.args(0)
+
+    records = db(
+        (db.item_affinity.id_item1 == item_id) |
+        (db.item_affinity.id_item2 == item_id)
+    ).iterselect(
+        orderby=~db.item_affinity.affinity,
+        limitby=(0, 5)
+    )
+
+
+    items = []
+    for record in records:
+        item_id = long(item_id)
+
+        item = record.id_item1 if record.id_item1.id != item_id else record.id_item2
+        items.append(item_utils.data_for_card(item))
+
+    return dict(items=items)
+    
+

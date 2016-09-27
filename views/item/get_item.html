@@ -130,7 +130,11 @@
 
 <h3>{{=T('Description')}}</h3>
 <div id="description">
-  {{=MARKMIN(item.description)}}
+  {{ if item.description: }}
+    {{=MARKMIN(item.description)}}
+  {{ else: }}
+    {{=T("No description available")}}
+  {{ pass }}
 
   {{ if item.traits: }}
     {{ for trait in item.traits: }}
@@ -147,6 +151,12 @@
   </ul>
   {{pass}}
 </div>
+
+
+<section id="suggested_items" hidden="hidden">
+  <h3>{{=T("You may also be interested in these items")}}</h3>
+  <div id="suggested_items_container" class="items-container no-wrap"></div>
+</section>
 
 
 {{block page_js}}
@@ -208,5 +218,15 @@
   function create_labels(item_id) {
     window.location.href = "{{=URL('item', 'labels')}}/" + item_id;
   }
+
+
+
+  $(document).ready(function () {
+
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_affinity_items', args=item.id, extension='json')}}", $('#suggested_items_container'), function () {$("#suggested_items").show();}
+    );
+  })
+
 </script>
 {{end}}
