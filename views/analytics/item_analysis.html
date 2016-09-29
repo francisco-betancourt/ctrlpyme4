@@ -48,4 +48,36 @@
 {{ if item.has_inventory: }}
 <hr>
 {{=out_inventories_t}}
+
+
+<hr>
+<section id="sales">
+  <div class="chart vertical card no-text-select">
+    <h1> {{=T("Sales")}} </h1>
+    <div id="item_sales_chart"></div>
+  </div>
+</section>
+
+
+
+<hr>
+<section id="affinity_items" hidden="hidden">
+  <h3>{{=T("Affinity")}}</h3>
+  <div id="affinity_items_container" class="items-container no-wrap"></div>
+</section>
+
+{{ pass }}
+
+
+{{ block pagejs }}
+<script>
+  
+
+
+  $(document).ready(function () {
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_affinity_items', args=item.id, extension='json')}}", $('#affinity_items_container'), function () {$("#affinity_items").show();}
+    );
+  })
+</script>
 {{ pass }}

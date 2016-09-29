@@ -67,7 +67,7 @@ def get_paid_bags_in_range_as_payments(start_date, end_date, id_store):
         yield Storage(amount=paid_bag.total, change_amount=0, created_on=paid_bag.created_on)
 
 
-def get_day_sales_data(day, id_store):
+def _get_day_sales_data(day, id_store):
     if not day:
         day = date(request.now.year, request.now.month, request.now.day)
 
@@ -480,11 +480,12 @@ def dataset_format(label, data, f_color):
     if not f_color:
         fill_color = random_color_mix(PRIMARY_COLOR)
     return {
-        'label': label,
+        'label': str(label),
         'data': data,
         'backgroundColor': hex_to_css_rgba(fill_color, .4),
         'borderColor': fill_color,
         'pointBorderColor': fill_color,
+        'lineTension': .1
     }
 
 
@@ -523,7 +524,7 @@ def dashboard():
             store.c_value += payment['amount'] - payment['change_amount']
         store.c_value = str(DQ(store.c_value, True))
         sales_data['datasets'].append(
-            dataset_format(store.name, get_day_sales_data(None, store.id), store.c_color)
+            dataset_format(store.name, _get_day_sales_data(None, store.id), store.c_color)
         )
 
         # query items quantity monthly
@@ -628,6 +629,96 @@ def index():
     )
 
     return locals()
+
+
+
+
+def day_sales_data(day_date):
+    """ Returns relevant data for the specified day """
+
+    import analysis
+
+    s_date = datetime(day_date.year, day_date.month, day_date.day, 0)
+    e_date = s_date + timedelta(hours=23, minutes=59, seconds=59)
+    
+    payments_groups = analysis.get_data_groups(
+        db.payment, s_date, e_date, id_store=session.store
+    )
+    rr = analysis.reduce_groups(payments_groups, dict(
+        payments_total=dict(func=lambda r : float(r.amount - r.change_amount))
+    ))
+    print rr
+    sales_data = rr['payments_total']['results']
+    sales_total = DQ(sum(sales_data), True)
+    chart_sales_data = {
+        'labels': ["%d:00" % hour for hour in xrange(24)],
+        'datasets': [dataset_format(T('Today sales'), sales_data, ACCENT_COLOR)]
+    }
+
+    # important averages
+    avg_sale_total = db.sale.total.avg()
+    avg_sale_volume = db.sale.quantity.avg()
+    total_items_sold = db.sale.quantity.sum()
+    sales_data = db(
+        (db.sale.created_on >= s_date) & 
+        (db.sale.created_on < e_date)
+    ).select(avg_sale_total, avg_sale_volume, total_items_sold).first()
+    avg_sale_volume = DQ(sales_data[avg_sale_volume] or 0, True)
+    avg_sale_total = DQ(sales_data[avg_sale_total] or 0, True)
+    # average items sell price
+    avg_item_price = DQ(sales_total / (sales_data[total_items_sold] or 1), True)
+
+    total_items_sold = DQ(sales_data[total_items_sold] or 0, True)
+
+    next_day = s_date + timedelta(days=1)
+    prev_day = s_date - timedelta(days=1)
+
+    return dict(
+        chart_data=chart_sales_data,
+        avg_sale_total=avg_sale_total,
+        avg_sale_volume=avg_sale_volume,
+        total_items_sold=total_items_sold,
+        avg_item_price=avg_item_price,
+        sales_total=sales_total,
+        current_day=s_date,
+        next_day=next_day,
+        prev_day=prev_day
+    )
+
+
+
+@auth.requires_membership("Analytics")
+def get_day_sales_data():
+    """
+        args: [year, month, day] 
+    """
+
+    if len(request.args) < 3:
+        raise HTTP(403)
+    
+    year = int(request.args(0))
+    month = int(request.args(1))
+    day = int(request.args(2))
+
+    day_date = datetime(year, month, day)
+
+    return day_sales_data(day_date)
+
+
+
+
+@auth.requires_membership("Analytics")
+def analysis():
+    data = day_sales_data(request.now)
+    json_sales_data = json.dumps(data['chart_data'])
+    today_sales_data_script = SCRIPT(
+        "var today_sales_data = %s" % json_sales_data
+    )
+    del data['chart_data']
+    return dict(today_sales_data_script=today_sales_data_script, **data)
+
+
+
 
 
 @auth.requires_membership("Analytics")

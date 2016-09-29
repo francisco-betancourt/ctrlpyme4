@@ -18,23 +18,16 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
-
-class CP_BaseError(Exception):
-    def __init__(self, msg=''):
-        self.msg = msg
-
-    def __str__(self):
-        return str(self.msg)
+#
+# This fragment of the db depends on some tables specified in db.py
+#
 
 
-class CP_EmptyBagError(CP_BaseError):
-    pass
-
-class CP_OutOfStockError(CP_BaseError):
-    pass
-
-class CP_PaymentError(CP_BaseError):
-    pass
-
-class CP_AnalysisError(CP_BaseError):
-    pass
+# used calculate which items were purchased along other items, the higher the
+# affinity the higher the amount of those items being sold toghether
+db.define_table(
+    'item_affinity'
+    , Field('id_item1', 'reference item')
+    , Field('id_item2', 'reference item')
+    , Field('affinity', 'integer', default=0)
+)
