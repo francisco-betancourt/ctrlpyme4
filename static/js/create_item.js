@@ -28,7 +28,7 @@ function fill_datalist(options, target) {
 function search_trait_category_names(target) {
   var val = $(target).val();
   $.ajax({
-    url: AJAX_SEARCH_TRAIT_CATEGORIES_URL + '/' + val
+    url: AJAX_SEARCH_TRAIT_CATEGORIES_URL + '?term=' + val
   })
   .done(function(res) {
     var options = res.match;
@@ -41,7 +41,7 @@ function search_traits_by_category_name(target) {
   var cat_name = $('#new_trait_category_name').val();
   var val = $(target).val();
   $.ajax({
-    url: AJAX_SEARCH_TRAITS_URL + '/' + cat_name + '/' + val
+    url: AJAX_SEARCH_TRAITS_URL + '?category_name=' + cat_name + '&term=' + val
   })
   .done(function(res) {
     var options = res.match;
