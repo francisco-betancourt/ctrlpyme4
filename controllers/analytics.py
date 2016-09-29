@@ -587,7 +587,9 @@ def index():
     day_data = day_report_data(None, None, None)
     income = day_data['income']
     expenses = day_data['expenses']
-    today_sales_data_script = SCRIPT('today_sales_data = %s;' % day_data['sales_data'])
+    today_sales_data_script = SCRIPT(
+        'today_sales_data = %s;' % day_data['sales_data']
+    )
 
     store_group = db(
         db.auth_group.role == 'Store %s' % session.store

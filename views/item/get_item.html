@@ -8,7 +8,7 @@
 <hr>
 <h4 id="item_info">
   <a href="{{=URL('item', 'browse', vars=dict(brand=item.id_brand.id))}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
-      {{if auth.has_membership('Employee') and item_barcode(item):}}
+      {{if MEMBERSHIPS.get('Employee') and item_barcode(item):}}
         <span class="barcode">{{=item_barcode(item)}}</span>
       {{pass}}
 </h4>
@@ -46,10 +46,10 @@
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
 
-{{if auth.has_membership('Employee'):}}
+{{if MEMBERSHIPS.get('Employee'):}}
 <hr>
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
-  {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
+  {{if MEMBERSHIPS.get('Items info') or MEMBERSHIPS.get('Items management') or MEMBERSHIPS.get('Items prices'): }}
     <div class="btn-group">
       <button class="btn btn-default" onclick="update_item(current_item_id)">
       {{=ICON('edit')}}</button>

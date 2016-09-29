@@ -21,6 +21,7 @@
 
 import common_utils
 import user_utils
+import bag_utils
 
 
 @auth.requires_membership('Employee')
@@ -302,7 +303,7 @@ def post_login():
     if not auth.has_membership('Clients') or auth.user.is_client:
         common_utils.select_store(True)
 
-    auto_bag_selection()
+    bag_utils.auto_bag_selection()
     if request.vars.__next:
         request.vars._next = request.vars.__next
         del request.vars.__next
@@ -351,7 +352,7 @@ def store_selection():
     stores = db(user_stores_query).select()
     if len(stores) == 1:
         session.store = stores.first().id
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
         redirection()
 
     form = SQLFORM.factory(
@@ -362,7 +363,7 @@ def store_selection():
         session.store = form.vars.store
         response.flash = T("You are in store") + " %s" % db.store(form.vars.store).name
 
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
 
         redirection()
     elif form.errors:

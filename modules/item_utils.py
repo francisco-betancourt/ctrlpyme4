@@ -622,6 +622,8 @@ def data_for_card(item):
     db = current.db
     auth = current.auth
 
+    memberships = dict([(v, True) for v in auth.user_groups.values()])
+
 
     if not item:
         return None
@@ -648,10 +650,10 @@ def data_for_card(item):
 
     # extra options for employees
     item.options = []
-    if auth.has_membership('Employee'):
+    if memberships.get('Employee'):
         item.barcode = item_barcode(item)
 
-        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+        if memberships.get('Items info') or memberships.get('Items management') or memberships.get('Items prices'):
             item.options.append((
                 T('Update'), URL('item', 'update', args=item.id)
             ))
@@ -661,7 +663,7 @@ def data_for_card(item):
             item.options.append((
                 T('Add images'), URL('item_image', 'create', args=item.id)
             ))
-        if auth.has_membership('Analytics'):
+        if memberships.get('Analytics'):
             item.options.append((
                 T('Analysis'), URL('analytics', 'item_analysis', args=item.id)
             ))

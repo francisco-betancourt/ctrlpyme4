@@ -24,7 +24,14 @@ if not request.env.web2py_runtime_gae:
     ## For production add lazy_tables=True for a huge boost in performance
     migrate = CONF.take('db.migrate', cast=int) == 1
     lazy_tables = CONF.take('db.lazy_tables', cast=int) == 1
-    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'], migrate=migrate, migrate_enabled=migrate, lazy_tables=lazy_tables)
+    db = DAL(
+        CONF.take('db.uri'),
+        pool_size=CONF.take('db.pool_size', cast=int),
+        check_reserved=['all'],
+        migrate=migrate,
+        migrate_enabled=migrate,
+        lazy_tables=lazy_tables
+    )
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
