@@ -28,6 +28,9 @@ import random
 import json
 from gluon.storage import Storage
 
+import analysis_utils
+
+
 
 hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
 
@@ -226,37 +229,6 @@ def day_report_data(year, month, day):
     return locals()
 
 
-#TODO check if the selected interval has already passed
-def daily_interval(month, year):
-    # Days Of The Month
-    dotm = calendar.monthrange(year, month)[1]
-    # the first day of the specified month and year
-    end_date = date(year, month, 1)
-    # a month previous to the specified month
-    start_date = end_date - timedelta(days=dotm)
-    start_date = date(start_date.year, start_date.month, 1)
-
-    timestep = timedelta(days=1)
-
-    return start_date, end_date, timestep
-
-
-def monthly_analysis(query, tablename, field, month, year):
-    """ """
-
-    start_date, end_date, timestep = daily_interval(month, year)
-
-    current_date = start_date
-    data_set = []
-    field_sum = db[tablename][field].sum()
-    while current_date + timestep < end_date:
-        partial_sum = db(query
-                        & (db[tablename].created_on >= current_date)
-                        & (db[tablename].created_on < current_date + timestep)
-                        ).select(field_sum).first()[field_sum]
-        data_set.append(partial_sum or DQ(0))
-        current_date += timestep
-    return data_set
 
 
 def stocks_table(item, Supert):
@@ -646,6 +618,39 @@ def index():
     return locals()
 
 
+
+
+
+
+
+
+def chart_data_template_for(time_mode, datasets, day_date):
+    labels = None
+    if time_mode == analysis_utils.TIME_MODE_DAY:
+        labels = ["%d:00" % hour for hour in xrange(24)]
+    elif time_mode == analysis_utils.TIME_MODE_WEEK:
+        labels = [
+            T("Monday"), T("Tuesday"), T("Wednesday"), T("Thursday"),
+            T("Friday"), T("Saturday"), T("Sunday")
+        ]
+    elif time_mode == analysis_utils.TIME_MODE_MONTH:
+        dom = calendar.monthrange(day_date.year, day_date.month)[1]
+        labels = [day for day in xrange(1, dom + 1)]
+    elif time_mode == analysis_utils.TIME_MODE_YEAR:
+        labels = [
+            T("January"), T("February"), T("March"), T("April"), T("May"),
+            T("June"), T("July"), T("August"), T("September"), T("October"), 
+            T('November'), T('December')
+        ]
+    chart_data = {
+        'labels': labels,
+        'datasets': datasets
+    }
+
+    return chart_data
+    
+
+
 def get_date_from_request(request):
     try:
         year = int(request.vars.year)
@@ -653,20 +658,64 @@ def get_date_from_request(request):
         day = int(request.vars.day)
     except:
         raise HTTP(400)
-    
+
+
     # the good thing about this is that you we can receive a special request parameter to specify the time step and it will just work
     start_date = datetime(year, month, day, 0)
-    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
 
-    return start_date, end_date
+    t_step = analysis_utils.TIME_HOUR
+    delta = timedelta(days=1)
+    delta2 = None
+
+    try:
+        time_mode = int(request.vars.t_mode)
+
+        if time_mode == analysis_utils.TIME_MODE_WEEK:
+            t_step = analysis_utils.TIME_DAY
+            delta = timedelta(days=7)
+            # the start day in this case is the first day of the current week
+            start_date -= timedelta(days=start_date.weekday())
+
+        if time_mode == analysis_utils.TIME_MODE_MONTH:
+            # the start day in this case is the first day of the current month
+            t_step = analysis_utils.TIME_DAY
+            # days of the month
+            start_date = datetime(start_date.year, start_date.month, 1)
+            prev = start_date - timedelta(days=1)
+            dom = calendar.monthrange(prev.year, prev.month)[1]
+            delta = timedelta(days=dom)
+            dom2 = calendar.monthrange(start_date.year, start_date.month)[1]
+            delta2 = timedelta(days=dom2)
+
+        if time_mode == analysis_utils.TIME_MODE_YEAR:
+            t_step = analysis_utils.TIME_MONTH
+            start_date = datetime(start_date.year, 1, 1)
+            delta = timedelta(days=365)
+    except:
+        pass
+
+    if not delta2:
+        delta2 = delta
+    
+    end_date = start_date + delta2
+
+    next_date = end_date
+    prev_date = start_date - delta
+
+    return Storage(
+        start_date=start_date, 
+        end_date=end_date,
+        time_step=t_step,
+        time_mode=time_mode,
+        next_date=next_date,
+        prev_date=prev_date
+    )
 
 
 
 @auth.requires_membership("Analytics")
 def get_item_sales_data():
-    import analysis
-
-    s_date, e_date = get_date_from_request(request)
+    date_data = get_date_from_request(request)
     id_item = request.args(0)
 
 
@@ -675,32 +724,30 @@ def get_item_sales_data():
         (db.bag_item.id_bag == db.bag.id) &
         (db.bag_item.id_item == id_item) &
         (db.sale.id_store == session.store) &        
-        (db.sale.created_on >= s_date) &
-        (db.sale.created_on < e_date)
+        (db.sale.created_on >= date_data.start_date) &
+        (db.sale.created_on < date_data.end_date)
     ).iterselect(db.bag_item.quantity, db.sale.created_on)
 
-    groups = analysis.group_items(
-        raw_data, s_date, e_date, analysis.TIME_HOUR,
+    groups = analysis_utils.group_items(
+        raw_data, date_data.start_date, date_data.end_date, date_data.time_step,
         lambda r : r.sale.created_on
     )
-    rr = analysis.reduce_groups(groups, dict(
+    rr = analysis_utils.reduce_groups(groups, dict(
         qty_total=dict(func=lambda r : float(r.bag_item.quantity))
     ))
     data = rr['qty_total']['results']
     total_sales = DQ(sum(rr['qty_total']['results']), True, True)
-    chart_data = {
-        'labels': ["%d:00" % hour for hour in xrange(24)],
-        'datasets': [dataset_format(T('Sold quantity'), data, ACCENT_COLOR)]
-    }
-
-    next_day = s_date + timedelta(days=1)
-    prev_day = s_date - timedelta(days=1)
+    chart_data = chart_data_template_for(
+        date_data.time_mode,
+        [dataset_format(T('Sold quantity'), data, ACCENT_COLOR)],
+        request.now
+    )
 
     return dict(
         chart_data=chart_data,
-        current_date=s_date,
-        next_date=next_day,
-        prev_date=prev_day,
+        current_date=date_data.start_date,
+        next_date=date_data.next_day,
+        prev_date=date_data.prev_day,
 
         total_sales=total_sales
     )
@@ -708,31 +755,30 @@ def get_item_sales_data():
 
 
 
-def get_sales_data(s_date, e_date):
+def get_sales_data(date_data):
     """ Returns relevant data for the specified day """
-
-    import analysis
     
-    payments_groups = analysis.get_data_groups(
-        db.payment, s_date, e_date, id_store=session.store
+    payments_groups = analysis_utils.get_data_groups(
+        db.payment, date_data.start_date, date_data.end_date, t_step=date_data.time_step, id_store=session.store
     )
-    rr = analysis.reduce_groups(payments_groups, dict(
+    rr = analysis_utils.reduce_groups(payments_groups, dict(
         payments_total=dict(func=lambda r : float(r.amount - r.change_amount))
     ))
     sales_data = rr['payments_total']['results']
     sales_total = DQ(sum(sales_data), True)
-    chart_sales_data = {
-        'labels': ["%d:00" % hour for hour in xrange(24)],
-        'datasets': [dataset_format(T('Today sales'), sales_data, ACCENT_COLOR)]
-    }
+    chart_sales_data = chart_data_template_for(
+        date_data.time_mode,
+        [dataset_format(T('Today sales'), sales_data, ACCENT_COLOR)],
+        request.now
+    )
 
     # important averages
     avg_sale_total = db.sale.total.avg()
     avg_sale_volume = db.sale.quantity.avg()
     total_items_sold = db.sale.quantity.sum()
     sales_data = db(
-        (db.sale.created_on >= s_date) & 
-        (db.sale.created_on < e_date)
+        (db.sale.created_on >= date_data.start_date) & 
+        (db.sale.created_on < date_data.end_date)
     ).select(avg_sale_total, avg_sale_volume, total_items_sold).first()
     avg_sale_volume = DQ(sales_data[avg_sale_volume] or 0, True)
     avg_sale_total = DQ(sales_data[avg_sale_total] or 0, True)
@@ -741,14 +787,11 @@ def get_sales_data(s_date, e_date):
 
     total_items_sold = DQ(sales_data[total_items_sold] or 0, True)
 
-    next_day = s_date + timedelta(days=1)
-    prev_day = s_date - timedelta(days=1)
-
     return dict(
         chart_data=chart_sales_data,
-        current_date=s_date,
-        next_date=next_day,
-        prev_date=prev_day,
+        current_date=date_data.start_date,
+        next_date=date_data.next_date,
+        prev_date=date_data.prev_date,
 
         avg_sale_total=avg_sale_total,
         avg_sale_volume=avg_sale_volume,
@@ -765,8 +808,8 @@ def get_day_sales_data():
         args: [year, month, day] 
     """
 
-    start_date, end_date = get_date_from_request(request)
-    return get_sales_data(start_date, end_date)
+    date_data = get_date_from_request(request)
+    return get_sales_data(date_data)
 
 
 

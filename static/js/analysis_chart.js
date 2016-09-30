@@ -2,6 +2,7 @@ function TimeRangePlot(
     container, chart_canvas, url, date, refresh_callback, chart_options
 ) {
 
+    var initial_date = date;
     var current_date = date;
     var next_date = null;
     var prev_date = null;
@@ -9,6 +10,11 @@ function TimeRangePlot(
     var chart_canvas = chart_canvas
     var chart = null;
     var url = url;
+
+    var time_modes = TIME_MODES
+    var time_mode = time_modes[0];
+
+
 
     if (!chart_options) {
         var chart_options = {
@@ -25,6 +31,12 @@ function TimeRangePlot(
     } else {
         var chart_options = chart_options;
     }
+
+
+    container.find('.time_mode').click(function (event) {
+        time_mode = $(event.target).data('value');
+        refresh_date_data(initial_date);
+    });
      
 
 
@@ -37,7 +49,7 @@ function TimeRangePlot(
         var month = date.getMonth() + 1;
         var day = date.getDate();
 
-        var request_url = url+'?year='+year+'&month='+month+'&day='+day
+        var request_url = url+'?year='+year+'&month='+month+'&day='+day+'&t_mode='+time_mode
 
         $.ajax({
             url: request_url
@@ -63,6 +75,7 @@ function TimeRangePlot(
                 for (var i in res.chart_data.datasets) {
                     chart.data.datasets[i].data = res.chart_data.datasets[i].data;
                 }
+                chart.data.labels = res.chart_data.labels;
                 chart.update();
             }
 

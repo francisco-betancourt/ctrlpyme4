@@ -21,6 +21,7 @@
 
 from datetime import timedelta, date, datetime
 from gluon import current
+import calendar
 
 
 
@@ -30,9 +31,23 @@ TIME_WEEK = 2
 TIME_MONTH = 3
 TIME_YEAR = 4
 
+TIME_MODE_DAY = 0
+TIME_MODE_WEEK = 1
+TIME_MODE_MONTH = 2
+TIME_MODE_YEAR = 3
+
+TIME_MODES = (
+    (TIME_MODE_DAY, 'day'),
+    (TIME_MODE_WEEK, 'week'),
+    (TIME_MODE_MONTH, 'month'),
+    (TIME_MODE_YEAR, 'year')
+)
 
 
-def group_time(interval):
+
+def group_time(interval, date):
+    """ date is only used to calculate the exact number of days for delta """
+
     if interval == TIME_HOUR:
         return timedelta(hours=1)
     elif interval == TIME_DAY:
@@ -40,40 +55,16 @@ def group_time(interval):
     elif interval == TIME_WEEK:
         return timedelta(weeks=1)
     elif interval == TIME_MONTH:
-        return timedelta(days=30)
+        return timedelta(days=calendar.monthrange(date.year, date.month)[1])
     elif interval == TIME_YEAR:
         return timedelta(weeks=52)
+
 
 
 def created_on_range_query(target, start_date, end_date):
     db = current.db
 
     return (target.created_on >= start_date) & (target.created_on < end_date)
-
-
-def avg_time_between_sales(start_date, end_date, group_by=TIME_HOUR):
-    db = current.db
-    
-
-    sales = db( 
-        (db.sale.created_on >= start_date) &
-        (db.sale.created_on < end_date) 
-    ).iterselect(
-        db.sale.created_on, 
-        orderby=db.sale.created_on
-    )
-
-    avg = 0
-    last_date = sales.first().created_on
-    count = 1
-    for sale in sales:
-        avg += (sale.created_on - last_date).total_seconds()
-        last_date = sale.created_on
-        count += 1
-
-    avg /= 3600
-    avg /= count
-
 
 
 
@@ -115,33 +106,32 @@ def group_items(records, start_date, end_date, t_step, creation_date_f=None):
         obtained by the result of that function 
     """
 
-    t_step_dt = group_time(t_step)
+    t_step_dt = group_time(t_step, start_date)
     current_group = []
-    current_limit_date = start_date + t_step_dt
+    u_limit = start_date + t_step_dt
+    l_limit = start_date
+    last_record_date = u_limit
 
     for record in records:
         created_on = None
         if creation_date_f:
             created_on = creation_date_f(record)
         else:
-            created_on = record.created_on 
-        
-        # yield emptys until we get to the relevant date
+            created_on = record.created_on
 
-        while current_limit_date < normalized_date(created_on, t_step):
-            yield []
-            current_limit_date += t_step_dt
-
-        if created_on > current_limit_date:
+        while u_limit < created_on:
+            if t_step == TIME_MONTH:
+                t_step_dt = group_time(t_step, u_limit)
+            u_limit += t_step_dt
             yield current_group
             current_group = []
-            current_limit_date += t_step_dt
+
         current_group.append(record)
     yield current_group
 
     # yield emptys until we reach the end_date
-    while current_limit_date < end_date:
-        current_limit_date += t_step_dt
+    while u_limit < end_date:
+        u_limit += t_step_dt
         yield []
 
 
@@ -218,3 +208,31 @@ def get_month_interval(year, month):
     end_date = start_date + timedelta(days=calendar.monthrange(year, month)[1])
 
     return start_date, end_date
+
+
+
+
+
+
+def avg_time_between_sales(start_date, end_date, group_by=TIME_HOUR):
+    db = current.db
+    
+
+    sales = db( 
+        (db.sale.created_on >= start_date) &
+        (db.sale.created_on < end_date) 
+    ).iterselect(
+        db.sale.created_on, 
+        orderby=db.sale.created_on
+    )
+
+    avg = 0
+    last_date = sales.first().created_on
+    count = 1
+    for sale in sales:
+        avg += (sale.created_on - last_date).total_seconds()
+        last_date = sale.created_on
+        count += 1
+
+    avg /= 3600
+    avg /= count

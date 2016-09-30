@@ -1,15 +1,32 @@
 <h1 class="flex justified between time-range-chart-header">
     <span class="chart-card-title">{{=T("Today")}}</span>
 
-    <div class="btn-group" role="group" aria-label="...">
-        <button type="button" class="btn btn-default btn-prev">
-            {{=ICON('arrow_back')}}
-        </button>
-        <button type="button" class="btn btn-default btn-calendar">
-            {{=ICON('date_range')}}
-        </button>
-        <button type="button" class="btn btn-default btn-next">
-            {{=ICON('arrow_forward')}}
-        </button>
+    <div class="buttons">
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{=T('Range')}}
+            </button>
+            <ul class="dropdown-menu options-dropdown-list">
+                {{ for time_mode in TIME_MODES: }}
+                    <li><a href="#" data-value="{{ =time_mode[0] }}" class="time_mode"
+                    >
+                        {{ =T(time_mode[1]) }}
+                    </a></li>
+                {{ pass }}
+            </ul>
+        </div>
+
+        <div class="btn-group" role="group" aria-label="...">
+            <button type="button" class="btn btn-default btn-prev">
+                {{=ICON('arrow_back')}}
+            </button>
+
+            <button type="button" class="btn btn-default btn-calendar">
+                {{=ICON('date_range')}}
+            </button>
+            <button type="button" class="btn btn-default btn-next">
+                {{=ICON('arrow_forward')}}
+            </button>
+        </div>
     </div>
 </h1>
