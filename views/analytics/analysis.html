@@ -8,52 +8,31 @@
 
 
 <h1></h1>
-<div class="chart vertical card no-text-select">
-    <h1 id="today_class_header" class="flex justified between">
-        <span id="graph_current_date">{{=T("Today")}}</span>
+<div class="chart vertical card no-text-select" id="today_sales_chart_card">
+    {{include "components/time_range_chart_card_header.html"}}
 
-        <div class="btn-group" role="group" aria-label="...">
-            <button type="button" class="btn btn-default" id="btn_prev">
-                {{=ICON('arrow_back')}}
-            </button>
-            <button type="button" class="btn btn-default" id="btn_calendar">
-                {{=ICON('date_range')}}
-            </button>
-            <button type="button" class="btn btn-default" id="btn_next">
-                {{=ICON('arrow_forward')}}
-            </button>
-        </div>
-    </h1>
     <canvas style="width: 100%" id="today_sales_chart"></canvas>
-    <h3><span class="right">{{=T('Total')}}: $ <span id="graph_sales_total">{{ =sales_total }}</span></span></h3>
+    <h3><span class="right">{{=T('Total')}}: $ <span id="graph_sales_total"></span></span></h3>
     <hr>
 
     <div class="flex fill">
         <div>
             <h4>{{=T("Average sale volume")}}
-                 <span class="right" id="graph_avg_sale_volume">
-                     {{=avg_sale_volume}}
-                 </span>
+                 <span class="right" id="graph_avg_sale_volume"> </span>
             </h4>
             <h4>{{=T("Items sold")}} 
-                <span class="right" id="graph_total_items_sold">
-                    {{=total_items_sold}}
-                </span>
+                <span class="right" id="graph_total_items_sold"> </span>
             </h4>
         </div>
         <div class="base-padding-left">
             <h4>{{=T("Average sale total")}} 
                 <span class="right">$
-                    <span id="graph_avg_sale_total">
-                        {{=avg_sale_total}}
-                    </span> 
+                    <span id="graph_avg_sale_total"> </span> 
                 </span>
             </h4>
             <h4>{{=T("Average item price")}} 
                 <span class="right">$ 
-                    <span id="graph_avg_item_price">
-                        {{=avg_item_price}}
-                    </span>
+                    <span id="graph_avg_item_price"> </span>
                 </span>
             </h4>
         </div>
@@ -65,77 +44,28 @@
 {{ block page_js }}
     <script src="{{=URL('static','js/chartjs/Chart.min.js')}}"></script>
 
-    {{ =today_sales_data_script }}
-
     <script>
+
+
         var today_date = new Date(
             {{=request.now.year}},{{=request.now.month-1}},{{=request.now.day}}
         );
-        var current_day = new Date(Date.parse("{{=request.now}}"));
-        var next_day = new Date(Date.parse("{{=next_day}}"));
-        var prev_day = new Date(Date.parse("{{=prev_day}}"));
-
-        Chart.defaults.global.showScale = false;
-
-        var ctx = $('#today_sales_chart').get(0).getContext("2d");
-        var day_sales_chart = new Chart(ctx, {
-            type: 'line', data: today_sales_data,
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: 0,
-                            min: 0,
-                            beginAtZero: true
-                        }
-                    }]
-                }
-            }
-        });
 
 
-        function refresh_day_data(date) {
-            var year = date.getFullYear();
-            var month = date.getMonth() + 1;
-            var day = date.getDate();
-
-            $.ajax({
-                url: "{{=URL('analytics', 'get_day_sales_data', extension='json')}}/" + year + '/' + month + '/' + day
-            })
-            .done(function (res) {
-                today_sales_data.datasets[0].data = res.chart_data.datasets[0].data;
-                day_sales_chart.update();
-
-                $('#graph_avg_sale_volume').text(res.avg_sale_volume);
-                $('#graph_avg_sale_price').text(res.avg_sale_price);
-                $('#graph_avg_item_price').text(res.avg_item_price);
-                $('#graph_total_items_sold').text(res.total_items_sold);
-                $('#graph_avg_sale_total').text(res.avg_sale_total);
-                $('#graph_sales_total').text(res.sales_total);
-
-                next_day = new Date(Date.parse( res.next_day ));
-                prev_day = new Date(Date.parse( res.prev_day ));
-                current_day = new Date(Date.parse( res.current_day ));
-
-                if (today_date.getTime() === current_day.getTime()) {
-                    $('#graph_current_date').text( "{{=T('Today')}}" );
-                } else {
-                    $('#graph_current_date').text(
-                        current_day.toLocaleDateString()
-                    );
-                }
-            })
-            .fail(function (res) {
-
-            });
+        function sale_data_refresh(res, current_date) {
+            $('#graph_avg_sale_volume').text(res.avg_sale_volume);
+            $('#graph_avg_sale_price').text(res.avg_sale_price);
+            $('#graph_avg_item_price').text(res.avg_item_price);
+            $('#graph_total_items_sold').text(res.total_items_sold);
+            $('#graph_avg_sale_total').text(res.avg_sale_total);
+            $('#graph_sales_total').text(res.sales_total);
         }
 
-        $('#btn_prev').click(function (res) {
-            refresh_day_data( prev_day );
-        });
-        $('#btn_next').click(function (res) {
-            refresh_day_data( next_day );
-        });
+        var plot = TimeRangePlot(
+            $('#today_sales_chart_card'), $('#today_sales_chart'),
+            "{{=URL('analytics', 'get_day_sales_data', extension='json')}}", 
+            today_date, sale_data_refresh, null
+        );
 
     </script>
 {{ end }}

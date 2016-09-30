@@ -106,20 +106,33 @@ def normalized_date(_date, interval):
 
 
 
-def group_items(records, start_date, end_date, t_step):
+def group_items(records, start_date, end_date, t_step, creation_date_f=None):
+    """ group a set of records using their creation date, the final result
+        is a set of groups from start_date to end_date grouped by time
+        intervals of t_step
+
+        if creation_date_f is specified the record creation date will be
+        obtained by the result of that function 
+    """
 
     t_step_dt = group_time(t_step)
     current_group = []
     current_limit_date = start_date + t_step_dt
 
     for record in records:
+        created_on = None
+        if creation_date_f:
+            created_on = creation_date_f(record)
+        else:
+            created_on = record.created_on 
+        
         # yield emptys until we get to the relevant date
 
-        while current_limit_date < normalized_date(record.created_on, t_step):
+        while current_limit_date < normalized_date(created_on, t_step):
             yield []
             current_limit_date += t_step_dt
 
-        if record.created_on > current_limit_date:
+        if created_on > current_limit_date:
             yield current_group
             current_group = []
             current_limit_date += t_step_dt
@@ -150,7 +163,6 @@ def get_data_groups(table, start_date, end_date, t_step=TIME_HOUR,
         query &= table.id_store == id_store
     if id_user:
         query &= table.created_by == id_user
-
 
     data = db(query).iterselect()
 

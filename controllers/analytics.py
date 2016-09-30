@@ -365,6 +365,17 @@ def item_analysis():
         return link
 
 
+    def created_on_format(row, fields):
+        date = None
+        if row.sale.id:
+            date = row.sale.created_on
+        elif row.product_loss.id:
+            date = row.prodcut_loss.created_on
+        elif row.stock_transfer.id:
+            date = row.stock_transfer.created_on
+        return date
+
+
     # since services do not have stocks the following table is only applied to items with inventory
     # every stock removal is stored in a stock_item_removal_record
     outputs_t = None
@@ -394,7 +405,11 @@ def item_analysis():
                     label_as=T('Quantity'),
                     custom_format=lambda r, f : DQ(r[f[0]], True, True)
                 ),
-                'bag.created_on',
+                dict(
+                    fields=[''],
+                    label_as=T('Created on'),
+                    custom_format=created_on_format
+                ),
                 dict(
                     fields=['bag.created_by'],
                     label_as=T('Created by'),
@@ -631,15 +646,72 @@ def index():
     return locals()
 
 
+def get_date_from_request(request):
+    try:
+        year = int(request.vars.year)
+        month = int(request.vars.month)
+        day = int(request.vars.day)
+    except:
+        raise HTTP(400)
+    
+    # the good thing about this is that you we can receive a special request parameter to specify the time step and it will just work
+    start_date = datetime(year, month, day, 0)
+    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
+
+    return start_date, end_date
 
 
-def day_sales_data(day_date):
+
+@auth.requires_membership("Analytics")
+def get_item_sales_data():
+    import analysis
+
+    s_date, e_date = get_date_from_request(request)
+    id_item = request.args(0)
+
+
+    raw_data = db(
+        (db.sale.id_bag == db.bag.id) &
+        (db.bag_item.id_bag == db.bag.id) &
+        (db.bag_item.id_item == id_item) &
+        (db.sale.id_store == session.store) &        
+        (db.sale.created_on >= s_date) &
+        (db.sale.created_on < e_date)
+    ).iterselect(db.bag_item.quantity, db.sale.created_on)
+
+    groups = analysis.group_items(
+        raw_data, s_date, e_date, analysis.TIME_HOUR,
+        lambda r : r.sale.created_on
+    )
+    rr = analysis.reduce_groups(groups, dict(
+        qty_total=dict(func=lambda r : float(r.bag_item.quantity))
+    ))
+    data = rr['qty_total']['results']
+    total_sales = DQ(sum(rr['qty_total']['results']), True, True)
+    chart_data = {
+        'labels': ["%d:00" % hour for hour in xrange(24)],
+        'datasets': [dataset_format(T('Sold quantity'), data, ACCENT_COLOR)]
+    }
+
+    next_day = s_date + timedelta(days=1)
+    prev_day = s_date - timedelta(days=1)
+
+    return dict(
+        chart_data=chart_data,
+        current_date=s_date,
+        next_date=next_day,
+        prev_date=prev_day,
+
+        total_sales=total_sales
+    )
+
+
+
+
+def get_sales_data(s_date, e_date):
     """ Returns relevant data for the specified day """
 
     import analysis
-
-    s_date = datetime(day_date.year, day_date.month, day_date.day, 0)
-    e_date = s_date + timedelta(hours=23, minutes=59, seconds=59)
     
     payments_groups = analysis.get_data_groups(
         db.payment, s_date, e_date, id_store=session.store
@@ -647,7 +719,6 @@ def day_sales_data(day_date):
     rr = analysis.reduce_groups(payments_groups, dict(
         payments_total=dict(func=lambda r : float(r.amount - r.change_amount))
     ))
-    print rr
     sales_data = rr['payments_total']['results']
     sales_total = DQ(sum(sales_data), True)
     chart_sales_data = {
@@ -675,14 +746,15 @@ def day_sales_data(day_date):
 
     return dict(
         chart_data=chart_sales_data,
+        current_date=s_date,
+        next_date=next_day,
+        prev_date=prev_day,
+
         avg_sale_total=avg_sale_total,
         avg_sale_volume=avg_sale_volume,
         total_items_sold=total_items_sold,
         avg_item_price=avg_item_price,
-        sales_total=sales_total,
-        current_day=s_date,
-        next_day=next_day,
-        prev_day=prev_day
+        sales_total=sales_total
     )
 
 
@@ -693,29 +765,15 @@ def get_day_sales_data():
         args: [year, month, day] 
     """
 
-    if len(request.args) < 3:
-        raise HTTP(403)
-    
-    year = int(request.args(0))
-    month = int(request.args(1))
-    day = int(request.args(2))
-
-    day_date = datetime(year, month, day)
-
-    return day_sales_data(day_date)
+    start_date, end_date = get_date_from_request(request)
+    return get_sales_data(start_date, end_date)
 
 
 
 
 @auth.requires_membership("Analytics")
 def analysis():
-    data = day_sales_data(request.now)
-    json_sales_data = json.dumps(data['chart_data'])
-    today_sales_data_script = SCRIPT(
-        "var today_sales_data = %s" % json_sales_data
-    )
-    del data['chart_data']
-    return dict(today_sales_data_script=today_sales_data_script, **data)
+    return dict()
 
 
 
