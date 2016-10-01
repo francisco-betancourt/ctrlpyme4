@@ -45,6 +45,13 @@ TIME_MODES = (
 
 
 
+def get_t_range_from_index(sdate, t_mode, index):
+    if t_mode == TIME_MODE_WEEK:
+        delta = timedelta(days=index + 1)
+        return sdate, sdate + delta
+
+
+
 def group_time(interval, date):
     """ date is only used to calculate the exact number of days for delta """
 

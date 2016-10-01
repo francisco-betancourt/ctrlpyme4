@@ -780,12 +780,25 @@ def get_item_sales_data():
 def get_sales_data(date_data):
     """ Returns relevant data for the specified day """
     
-    payments_groups = analysis_utils.get_data_groups(
-        db.payment, date_data.start_date, date_data.end_date, t_step=date_data.time_step, id_store=session.store
+    wallet_opt = get_wallet_payment_opt()
+    data = db(
+        (db.payment.id_sale == db.sale.id) &
+        (db.sale.id_store == session.store) &
+        (db.payment.id_payment_opt != wallet_opt.id) &
+        (db.payment.created_on >= date_data.start_date) &
+        (db.payment.created_on < date_data.end_date)
+    ).iterselect(db.payment.ALL)
+    payments_groups = analysis_utils.group_items(
+        data, date_data.start_date, date_data.end_date, date_data.time_step 
     )
-    rr = analysis_utils.reduce_groups(payments_groups, dict(
-        payments_total=dict(func=lambda r : float(r.amount - r.change_amount))
-    ))
+
+    rr = analysis_utils.reduce_groups(
+        payments_groups, dict(
+            payments_total=dict(
+                func=lambda r : float(r.amount - r.change_amount)
+            )
+        )
+    )
     sales_data = rr['payments_total']['results']
     sales_total = DQ(sum(sales_data), True)
     chart_sales_data = chart_data_template_for(
@@ -799,6 +812,8 @@ def get_sales_data(date_data):
     avg_sale_volume = db.sale.quantity.avg()
     total_items_sold = db.sale.quantity.sum()
     sales_data = db(
+        (db.sale.id_store == session.store) &
+        (db.sale.is_done == True) &
         (db.sale.created_on >= date_data.start_date) & 
         (db.sale.created_on < date_data.end_date)
     ).select(avg_sale_total, avg_sale_volume, total_items_sold).first()
@@ -808,6 +823,18 @@ def get_sales_data(date_data):
     avg_item_price = DQ(sales_total / (sales_data[total_items_sold] or 1), True)
 
     total_items_sold = DQ(sales_data[total_items_sold] or 0, True)
+
+    expenses = (db.bag_item.total_buy_price * db.bag_item.quantity).sum()
+    expenses = db(
+        (db.sale.id_bag == db.bag.id) &
+        (db.bag_item.id_bag == db.bag.id) &
+        (db.sale.id_store == session.store) &
+        (db.sale.created_on >= date_data.start_date) & 
+        (db.sale.created_on < date_data.end_date)
+    ).select(expenses).first()[expenses]
+    expenses = DQ(expenses or 0, True)
+
+    profit = sales_total - expenses
 
     return dict(
         chart_data=chart_sales_data,
@@ -820,7 +847,8 @@ def get_sales_data(date_data):
         avg_sale_volume=avg_sale_volume,
         total_items_sold=total_items_sold,
         avg_item_price=avg_item_price,
-        sales_total=sales_total
+        sales_total=sales_total,
+        profit=profit
     )
 
 

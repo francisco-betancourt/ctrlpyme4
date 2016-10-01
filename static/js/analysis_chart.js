@@ -26,7 +26,8 @@ function TimeRangePlot(
                         beginAtZero: true
                     }
                 }]
-            }
+            },
+            onClick: click_function
         }
     } else {
         var chart_options = chart_options;
@@ -42,6 +43,10 @@ function TimeRangePlot(
 
     refresh_date_data(current_date);
 
+
+    function click_function(data, v) {
+        console.log(data, v);
+    }
 
 
     function refresh_date_data(date) {
