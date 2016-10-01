@@ -14,6 +14,8 @@ function TimeRangePlot(
     var time_modes = TIME_MODES
     var time_mode = time_modes[0];
 
+    var stores = [CURRENT_STORE];
+
 
 
     if (!chart_options) {
@@ -54,7 +56,7 @@ function TimeRangePlot(
         var month = date.getMonth() + 1;
         var day = date.getDate();
 
-        var request_url = url+'?year='+year+'&month='+month+'&day='+day+'&t_mode='+time_mode
+        var request_url = url+'?year='+year+'&month='+month+'&day='+day+'&t_mode='+time_mode+'&stores='+stores.join(',')
 
         $.ajax({
             url: request_url
@@ -77,9 +79,7 @@ function TimeRangePlot(
 
             } else {
                 // update chart data
-                for (var i in res.chart_data.datasets) {
-                    chart.data.datasets[i].data = res.chart_data.datasets[i].data;
-                }
+                chart.data.datasets = res.chart_data.datasets;
                 chart.data.labels = res.chart_data.labels;
                 chart.update();
             }
@@ -98,6 +98,22 @@ function TimeRangePlot(
         });
     }
 
+
+    this.add_store = function(v) {
+        var intv = parseInt(v); 
+        if (stores.indexOf(intv) == -1) {
+            stores.push(intv);
+        }
+        refresh_date_data(current_date);
+    }
+    this.remove_store = function(v) {
+        var intv = parseInt(v); 
+        if (stores.indexOf(intv) != -1) {
+            var index = stores.indexOf(intv);
+            stores.splice(index, index + 1);
+        }
+        refresh_date_data(current_date);
+    }
 
     return this;
 }

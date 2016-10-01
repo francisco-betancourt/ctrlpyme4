@@ -165,6 +165,9 @@ input[type=checkbox], input[type=radio] {
 .flex.justified.between {
   justify-content: space-between;
 }
+.flex.center-items {
+  align-items: center;
+}
 
 .base-padding-left {
   padding-left: 16px;

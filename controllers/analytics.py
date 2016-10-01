@@ -721,6 +721,15 @@ def get_date_from_request(request):
     if time_mode == analysis_utils.TIME_MODE_YEAR:
         title = str(start_date.year)
 
+    stores = []
+    if request.vars.stores:
+        # Only allowed stores
+        for sid in request.vars.stores.split(','):
+            if MEMBERSHIPS.get("Store %s" % sid) or MEMBERSHIPS.get('Admin'):
+                stores.append(sid)
+    else:
+        stores = [session.store]
+
 
     return Storage(
         start_date=start_date, 
@@ -729,7 +738,8 @@ def get_date_from_request(request):
         time_mode=time_mode,
         next_date=next_date,
         prev_date=prev_date,
-        title=title
+        title=title,
+        stores=stores
     )
 
 
@@ -744,7 +754,7 @@ def get_item_sales_data():
         (db.sale.id_bag == db.bag.id) &
         (db.bag_item.id_bag == db.bag.id) &
         (db.bag_item.id_item == id_item) &
-        (db.sale.id_store == session.store) &        
+        (db.sale.id_store.belongs(date_data.stores)) &
         (db.sale.created_on >= date_data.start_date) &
         (db.sale.created_on < date_data.end_date)
     ).iterselect(db.bag_item.quantity, db.sale.created_on)
@@ -781,30 +791,41 @@ def get_sales_data(date_data):
     """ Returns relevant data for the specified day """
     
     wallet_opt = get_wallet_payment_opt()
-    data = db(
-        (db.payment.id_sale == db.sale.id) &
-        (db.sale.id_store == session.store) &
-        (db.payment.id_payment_opt != wallet_opt.id) &
-        (db.payment.created_on >= date_data.start_date) &
-        (db.payment.created_on < date_data.end_date)
-    ).iterselect(db.payment.ALL)
-    payments_groups = analysis_utils.group_items(
-        data, date_data.start_date, date_data.end_date, date_data.time_step 
-    )
 
-    rr = analysis_utils.reduce_groups(
-        payments_groups, dict(
-            payments_total=dict(
-                func=lambda r : float(r.amount - r.change_amount)
+    sales_total = 0
+    datasets = []
+    for store_id in date_data.stores:
+        data = db(
+            (db.payment.id_sale == db.sale.id) &
+            (db.sale.id_store == store_id) &
+            (db.payment.id_payment_opt != wallet_opt.id) &
+            (db.payment.created_on >= date_data.start_date) &
+            (db.payment.created_on < date_data.end_date)
+        ).iterselect(db.payment.ALL)
+        payments_groups = analysis_utils.group_items(
+            data, date_data.start_date, date_data.end_date, 
+            date_data.time_step 
+        )
+
+        rr = analysis_utils.reduce_groups(
+            payments_groups, dict(
+                payments_total=dict(
+                    func=lambda r : float(r.amount - r.change_amount)
+                )
             )
         )
-    )
-    sales_data = rr['payments_total']['results']
-    sales_total = DQ(sum(sales_data), True)
+
+        store_color = similar_color(ACCENT_COLOR, store_id * 100)
+
+        sales_data = rr['payments_total']['results']
+        dataset = dataset_format(T('Store'), sales_data, store_color)
+        dataset['store_id'] = store_id
+        datasets.append(dataset)
+        sales_total += DQ(sum(sales_data), True)
+        
+
     chart_sales_data = chart_data_template_for(
-        date_data.time_mode,
-        [dataset_format(T('Today sales'), sales_data, ACCENT_COLOR)],
-        request.now
+        date_data.time_mode, datasets, request.now
     )
 
     # important averages
@@ -812,7 +833,7 @@ def get_sales_data(date_data):
     avg_sale_volume = db.sale.quantity.avg()
     total_items_sold = db.sale.quantity.sum()
     sales_data = db(
-        (db.sale.id_store == session.store) &
+        (db.sale.id_store.belongs(date_data.stores)) &
         (db.sale.is_done == True) &
         (db.sale.created_on >= date_data.start_date) & 
         (db.sale.created_on < date_data.end_date)
@@ -828,7 +849,7 @@ def get_sales_data(date_data):
     expenses = db(
         (db.sale.id_bag == db.bag.id) &
         (db.bag_item.id_bag == db.bag.id) &
-        (db.sale.id_store == session.store) &
+        (db.sale.id_store.belongs(date_data.stores)) &
         (db.sale.created_on >= date_data.start_date) & 
         (db.sale.created_on < date_data.end_date)
     ).select(expenses).first()[expenses]
@@ -867,7 +888,10 @@ def get_day_sales_data():
 
 @auth.requires_membership("Analytics")
 def analysis():
-    return dict()
+
+    stores = db(db.store.is_active == True).iterselect()
+
+    return dict(stores=stores)
 
 
 

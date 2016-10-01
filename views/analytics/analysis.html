@@ -2,10 +2,20 @@
 {{ extend "layout.html" }}
 
 
-<style>
+{{ block left_sidebar }}
+    <h1>{{=T("Stores")}}</h1>
 
-</style>
-
+    <ul class="list-group">
+        {{ for store in stores: }}
+            <li class="list-group-item flex center-items justified between">
+                {{ =store.name }}
+                <input type="checkbox" {{if store.id == session.store:}} checked="checked"{{pass}} class="store-cb" 
+                    value="{{=store.id}}"
+                >
+            </li>
+        {{ pass }}
+    </ul>
+{{ end }}
 
 <h1></h1>
 <div class="chart vertical card no-text-select" id="today_sales_chart_card">
@@ -68,6 +78,14 @@
             "{{=URL('analytics', 'get_day_sales_data', extension='json')}}", 
             today_date, sale_data_refresh, null
         );
+
+        $(".store-cb").click(function (event) {
+            if (event.target.checked) {
+                plot.add_store(event.target.value);
+            } else {
+                plot.remove_store(event.target.value);
+            }
+        })
 
     </script>
 {{ end }}
