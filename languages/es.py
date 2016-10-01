@@ -1073,6 +1073,7 @@
 'This is a copy of the scaffolding application': 'Esta es una copia de la aplicación de andamiaje',
 'This is the %(filename)s template': 'Esta es la plantilla %(filename)s',
 'This payment requires a 4 digits account': 'Este pago requiere la especificación de una cuenta de 4 digitos',
+'This week': 'Esta semana',
 'This will be a ticket footer... soon': 'Este será un pie de ticket... pronto',
 'Thursday': 'jueves',
 'Thursday, 19 May 2016 - 01:06 PM': 'Thursday, 19 May 2016 - 01:06 PM',

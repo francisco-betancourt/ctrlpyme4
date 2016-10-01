@@ -83,15 +83,7 @@ function TimeRangePlot(
             prev_date = new Date(Date.parse( res.prev_date ));
             current_date = new Date(Date.parse( res.current_date ));
 
-            if (today_date.getTime() === current_date.getTime()) {
-                container.find('.chart-card-title').text(
-                    "{{=T('Today')}}"
-                );
-            } else {
-                container.find('.chart-card-title').text(
-                    current_date.toLocaleDateString()
-                );
-            }
+            container.find('.chart-card-title').text(res.title);
 
             // call custom callback with the received data
             if (refresh_callback)

@@ -294,6 +294,8 @@ def item_analysis():
         args: [id_item]
     """
 
+    precheck()
+
     import supert
     Supert = supert.Supert()
 
@@ -667,6 +669,7 @@ def get_date_from_request(request):
     delta = timedelta(days=1)
     delta2 = None
 
+    # Modify time range based the specified time mode
     try:
         time_mode = int(request.vars.t_mode)
 
@@ -702,13 +705,31 @@ def get_date_from_request(request):
     next_date = end_date
     prev_date = start_date - delta
 
+
+    # set title
+    title = str(start_date.strftime('%d/%m/%Y'))
+    if start_date.strftime("%y/%j") == request.now.strftime("%y/%j"):
+        title = T("Today")
+    if time_mode == analysis_utils.TIME_MODE_WEEK:
+        title = str("%s - %s" % (
+            start_date.strftime('%d/%m/%Y'), end_date.strftime('%d/%m/%Y')
+        ))
+        if request.now >= start_date and request.now < end_date:
+            title = T("This week")
+    if time_mode == analysis_utils.TIME_MODE_MONTH:
+        title = "%s %s" % (T(start_date.strftime("%B")), start_date.year)
+    if time_mode == analysis_utils.TIME_MODE_YEAR:
+        title = str(start_date.year)
+
+
     return Storage(
         start_date=start_date, 
         end_date=end_date,
         time_step=t_step,
         time_mode=time_mode,
         next_date=next_date,
-        prev_date=prev_date
+        prev_date=prev_date,
+        title=title
     )
 
 
@@ -746,8 +767,9 @@ def get_item_sales_data():
     return dict(
         chart_data=chart_data,
         current_date=date_data.start_date,
-        next_date=date_data.next_day,
-        prev_date=date_data.prev_day,
+        next_date=date_data.next_date,
+        prev_date=date_data.prev_date,
+        title=date_data.title,
 
         total_sales=total_sales
     )
@@ -792,6 +814,7 @@ def get_sales_data(date_data):
         current_date=date_data.start_date,
         next_date=date_data.next_date,
         prev_date=date_data.prev_date,
+        title=date_data.title,
 
         avg_sale_total=avg_sale_total,
         avg_sale_volume=avg_sale_volume,

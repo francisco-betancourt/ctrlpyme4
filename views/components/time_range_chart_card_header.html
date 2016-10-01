@@ -8,7 +8,7 @@
             </button>
             <ul class="dropdown-menu options-dropdown-list">
                 {{ for time_mode in TIME_MODES: }}
-                    <li><a href="#" data-value="{{ =time_mode[0] }}" class="time_mode"
+                    <li><a data-value="{{ =time_mode[0] }}" class="time_mode"
                     >
                         {{ =T(time_mode[1]) }}
                     </a></li>
