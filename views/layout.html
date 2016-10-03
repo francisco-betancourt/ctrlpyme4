@@ -28,6 +28,9 @@
       var AJAX_SEARCH_TRAIT_CATEGORIES_URL = "{{=URL('trait_category', 'search', extension='json')}}";
       var AJAX_SEARCH_TRAITS_URL = "{{=URL('trait', 'search', extension='json')}}";
 
+      var TIME_MODES = [ {{=','.join((str(v[0]) for v in TIME_MODES))}} ];
+      var CURRENT_STORE = {{=session.store}};
+
       function add_bag_item() {
         show_container('bag_container');
       }
@@ -287,6 +290,7 @@
 
       // inlined_JS
       {{include '../static/js/barcode_scanner.js'}}
+      {{include '../static/js/analysis_chart.js'}}
       {{ if enable_supert: }}
         {{ include '../static/js/supert.js'}}
       {{ pass }}

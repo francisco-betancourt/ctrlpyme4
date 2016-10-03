@@ -138,6 +138,9 @@ def complete(sale):
     payments = db(db.payment.id_sale == sale.id).select()
     verify_payments(payments, sale)
 
+
+    affinity_list = []
+
     # verify items stock
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
     requires_serials = False  #TODO implement serial numbers
@@ -157,6 +160,32 @@ def complete(sale):
                 T("You can't create a counter sale with out of stock items")
             )
         requires_serials |= bag_item.id_item.has_serial_number or False
+
+        affinity_list.append(bag_item.id_item.id)
+
+
+    # kinda crappy
+    first = affinity_list[0]
+    for i, id in enumerate(affinity_list):
+        if i == len(affinity_list) - 1:
+            continue
+        for j, other_id in enumerate(affinity_list):
+            if j <= i:
+                continue
+            first, second = (id, other_id) if id < other_id else (other_id, id)
+
+            affinity = db(
+                (db.item_affinity.id_item1 == first) &
+                (db.item_affinity.id_item2 == second)
+            ).select().first()
+            if not affinity:
+                db.item_affinity.insert(
+                    id_item1=first, id_item2=second, affinity=1
+                )
+            else:
+                affinity.affinity += 1
+                affinity.update_record()
+
 
     # for every payment with a payment option with credit days, set payment to not settled
     for payment in payments:

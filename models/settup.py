@@ -3,6 +3,8 @@ from html_utils import *
 from item_utils import item_barcode
 from constants import *
 
+from analysis_utils import TIME_MODES
+
 enable_bootstrap = True
 enable_treeview = True
 enable_css_item_card = True

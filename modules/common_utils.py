@@ -230,6 +230,72 @@ def hex_to_css_rgba(hexv, alpha):
 def rgb_to_hex(r,g,b):
     return '#%02X%02X%02X' % (r, g, b)
 
+
+def hsv_to_rgb(h, s, v):
+    pass
+
+
+def rgb_to_hsv(r, g, b):
+    h = v = s = 0
+
+    nr = r / 255.0
+    ng = g / 255.0
+    nb = b / 255.0
+
+    rgb_min = min(nr, ng, nb)
+    rgb_max = max(nr, ng, nb)
+
+    delta = rgb_max - rgb_min
+    
+    # hue calculation
+    if delta == 0:
+        h = 0
+    elif rgb_max == nr:
+        h = 60 * ((ng - nb) / delta % 6)
+    elif rgb_max == ng:
+        h = 60 * ((nb - nr) / delta + 2)
+    elif rgb_max == nb:
+        h = 60 * ((nr - ng) / delta + 4)
+
+    if rgb_max != 0:
+        s = delta / rgb_max
+    else:
+        s = 0
+
+    v = rgb_max
+    
+    return h, s, v
+
+
+def hsv_to_rgb(h, s, v):
+    c = v * s
+    x = c * (1 - abs((h / 60) % 2 - 1))
+    m = v - c
+    
+    r = g = b = 0
+    if h >= 0 and h < 60:
+        r = c
+        g = x
+    elif h >= 60 and h < 120:
+        r = x
+        g = c
+    elif h >= 120 and h < 180:
+        g = c
+        b = x
+    elif h >= 180 and h < 240:
+        g = x
+        b = c
+    elif h >= 240 and h < 300:
+        r = x
+        b = c
+    elif h >= 300 and h < 360:
+        r = c
+        b = x
+
+    return (r + m) * 255, (g + m) * 255, (b + m) * 255
+
+
+
 def dim_hex(hexv):
     r,g,b = hex_to_rgb(hexv)
     return rgb_to_hex(max(0, r - 20), max(0, g - 20), max(0, b - 20))
@@ -249,6 +315,21 @@ def random_color_mix(hexv):
 
     # mean = (r + g + b) / 3
     # sd = int(math.sqrt((r - mean) ** 2 + (g - mean) ** 2 + (b - mean) ** 2))
+
+
+
+def similar_color(hexv, s=None):
+    if s:
+        random.seed(s)
+    r, g, b = hex_to_rgb(hexv)
+    h, s, v = rgb_to_hsv(r, g, b)
+    rotation = random.randint(0, 360)
+    h += rotation
+    h = h % 360
+    r, g, b = hsv_to_rgb(h, s, v)
+
+    return rgb_to_hex(r, g, b)
+
 
 
 def color_mix(hex1, hex2):
