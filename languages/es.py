@@ -1018,6 +1018,7 @@
 'Stock transfers': 'Transferencias de stock',
 'Stock Transfers': 'Transferencias de stock',
 'Store': 'Tienda',
+'Store %s': 'Tienda %s',
 'Store Seals': 'Sellos de la tienda',
 'Stores': 'Tiendas',
 'Street': 'Calle',

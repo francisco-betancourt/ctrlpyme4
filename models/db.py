@@ -532,6 +532,7 @@ db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
     Field("id_bag", "reference bag", label=T('Bag')),
     Field("quantity", "decimal(16,6)", default=1, label=T('Quantity')),
+    # buy price + taxes and considering quantity
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=-1, label=T('Average shelf life')),
     # price minus discount

@@ -32,9 +32,6 @@ import analysis_utils
 
 
 
-hex_chars = [str(i) for i in range(0,9)] + ['A', 'B', 'C', 'D', 'E', 'F']
-
-
 def get_month_interval(year, month):
     start_date = date(year, month, 1)
     end_date = start_date + timedelta(days=calendar.monthrange(year, month)[1])
@@ -90,144 +87,6 @@ def _get_day_sales_data(day, id_store):
         data[index] += float(payment['amount'] - payment['change_amount'])
 
     return data
-
-
-@auth.requires_membership("Analytics")
-def sales_for_cash_out():
-    """ Get the sales created in the specified cash out time interval
-
-        args: [id_cash_out]
-    """
-
-    cash_out = db.cash_out(request.args(0))
-    if not cash_out:
-        raise HTTP(404)
-    seller = cash_out.id_seller
-
-    start_date = cash_out.start_date
-    end_date = cash_out.end_date
-
-    payment_opts = db(db.payment_opt.is_active == True).select()
-    payment_opts_ref = {}
-    # will be used to create a payments chart
-    for payment_opt in payment_opts:
-        payment_opt.c_value = 0
-        payment_opt.c_label = payment_opt.name
-        payment_opt.c_color = random_color_mix(PRIMARY_COLOR)
-        payment_opts_ref[str(payment_opt.id)] = payment_opt
-
-
-    def payments_iter():
-        return db(
-            (db.sale_log.id_sale == db.sale.id)
-          & (db.payment.id_sale == db.sale.id)
-          & (
-              (db.sale_log.sale_event == SALE_PAID)
-              | (db.sale_log.sale_event == SALE_DEFERED)
-          )
-          & time_interval_query('sale', start_date, end_date)
-        ).iterselect(db.payment.ALL, orderby=~db.payment.id_sale)
-
-    def sales_generator():
-        total = 0
-        total_cash = 0
-
-        # this will be the total amount of income
-        payments = payments_iter()
-
-        sale = None
-        for payment in payments:
-            if payment.id_sale and payment.id_sale != sale:
-                if sale:
-                    sale.total = sale.total - (sale.discount or 0)
-                    yield sale
-                sale = payment.id_sale
-                sale.total_change = 0
-                sale.payments = {}
-                sale.payments_total = 0
-                sale.change = 0
-
-            sale.payments_total = (sale.payments_total or 0) + payment.amount
-            payment_opt_key = str(payment.id_payment_opt.id)
-            if not sale.payments.has_key(payment_opt_key):
-                sale.payments[payment_opt_key] = Storage(dict(
-                    amount=payment.amount, change_amount=payment.change_amount
-                ))
-            else:
-                _payment = sale.payments[payment_opt_key]
-                _payment.amount += payment.amount
-                _payment.change_amount += payment.change_amount
-            sale.total_change += payment.change_amount
-            sale.change += payment.change_amount
-        sale.total = sale.total - (sale.discount or 0)
-        yield sale
-
-    sales = sales_generator()
-
-    # this is ugly but it only happens when the cash out is created
-    if cash_out.sys_total < 0:
-        payments = payments_iter()
-
-        total = 0
-        total_cash = 0
-        for payment in payments:
-            # payments that allow change are considered cash.
-            if payment.id_payment_opt.allow_change:
-                total_cash += payment.amount - payment.change_amount
-            total += payment.amount - payment.change_amount
-
-        cash_out.sys_total = total
-        cash_out.sys_cash = total_cash
-        cash_out.update_record()
-
-    total = DQ(cash_out.sys_total, True)
-    total_cash = DQ(cash_out.sys_cash, True)
-
-    return locals()
-
-
-def day_report_data(year, month, day):
-    year = date.today().year if not year else year
-    month = date.today().month if not month else month
-    day = date.today().day if not day else day
-    c_date = date(year, month, day)
-    start_date = datetime(c_date.year, c_date.month, c_date.day, 0)
-    end_date = start_date + timedelta(hours=23, minutes=59, seconds=59)
-
-    sales_data = {
-        'labels': [],
-        'datasets': [{
-            'data': []
-        }]
-    }
-    for hour in range(24):
-        sales_data['labels'].append('%d:00' % hour)
-        sales_data['datasets'][0]['data'].append(0)
-
-    # income
-    payments = get_payments_in_range(start_date, end_date, session.store).as_list()
-    income = 0
-
-    # get paid bags
-    for paid_bag in get_paid_bags_in_range_as_payments(start_date, end_date, session.store):
-        payments.append(paid_bag)
-
-    for payment in payments:
-        income += payment['amount'] - payment['change_amount']
-        index = payment['created_on'].hour
-        sales_data['datasets'][0]['data'][index] += float(payment['amount'] - payment['change_amount'])
-    sales_data = json.dumps(sales_data)
-
-    # expenses
-    purchases_total_sum = db.purchase.total.sum()
-    expenses = db((db.purchase.id_store == session.store)
-                & (db.purchase.is_done >= True)
-                & (db.purchase.created_on >= start_date)
-                & (db.purchase.created_on <= end_date)
-    ).iterselect(purchases_total_sum).first()[purchases_total_sum] or DQ(0)
-
-    return locals()
-
 
 
 
@@ -568,61 +427,14 @@ def dashboard():
 
 @auth.requires_membership("Analytics")
 def index():
-    if 'Admin' in auth.user_groups.values():
-        precheck()
+    # if 'Admin' in auth.user_groups.values():
+    #     precheck()
 
-    import supert
-    Supert = supert.Supert()
+    precheck()
 
-    day_data = day_report_data(None, None, None)
-    income = day_data['income']
-    expenses = day_data['expenses']
-    today_sales_data_script = SCRIPT(
-        'today_sales_data = %s;' % day_data['sales_data']
-    )
+    stores = db(db.store.is_active == True).iterselect()
 
-    store_group = db(
-        db.auth_group.role == 'Store %s' % session.store
-    ).select().first()
-    checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
-    # query the employees with current store membership
-    store_employees_ids = [r.id for r in db(
-          (db.auth_user.id == db.auth_membership.user_id)
-        & (db.auth_membership.group_id == store_group.id)
-    ).select(db.auth_user.id)]
-    # employees with store membership and checkout membership
-    employees_query = (
-        (db.auth_user.id == db.auth_membership.user_id)
-        & (db.auth_user.id.belongs(store_employees_ids))
-        & (db.auth_membership.group_id == checkout_group.id)
-        & (db.auth_user.registration_key == '')
-    )
-    employees_data = Supert.SUPERT(
-        employees_query,
-        select_fields=[db.auth_user.ALL],
-        fields=[
-            dict(
-                fields=['first_name', 'last_name'],
-                label_as=T('Name')
-            ), 'email'
-        ],
-        options_func=lambda row : (
-            supert.OPTION_BTN('attach_money',
-                URL('cash_out', 'create', args=row.id),
-                title=T('cash out')
-            ),
-            supert.OPTION_BTN('archive', URL('cash_out', 'index',
-                args=row.id), title=T('previous cash outs'))
-            )
-        , global_options=[], title=T("Cash out")
-    )
-
-    return locals()
-
-
-
-
-
+    return dict(stores=stores)
 
 
 
@@ -728,7 +540,7 @@ def get_date_from_request(request):
             if MEMBERSHIPS.get("Store %s" % sid) or MEMBERSHIPS.get('Admin'):
                 stores.append(sid)
     else:
-        stores = [session.store]
+        stores = [session.store] if session.store else []
 
 
     return Storage(
@@ -757,7 +569,9 @@ def get_item_sales_data():
         (db.sale.id_store.belongs(date_data.stores)) &
         (db.sale.created_on >= date_data.start_date) &
         (db.sale.created_on < date_data.end_date)
-    ).iterselect(db.bag_item.quantity, db.sale.created_on)
+    ).iterselect(
+        db.bag_item.quantity, db.sale.created_on, orderby=db.sale.created_on
+    )
 
     groups = analysis_utils.group_items(
         raw_data, date_data.start_date, date_data.end_date, date_data.time_step,
@@ -787,8 +601,13 @@ def get_item_sales_data():
 
 
 
-def get_sales_data(date_data):
-    """ Returns relevant data for the specified day """
+@auth.requires_membership("Analytics")
+def get_day_sales_data():
+    """ Returns relevant data for the specified day
+        args: [year, month, day] 
+    """
+
+    date_data = get_date_from_request(request)
     
     wallet_opt = get_wallet_payment_opt()
 
@@ -801,7 +620,7 @@ def get_sales_data(date_data):
             (db.payment.id_payment_opt != wallet_opt.id) &
             (db.payment.created_on >= date_data.start_date) &
             (db.payment.created_on < date_data.end_date)
-        ).iterselect(db.payment.ALL)
+        ).iterselect(db.payment.ALL, orderby=db.sale.created_on)
         payments_groups = analysis_utils.group_items(
             data, date_data.start_date, date_data.end_date, 
             date_data.time_step 
@@ -818,7 +637,9 @@ def get_sales_data(date_data):
         store_color = similar_color(ACCENT_COLOR, store_id * 100)
 
         sales_data = rr['payments_total']['results']
-        dataset = dataset_format(T('Store'), sales_data, store_color)
+        dataset = dataset_format(
+            T("Store %s") % store_id, sales_data, store_color
+        )
         dataset['store_id'] = store_id
         datasets.append(dataset)
         sales_total += DQ(sum(sales_data), True)
@@ -845,7 +666,7 @@ def get_sales_data(date_data):
 
     total_items_sold = DQ(sales_data[total_items_sold] or 0, True)
 
-    expenses = (db.bag_item.total_buy_price * db.bag_item.quantity).sum()
+    expenses = db.bag_item.total_buy_price.sum()
     expenses = db(
         (db.sale.id_bag == db.bag.id) &
         (db.bag_item.id_bag == db.bag.id) &
@@ -872,26 +693,6 @@ def get_sales_data(date_data):
         profit=profit
     )
 
-
-
-@auth.requires_membership("Analytics")
-def get_day_sales_data():
-    """
-        args: [year, month, day] 
-    """
-
-    date_data = get_date_from_request(request)
-    return get_sales_data(date_data)
-
-
-
-
-@auth.requires_membership("Analytics")
-def analysis():
-
-    stores = db(db.store.is_active == True).iterselect()
-
-    return dict(stores=stores)
 
 
 

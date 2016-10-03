@@ -8,7 +8,7 @@
     <ul class="list-group">
         {{ for store in stores: }}
             <li class="list-group-item flex center-items justified between">
-                {{ =store.name }}
+                {{ =store.name }} ({{=T("Store %s") % store.id}})
                 <input type="checkbox" {{if store.id == session.store:}} checked="checked"{{pass}} class="store-cb" 
                     value="{{=store.id}}"
                 >

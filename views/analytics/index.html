@@ -1,37 +1,91 @@
-{{left_sidebar_enabled = True}}
-{{extend "layout.html"}}
-
-<script src="{{=URL('static','js/chartjs/Chart.min.js')}}"></script>
+{{ left_sidebar_enabled = True }}
+{{ extend "layout.html" }}
 
 
-{{=today_sales_data_script}}
-<!-- <h1>{{=T("Analytics")}}</h1> -->
+{{ block left_sidebar }}
+    <h1>{{=T("Stores")}}</h1>
 
-{{block left_sidebar}}
-  <h1>{{=T('Today')}}</h1>
+    <ul class="list-group">
+        {{ for store in stores: }}
+            <li class="list-group-item flex center-items justified between">
+                {{ =store.name }} ({{=T("Store %s") % store.id}})
+                <input type="checkbox" {{if store.id == session.store:}} checked="checked"{{pass}} class="store-cb" 
+                    value="{{=store.id}}"
+                >
+            </li>
+        {{ pass }}
+    </ul>
+{{ end }}
 
-  <canvas style="width: 100%" id="today_sales_chart"></canvas>
+<h1></h1>
+<div class="chart vertical card no-text-select" id="today_sales_chart_card">
+    {{include "components/time_range_chart_card_header.html"}}
 
-  <h3>{{=T('Income')}}: <span class="right">$ {{=DQ(income, True)}}</span></h3>
-  <h3>{{=T('Expenses')}}: <span class="right">$ {{=DQ(expenses, True)}}</span> </h3>
-{{end}}
+    <canvas style="width: 100%" id="today_sales_chart"></canvas>
+    <h3><span class="right">{{=T('Total')}}: $ <span id="graph_sales_total"></span></span></h3>
+    <h3><span class="right">{{=T('Net Profit')}}: $ <span id="graph_net_profit"></span></span></h3>
+    <hr>
+
+    <div class="flex fill">
+        <div>
+            <h4>{{=T("Average sale volume")}}
+                 <span class="right" id="graph_avg_sale_volume"> </span>
+            </h4>
+            <h4>{{=T("Items sold")}} 
+                <span class="right" id="graph_total_items_sold"> </span>
+            </h4>
+        </div>
+        <div class="base-padding-left">
+            <h4>{{=T("Average sale total")}} 
+                <span class="right">$
+                    <span id="graph_avg_sale_total"> </span> 
+                </span>
+            </h4>
+            <h4>{{=T("Average item price")}} 
+                <span class="right">$ 
+                    <span id="graph_avg_item_price"> </span>
+                </span>
+            </h4>
+        </div>
+    </div>
+    
+</div>
 
 
-<h1>{{=T('Sellers')}}</h1>
-{{=employees_data}}
+{{ block page_js }}
+    <script src="{{=URL('static','js/chartjs/Chart.min.js')}}"></script>
+
+    <script>
 
 
-<script>
-  Chart.defaults.global.showScale = false;
+        var today_date = new Date(
+            {{=request.now.year}},{{=request.now.month-1}},{{=request.now.day}}
+        );
 
-  var ctx = $('#today_sales_chart').get(0).getContext("2d");
-  today_sales_data.datasets[0].backgroundColor = "{{=hex_to_css_rgba(accent_color, .7)}}";
-  today_sales_data.datasets[0].pointBorderColor = "{{=accent_color_dim}}";
-  today_sales_data.datasets[0].borderColor = "{{=accent_color_dim}}";
-  today_sales_data.datasets[0].label = "{{=T('today')}}";
-  var myLineChart = new Chart(ctx, {
-    type: 'line', data: today_sales_data,
-    pointHitDetectionRadius: 5
-  });
 
-</script>
+        function sale_data_refresh(res, current_date) {
+            $('#graph_avg_sale_volume').text(res.avg_sale_volume);
+            $('#graph_avg_sale_price').text(res.avg_sale_price);
+            $('#graph_avg_item_price').text(res.avg_item_price);
+            $('#graph_total_items_sold').text(res.total_items_sold);
+            $('#graph_avg_sale_total').text(res.avg_sale_total);
+            $('#graph_sales_total').text(res.sales_total);
+            $('#graph_net_profit').text(res.profit);
+        }
+
+        var plot = TimeRangePlot(
+            $('#today_sales_chart_card'), $('#today_sales_chart'),
+            "{{=URL('analytics', 'get_day_sales_data', extension='json')}}", 
+            today_date, sale_data_refresh, null
+        );
+
+        $(".store-cb").click(function (event) {
+            if (event.target.checked) {
+                plot.add_store(event.target.value);
+            } else {
+                plot.remove_store(event.target.value);
+            }
+        })
+
+    </script>
+{{ end }}
