@@ -43,17 +43,20 @@
 
 #
 #
-# def print_wallet():
-#     """
-#         args: [wallet_id]
-#     """
-#
-#     wallet = db.wallet(request.args(0))
-#     if not wallet:
-#         raise HTTP(404)
-#
-#     return locals()
+@auth.requires_membership("Clients management")
+def print_wallet():
+    """ args: [wallet_id] """
 
+    wallet = db.wallet(request.args(0))
+    if not wallet:
+        session.info = T("Wallet not found")
+        redirect(URL('default', 'index'))
+
+    return locals()
+
+
+
+@auth.requires_membership("Clients management")
 def get_by_code():
     """
         args: [wallet_code]
@@ -67,6 +70,8 @@ def get_by_code():
     )
 
 
+
+@auth.requires_membership("Clients management")
 def merge_wallets():
     """ Merge wallet_2 into wallet_1, removing the balance from wallet_2 and adding it to wallet_1
         args[id_wallet_1, id_wallet_2]
@@ -76,7 +81,7 @@ def merge_wallets():
 
     if not (w1 and w2):
         session.info = T('Wallet not found')
-        redirect(URL('index', args=w1.id))        
+        redirect(URL('index', args=w1.id))
     if w1.id == w2.id:
         session.info = T('The specified wallets are the same')
         redirect(URL('index', args=w1.id))
@@ -94,6 +99,8 @@ def merge_wallets():
     redirect(URL('index', args=w1.id))
 
 
+
+@auth.requires_membership("Clients management")
 def index():
     """ args [wallet_id] """
 
@@ -101,5 +108,6 @@ def index():
     if not wallet:
         session.info = T("Wallet not found")
         redirect(URL('default', 'index'))
+
 
     return dict(wallet=wallet)

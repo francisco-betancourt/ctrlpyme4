@@ -7,6 +7,10 @@
 <p>{{=T('Scan a credit note or a wallet to add their funds to wallet %s') % wallet.id}}</p>
 <div id="wallet_scanner_container"></div>
 
+<a href="{{=URL('print_wallet', args=wallet.id, vars=dict(_print=True))}}" class="btn btn-default" target="_blank">
+    {{=T("Print")}}
+</a>
+
 {{block page_js}}
 <script>
   function fail_callback(data, barcode) {
