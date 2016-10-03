@@ -217,8 +217,11 @@ def add_stock_item():
         (db.stock_item.id_purchase == purchase.id)
     ).select().first()
 
+    stock_item_id = None
     if not stock_item:
         stock_item_id = create_new_stock_item(purchase, item)
+    else:
+        stock_item_id = stock_item.id
 
     redirect(URL('fill', args=[purchase.id, stock_item_id]))
 
