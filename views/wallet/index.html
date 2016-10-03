@@ -1,0 +1,26 @@
+{{ extend "layout.html" }}
+
+<h1>{{=T('Wallet')}} {{=wallet.id}}</h1>
+<h3>{{=T('Balance')}}:  $ {{=DQ(wallet.balance, True)}}</h3>
+<hr>
+
+<p>{{=T('Scan a credit note or a wallet to add their funds to wallet %s') % wallet.id}}</p>
+<div id="wallet_scanner_container"></div>
+
+{{block page_js}}
+<script>
+  function fail_callback(data, barcode) {
+    alert("{{=T('Wallet not found')}}");
+  }
+
+  function success_callback(data, barcode) {
+    window.location.href = "{{=URL('merge_wallets', args=wallet.id)}}/" + data.wallet.id;
+  }
+
+  var scanner = BarcodeScanner('wallet', $('#wallet_scanner_container'));
+  scanner.setup(
+      success_callback, fail_callback, null, 
+      "{{=URL('get_by_code', extension='json')}}/"
+  );
+</script>
+{{end}}
