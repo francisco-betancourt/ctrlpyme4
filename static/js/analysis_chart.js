@@ -79,7 +79,20 @@ function TimeRangePlot(
 
             } else {
                 // update chart data
-                chart.data.datasets = res.chart_data.datasets;
+                //chart.data.datasets = res.chart_data.datasets;
+                var i = 0;
+                for (i in res.chart_data.datasets) {
+                    var dataset = res.chart_data.datasets[i];
+
+                    if (!chart.data.datasets[i] || chart.data.datasets[i].store_id != dataset.store_id
+                    ) {
+                        chart.data.datasets[i] = dataset;
+                    } else {
+                        chart.data.datasets[i].data = dataset.data;    
+                    }
+                }
+                i = parseInt(i);
+                chart.data.datasets.splice(i + 1, chart.data.datasets.length);
                 chart.data.labels = res.chart_data.labels;
                 chart.update();
             }
@@ -110,9 +123,10 @@ function TimeRangePlot(
         var intv = parseInt(v); 
         if (stores.indexOf(intv) != -1) {
             var index = stores.indexOf(intv);
-            stores.splice(index, index + 1);
+            stores.splice(index, 1);
         }
         refresh_date_data(current_date);
+        console.log(stores);
     }
 
     return this;

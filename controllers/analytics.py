@@ -585,7 +585,7 @@ def get_item_sales_data():
     chart_data = chart_data_template_for(
         date_data.time_mode,
         [dataset_format(T('Sold quantity'), data, ACCENT_COLOR)],
-        request.now
+        date_data.start_date
     )
 
     return dict(
@@ -622,8 +622,8 @@ def get_day_sales_data():
             (db.payment.created_on < date_data.end_date)
         ).iterselect(db.payment.ALL, orderby=db.sale.created_on)
         payments_groups = analysis_utils.group_items(
-            data, date_data.start_date, date_data.end_date, 
-            date_data.time_step 
+            data, date_data.start_date, date_data.end_date,
+            date_data.time_step
         )
 
         rr = analysis_utils.reduce_groups(
@@ -646,7 +646,7 @@ def get_day_sales_data():
         
 
     chart_sales_data = chart_data_template_for(
-        date_data.time_mode, datasets, request.now
+        date_data.time_mode, datasets, date_data.start_date
     )
 
     # important averages
