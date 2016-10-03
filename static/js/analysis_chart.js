@@ -126,7 +126,6 @@ function TimeRangePlot(
             stores.splice(index, 1);
         }
         refresh_date_data(current_date);
-        console.log(stores);
     }
 
     return this;
