@@ -173,7 +173,7 @@ def create_new_stock_item(purchase, item):
         last_stock_item = db( db.stock_item.id_item == item.id ).select(
             db.stock_item.price
         ).last()
-        price = last_stock_item.price if last_stock_item else 1
+        price = last_stock_item.price if last_stock_item else item.base_price
 
     taxes = item_utils.item_taxes(item, 1)
     price /= 1 + taxes
@@ -451,8 +451,6 @@ def add_item_and_stock_item():
         item = db.item(ret.id)
         url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
         db.item(ret.id).update_record(url_name=url_name)
-
-        redirect(URL('add_stock_item', ))
 
         stock_item_id = create_new_stock_item(purchase, item)
         stock_item = response_stock_item(db.stock_item(stock_item_id))
