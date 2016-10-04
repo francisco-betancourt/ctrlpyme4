@@ -178,7 +178,8 @@ def details():
                 _payment.change_amount += payment.change_amount
             sale.total_change += payment.change_amount
             sale.change += payment.change_amount
-        sale.total = sale.total - (sale.discount or 0)
+        if sale:
+            sale.total = sale.total - (sale.discount or 0)
         yield sale
 
     sales = sales_generator()

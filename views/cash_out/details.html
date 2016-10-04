@@ -77,7 +77,8 @@
     <h2 class="noprint">{{=T("Sales")}}</h2>
 
     {{for sale in sales:}}
-      <div>
+      {{ if sale: }}
+        <div>
         <div class="media cash-out-sale">
           <div class="media-left media-top noprint">
             <a onclick="window.open('{{=URL('ticket', 'show_ticket', vars=dict(id_sale=sale.id))}}', '1', resizable=true)">
@@ -116,6 +117,8 @@
           </div>
         </div>
       </div>
+      {{ pass }}
+      
     {{pass}}
 
     <div class="print">
