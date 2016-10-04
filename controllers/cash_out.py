@@ -142,6 +142,8 @@ def details():
               (db.sale_log.sale_event == SALE_PAID)
               | (db.sale_log.sale_event == SALE_DEFERED)
           )
+          & (db.sale.created_by == seller.id)
+          & (db.sale.id_store == session.store)
           & time_interval_query('sale', start_date, end_date)
         ).iterselect(db.payment.ALL, orderby=~db.payment.id_sale)
 

@@ -127,7 +127,7 @@ response.auth_menu = []
 if auth.is_logged_in():
     auth_menu = []
 
-    if memberships.get('Admin'):
+    if memberships.get('Admin') or memberships.get('Manager'):
         auth_menu += [
             (T('Change store'), False, URL('user', 'change_store'), [])
         ]
