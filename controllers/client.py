@@ -104,7 +104,11 @@ def index():
         ban_btn = supert.OPTION_BTN(
             icon_name, URL('ban', args=row.id), title=T('ban')
         )
-        return edit_btn, ban_btn
+        wallet_btn = supert.OPTION_BTN(
+            'account_balance_wallet', 
+            URL('wallet', 'index', args=row.id_wallet.id), title=T('wallet')
+        )
+        return edit_btn, ban_btn, wallet_btn
 
     query = (db.auth_user.is_client == True)
     data = Supert.SUPERT(

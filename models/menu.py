@@ -109,18 +109,15 @@ if memberships.get('Sales invoices'):
 if memberships.get('Inventories'):
     response.menu += [(T('Inventory'), False, URL('inventory', 'index'), [ ])]
 
+
+if memberships.get("Cash out"):
+    response.menu += [ (T('Cash out'), False, URL('cash_out', 'index'), [ ]) ]
+
+
 if memberships.get("Analytics"):
-    if memberships.get('Admin'):
-        response.menu += [
-            (T('Analytics'), False, None, [ 
-                (T('Cash out'), False, URL('analytics', 'index'), [ ]),
-                (T('Stores'), False, URL('analytics', 'dashboard'), [ ])
-            ])
-        ]
-    else:
-        response.menu += [
-            (T('Analytics'), False, URL('analytics', 'index'), [ ])
-        ]
+    response.menu += [
+        (T('Analytics'), False, URL('analytics', 'index'), [ ])
+    ]
 
 if not memberships.get('Employee') and not memberships.get('Admin'):
     response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
@@ -130,7 +127,7 @@ response.auth_menu = []
 if auth.is_logged_in():
     auth_menu = []
 
-    if memberships.get('Admin'):
+    if memberships.get('Admin') or memberships.get('Manager'):
         auth_menu += [
             (T('Change store'), False, URL('user', 'change_store'), [])
         ]

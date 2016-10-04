@@ -317,7 +317,11 @@ def post_logout():
     redirect(URL('default', 'index'))
 
 
-@auth.requires_membership('Admin')
+@auth.requires(
+    auth.has_membership('Admin') or
+    auth.has_membership('Manager') 
+)
+
 def change_store():
     """ Change the store once logged in """
 
