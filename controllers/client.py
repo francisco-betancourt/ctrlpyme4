@@ -63,7 +63,7 @@ def create():
         if clients_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)
         response.flash = T('Client created')
-        redirect(URL('user', 'clients'))
+        redirect(URL('index'))
         # redirection()
     elif form.errors:
         response.flash = T('Error in form')

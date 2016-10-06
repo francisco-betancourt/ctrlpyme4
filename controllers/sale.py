@@ -192,7 +192,9 @@ def update():
 
     valid_sale(sale)
 
-    clients = db(db.auth_user.is_client == True).select()
+    clients = db(
+        db.auth_user.is_client == True
+    ).select(orderby=db.auth_user.first_name|db.auth_user.last_name)
 
     payments = db(db.payment.id_sale == sale.id).select()
     payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select(orderby=~db.payment_opt.allow_change)
