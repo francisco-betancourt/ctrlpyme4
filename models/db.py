@@ -405,6 +405,7 @@ db.define_table("trait",
 db.trait.trait_option.requires = not_empty_requires
 
 
+
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
     Field("categories", "list:reference category", default=[], label=T('Categories')),
@@ -448,14 +449,31 @@ db.define_table("item",
     auth.signature
 )
 db.item.name.requires = not_empty_requires
-db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
-db.item.id_measure_unit.requires=IS_IN_DB( db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s')
-db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
+db.item.id_brand.requires=IS_IN_DB(
+    db(db.brand.is_active == True), 'brand.id', ' %(name)s'
+)
+db.item.id_measure_unit.requires=IS_IN_DB( 
+    db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s'
+)
+db.item.taxes.requires=IS_EMPTY_OR(
+    IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True)
+)
 
-BC_MATCH = IS_MATCH('^[0-9a-zA-Z-$.%*/]+$', error_message=T('Only alphanumeric characters, -, $, ., %, *, /'))
+BC_MATCH = IS_MATCH(
+    '^[0-9a-zA-Z-$.%*/]+$', 
+    error_message=T('Only alphanumeric characters, -, $, ., %, *, /')
+)
 db.item.sku.requires=[IS_BARCODE_AVAILABLE(db, request.vars.sku), BC_MATCH]
-db.item.ean.requires=[IS_BARCODE_AVAILABLE(db, request.vars.ean), IS_EMPTY_OR(BC_MATCH)]
-db.item.upc.requires=[IS_BARCODE_AVAILABLE(db, request.vars.upc), IS_EMPTY_OR(BC_MATCH)]
+db.item.ean.requires=[
+    IS_EMPTY_OR(IS_LENGTH(13, 5)),
+    IS_BARCODE_AVAILABLE(db, request.vars.ean), 
+    IS_EMPTY_OR(BC_MATCH),
+]
+db.item.upc.requires=[
+    IS_EMPTY_OR(IS_LENGTH(12, 6)),
+    IS_BARCODE_AVAILABLE(db, request.vars.upc), 
+    IS_EMPTY_OR(BC_MATCH),
+]
 
 PRICE_RANGE_VALIDATOR = IS_DECIMAL_IN_RANGE(
     .00001, 10000000, dot=".", error_message=T('Price needs to be more than 0')
