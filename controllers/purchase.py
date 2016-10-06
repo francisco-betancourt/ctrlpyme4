@@ -430,6 +430,7 @@ def add_item_and_stock_item():
     else:
         item_data['categories'] = None
 
+
     # add the traits
     if request.vars.traits and request.vars.traits != 'undefined':
         item_data['traits'] = create_traits_ref_list(request.vars.traits)
