@@ -68,12 +68,22 @@ def create():
 
 
 def bag_supert(id_bag):
+    import supert
+    Supert = supert.Supert()
+
     query = (db.bag_item.id_bag == id_bag)
-    return SUPERT(query, fields=['product_name', {
-        'fields':['quantity'],
-        'custom_format': lambda r, f : DQ(r.quantity, True, True),
-        'label_as': T('Quantity')
-        }], options_enabled=False, searchable=False)
+    return Supert.SUPERT(
+        query,
+        fields=[
+            'product_name',
+            {
+                'fields':['quantity'],
+                'custom_format': lambda r, f : DQ(r.quantity, True, True),
+                'label_as': T('Quantity')
+            }
+        ],
+        options_enabled=False, searchable=False
+    )
 
 
 @auth.requires_membership('Product loss')
