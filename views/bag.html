@@ -485,7 +485,6 @@
             url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
           })
           .done(function (data) {
-            console.log(data);
             $('#modal').modal('hide');
             $(target).parent().find('.btn-primary').removeClass('btn-primary');
             $(target).addClass('btn-primary');
@@ -537,7 +536,7 @@
           bag_item_id = _bag_item_id;
           target = _target;
 
-          {{if MEMBERSHIPS.get('Admin') or MEMBERSHIPS.get('Manager'):}}
+          {{if MEMBERSHIPS.get('VIP seller'):}}
             validate_access_code();
           {{else:}}
             $('#common_modal').modal();
