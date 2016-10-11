@@ -169,28 +169,37 @@ def discard_bag():
 
 @auth.requires_membership('Sales bags')
 def change_bag_item_sale_price():
+    """ Change the bag item sell price to any of the 3 price options """
+
     price_index = request.args(0)
     bag_item = db.bag_item(request.args(1))
     access_code = request.args(2)
 
-    access = False
-    if auth.has_membership('Admin') or auth.has_membership('Manager'):
-        access = True
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
+
     if not (price_index or bag_item or access_code or access):
         raise HTTP(400)
-    bag_utils.is_modifiable_bag(bag_item.id_bag)
-    user = db((db.auth_user.access_code == access_code)).select().first() if access_code else None
-    is_vip_seller = auth.has_membership(None, user.id, role='VIP seller') or auth.has_membership(None, user.id, role='Admin') or auth.has_membership(None, user.id, role='Manager') if user else access
+
+    is_vip_seller = bool(MEMBERSHIPS.get("VIP seller"))
+    if not is_vip_seller and access_code:
+        user = db(
+            (db.auth_user.access_code == access_code) &
+            (db.auth_user.registration_key == "")
+        ).select().first()
+        is_vip_seller = auth.has_membership(None, user.id, 'VIP seller')
+
     if is_vip_seller:
         # change the item bag item sale price in db
         sale_price = bag_item.sale_price
         discount_p = D(1) - (sale_price / (sale_price + bag_item.discount))
-        if price_index == '1':
+
+        if price_index == '1' and bag_item.id_item.base_price:
             sale_price = bag_item.id_item.base_price
-        elif price_index == '2':
+        elif price_index == '2' and bag_item.id_item.price2:
             sale_price = bag_item.id_item.price2
-        elif price_index == '3':
+        elif price_index == '3' and bag_item.id_item.price3:
             sale_price = bag_item.id_item.price3
+
         bag_item.sale_price = sale_price - sale_price * discount_p
         bag_item.discount = sale_price * discount_p
         bag_item.sale_taxes = item_taxes(bag_item.id_item, bag_item.sale_price or 0)
