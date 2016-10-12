@@ -109,5 +109,12 @@ def index():
         session.info = T("Wallet not found")
         redirect(URL('default', 'index'))
 
+    clients = db(
+        (db.auth_user.is_client == True) &
+        (db.auth_user.id_wallet != wallet.id)
+    ).iterselect(
+        orderby=db.auth_user.first_name|db.auth_user.last_name
+    )
 
-    return dict(wallet=wallet)
+
+    return dict(wallet=wallet, clients=clients)
