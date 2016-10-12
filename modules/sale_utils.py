@@ -439,15 +439,16 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
                 id_bag_item=bag_item.id, quantity=qty,
                 id_credit_note=id_new_credit_note
             )
-            sale_price = bag_item.sale_price * (1 - sale.discount_percentage / 100)
+            dp = (1 - sale.discount_percentage / 100.0)
+            sale_price = bag_item.sale_price * dp
             subtotal += sale_price * qty
-            taxes = bag_item.sale_taxes * (1 - sale.discount_percentage / 100)
-            total += subtotal + taxes * qty
+            total += (sale_price + bag_item.sale_taxes * dp) * qty
 
             item_utils.reintegrate_bag_item(
                 bag_item, qty, True, 'id_credit_note', id_new_credit_note
             )
 
+    # since defered sales do not remove stocks we just have to return the money
     else:
 
         payments_sum = (db.payment.amount - db.payment.change_amount).sum()

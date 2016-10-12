@@ -589,12 +589,20 @@ def refund():
             )
 
 
-        r_items = map(
-            lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
-        )
-        r_items = (
-            (db.bag_item(int(r_item[0])), max_available(r_item)) for r_item in r_items
-        )
+        # try to generate the returned items, if this fails, return error
+        r_items = None
+        try:
+            r_items = map(
+                lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
+            )
+            r_items = (
+                (db.bag_item(int(r_item[0])), max_available(r_item)) for r_item in r_items
+            )
+        except:
+            session.info = T("Invalid returned items")
+            redirect(URL('sale', 'refund', args=sale.id))
+
+
         credit_note = sale_utils.refund(
             sale, request.now, auth.user, r_items,
             wallet_code=form.vars.wallet_code
