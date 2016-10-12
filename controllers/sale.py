@@ -114,8 +114,10 @@ def update_payment():
     if sale.id_bag.is_paid:
         raise HTTP(405)
 
-    payment = db((db.payment.id == request.args(1))
-               & (db.payment.id_sale == sale.id)).select().first()
+    payment = db(
+        (db.payment.id == request.args(1)) &
+        (db.payment.id_sale == sale.id)
+    ).select().first()
     if not payment:
         raise HTTP(404)
     if not payment.is_updatable:
@@ -132,6 +134,7 @@ def update_payment():
         new_amount = D(request.vars.amount or payment.amount)
     except:
         raise HTTP(417)
+
 
     delete_payment = bool(request.vars.delete)
 
@@ -261,10 +264,11 @@ def set_sale_client():
     # we cannot modify defered sale or online purchased bag
     if sale.is_deferred or sale.id_bag.is_paid:
         raise HTTP(405)
-    client = db((db.auth_user.is_client == True)
-                & (db.auth_user.registration_key == '')
-                & (db.auth_user.id == request.args(1))
-                ).select().first()
+    client = db(
+        (db.auth_user.is_client == True)
+        & (db.auth_user.registration_key == '')
+        & (db.auth_user.id == request.args(1))
+    ).select().first()
     wallet = None
     #TODO remove credit payments if the client is None
     if not client:
