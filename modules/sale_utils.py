@@ -338,7 +338,7 @@ def modify_payment(sale, payment, payment_data, delete=False):
                 db.wallet.wallet_code == wallet_code
             ).select(for_update=True).first()
             if wallet:
-                new_amount = min(wallet.balance, (sale.total - sale.discount) - new_total)
+                new_amount = max(0, min(wallet.balance, (sale.total - sale.discount) - new_total))
                 wallet.balance -= new_amount
                 wallet.update_record()
             # if the code is invalid, remove its specified value
@@ -439,7 +439,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
                 id_bag_item=bag_item.id, quantity=qty,
                 id_credit_note=id_new_credit_note
             )
-            dp = (1 - sale.discount_percentage / 100.0)
+            dp = (1 - sale.discount_percentage / 100)
             sale_price = bag_item.sale_price * dp
             subtotal += sale_price * qty
             total += (sale_price + bag_item.sale_taxes * dp) * qty
