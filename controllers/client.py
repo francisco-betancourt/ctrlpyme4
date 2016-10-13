@@ -38,6 +38,8 @@ def profile():
 
 @auth.requires_membership('Clients management')
 def update():
+    expiration_redirect()
+
     client = db.auth_user(request.args(0))
     if not client or not client.is_client:
         raise HTTP(404)
@@ -52,6 +54,8 @@ def update():
 
 @auth.requires_membership('Clients management')
 def create():
+    expiration_redirect()
+
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         clients_group = db(db.auth_group.role == 'Clients').select().first()
@@ -72,6 +76,8 @@ def create():
 
 @auth.requires_membership('Clients management')
 def ban():
+    expiration_redirect()
+
     user = db.auth_user(request.args(0))
     if not user:
         raise HTTP(404)
@@ -90,6 +96,8 @@ def ban():
 def index():
     """ List of clients """
 
+    expiration_redirect()
+
     import supert
     Supert = supert.Supert()
 
@@ -105,7 +113,7 @@ def index():
             icon_name, URL('ban', args=row.id), title=T('ban')
         )
         wallet_btn = supert.OPTION_BTN(
-            'account_balance_wallet', 
+            'account_balance_wallet',
             URL('wallet', 'index', args=row.id_wallet.id), title=T('wallet')
         )
         return edit_btn, ban_btn, wallet_btn

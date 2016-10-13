@@ -20,6 +20,9 @@
 # Author Francisco Betancourt <francisco@betanetweb.com>
 
 
+expiration_redirect()
+
+
 @auth.requires_membership('Config')
 def create():
     """ args: [id_address] """

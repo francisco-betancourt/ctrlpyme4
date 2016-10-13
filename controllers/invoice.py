@@ -19,6 +19,9 @@
 # Author Francisco Betancourt <francisco@betanetweb.com>
 
 
+expiration_redirect()
+
+
 def items_consolidate(items):
     consolidated={}
     for item in items:

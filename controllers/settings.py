@@ -18,6 +18,9 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
+
 @auth.requires_membership('Config')
 def update_main():
     """ Updates the main configuration """

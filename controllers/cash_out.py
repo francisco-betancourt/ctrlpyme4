@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+expiration_redirect()
 precheck()
 
 from datetime import timedelta, datetime
@@ -314,4 +315,3 @@ def index():
     )
 
     return dict(employees=employees_data)
-

@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 from constants import STRIPE_SK, STRIPE_PK
 from bag_utils import check_bag_owner, bag_selection_return_format, bag_item_taxes, get_ordered_items_count
 

@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+if not request.function in ['index', 'ticket']:
+    expiration_redirect()
 precheck()
 
 

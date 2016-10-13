@@ -68,32 +68,58 @@ def get_notifications():
     auth = current.auth
     db = current.db
     T = current.T
+    request = current.request
+
 
     memberships = dict([(v, True) for v in auth.user_groups.values()])
 
     notifications = []
     # check pending orders
     if memberships.get('Sale orders'):
-        pending_orders = db(db.sale_order.is_ready == False).select()
-        if pending_orders:
+        if not db(db.sale_order.is_ready == False).isempty():
             notifications.append(Storage(
                 title=T("Sale order"), description=T('Some sale orders are pending'), url=URL('sale_order', 'index')
             ))
 
     if memberships.get('Accounts payable'):
-        accounts_r = db(db.account_receivable.is_settled == False).select()
-        if accounts_r:
+        if not db(db.account_receivable.is_settled == False).isempty():
             notifications.append(Storage(
                 title=T("Accounts receivable"), description=T('Accounts receivable')+' '+T('unsettled'), url=URL('account_receivable', 'index')
             ))
     if memberships.get('Accounts receivable'):
-        accounts_p = db(db.account_receivable.is_settled == False).select()
-        if accounts_r:
+        if not db(db.account_receivable.is_settled == False).isempty():
             notifications.append(Storage(
                 title=T("Accounts payable"), description=T('Accounts payable')+' '+T('unsettled'), url=URL('account_payable', 'index')
             ))
 
+    # check app expiration date
+    if memberships.get('Employee'):
+        exp_days = current.EXPIRATION_DAYS
+        if exp_days <= 10 and exp_days > 0:
+            notifications.append(Storage(
+                title=T('App expiration'),
+                description=T('your app will expire in %s day(s)') % exp_days
+            ))
+        elif exp_days < 0:
+            notifications.append(Storage(
+                title=T('App expiration'),
+                description=T('your app has expired, your store will be visible but you will not be able to sell or any other actions')
+            ))
+
     return notifications
+
+
+def expiration_redirect():
+    """ Redirect if the user try to access paid contente with an expired service """
+
+    session = current.session
+    T = current.T
+    exp_days = current.EXPIRATION_DAYS
+    if exp_days > 0:
+        return
+    session.info = T('Your service has expired, please renew.')
+    redirect(URL('default', 'index'))
+
 
 
 def DQ(value, lite=False, normalize=False):
@@ -246,7 +272,7 @@ def rgb_to_hsv(r, g, b):
     rgb_max = max(nr, ng, nb)
 
     delta = rgb_max - rgb_min
-    
+
     # hue calculation
     if delta == 0:
         h = 0
@@ -263,7 +289,7 @@ def rgb_to_hsv(r, g, b):
         s = 0
 
     v = rgb_max
-    
+
     return h, s, v
 
 
@@ -271,7 +297,7 @@ def hsv_to_rgb(h, s, v):
     c = v * s
     x = c * (1 - abs((h / 60) % 2 - 1))
     m = v - c
-    
+
     r = g = b = 0
     if h >= 0 and h < 60:
         r = c

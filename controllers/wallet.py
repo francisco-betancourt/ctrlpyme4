@@ -43,6 +43,10 @@
 
 #
 #
+
+
+expiration_redirect()
+
 @auth.requires_membership("Clients management")
 def print_wallet():
     """ args: [wallet_id] """

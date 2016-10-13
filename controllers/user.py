@@ -18,6 +18,9 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+if not request.function in ['store_selection', 'change_store', 'post_login', 'post_logout', 'profile']:
+    expiration_redirect()
+
 
 import common_utils
 import user_utils
@@ -319,9 +322,8 @@ def post_logout():
 
 @auth.requires(
     auth.has_membership('Admin') or
-    auth.has_membership('Manager') 
+    auth.has_membership('Manager')
 )
-
 def change_store():
     """ Change the store once logged in """
 

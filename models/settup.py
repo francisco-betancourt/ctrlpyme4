@@ -28,3 +28,19 @@ if MEMBERSHIPS.get('Employee'):
 
     if MEMBERSHIPS.get('Analytics'):
         item_options.append((T('Analysis'), URL('analytics', 'item_analysis')))
+
+
+
+EXPIRATION_DAYS = 0
+EXPIRED = True
+file_path = os.path.join(request.folder, 'private/', 'expiration_date')
+with open(file_path, 'r') as f:
+    from datetime import datetime, timedelta
+    year, month, day = map(int, f.read().replace('\n', '').split('-'))
+    expiration_date = datetime(year, month, day)
+
+    EXPIRATION_DAYS = (expiration_date - request.now).days
+    if EXPIRATION_DAYS > 0:
+        EXPIRED = False
+
+current.EXPIRATION_DAYS = EXPIRATION_DAYS

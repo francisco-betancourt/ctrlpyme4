@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 
 if not 'Admin' in auth.user_groups.values():
     precheck()
