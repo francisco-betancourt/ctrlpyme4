@@ -69,6 +69,10 @@
 
 
 <h1>{{=T('Payments')}}</h1>
+<p>
+  <b>{{=T('Note')}}: </b>
+  {{=T('To pay with credit notes, select the wallet payment option')}}
+</p>
 
 {{ if sale.id_bag.is_paid: }}
   {{ =T('Bag has been paid') }}
