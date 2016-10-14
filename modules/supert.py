@@ -342,8 +342,6 @@ class Supert:
                     search_query |= new_field.search
         if search_query:
             query = query & search_query
-            if not joined:
-                select_args['distinct'] = db[base_table_name].id
 
         if select_fields:
             rows = db(query).iterselect(*select_fields, **select_args)
