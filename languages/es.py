@@ -1273,8 +1273,6 @@
 'You should not be transfering services': 'No debes transferir servicios',
 'You visited the url %s': 'Usted visitó la url %s',
 "You're order has been created, we will notify you when it's ready": 'Su orden ha sido creada, seras notificado en cuanto este lista',
-'your app has expired, your store will be visible but you will not be able to sell or perform any other actions': 'your app has expired, your store will be visible but you will not be able to sell or perform any other actions',
-'your app will expire in %s day(s)': 'your app will expire in %s day(s)',
 'Your new password is': 'Tu nueva constraseña es',
 'Your new total will be': 'Tu nuevo total será',
 'Your order has been processed': 'Tu orden ha sido procesada',
@@ -1282,5 +1280,6 @@
 'Your purchase has been processed': 'Tu compra ha sido procesada',
 'Your service has expired, please renew.': 'Tu servicio ha expirado, por favor renuévalo.',
 'your service has expired, your store will be visible but you will not be able to sell or perform any other actions': 'su servicio ha expirado, su tienda seguira visible pero no podrá vender o usar las facilidades del punto de venta',
+'your service will expire in %s day(s)': 'su servicio va a expirar en %s dia(s)',
 'Your username is: %(username)s': 'Su nombre de usuario es: %(username)s',
 }
