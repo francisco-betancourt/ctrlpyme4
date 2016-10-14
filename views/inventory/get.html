@@ -20,5 +20,13 @@
     {{=T('Created by')}}: {{=auth.user.first_name + ' ' + auth.user.last_name}} {{=T('On')}}: {{ =inventory.created_on }}
   </h4>
 
+  {{ if inventory.has_missing_items: }}
+    <hr>
+    <h4 class="text-danger">{{=T('Some items were not reported in the inventory')}}</h4>
+    {{=missing_items_data}}
+
+    <hr>
+  {{ pass }}
+
   {{=data}}
 </div>

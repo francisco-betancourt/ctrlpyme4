@@ -674,7 +674,8 @@ db.sale_order.id_store.requires = IS_IN_DB(db, 'store.id')
 db.define_table("inventory",
     Field("id_store", "reference store", label=T('Store')),
     Field("is_partial", "boolean", default=None, label=T('Is partial')),
-    Field("is_done", "boolean", default=None, label=T('Is done')),
+    Field("is_done", "boolean", default=False, label=T('Is done')),
+    Field("has_missing_items", "boolean", default=False, label=T('Has missing items')),
     auth.signature)
 
 db.define_table("inventory_item",
@@ -683,7 +684,7 @@ db.define_table("inventory_item",
     Field("system_qty", "integer", default=None, label=T('System quantity')),
     Field("physical_qty", "integer", default=None, label=T('Physical quantity')),
     Field("is_missing", "boolean", default=False, label=T('Is missing'))
-    )
+)
 
 
 db.define_table(

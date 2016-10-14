@@ -60,7 +60,7 @@ def item_url(_name, _id):
 
 def item_taxes(item, price):
     """ Returns the amoutn of taxes for the given item and price """
-    
+
     total = 0
     if not item.taxes:
         return 0
@@ -74,7 +74,7 @@ def item_stock_query(item, id_store=None, include_empty=False, max_date=None):
     db = current.db
 
     query = (db.stock_item.id_item == item.id)
-    if id_store > 0:
+    if id_store and id_store > 0:
         query &= db.stock_item.id_store == id_store
     if not include_empty:
         query &= db.stock_item.stock_qty > 0

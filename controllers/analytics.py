@@ -191,7 +191,7 @@ def item_analysis():
                 '%s %s' % (T('Stock transfer'), row.stock_transfer.id),
                 _href=URL(
                     'ticket', 'show_ticket',
-                    vars=dict(id_stock_transfer=ow.stock_transfer.id)
+                    vars=dict(id_stock_transfer=row.stock_transfer.id)
                 ),
                 _target='_blank'
             )
@@ -453,7 +453,7 @@ def chart_data_template_for(time_mode, datasets, day_date):
     elif time_mode == analysis_utils.TIME_MODE_YEAR:
         labels = [
             T("January"), T("February"), T("March"), T("April"), T("May"),
-            T("June"), T("July"), T("August"), T("September"), T("October"), 
+            T("June"), T("July"), T("August"), T("September"), T("October"),
             T('November'), T('December')
         ]
     chart_data = {
@@ -462,7 +462,7 @@ def chart_data_template_for(time_mode, datasets, day_date):
     }
 
     return chart_data
-    
+
 
 
 def get_date_from_request(request):
@@ -511,7 +511,7 @@ def get_date_from_request(request):
 
     if not delta2:
         delta2 = delta
-    
+
     end_date = start_date + delta2
 
     next_date = end_date
@@ -544,7 +544,7 @@ def get_date_from_request(request):
 
 
     return Storage(
-        start_date=start_date, 
+        start_date=start_date,
         end_date=end_date,
         time_step=t_step,
         time_mode=time_mode,
@@ -604,11 +604,11 @@ def get_item_sales_data():
 @auth.requires_membership("Analytics")
 def get_day_sales_data():
     """ Returns relevant data for the specified day
-        args: [year, month, day] 
+        args: [year, month, day]
     """
 
     date_data = get_date_from_request(request)
-    
+
     wallet_opt = get_wallet_payment_opt()
 
     sales_total = 0
@@ -643,7 +643,7 @@ def get_day_sales_data():
         dataset['store_id'] = store_id
         datasets.append(dataset)
         sales_total += DQ(sum(sales_data), True)
-        
+
 
     chart_sales_data = chart_data_template_for(
         date_data.time_mode, datasets, date_data.start_date
@@ -656,7 +656,7 @@ def get_day_sales_data():
     sales_data = db(
         (db.sale.id_store.belongs(date_data.stores)) &
         (db.sale.is_done == True) &
-        (db.sale.created_on >= date_data.start_date) & 
+        (db.sale.created_on >= date_data.start_date) &
         (db.sale.created_on < date_data.end_date)
     ).select(avg_sale_total, avg_sale_volume, total_items_sold).first()
     avg_sale_volume = DQ(sales_data[avg_sale_volume] or 0, True)
@@ -671,7 +671,7 @@ def get_day_sales_data():
         (db.sale.id_bag == db.bag.id) &
         (db.bag_item.id_bag == db.bag.id) &
         (db.sale.id_store.belongs(date_data.stores)) &
-        (db.sale.created_on >= date_data.start_date) & 
+        (db.sale.created_on >= date_data.start_date) &
         (db.sale.created_on < date_data.end_date)
     ).select(expenses).first()[expenses]
     expenses = DQ(expenses or 0, True)
