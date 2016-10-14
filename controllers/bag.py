@@ -19,6 +19,9 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+expiration_redirect()
+
+
 from decimal import Decimal as D
 from decimal import ROUND_FLOOR
 from math import floor

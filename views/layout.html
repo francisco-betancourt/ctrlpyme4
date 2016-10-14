@@ -197,7 +197,7 @@
 
 
       <!-- bag -->
-      {{if include_bag and request.controller != 'appadmin':}}
+      {{if not EXPIRED and include_bag and request.controller != 'appadmin':}}
         <section id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
           <div class="bag-container">
             {{if auth.is_logged_in():}}

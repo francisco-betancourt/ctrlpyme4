@@ -1280,5 +1280,6 @@
 'Your password has been changed': 'Tu contraseña ha sido cambiada',
 'Your purchase has been processed': 'Tu compra ha sido procesada',
 'Your service has expired, please renew': 'Your service has expired, please renew',
+'Your service has expired, please renew.': 'Your service has expired, please renew.',
 'Your username is: %(username)s': 'Su nombre de usuario es: %(username)s',
 }
