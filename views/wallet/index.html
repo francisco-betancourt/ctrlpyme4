@@ -17,6 +17,24 @@
 
 <hr>
 
+{{ if MEMBERSHIPS.get('Admin config'): }}
+<h3>{{=T('Add or remove funds')}}</h3>
+  <div class="input-group" style="max-width: 500px">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="button" id="remove_funds_btn">
+        {{=T('Remove')}}
+      </button>
+    </span>
+    <input type="text" class="form-control" placeholder="{{=T('amount')}}" id="funds_input">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="button" id="add_funds_btn">
+        {{=T('Add')}}
+      </button>
+    </span>
+  </div>
+<hr>
+{{pass}}
+
 
 <a href="{{=URL('print_wallet', args=wallet.id, vars=dict(_print=True))}}" class="btn btn-default" target="_blank">
     {{=T("Print")}}
@@ -39,7 +57,6 @@
     var confirm_text = "{{=T('Are you sure you want to merge %s funds with this wallet')}}"
     confirm_text = confirm_text.replace("%s", wowner);
     if (window.confirm(confirm_text)) {
-      console.log(wid);
       window.location.href = "{{=URL('merge_wallets', args=wallet.id)}}/" + wid;
     }
   });
@@ -49,5 +66,20 @@
       success_callback, fail_callback, null,
       "{{=URL('get_by_code', extension='json')}}/"
   );
+
+
+  {{ if MEMBERSHIPS.get('Admin config'): }}
+    $('#remove_funds_btn').click(function (event) {
+      var amount = -1 * parseFloat($('#funds_input').val());
+      if (!amount) return;
+      window.location.href = "{{=URL('add_money', args=wallet.id)}}?amount="+amount
+    });
+    $('#add_funds_btn').click(function (event) {
+      var amount = Math.abs(parseFloat($('#funds_input').val()));
+      if (!amount) return;
+      window.location.href = "{{=URL('add_money', args=wallet.id)}}?amount="+amount
+    });
+  {{ pass }}
+
 </script>
 {{end}}
