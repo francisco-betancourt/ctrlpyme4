@@ -332,7 +332,7 @@ def dataset_format(label, data, f_color):
     return {
         'label': str(label),
         'data': data,
-        'backgroundColor': hex_to_css_rgba(fill_color, .4),
+        'backgroundColor': hex_to_css_rgba(fill_color, .03),
         'borderColor': fill_color,
         'pointBorderColor': fill_color,
         'lineTension': .1
@@ -434,7 +434,15 @@ def index():
 
     precheck()
 
-    stores = db(db.store.is_active == True).iterselect()
+
+    access_stores = map(
+        lambda s: int(s.replace('Store ', '')),
+        filter(lambda x: x.startswith('Store '), MEMBERSHIPS.iterkeys())
+    )
+    stores = db(
+        (db.store.id.belongs(access_stores)) &
+        (db.store.is_active == True)
+    ).iterselect()
 
     return dict(stores=stores)
 
