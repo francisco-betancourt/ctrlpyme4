@@ -648,7 +648,7 @@ def index():
             ),
         buttons += supert.OPTION_BTN(
             'receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'
-            ), supert.OPTION_BTN('description', URL('invoice', 'create')),
+            ),
         return buttons
 
     def status_format(r, f):
