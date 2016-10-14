@@ -1281,6 +1281,6 @@
 'Your password has been changed': 'Tu contraseña ha sido cambiada',
 'Your purchase has been processed': 'Tu compra ha sido procesada',
 'Your service has expired, please renew.': 'Tu servicio ha expirado, por favor renuévalo.',
-'your service has expired, your store will be visible but you will not be able to sell or perform any other actions': 'su servicio ha expirado, su tienda seguira visible pero no podrá vender o realizar aciones de punto de venta',
+'your service has expired, your store will be visible but you will not be able to sell or perform any other actions': 'su servicio ha expirado, su tienda seguira visible pero no podrá vender o usar las facilidades del punto de venta',
 'Your username is: %(username)s': 'Su nombre de usuario es: %(username)s',
 }
