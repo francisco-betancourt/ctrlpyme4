@@ -59,7 +59,7 @@
     {{pass}}
 
     <!-- bag icon -->
-    {{if include_bag:}}
+    {{if include_bag and not EXPIRED:}}
       <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping_basket')}}</div>
     {{pass}}
 

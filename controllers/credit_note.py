@@ -19,6 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 #
 
+expiration_redirect()
 precheck()
 
 @auth.requires_membership('Sales returns')

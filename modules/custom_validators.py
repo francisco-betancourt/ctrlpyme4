@@ -23,11 +23,15 @@ from gluon import current
 
 
 class IS_BARCODE_AVAILABLE(object):
-    T = current.T
 
     """ checks if the object barcode has been already used """
 
-    def __init__(self, db, barcode='', error_message=T('Barcode already used')):
+    def __init__(self, db, barcode='', error_message=None):
+        T = current.T
+
+        if not error_message:
+            error_message = T('Barcode already used')
+
         self.db = db;
         self.barcode = barcode
         self.error_message = error_message

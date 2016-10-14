@@ -43,6 +43,10 @@
 
 #
 #
+
+
+expiration_redirect()
+
 @auth.requires_membership("Clients management")
 def print_wallet():
     """ args: [wallet_id] """
@@ -71,7 +75,7 @@ def get_by_code():
 
 
 
-@auth.requires_membership("Clients management")
+@auth.requires_membership("Manager")
 def merge_wallets():
     """ Merge wallet_2 into wallet_1, removing the balance from wallet_2 and adding it to wallet_1
         args[id_wallet_1, id_wallet_2]
@@ -97,6 +101,30 @@ def merge_wallets():
     ) % (DQ(b, True))
 
     redirect(URL('index', args=w1.id))
+
+
+@auth.requires_membership("Admin config")
+def add_money():
+    """ Add or remove money to a specified wallet """
+
+    wallet = db(db.wallet.id == request.args(0)).select(for_update=True).first()
+    qty = 0
+    try:
+        qty = D(request.vars.amount)
+    except:
+        session.info = T('Invalid amount')
+        redirect(URL('index', args=wallet.id))
+
+    wallet.balance += qty
+    wallet.update_record()
+
+    msg = '$ %s added to wallet.'
+    if qty < 0:
+        msg = '$ %s removed from wallet.'
+    qty = DQ(abs(qty), True)
+
+    session.info = T(msg) % qty
+    redirect(URL('index', args=wallet.id))
 
 
 

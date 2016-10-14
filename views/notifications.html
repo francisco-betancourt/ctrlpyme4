@@ -13,7 +13,11 @@
             <div>
               <b>{{=notification.title}}</b> <br>
               {{=notification.description}}
-              <a href="{{=notification.url}}" target="_blank">{{=T('View')}}</a>
+              {{ if notification.url: }}
+                <a href="{{=notification.url}}" target="_blank">
+                  {{=T('View')}}
+                </a>
+              {{ pass }}
             </div>
           </li>
         {{pass}}

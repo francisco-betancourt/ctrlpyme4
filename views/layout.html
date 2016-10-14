@@ -29,7 +29,7 @@
       var AJAX_SEARCH_TRAITS_URL = "{{=URL('trait', 'search', extension='json')}}";
 
       var TIME_MODES = [ {{=','.join((str(v[0]) for v in TIME_MODES))}} ];
-      var CURRENT_STORE = {{=session.store}};
+      var CURRENT_STORE = {{=session.store or 'null'}};
 
       function add_bag_item() {
         show_container('bag_container');
@@ -197,7 +197,7 @@
 
 
       <!-- bag -->
-      {{if include_bag and request.controller != 'appadmin':}}
+      {{if not EXPIRED and include_bag and request.controller != 'appadmin':}}
         <section id="bag_container" class=" col-sm-5 col-md-5 col-lg-3 floating-container noprint" state="hidden">
           <div class="bag-container">
             {{if auth.is_logged_in():}}

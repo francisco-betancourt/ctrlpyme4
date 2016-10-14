@@ -9,7 +9,7 @@
         {{ for store in stores: }}
             <li class="list-group-item flex center-items justified between">
                 {{ =store.name }} ({{=T("Store %s") % store.id}})
-                <input type="checkbox" {{if store.id == session.store:}} checked="checked"{{pass}} class="store-cb" 
+                <input type="checkbox" {{if store.id == session.store:}} checked="checked"{{pass}} class="store-cb"
                     value="{{=store.id}}"
                 >
             </li>
@@ -31,24 +31,24 @@
             <h4>{{=T("Average sale volume")}}
                  <span class="right" id="graph_avg_sale_volume"> </span>
             </h4>
-            <h4>{{=T("Items sold")}} 
+            <h4>{{=T("Items sold")}}
                 <span class="right" id="graph_total_items_sold"> </span>
             </h4>
         </div>
         <div class="base-padding-left">
-            <h4>{{=T("Average sale total")}} 
+            <h4>{{=T("Average sale total")}}
                 <span class="right">$
-                    <span id="graph_avg_sale_total"> </span> 
+                    <span id="graph_avg_sale_total"> </span>
                 </span>
             </h4>
-            <h4>{{=T("Average item price")}} 
-                <span class="right">$ 
+            <h4>{{=T("Average item price")}}
+                <span class="right">$
                     <span id="graph_avg_item_price"> </span>
                 </span>
             </h4>
         </div>
     </div>
-    
+
 </div>
 
 
@@ -75,7 +75,7 @@
 
         var plot = TimeRangePlot(
             $('#today_sales_chart_card'), $('#today_sales_chart'),
-            "{{=URL('analytics', 'get_day_sales_data', extension='json')}}", 
+            "{{=URL('analytics', 'get_day_sales_data', extension='json')}}",
             today_date, sale_data_refresh, null
         );
 

@@ -19,6 +19,9 @@
 # Author Francisco Betancourt <francisco@betanetweb.com>
 
 
+expiration_redirect()
+
+
 def index():
     allow_import_table=['brand','category','measure_unit','item','supplier','payment_opt']
     btn_class_tables=['label','format_indent_increase','','shopping_basket','','']

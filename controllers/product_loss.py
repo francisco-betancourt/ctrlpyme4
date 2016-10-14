@@ -17,6 +17,10 @@
 #
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
+
+
+expiration_redirect()
+
 from bag_utils import get_valid_bag
 from bag_utils import refresh_bag_data
 from item_utils import remove_stocks

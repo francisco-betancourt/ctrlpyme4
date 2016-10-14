@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 
 @auth.requires_membership('Config')
 def create():

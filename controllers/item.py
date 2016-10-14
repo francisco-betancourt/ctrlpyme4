@@ -190,6 +190,7 @@ def create():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     # return item_form(is_bundle=request.vars.is_bundle)
     redirect(URL('create_or_update', vars=request.vars))
@@ -207,6 +208,7 @@ def create_or_update():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     item = db.item(request.args(0))
     if not item and not auth.has_membership('Items management'):
@@ -228,6 +230,7 @@ def fill_bundle():
         args:
             item_id: the bundle item that will be filled.
     """
+    expiration_redirect()
 
     bundle = db.item(request.args(0))
     if not bundle:
@@ -488,17 +491,20 @@ def update():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     redirect(URL('create_or_update', args=request.args, vars=request.vars))
 
 
 @auth.requires_membership('Items management')
 def delete():
+    expiration_redirect()
     return common_delete('item', request.args)
 
 
 @auth.requires_membership('Items management')
 def undelete():
+    expiration_redirect()
     return common_undelete('item', request.args)
 
 
@@ -522,6 +528,8 @@ def item_options(row):
 
 @auth.requires(auth.has_membership('Employee') or auth.has_membership('Admin'))
 def index():
+    expiration_redirect()
+
     fields = [
         {
             'fields': ['name', 'is_bundle'],
@@ -624,6 +632,7 @@ def labels():
         args: [items]
         vars: [id_purchase, id_layout]
     """
+    expiration_redirect()
 
     from_purchase = False
 
@@ -642,8 +651,8 @@ def labels():
         'margin_right': page_layout.margin_right,
         'margin_bottom': page_layout.margin_bottom,
         'margin_left': page_layout.margin_left,
-        'space_x': page_layout.space_x,
-        'space_y': page_layout.space_y,
+        'space_x': page_layout.space_x or 0,
+        'space_y': page_layout.space_y or 0,
         'cols': page_layout.label_cols,
         'rows': page_layout.label_rows,
         'show_item_name': page_layout.show_name,
@@ -756,5 +765,3 @@ def get_affinity_items():
         items.append(item_utils.data_for_card(item))
 
     return dict(items=items)
-    
-

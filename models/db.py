@@ -372,12 +372,24 @@ db.define_table(
     , Field('margin_bottom', 'decimal(16,6)', default=1, label=T('Paper margin bottom') + ' (cm)')
     , Field('margin_left', 'decimal(16,6)', default=1, label=T('Paper margin left') + ' (cm)')
 
-    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ': ' + T('left spacing') + ' (cm)')
-    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ': ' + T('bottom spacing') + ' (cm)')
+    , Field(
+        'space_x', 'decimal(16,6)', default=.5,
+        label=T('Labels') + ': ' + T('left spacing') + ' (cm)'
+    )
+    , Field(
+        'space_y', 'decimal(16,6)', default=.5,
+        label=T('Labels') + ': ' + T('bottom spacing') + ' (cm)'
+    )
     , Field('label_cols', 'integer', default=1, label=T('Labels columns'))
     , Field('label_rows', 'integer', default=1, label=T('Labels rows'))
-    , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
-    , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
+    , Field(
+        'show_name', 'boolean', default=True,
+        label=T('Label') + ':' + T('Show name')
+    )
+    , Field(
+        'show_price', 'boolean', default=True,
+        label=T('Label') + ':' + T('Show price')
+    )
 )
 db.labels_page_layout.name.requires = not_empty_requires
 db.labels_page_layout.margin_top.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
@@ -387,6 +399,8 @@ db.labels_page_layout.margin_left.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
 db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
 db.labels_page_layout.label_cols.requires = IS_INT_IN_RANGE(1, 20)
 db.labels_page_layout.label_rows.requires = IS_INT_IN_RANGE(1, 20)
+db.labels_page_layout.space_x.requires = IS_DECIMAL_IN_RANGE(0, 2)
+db.labels_page_layout.space_y.requires = IS_DECIMAL_IN_RANGE(0, 2)
 
 
 db.define_table("category",
