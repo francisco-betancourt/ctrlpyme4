@@ -97,13 +97,13 @@ def get_notifications():
         exp_days = current.EXPIRATION_DAYS
         if exp_days <= 10 and exp_days > 0:
             notifications.append(Storage(
-                title=T('App expiration'),
+                title=T('Service expiration'),
                 description=T('your app will expire in %s day(s)') % exp_days
             ))
         elif exp_days < 0:
             notifications.append(Storage(
-                title=T('App expiration'),
-                description=T('your app has expired, your store will be visible but you will not be able to sell or any other actions')
+                title=T('Service expiration'),
+                description=T('your service has expired, your store will be visible but you will not be able to sell or perform any other actions')
             ))
 
     return notifications
