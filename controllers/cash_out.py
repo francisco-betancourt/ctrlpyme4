@@ -232,6 +232,7 @@ def archive():
         return options
 
     def status_format(r, f):
+        diff = DQ(abs(r.sys_cash - r.cash), True)
         if r.sys_cash == r.cash:
             return I(_class='status-circle bg-success'), A(T("Ok"),
                 _href=URL('index', args=seller.id, vars=dict(status="ok"))
@@ -239,11 +240,11 @@ def archive():
         elif r.sys_cash < r.cash:
             return I(_class='status-circle bg-success'), A(T("Added money"),
                 _href=URL('index', args=seller.id, vars=dict(status="added"))
-            )
+            ), B(" ($ %s)" % diff)
         elif r.sys_cash > r.cash:
             return I(_class='status-circle bg-danger'), A(T("Missing money"),
                 _href=URL('index', args=seller.id, vars=dict(status="missing"))
-            )
+            ), B(" ($ %s)" % diff)
 
     status = request.vars.status
     query = (db.cash_out.id_seller == seller.id) & (db.cash_out.is_done == True)
