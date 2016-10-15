@@ -593,8 +593,16 @@ def refund():
     if form.process().accepted and not no_more_items and not invalid:
         # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
 
+        items_count = 0
+
         def fix_returned(raw_pair):
-            item_id, qty = raw_pair.split(':')[0:2]
+            raw = raw_pair.split(':')
+            if len(raw) > 1:
+                item_id, qty = raw[0:2]
+            else:
+                item_id = raw[0]
+                qty = 0
+
             item_id = str(item_id)
             try:
                 qty = qty if qty else 0
@@ -609,16 +617,26 @@ def refund():
             item_id, qty = r_item[0], r_item[1]
             return item_id, DQ(max(min(qty, item_removals[item_id].max), 0))
 
-
         # try to generate the returned items, if this fails, return error
         r_items = None
         # at this point we have fixed the max quantities and everything
         r_items = map(
             max_available,
-            map(fix_returned, form.vars.returned_items.split(','))
+            map(
+                fix_returned,
+                filter(lambda x: x, form.vars.returned_items.split(','))
+            )
         )
+
+        # if there are no returned items avoid creating the credit note
+        items_count = sum((r_item[1] for r_item in r_items))
+        if items_count <= .000001:
+            session.info = T('There are no items to refund')
+            redirect(URL('sale', 'refund', args=sale.id))
+
         # so now we can query the bag items
         r_items = ((db.bag_item(r_item[0]), r_item[1]) for r_item in r_items)
+
 
         credit_note = sale_utils.refund(
             sale, request.now, auth.user, r_items,
