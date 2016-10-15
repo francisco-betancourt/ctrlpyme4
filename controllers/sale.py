@@ -539,6 +539,7 @@ def refund():
     item_removals = {}
     no_more_items = True
 
+
     if is_delivered:
         # obtain all returnable items from the specified sale
         c_items = db(
@@ -589,25 +590,33 @@ def refund():
 
     if form.process().accepted and not no_more_items and not invalid:
         # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
+
+        def fix_returned(raw_pair):
+            item_id, qty = raw_pair.split(':')[0:2]
+            item_id = str(item_id)
+            try:
+                qty = qty if qty else 0
+            except:
+                qty = 0
+            qty = D(qty)
+
+            return item_id, qty
+
+
         def max_available(r_item):
-            return DQ(
-                max(min(D(r_item[1]), item_removals[str(r_item[0])].max), 0)
-            )
+            item_id, qty = r_item[0], r_item[1]
+            return item_id, DQ(max(min(qty, item_removals[item_id].max), 0))
 
 
         # try to generate the returned items, if this fails, return error
         r_items = None
-        try:
-            r_items = map(
-                lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
-            )
-            r_items = (
-                (db.bag_item(int(r_item[0])), max_available(r_item)) for r_item in r_items
-            )
-        except:
-            session.info = T("Invalid returned items")
-            redirect(URL('sale', 'refund', args=sale.id))
-
+        # at this point we have fixed the max quantities and everything
+        r_items = map(
+            max_available,
+            map(fix_returned, form.vars.returned_items.split(','))
+        )
+        # so now we can query the bag items
+        r_items = ((db.bag_item(r_item[0]), r_item[1]) for r_item in r_items)
 
         credit_note = sale_utils.refund(
             sale, request.now, auth.user, r_items,
