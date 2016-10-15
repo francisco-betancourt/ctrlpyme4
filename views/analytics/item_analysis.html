@@ -49,6 +49,8 @@
 <hr>
 {{=out_inventories_t}}
 
+{{ pass }}
+
 
 <hr>
 <section id="sales">
@@ -70,7 +72,6 @@
   <div id="affinity_items_container" class="items-container no-wrap"></div>
 </section>
 
-{{ pass }}
 
 
 {{ block page_js }}
@@ -89,7 +90,7 @@
 
   var plot = TimeRangePlot(
       $('#item_sales_chart_card'), $("#item_sales_chart"),
-      "{{=URL('analytics', 'get_item_sales_data', extension='json', args=item.id)}}", 
+      "{{=URL('analytics', 'get_item_sales_data', extension='json', args=item.id)}}",
       today_date, refresh_cb, null
   );
 
