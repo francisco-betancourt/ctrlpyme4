@@ -38,6 +38,8 @@ def ticket():
 
 
 def valid_sale(sale):
+    if not sale:
+        raise HTTP(404)
     if not sale.created_by.id == auth.user.id:
         raise HTTP(401)
     if not sale:
