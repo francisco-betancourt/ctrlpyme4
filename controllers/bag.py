@@ -66,9 +66,9 @@ def modify_bag_item():
     """
 
     bag_item = db.bag_item(request.args(0))
-    bag_utils.is_modifiable_bag(bag_item.id_bag)
     if not bag_item:
         raise HTTP(404)
+    bag_utils.is_modifiable_bag(bag_item.id_bag)
 
     old_qty = bag_item.quantity
     bag_item.quantity = request.vars.quantity if request.vars.quantity else bag_item.quantity
@@ -189,7 +189,10 @@ def change_bag_item_sale_price():
             (db.auth_user.access_code == access_code) &
             (db.auth_user.registration_key == "")
         ).select().first()
-        is_vip_seller = auth.has_membership(None, user.id, 'VIP seller')
+        if user:
+            is_vip_seller = auth.has_membership(None, user.id, 'VIP seller')
+        else:
+            is_vip_seller = False
 
     if is_vip_seller:
         # change the item bag item sale price in db

@@ -116,7 +116,7 @@ def stocks_table(item, Supert):
                 T('Stock transfer'),
                 _href=URL(
                     'stock_transfer', 'ticket',
-                    vars=dict(id_stock_transfer=ow.id_stock_transfer.id)
+                    vars=dict(id_stock_transfer=row.id_stock_transfer.id)
                 ), _target='_blank'
             )
 
