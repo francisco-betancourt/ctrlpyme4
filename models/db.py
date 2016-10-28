@@ -430,7 +430,7 @@ db.define_table("item",
     Field("description", "text", default='', label=T('Description')),
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
-    Field("sku", "string", length=20, default=None, label=T('SKU')),
+    Field("sku", "string", length=40, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
 
