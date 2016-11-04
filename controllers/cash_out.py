@@ -232,7 +232,7 @@ def archive():
         return options
 
     def status_format(r, f):
-        diff = DQ(abs(r.sys_cash - r.cash), True)
+        diff = DQ(abs(r.sys_cash - (r.cash or 0)), True)
         if r.sys_cash == r.cash:
             return I(_class='status-circle bg-success'), A(T("Ok"),
                 _href=URL('index', args=seller.id, vars=dict(status="ok"))

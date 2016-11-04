@@ -75,7 +75,56 @@ def fill():
         , global_options=[]
     )
 
+    brands = db(db.brand.is_active == True).select(orderby=db.brand.name)
+
     return locals()
+
+
+
+def add_inventory_item(inventory, item):
+    stock_qty = item_stock_qty(item, session.store)
+
+    # check if theres an inventory item
+    inventory_item = db(
+        (db.inventory_item.id_inventory == inventory.id)
+      & (db.inventory_item.id_item == item.id)
+    ).select().first()
+    if not inventory_item:
+        inventory_item = db.inventory_item.insert(id_item=item.id, id_inventory=inventory.id, system_qty=stock_qty, physical_qty=stock_qty)
+        inventory_item = db.inventory_item(inventory_item)
+    else:
+        inventory_item.physical_qty += 1
+        inventory_item.update_record()
+
+    return inventory_item
+
+
+
+@auth.requires_membership('Inventories')
+def add_brand_items():
+    """ Add all the items from the specified brand to the inventory
+        args: [inventory_id, brand_id]
+    """
+
+    inventory = db.inventory(request.args(0))
+    is_valid_inventory(inventory)
+    brand = db.brand(request.args(1))
+
+    if not brand:
+        raise HTTP(404)
+
+    brand_items = db(
+        (db.item.id_brand == brand.id) &
+        (db.item.is_active == True) &
+        (db.item.has_inventory == True)
+    ).iterselect(orderby=~db.item.id)
+
+    for item in brand_items:
+        add_inventory_item(inventory, item)
+
+    return dict(status="ok")
+
+
 
 
 @auth.requires_membership('Inventories')
@@ -118,6 +167,7 @@ def remove_item():
         traceback.print_exc()
 
 
+
 @auth.requires_membership('Inventories')
 def add_item():
     """
@@ -133,19 +183,7 @@ def add_item():
     if not item.has_inventory or item.is_bundle:
         raise HTTP(400)
 
-    stock_qty = item_stock_qty(item, session.store)
-
-    # check if theres an inventory item
-    inventory_item = db(
-        (db.inventory_item.id_inventory == inventory.id)
-      & (db.inventory_item.id_item == item.id)
-    ).select().first()
-    if not inventory_item:
-        inventory_item = db.inventory_item.insert(id_item=item.id, id_inventory=inventory.id, system_qty=stock_qty, physical_qty=stock_qty)
-        inventory_item = db.inventory_item(inventory_item)
-    else:
-        inventory_item.physical_qty += 1
-        inventory_item.update_record()
+    inventory_item = add_inventory_item(inventory, item)
 
     return dict(inventory_item=inventory_item, item=item)
 
@@ -383,7 +421,9 @@ def undo():
 
 
 def delete():
-    """ deletes an inventory, only available if the inventory is not done """
+    """ deletes an inventory, only available if the inventory is not done
+        args [inventory.id]
+    """
 
     db((db.inventory.is_done == False) & (db.inventory.id == request.args(0))).delete()
     redirect(URL('index'))
