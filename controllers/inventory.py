@@ -421,7 +421,9 @@ def undo():
 
 
 def delete():
-    """ deletes an inventory, only available if the inventory is not done """
+    """ deletes an inventory, only available if the inventory is not done
+        args [inventory.id]
+    """
 
     db((db.inventory.is_done == False) & (db.inventory.id == request.args(0))).delete()
     redirect(URL('index'))

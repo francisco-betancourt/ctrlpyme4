@@ -99,6 +99,7 @@
 
 <button class="btn btn-primary" onclick="window.location = '{{=URL('complete', args=inventory.id)}}'"> {{=T('Done')}}  </button>
 <button class="btn btn-default" onclick="window.location = '{{=URL('index')}}'"> {{=T('Save')}}  </button>
+<button class="btn btn-danger" onclick="discard()"> {{=T('Discard')}}  </button>
 
 
 
@@ -159,7 +160,7 @@
     // get the current brand value
     var brand_id = $("#brand_selector").val();
 
-    info_card("Processing, this may take some time ...")
+    info_card("{{=T('Processing, this may take some time ...')}}")
 
     $.ajax({
       url: "{{=URL('add_brand_items', args=inventory.id, extension='json')}}/" + brand_id
@@ -169,6 +170,14 @@
     })
     .fail(function (res) { });
   });
+
+
+
+  function discard() {
+    if (window.confirm("{{=T('Are you sure you want to discard this inventory?')}}")) {
+      window.location.href = "{{=URL('delete', args=inventory.id)}}"
+    }
+  }
 
 
 </script>
