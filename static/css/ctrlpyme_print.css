@@ -1,6 +1,6 @@
 @page {
   size: portrait;
-  margin: 0px;
+  margin: 1cm;
 }
 @media print {
   nav, footer, .left-sidebar, .noprint {
@@ -40,6 +40,10 @@
 
 
   .default-sheet {
-    margin: 1cm;
+  }
+
+  h1, h2, h3 {
+    margin: 0px;
+    padding: 0px;
   }
 }

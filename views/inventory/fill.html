@@ -1,11 +1,42 @@
 {{left_sidebar_enabled = True}}
 {{extend "layout.html"}}
 
+
+
 {{block left_sidebar}}
 
 <h1>{{=T('Current item')}}</h1>
 
-<div id="inventory_scanner_container"></div>
+
+<ul class="nav nav-tabs" role="tablist">
+  <li role="barcode" class="active">
+    <a href="#inventory_scanner_container" role="tab" data-toggle="tab">
+      {{=T('Barcode')}}
+    </a>
+  </li>
+  <li role="brand">
+    <a href="#brands_container" role="tab" data-toggle="tab">
+      {{=T('Brand')}}
+    </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div id="inventory_scanner_container" role="tabpanel" class="tab-pane active">
+  </div>
+  <div id="brands_container" role="tabpanel" class="tab-pane">
+    <select id="brand_selector" class="form-control">
+      {{ for brand in brands: }}
+        <option value="{{=brand.id}}">{{=brand.name}}</option>
+      {{ pass }}
+    </select>
+    <button id="add_brand_items_button" class="btn btn-block" style="margin-top: 8px">
+      {{=T("Add")}}
+    </button>
+    <hr>
+  </div>
+</div>
+
 
 
 {{ if inventory_item: }}
@@ -51,7 +82,9 @@
   </p>
 {{ pass }}
 
-{{end}}
+{{end}} <!-- end left-sidebar -->
+
+
 
 
 {{if is_partial:}}
@@ -119,6 +152,25 @@
 
   var scanner = BarcodeScanner('inventory', $('#inventory_scanner_container'));
   scanner.setup(success_callback, fail_callback, null, null);
+
+
+
+  $("#add_brand_items_button").click(function (event) {
+    // get the current brand value
+    var brand_id = $("#brand_selector").val();
+
+    info_card("Processing, this may take some time ...")
+
+    $.ajax({
+      url: "{{=URL('add_brand_items', args=inventory.id, extension='json')}}/" + brand_id
+    })
+    .done(function (res) {
+      window.location.href = "{{=URL('fill', args=inventory.id)}}/"
+    })
+    .fail(function (res) { });
+  });
+
+
 </script>
 
 {{end}}

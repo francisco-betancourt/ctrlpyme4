@@ -176,6 +176,8 @@ def create_new_stock_item(purchase, item):
         ).last()
         price = last_stock_item.price if last_stock_item else item.base_price
 
+    price = price or 1.0
+
     taxes = item_utils.item_taxes(item, 1)
     price /= 1 + taxes
 

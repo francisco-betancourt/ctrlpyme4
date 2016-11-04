@@ -179,4 +179,7 @@ a.st-header.selected {
   .st-header {
     font-weight: bold;
   }
+  .supert .st-row-data {
+    height: auto;
+  }
 }
