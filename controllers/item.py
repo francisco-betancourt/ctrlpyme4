@@ -581,7 +581,7 @@ def browse():
 
     if term:
         query = search_item_query(term, category)
-        orderby = ~db.item.name.contains(term)
+        orderby = db.item.id|~db.item.name.contains(term)
 
     if category:
         query &= db.item.categories.contains(category.id)
