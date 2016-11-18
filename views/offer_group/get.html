@@ -32,9 +32,15 @@
 
 
 <div class="items-container">
-  {{for item in items:}}
-    {{=item_card(item)}}
-  {{pass}}
 </div>
 
 {{=pages}}
+
+
+
+{{block page_js}}
+  {{=items_data_script}}
+  <script>
+    ITEM_CARDS.create_item_cards(items_data, $('.items-container'));
+  </script>
+{{end}}
