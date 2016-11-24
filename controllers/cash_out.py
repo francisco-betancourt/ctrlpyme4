@@ -123,7 +123,7 @@ def details():
     start_date = cash_out.start_date
     end_date = cash_out.end_date
 
-    payment_opts = db(db.payment_opt.is_active == True).select()
+    payment_opts = db(db.payment_opt.id > 0).select()
     payment_opts_ref = {}
     # will be used to create a payments chart
     for payment_opt in payment_opts:
