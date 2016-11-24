@@ -99,8 +99,11 @@
 
             <div class="progress sale-progress noprint">
               {{for _key in sale.payments.iterkeys(): }}
-                {{ payment_opt = payment_opts_ref[_key] }}
-                {{ payment = sale.payments[_key] }}
+                {{ payment_opt = payment_opts_ref.get(_key) }}
+                {{ if not payment_opt: }}
+                  {{ continue}}
+                {{ pass }}
+                {{ payment = sale.payments.get(_key) }}
                 {{ hex = payment_opt.c_color }}
 
                 {{ payment_amount = payment.amount - payment.change_amount }}
@@ -118,7 +121,7 @@
         </div>
       </div>
       {{ pass }}
-      
+
     {{pass}}
 
     <div class="print">
