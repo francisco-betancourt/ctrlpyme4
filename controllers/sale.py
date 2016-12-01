@@ -435,15 +435,19 @@ def undo():
     err = ''
     if not sale:
         err = T('Sale not found')
-    if request.now > sale.created_on + timedelta(minutes=5):
-        print sale.created_on
+    if request.now > sale.modified_on + timedelta(minutes=5):
         err = T('Its too late to undo it')
     if err:
         session.info = err
         redirect(URL('default', 'index'))
 
     # return wallet payments
-    for payment in db(db.payment.id_payment_opt == get_wallet_payment_opt()).select():
+    for payment in db(
+        (db.payment.id_payment_opt == get_wallet_payment_opt()) &
+        (db.payment.id_sale == sale.id)
+    ).select():
+
+        print payment
         wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
         wallet.balance += payment.amount
         wallet.update_record()
