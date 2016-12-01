@@ -103,7 +103,7 @@
       <div id="proto_payment_{{=payment_opt.id}}" hidden="hidden" class="form-inline">
         <div class="input-group">
           <span class="input-group-addon">{{=T('Amount')}}</span>
-          <input type="text" name="amount" class="form-control amount">
+          <input type="text" name="amount" class="form-control amount" {{if is_wallet_payment:}} disabled{{pass}}>
         </div>
         {{if payment_opt.allow_change:}}
           <div class="input-group">
