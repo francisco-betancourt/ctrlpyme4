@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 import json
-from datetime import date
+from datetime import date, timedelta
 from gluon.storage import Storage
 from item_utils  import *
 import item_utils
@@ -705,7 +705,7 @@ def get_popular_items():
 
     # best sellers this month
     start_date = date(request.now.year, request.now.month, 1)
-    end_date = date(request.now.year, request.now.month + 1, 1)
+    end_date = start_date + timedelta(days=30)
 
     values = db(
           (db.bag_item.id_item == db.item.id)
