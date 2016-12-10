@@ -30,6 +30,7 @@ from constants import BAG_COMPLETE
 from cp_errors import CP_PaymentError, CP_OutOfStockError
 
 import item_utils
+import wallet_utils
 
 
 # constants
@@ -207,11 +208,10 @@ def complete(sale):
 
     # add reward points to the client's wallet, we assume that the user has a wallet
     if sale.id_client and sale.id_client.id_wallet:
-        wallet = db(
-            db.wallet.id == sale.id_client.id_wallet.id
-        ).select(for_update=True).first()
-        wallet.balance += sale.reward_points
-        wallet.update_record()
+        wallet_utils.transaction(
+            sale.reward_points, wallet_utils.CONCEPT_SALE_REWARD, ref=sale.id,
+            wallet_id=sale.id_client.id_wallet.id
+        )
 
 
 def add_payment(sale, payment_opt):
@@ -323,24 +323,25 @@ def modify_payment(sale, payment, payment_data, delete=False):
         if payment.wallet_code:
             # return wallet funds, if the wallet payment is removed or the wallet code is changed
             if delete or wallet_code != payment.wallet_code:
-                wallet = db(
-                    db.wallet.wallet_code == payment.wallet_code
-                ).select(for_update=True).first()
-                if wallet:
-                    wallet.balance += payment.amount
-                    wallet.update_record()
+                wallet_utils.transaction(
+                    payment.amount, wallet_utils.UNDO_PAYMENT, ref=payment.id,
+                    wallet_code=payment.wallet_code
+                )
         else:
             new_amount = 0
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
-            wallet = db(
-                db.wallet.wallet_code == wallet_code
-            ).select(for_update=True).first()
-            if wallet:
-                new_amount = max(0, min(wallet.balance, (sale.total - sale.discount) - new_total))
-                wallet.balance -= new_amount
-                wallet.update_record()
+            try:
+                rem_q = (sale.total - sale.discount) - new_total
+                if rem_q >= 0:
+                    wallet_utils.transaction(
+                        -rem_q, wallet_utils.CONCEPT_PAYMENT, ref=payment.id,
+                        wallet_code=wallet_code
+                    )
+            except:
+                pass
+
             # if the code is invalid, remove its specified value
             else:
                 wallet_code = None
@@ -479,9 +480,6 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     if create_new_wallet:
         wallet = db.wallet(common_utils.new_wallet())
 
-    # add wallet funds
-    wallet.balance += total
-    wallet.update_record()
 
     # update credit note data
     credit_note = db.credit_note(id_new_credit_note)
@@ -490,6 +488,12 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     credit_note.code = wallet.wallet_code
     credit_note.id_wallet = wallet.id
     credit_note.update_record()
+
+    # add wallet funds
+    wallet_utils.transaction(
+        total, wallet_utils.CONCEPT_CREDIT_NOTE, ref=credit_note.id,
+        wallet_id=wallet.id
+    )
 
 
     return credit_note

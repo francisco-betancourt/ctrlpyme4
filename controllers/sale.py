@@ -31,6 +31,7 @@ from item_utils import item_discounts, apply_discount, item_stock_qty, remove_st
 from constants import *
 
 import sale_utils
+import wallet_utils
 
 
 def ticket():
@@ -170,12 +171,11 @@ def cancel():
     wallet_opt = get_wallet_payment_opt()
     payments = db((db.payment.id_payment_opt == wallet_opt.id) & (db.payment.id_sale == sale.id)).select()
     for payment in payments:
-        wallet = db(
-            db.wallet.wallet_code == payment.wallet_code
-        ).select().first()
-        if wallet:
-            wallet.balance += payment.amount
-            wallet.update_record()
+        wallet_utils.transaction(
+            payment.amount,
+            wallet_utils.CONCEPT_UNDO_PAYMENT, ref=sale.id,
+            wallet_code=payment.wallet_code
+        )
 
     # delete the bag and all its bag items
     db(db.bag_item.id_bag == sale.id_bag.id).delete()
@@ -446,11 +446,10 @@ def undo():
         (db.payment.id_payment_opt == get_wallet_payment_opt()) &
         (db.payment.id_sale == sale.id)
     ).select():
-
-        print payment
-        wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-        wallet.balance += payment.amount
-        wallet.update_record()
+        wallet_utils.transaction(
+            payment.amount, wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
+            wallet_code=payment.wallet_code
+        )
 
     undo_stock_removal(bag=sale.id_bag)
 

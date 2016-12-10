@@ -278,6 +278,18 @@ db.notification.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active =
 db.notification.url.requires = IS_URL()
 
 
+
+db.define_table(
+     'wallet_transaction'
+    , Field('id_wallet', 'reference wallet', notnull=True)
+    , Field('amount', 'decimal(16,6)', default=0)
+    , Field('concept', 'integer', notnull=True)
+    , Field('ref_id', 'integer')
+    , auth.signature
+)
+
+
+
 db.define_table(
     'highlight'
     , Field('id_store', 'reference store', label=T('Store'))

@@ -19,33 +19,10 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
-#
-# def get():
-#     """
-#         args: [wallet_id]
-#     """
-#
-#     return dict(wallet=db.wallet(request.args(0)))
-#
-#
-# def get_user_wallet():
-#     """
-#         args: [user_id]
-#     """
-#
-#     user = db.auth_user(request.args(0))
-#     print user
-#     if not user:
-#         raise HTTP(404)
-#     return dict(wallet=db.wallet(user.id_wallet))
-#
-#
-
-#
-#
-
-
 expiration_redirect()
+
+import wallet_utils
+
 
 @auth.requires_membership("Clients management")
 def print_wallet():
@@ -90,11 +67,14 @@ def merge_wallets():
         session.info = T('The specified wallets are the same')
         redirect(URL('index', args=w1.id))
 
-    b = w2.balance
-    w1.balance += b
-    w2.balance = 0
-    w1.update_record()
-    w2.update_record()
+    _w, amount = wallet_utils.transaction(
+        w2.balance, wallet_utils.CONCEPT_WALLET_MERGE,
+        ref=w2.id, wallet=w1
+    )
+    wallet_utils.transaction(
+        -amount, wallet_utils.CONCEPT_WALLET_MERGE,
+        ref=w1.id, wallet=w2
+    )
 
     session.info = T(
         'Transaction done, added $ %s to the specified wallet.'
@@ -107,7 +87,6 @@ def merge_wallets():
 def add_money():
     """ Add or remove money to a specified wallet """
 
-    wallet = db(db.wallet.id == request.args(0)).select(for_update=True).first()
     qty = 0
     try:
         qty = D(request.vars.amount)
@@ -115,8 +94,9 @@ def add_money():
         session.info = T('Invalid amount')
         redirect(URL('index', args=wallet.id))
 
-    wallet.balance += qty
-    wallet.update_record()
+    wallet, amount = wallet_utils.transaction(
+        qty, wallet_utils.CONCEPT_ADMIN, wallet_id=request.args(0)
+    )
 
     msg = '$ %s added to wallet.'
     if qty < 0:
