@@ -93,7 +93,7 @@ def add_money():
     except:
         session.info = T('Invalid amount')
         redirect(URL('index', args=wallet.id))
-
+        
     wallet, amount = wallet_utils.transaction(
         qty, wallet_utils.CONCEPT_ADMIN, wallet_id=request.args(0)
     )

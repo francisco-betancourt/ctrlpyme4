@@ -189,7 +189,7 @@ def refresh_bag_data(id_bag):
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
-        reward_points += bag_item.id_item.reward_points or 0
+        reward_points += (bag_item.id_item.reward_points or 0) * bag_item.quantity
 
     bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
 

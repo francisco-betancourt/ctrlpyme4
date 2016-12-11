@@ -450,6 +450,12 @@ def undo():
             payment.amount, wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
             wallet_code=payment.wallet_code
         )
+        
+    if sale.id_client:
+        wallet_utils.transaction(
+            sale.reward_points, wallet_utils.CONCEPT_UNDO_SALE_REWARD,
+            ref=sale.id, wallet_id=sale.id_client.id_wallet.id
+        )
 
     undo_stock_removal(bag=sale.id_bag)
 

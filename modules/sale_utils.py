@@ -277,10 +277,6 @@ def modify_payment(sale, payment, payment_data, delete=False):
 
     new_amount = payment_data.get('amount')
 
-    # is wallet payment
-    if payment.wallet_code:
-        new_amount = payment.amount
-
     # delete payment
     if delete:
         new_amount = 0
@@ -319,6 +315,7 @@ def modify_payment(sale, payment, payment_data, delete=False):
          account = None
     if not common_utils.is_wallet(payment.id_payment_opt):
          wallet_code = None
+    # in this case the payment is wallet
     else:
         if payment.wallet_code:
             # return wallet funds, if the wallet payment is removed or the wallet code is changed
@@ -327,23 +324,20 @@ def modify_payment(sale, payment, payment_data, delete=False):
                     payment.amount, wallet_utils.UNDO_PAYMENT, ref=payment.id,
                     wallet_code=payment.wallet_code
                 )
-        else:
-            new_amount = 0
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
             try:
+                # new_amount = max(0, min(wallet.balance, (sale.total - sale.discount) - new_total))
+
                 rem_q = (sale.total - sale.discount) - new_total
                 if rem_q >= 0:
-                    wallet_utils.transaction(
+                    _wallet, _amount = wallet_utils.transaction(
                         -rem_q, wallet_utils.CONCEPT_PAYMENT, ref=payment.id,
                         wallet_code=wallet_code
                     )
+                    new_amount = abs(_amount)
             except:
-                pass
-
-            # if the code is invalid, remove its specified value
-            else:
                 wallet_code = None
                 new_amount = 0
 
