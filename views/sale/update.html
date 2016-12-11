@@ -34,14 +34,15 @@
       {{pass}}
     </select>
 
-    {{if not sale.id_bag.is_paid: }}
-      <div id="client_wallet_data" hidden="hidden">
-        <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
-        <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
-      </div>
-    {{ pass }}
   {{ else: }}
-    <p>{{ =sale.id_client }}</p>
+    <p>{{ =sale.id_client.first_name }} {{ =sale.id_client.last_name }}</p>
+  {{ pass }}
+  
+  {{if not sale.id_bag.is_paid: }}
+    <div id="client_wallet_data" hidden="hidden">
+      <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+      <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+    </div>
   {{ pass }}
 
   <hr>

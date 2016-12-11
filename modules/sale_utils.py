@@ -124,9 +124,9 @@ def create_sale_event(sale, event_name, event_date=None):
 
     event_date = request.now if not event_date else event_date
 
-    db(db.sale.id == sale.id).update(
-        last_log_event=event_name, last_log_event_date=event_date
-    )
+    sale.last_log_event = event_name
+    sale.last_log_event_date = event_date
+    
     return db.sale_log.insert(
         id_sale=sale.id, sale_event=event_name, event_date=event_date
     )
@@ -457,6 +457,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
         db(db.sale_order.id_sale == sale.id).delete()
         
         create_sale_event(sale, SALE_REFUNDED, now)
+        sale.update_record()
 
 
     create_new_wallet = False
