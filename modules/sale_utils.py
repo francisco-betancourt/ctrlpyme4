@@ -38,6 +38,7 @@ SALE_DEFERED = 'defered'
 SALE_DELIVERED = 'delivered'
 SALE_CREATED = 'created'
 SALE_PAID = 'paid'
+SALE_REFUNDED = 'refunded'  # only applicable to deferred sales
 
 
 def new(bag, id_store, now, user):
@@ -123,8 +124,9 @@ def create_sale_event(sale, event_name, event_date=None):
 
     event_date = request.now if not event_date else event_date
 
-    sale.last_log_event = event_name
-    sale.last_log_event_date = event_date
+    db(db.sale.id == sale.id).update(
+        last_log_event=event_name, last_log_event_date=event_date
+    )
     return db.sale_log.insert(
         id_sale=sale.id, sale_event=event_name, event_date=event_date
     )
@@ -453,6 +455,8 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
         subtotal = total = payments_total
         db(db.sale_order.id_sale == sale.id).delete()
+        
+        create_sale_event(sale, SALE_REFUNDED, now)
 
 
     create_new_wallet = False

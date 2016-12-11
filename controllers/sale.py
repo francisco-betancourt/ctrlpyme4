@@ -43,8 +43,8 @@ def valid_sale(sale):
         raise HTTP(404)
     if not sale.created_by.id == auth.user.id:
         raise HTTP(401)
-    if not sale:
-        raise HTTP(404)
+    if sale.is_deferred and sale.last_log_event == sale_utils.SALE_REFUNDED:
+        raise HTTP(400)
     if sale.is_done:
         session.info = {
             'text': T('Sale has been paid'),
@@ -587,8 +587,9 @@ def refund():
         credit_note = db(db.credit_note.id_sale == sale.id).select().first()
         invalid = bool(credit_note)  # hack to convert to boolean
 
-        session.info = T('The sale already has a credit note')
-        redirect(URL('index'))
+        if invalid:
+            session.info = T('The sale already has a credit note')
+            redirect(URL('index'))
 
 
     btn_text = T('Refund') if item_removals else T('Return all payments')
@@ -599,7 +600,7 @@ def refund():
     )
 
 
-    if form.process().accepted and not no_more_items and not invalid:
+    if form.process().accepted and (not no_more_items or sale.is_deferred) and not invalid:
         # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
 
         items_count = 0
@@ -639,7 +640,7 @@ def refund():
 
         # if there are no returned items avoid creating the credit note
         items_count = sum((r_item[1] for r_item in r_items))
-        if items_count <= .000001:
+        if items_count <= .000001 and not sale.is_deferred:
             session.info = T('There are no items to refund')
             redirect(URL('sale', 'refund', args=sale.id))
 
@@ -680,7 +681,8 @@ def index():
 
     def sale_options(row):
         buttons = ()
-        if row.is_deferred or not row.last_log_event:
+        if (row.is_deferred and row.last_log_event != sale_utils.SALE_REFUNDED) or not row.last_log_event:
+            
             buttons += supert.OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),

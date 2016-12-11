@@ -11,7 +11,7 @@
     <p>{{=T('Client')}} {{=sale.id_client.email}}</p>
   {{pass}}
 
-  {{ if not no_more_items and not invalid: }}
+  {{ if not invalid and (not no_more_items or sale.is_deferred): }}
     <hr>
     {{=form}}
   {{ pass }}

@@ -889,6 +889,7 @@
 'Record id': 'Id de registro',
 'Refund': 'Reembolsar',
 'Refund sale': 'Reembolsar venta',
+'refunded': 'reembolsada',
 'Register': 'Regístrese',
 'register': 'regístrese',
 'Registration identifier': 'Identificador de Registro',
