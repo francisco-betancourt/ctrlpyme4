@@ -282,8 +282,8 @@ db.notification.url.requires = IS_URL()
 db.define_table(
      'wallet_transaction'
     , Field('id_wallet', 'reference wallet', notnull=True)
-    , Field('amount', 'decimal(16,6)', default=0)
-    , Field('concept', 'integer', notnull=True)
+    , Field('amount', 'decimal(16,6)', default=0, label=T('Amount'))
+    , Field('concept', 'integer', notnull=True, label=T('Concept'))
     , Field('is_system_op', 'boolean', default=False)
     , Field('ref_id', 'integer')
     , auth.signature

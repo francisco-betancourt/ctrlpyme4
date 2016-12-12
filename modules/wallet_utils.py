@@ -52,10 +52,14 @@ def new(balance=0):
 
 
 
-def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wallet=None, date=None, is_system_op=False):
+def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wallet=None, now=None, created_by=None, is_system_op=False):
     """ Creates a wallet transaction for the wallet that belongs to the specified wallet_id or wallet_code, transactions are used to keep a record of every wallet operation.
     """
     db = current.db
+    request = current.request
+
+    if amount == 0:
+        return None, 0
 
     if not wallet:
         query = db.wallet.id == wallet_id if wallet_id else db.wallet.wallet_code == wallet_code
@@ -89,12 +93,15 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
             else:
                 amount = min(wallet.balance, abs(amount)) * -1
 
+        now = request.now if not now else now
         db.wallet_transaction.insert(
             id_wallet=wallet.id,
             amount=amount,
             concept=concept,
             ref_id=ref,
-            is_system_op=is_system_op
+            is_system_op=is_system_op,
+            created_on=now, modified_on=now,
+            created_by=created_by, modified_by=created_by
         )
 
     # create a new transaction

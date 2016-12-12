@@ -1,5 +1,7 @@
+{{left_sidebar_enabled = True}}
 {{ extend "layout.html" }}
 
+{{ block left_sidebar }}
 <h1>{{=T('Wallet')}} {{=wallet.id}}</h1>
 <h3>{{=T('Balance')}}:  $ {{=DQ(wallet.balance, True)}}</h3>
 <hr>
@@ -36,9 +38,17 @@
 {{pass}}
 
 
-<a href="{{=URL('print_wallet', args=wallet.id, vars=dict(_print=True))}}" class="btn btn-default" target="_blank">
+<a href="{{=URL('print_wallet', args=wallet.id, vars=dict(_print=True))}}" class="btn btn-default btn-block" target="_blank">
     {{=T("Print")}}
 </a>
+{{ end }}
+
+
+
+<h1>{{=T("History")}}</h1>
+{{=transactions_table}}
+
+
 
 {{block page_js}}
 <script>
