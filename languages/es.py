@@ -918,6 +918,7 @@
 'Review your order': 'Revise su orden',
 'Reward Point': 'Punto de recompensa',
 'Reward points': 'Puntos de recompensa',
+'reward points': 'puntos de recompensa',
 'Reward Points': 'Puntos de recompensa',
 'Role': 'Rol',
 'Rows in Table': 'Filas en la tabla',

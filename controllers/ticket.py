@@ -228,7 +228,7 @@ def credit_note_ticket_data(credit_note):
     if credit_note.subtotal > credit_note.total:
         rp = credit_note.subtotal - credit_note.total
         payments_data.insert(1,
-            DIV('%s : $ -%s' % ('reward points', DQ(rp, True)) ),
+            DIV('%s : $ -%s' % (T('reward points'), DQ(rp, True)) ),
         )
 
     if credit_note.id_sale.discount:
@@ -282,7 +282,7 @@ def sale_ticket(id_sale):
     totals += [ '%s : $ %s' % (T('total'), DQ(sale.total - (sale.discount or 0), True)) ]
     if sale.id_client:
         totals += [
-            DIV('%s : $ %s' % ('reward points', DQ(sale.reward_points, True))),
+            DIV('%s : $ %s' % (T('reward points'), DQ(sale.reward_points, True))),
         ]
     total_data = ticket_total_data(totals)
 
