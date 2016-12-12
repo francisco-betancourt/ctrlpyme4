@@ -57,6 +57,7 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
     """
     db = current.db
     request = current.request
+    auth = current.auth
 
     if amount == 0:
         return None, 0
@@ -93,6 +94,8 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
             else:
                 amount = min(wallet.balance, abs(amount)) * -1
 
+        if not created_by and auth.user:
+            created_by = auth.user.id
         now = request.now if not now else now
         db.wallet_transaction.insert(
             id_wallet=wallet.id,

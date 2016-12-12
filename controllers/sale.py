@@ -173,7 +173,7 @@ def cancel():
     for payment in payments:
         wallet_utils.transaction(
             payment.amount,
-            wallet_utils.CONCEPT_UNDO_PAYMENT, ref=sale.id,
+            wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
             wallet_code=payment.wallet_code
         )
 
@@ -450,7 +450,7 @@ def undo():
             payment.amount, wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
             wallet_code=payment.wallet_code
         )
-        
+
     if sale.id_client:
         wallet_utils.transaction(
             sale.reward_points, wallet_utils.CONCEPT_UNDO_SALE_REWARD,
@@ -682,7 +682,7 @@ def index():
     def sale_options(row):
         buttons = ()
         if (row.is_deferred and row.last_log_event != sale_utils.SALE_REFUNDED) or not row.last_log_event:
-            
+
             buttons += supert.OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),

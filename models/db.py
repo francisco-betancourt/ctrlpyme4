@@ -475,7 +475,7 @@ db.define_table("item",
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
-    Field("reward_points", "integer", default=0, label=T('Reward Points')),
+    Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
     auth.signature
@@ -513,6 +513,7 @@ PRICE_RANGE_VALIDATOR = IS_DECIMAL_IN_RANGE(
 db.item.base_price.requires = PRICE_RANGE_VALIDATOR
 db.item.price2.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
 db.item.price3.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
+db.item.reward_points.requires = IS_DECIMAL_IN_RANGE(0, 100000)
 
 
 
@@ -594,6 +595,7 @@ db.define_table("bag_item",
     # holds the actual taxes quantity based on the items taxes list
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
+    Field("reward_points", "decimal(16,6)", default=0),
     Field("sale_code", "string", default=None, label=T('Sale code')),
     Field("serial_number", "string", default=None, label=T('Serial number')),
 
@@ -650,7 +652,7 @@ db.define_table("sale",
     Field("discount_percentage", "decimal(16,6)", default=0, label=T('Discount percentage')),
 
     Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'), readable=False, writable=False),
-    Field("reward_points", "integer", default=0, label=T('Reward Points'), readable=False, writable=False),
+    Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Points'), readable=False, writable=False),
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
     Field("is_invoiced", "boolean", default=False, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
@@ -673,6 +675,7 @@ db.define_table("sale_log",
 
 db.define_table("credit_note",
     Field("id_sale", "reference sale", label=T('Sale')),
+    Field("id_store", "reference store", label=T('Store')),
     Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=None, label=T('Total')),
     Field("is_usable", "boolean", default=None, label=T('Is usable')),

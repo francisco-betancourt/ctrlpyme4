@@ -126,7 +126,7 @@ def create_sale_event(sale, event_name, event_date=None):
 
     sale.last_log_event = event_name
     sale.last_log_event_date = event_date
-    
+
     return db.sale_log.insert(
         id_sale=sale.id, sale_event=event_name, event_date=event_date
     )
@@ -420,6 +420,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
     subtotal = 0
     total = 0
+    reward_points = 0
 
     if not sale.is_deferred:
         for bag_item, qty in return_items_iter():
@@ -440,6 +441,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
             sale_price = bag_item.sale_price * dp
             subtotal += sale_price * qty
             total += (sale_price + bag_item.sale_taxes * dp) * qty
+            reward_points += bag_item.reward_points * qty
 
             item_utils.reintegrate_bag_item(
                 bag_item, qty, True, 'id_credit_note', id_new_credit_note
@@ -455,7 +457,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
         subtotal = total = payments_total
         db(db.sale_order.id_sale == sale.id).delete()
-        
+
         create_sale_event(sale, SALE_REFUNDED, now)
         sale.update_record()
 
@@ -479,6 +481,8 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     if create_new_wallet:
         wallet = db.wallet(common_utils.new_wallet())
 
+    if sale.id_client:
+        total -= reward_points
 
     # update credit note data
     credit_note = db.credit_note(id_new_credit_note)

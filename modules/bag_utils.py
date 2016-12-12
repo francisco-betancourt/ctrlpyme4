@@ -94,7 +94,8 @@ def add_bag_item(bag, item, quantity=None, sale_price=None):
             id_bag=bag.id, id_item=item.id, quantity=quantity,
             sale_price=sale_price, discount=discount,
             product_name=item.name, item_taxes=item_taxes_str,
-            sale_taxes=item_utils.item_taxes(item, sale_price)
+            sale_taxes=item_utils.item_taxes(item, sale_price),
+            reward_points=item.reward_points or 0
         )
         bag_item = db.bag_item(id_bag_item)
     else:

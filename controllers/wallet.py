@@ -142,7 +142,7 @@ def index():
             text += T('sale reward') + ' %s' % row.ref_id
             href = URL('ticket', 'show_ticket', vars={"id_sale": row.ref_id})
         elif row.concept == wallet_utils.CONCEPT_ADMIN:
-            text += T('Admin') + ' %s' % row.ref_id
+            text += T('Admin')
         elif row.concept == wallet_utils.CONCEPT_WALLET_MERGE:
             text += T('Wallet merge') + ' %s' % row.ref_id
 
@@ -170,7 +170,7 @@ def index():
 
     query = (db.wallet_transaction.id_wallet == wallet.id)
     transactions_table = Supert.SUPERT(
-        query, select_args={"orderby": db.wallet_transaction.created_on},
+        query, select_args={"orderby": ~db.wallet_transaction.created_on},
         fields=[
             dict(
                 fields=['concept'],

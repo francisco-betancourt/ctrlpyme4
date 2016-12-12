@@ -220,9 +220,17 @@ def credit_note_ticket_data(credit_note):
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items, concept)
 
     payments_data = DIV(
+        DIV('%s : $ %s' % ('subtotal', DQ(credit_note.subtotal, True)) ),
         DIV('%s : $ %s' % ('total', DQ(credit_note.total, True)) ),
         _id='payments_data'
     )
+    # this only happens when we removed previously given rewards points
+    if credit_note.subtotal > credit_note.total:
+        rp = credit_note.subtotal - credit_note.total
+        payments_data.insert(1,
+            DIV('%s : $ -%s' % ('reward points', DQ(rp, True)) ),
+        )
+
     if credit_note.id_sale.discount:
         payments_data.insert(0,
             DIV('%s : $ %s%%' % (T('discount'), DQ(credit_note.id_sale.discount_percentage, True, True)) )
@@ -272,6 +280,10 @@ def sale_ticket(id_sale):
     if sale.discount:
         totals += [ '%s : %s%%' % (T('discount'), DQ(sale.discount_percentage, True, True)) ]
     totals += [ '%s : $ %s' % (T('total'), DQ(sale.total - (sale.discount or 0), True)) ]
+    if sale.id_client:
+        totals += [
+            DIV('%s : $ %s' % ('reward points', DQ(sale.reward_points, True))),
+        ]
     total_data = ticket_total_data(totals)
 
     credit_notes_tickets = DIV()
@@ -282,6 +294,7 @@ def sale_ticket(id_sale):
         ).iterselect()
         for credit_note in credit_notes:
             credit_note_data = credit_note_ticket_data(credit_note)
+            credit_notes_tickets.append(HR())
             credit_notes_tickets.append(mini_ticket_format(
                 T('Credit note'),
                 DIV(
@@ -291,6 +304,7 @@ def sale_ticket(id_sale):
                 credit_note.code,
                 date=credit_note.created_on
             ))
+        credit_notes_tickets.append(HR())
 
     return ticket_format(store_data, T('Sale'),
         DIV(
