@@ -32,12 +32,10 @@ def update_main():
     form = SQLFORM(db.settings, settings, showid=False, submit_button=T('Save'))
 
     # this is used to list the top categories as page tags
-    cats = ', '.join([cat.name for cat in db(db.category.parent == None).select()])
-    form.vars.top_categories_string = cats
+    # cats = ', '.join([cat.name for cat in db(db.category.parent == None).select()])
+    # form.vars.top_categories_string = cats
 
     if form.process().accepted:
-        # update top categories
-
         response.flash = T('form accepted')
         redirect(URL('update_main'))
     elif form.errors:
