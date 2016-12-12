@@ -81,7 +81,13 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
     else:
         # fix removal amount when the concept is a common operation
         if not is_system_op and amount < 0:
-            amount = min(wallet.balance, abs(amount)) * -1
+            # if the wallet balance is negative (for some reason), then we can't
+            # remove more money from it, so no transaction will be created and
+            # an amount of 0 will be set
+            if wallet.balance < 0:
+                return wallet, 0
+            else:
+                amount = min(wallet.balance, abs(amount)) * -1
 
         db.wallet_transaction.insert(
             id_wallet=wallet.id,
