@@ -284,6 +284,7 @@ db.define_table(
     , Field('id_wallet', 'reference wallet', notnull=True)
     , Field('amount', 'decimal(16,6)', default=0)
     , Field('concept', 'integer', notnull=True)
+    , Field('is_system_op', 'boolean', default=False)
     , Field('ref_id', 'integer')
     , auth.signature
 )

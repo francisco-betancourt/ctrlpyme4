@@ -24,7 +24,6 @@ from gluon import current
 from cp_errors import *
 
 
-CONCEPT_SYSTEM_OP = -1000  # transaction performed by system fixes
 CONCEPT_SYSTEM = 0  # transaction performed by the system
 CONCEPT_PAYMENT = 1  # removed by payment
 CONCEPT_UNDO_PAYMENT = -1
@@ -36,8 +35,8 @@ CONCEPT_WALLET_MERGE = 5   # merge of two wallets
 
 CONCEPTS = [
     CONCEPT_SYSTEM, CONCEPT_PAYMENT, CONCEPT_CREDIT_NOTE, CONCEPT_SALE_REWARD,
-    CONCEPT_ADMIN, CONCEPT_UNDO_PAYMENT, CONCEPT_SYSTEM_OP,
-    CONCEPT_WALLET_MERGE, CONCEPT_UNDO_SALE_REWARD
+    CONCEPT_ADMIN, CONCEPT_UNDO_PAYMENT, CONCEPT_WALLET_MERGE,
+    CONCEPT_UNDO_SALE_REWARD
 ]
 
 
@@ -53,7 +52,7 @@ def new(balance=0):
 
 
 
-def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wallet=None, autoremove=False):
+def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wallet=None, date=None, is_system_op=False):
     """ Creates a wallet transaction for the wallet that belongs to the specified wallet_id or wallet_code, transactions are used to keep a record of every wallet operation.
     """
     db = current.db
@@ -69,7 +68,7 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
         raise CP_WalletTransactionError("wallet not found")
 
     # in case of undo we have to remove transactions associated with the reference
-    if concept != CONCEPT_SYSTEM_OP and concept < 0:
+    if concept < 0:
         amount = 0
         # undo transaction
         for transaction in db(
@@ -81,14 +80,15 @@ def transaction(amount, concept, ref=None, wallet_id=None, wallet_code=None, wal
             transaction.delete_record()
     else:
         # fix removal amount when the concept is a common operation
-        if concept != CONCEPT_SYSTEM_OP and amount < 0:
+        if not is_system_op and amount < 0:
             amount = min(wallet.balance, abs(amount)) * -1
 
         db.wallet_transaction.insert(
             id_wallet=wallet.id,
             amount=amount,
             concept=concept,
-            ref_id=ref
+            ref_id=ref,
+            is_system_op=is_system_op
         )
 
     # create a new transaction
