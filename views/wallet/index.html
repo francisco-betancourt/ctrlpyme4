@@ -1,0 +1,95 @@
+{{left_sidebar_enabled = True}}
+{{ extend "layout.html" }}
+
+{{ block left_sidebar }}
+<h1>{{=T('Wallet')}} {{=wallet.id}}</h1>
+<h3>{{=T('Balance')}}:  $ {{=DQ(wallet.balance, True)}}</h3>
+<hr>
+
+<p>{{=T('Scan a credit note or a wallet to add their funds to wallet %s') % wallet.id}}</p>
+<div id="wallet_scanner_container"></div>
+
+<p>{{=T('Or select a client to merge its funds to wallet %s') % wallet.id}}</p>
+<select id="client_selector" class="form-control" style="max-width: 500px">
+  <option value=""></option>
+  {{for client in clients: }}
+  <option value="{{=client.id_wallet.id}}">{{=client.first_name}} {{=client.last_name}}</option>
+  {{ pass}}
+</select>
+
+<hr>
+
+{{ if MEMBERSHIPS.get('Admin config'): }}
+<h3>{{=T('Add or remove funds')}}</h3>
+  <div class="input-group" style="max-width: 500px">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="button" id="remove_funds_btn">
+        {{=T('Remove')}}
+      </button>
+    </span>
+    <input type="text" class="form-control" placeholder="{{=T('amount')}}" id="funds_input">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="button" id="add_funds_btn">
+        {{=T('Add')}}
+      </button>
+    </span>
+  </div>
+<hr>
+{{pass}}
+
+
+<a href="{{=URL('print_wallet', args=wallet.id, vars=dict(_print=True))}}" class="btn btn-default btn-block" target="_blank">
+    {{=T("Print")}}
+</a>
+{{ end }}
+
+
+
+<h1>{{=T("History")}}</h1>
+{{=transactions_table}}
+
+
+
+{{block page_js}}
+<script>
+  function fail_callback(data, barcode) {
+    alert("{{=T('Wallet not found')}}");
+  }
+
+  function success_callback(data, barcode) {
+    window.location.href = "{{=URL('merge_wallets', args=wallet.id)}}/" + data.wallet.id;
+  }
+
+  $('#client_selector').change(function (event) {
+    var wid = event.target.value;
+    var wowner = $("#client_selector option:selected").text();
+
+    var confirm_text = "{{=T('Are you sure you want to merge %s funds with this wallet')}}"
+    confirm_text = confirm_text.replace("%s", wowner);
+    if (window.confirm(confirm_text)) {
+      window.location.href = "{{=URL('merge_wallets', args=wallet.id)}}/" + wid;
+    }
+  });
+
+  var scanner = BarcodeScanner('wallet', $('#wallet_scanner_container'));
+  scanner.setup(
+      success_callback, fail_callback, null,
+      "{{=URL('get_by_code', extension='json')}}/"
+  );
+
+
+  {{ if MEMBERSHIPS.get('Admin config'): }}
+    $('#remove_funds_btn').click(function (event) {
+      var amount = -1 * parseFloat($('#funds_input').val());
+      if (!amount) return;
+      window.location.href = "{{=URL('add_money', args=wallet.id)}}?amount="+amount
+    });
+    $('#add_funds_btn').click(function (event) {
+      var amount = Math.abs(parseFloat($('#funds_input').val()));
+      if (!amount) return;
+      window.location.href = "{{=URL('add_money', args=wallet.id)}}?amount="+amount
+    });
+  {{ pass }}
+
+</script>
+{{end}}

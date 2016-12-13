@@ -34,14 +34,15 @@
       {{pass}}
     </select>
 
-    {{if not sale.id_bag.is_paid: }}
-      <div id="client_wallet_data" hidden="hidden">
-        <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
-        <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
-      </div>
-    {{ pass }}
   {{ else: }}
-    <p>{{ =sale.id_client }}</p>
+    <p>{{ =sale.id_client.first_name }} {{ =sale.id_client.last_name }}</p>
+  {{ pass }}
+  
+  {{if not sale.id_bag.is_paid: }}
+    <div id="client_wallet_data" hidden="hidden">
+      <h5>{{=T('Balance')}}: <span class="right">$ <span id="client_wallet_balance"></span> </span></h5>
+      <button class="btn-block" id="client_wallet_payment"> {{=T('Pay')}} </button>
+    </div>
   {{ pass }}
 
   <hr>
@@ -69,6 +70,10 @@
 
 
 <h1>{{=T('Payments')}}</h1>
+<p>
+  <b>{{=T('Note')}}: </b>
+  {{=T('To pay with credit notes, select the wallet payment option')}}
+</p>
 
 {{ if sale.id_bag.is_paid: }}
   {{ =T('Bag has been paid') }}
@@ -99,7 +104,7 @@
       <div id="proto_payment_{{=payment_opt.id}}" hidden="hidden" class="form-inline">
         <div class="input-group">
           <span class="input-group-addon">{{=T('Amount')}}</span>
-          <input type="text" name="amount" class="form-control amount">
+          <input type="text" name="amount" class="form-control amount" {{if is_wallet_payment:}} disabled{{pass}}>
         </div>
         {{if payment_opt.allow_change:}}
           <div class="input-group">

@@ -18,9 +18,13 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+if not request.function in ['store_selection', 'change_store', 'post_login', 'post_logout', 'profile']:
+    expiration_redirect()
+
 
 import common_utils
 import user_utils
+import bag_utils
 
 
 @auth.requires_membership('Employee')
@@ -51,6 +55,37 @@ def create():
     elif form.errors:
         response.flash = T('Errors in form')
     return dict(form=form)
+
+
+
+
+def create_admin_user():
+    """ Create an admin user if there is no admin user """
+
+    if not URL.verify(request, hmac_key=CONF.take('hmac.key')):
+        raise HTTP(403)
+
+
+    admin_group = db(db.auth_group.role == 'Admin').select().first()
+
+    if db(db.auth_membership.group_id == admin_group.id).select().first():
+        session.info = T("There is already an admin user")
+        redirect(URL('default', 'index'))
+
+
+    form = SQLFORM(db.auth_user)
+    if form.process().accepted:
+        import settup
+
+        settup.settup_admin_user(form.vars.id)
+
+        response.flash = T('Admin') + ' ' + T('created')
+        redirect(URL('default', 'user/login'))
+    elif form.errors:
+        response.flash = T('Errors in form')
+
+    return dict(form=form)
+
 
 
 @auth.requires_membership('Admin')
@@ -271,7 +306,7 @@ def post_login():
     if not auth.has_membership('Clients') or auth.user.is_client:
         common_utils.select_store(True)
 
-    auto_bag_selection()
+    bag_utils.auto_bag_selection()
     if request.vars.__next:
         request.vars._next = request.vars.__next
         del request.vars.__next
@@ -283,6 +318,19 @@ def post_logout():
     session.store = None
     session.current_bag = None
     redirect(URL('default', 'index'))
+
+
+@auth.requires(
+    auth.has_membership('Admin') or
+    auth.has_membership('Manager')
+)
+def change_store():
+    """ Change the store once logged in """
+
+    session.store = None
+
+    redirect(URL('store_selection'))
+
 
 
 @auth.requires_login()
@@ -310,7 +358,7 @@ def store_selection():
     stores = db(user_stores_query).select()
     if len(stores) == 1:
         session.store = stores.first().id
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
         redirection()
 
     form = SQLFORM.factory(
@@ -321,7 +369,7 @@ def store_selection():
         session.store = form.vars.store
         response.flash = T("You are in store") + " %s" % db.store(form.vars.store).name
 
-        auto_bag_selection()
+        bag_utils.auto_bag_selection()
 
         redirection()
     elif form.errors:

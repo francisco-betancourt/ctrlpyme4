@@ -24,7 +24,14 @@ if not request.env.web2py_runtime_gae:
     ## For production add lazy_tables=True for a huge boost in performance
     migrate = CONF.take('db.migrate', cast=int) == 1
     lazy_tables = CONF.take('db.lazy_tables', cast=int) == 1
-    db = DAL(CONF.take('db.uri'), pool_size=CONF.take('db.pool_size', cast=int), check_reserved=['all'], migrate=migrate, migrate_enabled=migrate, lazy_tables=lazy_tables)
+    db = DAL(
+        CONF.take('db.uri'),
+        pool_size=CONF.take('db.pool_size', cast=int),
+        check_reserved=['all'],
+        migrate=migrate,
+        migrate_enabled=migrate,
+        lazy_tables=lazy_tables
+    )
 else:
     ## connect to Google BigTable (optional 'google:datastore://namespace')
     db = DAL('google:datastore+ndb')
@@ -80,10 +87,14 @@ db.define_table(
 auth.settings.extra_fields['auth_user'] = [
         Field('access_code', default="000000", label=T('Access code'), readable=False, writable=False)
       , Field('id_wallet', 'reference wallet', label=T('Wallet'), readable=False, writable=False)
-      , Field('access_card_index', 'integer', readable=False, writable=False, default=0)
+      , Field('access_card_index', 'integer', readable=False, writable=False,
+              default=0
+        )
       , Field('is_client', 'boolean', default=False, readable=False, writable=False)
       , Field('stripe_customer_id', default=None, readable=False, writable=False)
       , Field('max_discount', "decimal(16,6)", default=0, readable=False, writable=False)
+      , Field('phone_number', 'string', default='', label=T('Phone number'))
+      , Field('mobile_number', 'string', default='', label=T('Mobile number'))
 ]
 
 ## create all tables needed by auth if not custom tables
@@ -132,11 +143,28 @@ not_empty_requires = IS_NOT_EMPTY(error_message='cannot be empty!')
 """ database class object creation (initialization) """
 
 
+EARNING_VALIDATOR = IS_DECIMAL_IN_RANGE(0, error_message="")
+
 db.define_table("brand",
     Field("name", "string", default="", label=T('Name')),
     Field("logo", "upload", default="", label=T('Logo'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
+    Field(
+        "earnp_base", "decimal(16,6)", default=0,
+        label=T("Earning percentage base")
+    ),
+    Field(
+        "earnp_2", "decimal(16,6)", default=0,
+        label=T("Earning percentage 2")
+    ),
+    Field(
+        "earnp_3", "decimal(16,6)", default=0,
+        label=T("Earning percentage 3")
+    ),
     auth.signature)
 db.brand.name.requires = not_empty_requires
+db.brand.earnp_base.requires = EARNING_VALIDATOR
+db.brand.earnp_2.requires = EARNING_VALIDATOR
+db.brand.earnp_3.requires = EARNING_VALIDATOR
 
 
 db.define_table("trait_category",
@@ -181,7 +209,9 @@ db.define_table("payment_opt",
     Field("credit_days", "integer", default=None, label=T('Credit days')),
     auth.signature, format=payment_opt_format
     )
-db.payment_opt.name.requires = not_empty_requires
+db.payment_opt.name.requires = [
+    not_empty_requires, IS_NOT_IN_DB(db, 'payment_opt.name')
+]
 
 
 address_format = '%(street)s %(exterior)s %(interior)s %(neighborhood)s %(city)s %(municipality)s %(state_province)s %(country)s %(reference)s'
@@ -248,6 +278,19 @@ db.notification.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db(db.store.is_active =
 db.notification.url.requires = IS_URL()
 
 
+
+db.define_table(
+     'wallet_transaction'
+    , Field('id_wallet', 'reference wallet', notnull=True)
+    , Field('amount', 'decimal(16,6)', default=0, label=T('Amount'))
+    , Field('concept', 'integer', notnull=True, label=T('Concept'))
+    , Field('is_system_op', 'boolean', default=False)
+    , Field('ref_id', 'integer')
+    , auth.signature
+)
+
+
+
 db.define_table(
     'highlight'
     , Field('id_store', 'reference store', label=T('Store'))
@@ -311,6 +354,9 @@ db.settings.accent_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color.requires = IS_EMPTY_OR(hex_match)
 db.settings.base_color_text.requires = IS_EMPTY_OR(hex_match)
 db.settings.id_store.requires = IS_EMPTY_OR(IS_IN_DB(db, 'store.id'))
+db.settings.extra_field_1.requires = IS_EMPTY_OR(IS_LENGTH(50))
+db.settings.extra_field_2.requires = IS_EMPTY_OR(IS_LENGTH(50))
+db.settings.extra_field_3.requires = IS_EMPTY_OR(IS_LENGTH(50))
 
 
 db.define_table(
@@ -342,12 +388,24 @@ db.define_table(
     , Field('margin_bottom', 'decimal(16,6)', default=1, label=T('Paper margin bottom') + ' (cm)')
     , Field('margin_left', 'decimal(16,6)', default=1, label=T('Paper margin left') + ' (cm)')
 
-    , Field('space_x', 'decimal(16,6)', label=T('Labels') + ': ' + T('left spacing') + ' (cm)')
-    , Field('space_y', 'decimal(16,6)', label=T('Labels') + ': ' + T('bottom spacing') + ' (cm)')
+    , Field(
+        'space_x', 'decimal(16,6)', default=.5,
+        label=T('Labels') + ': ' + T('left spacing') + ' (cm)'
+    )
+    , Field(
+        'space_y', 'decimal(16,6)', default=.5,
+        label=T('Labels') + ': ' + T('bottom spacing') + ' (cm)'
+    )
     , Field('label_cols', 'integer', default=1, label=T('Labels columns'))
     , Field('label_rows', 'integer', default=1, label=T('Labels rows'))
-    , Field('show_name', 'boolean', label=T('Label') + ':' + T('Show name'))
-    , Field('show_price', 'boolean', label=T('Label') + ':' + T('Show price'))
+    , Field(
+        'show_name', 'boolean', default=True,
+        label=T('Label') + ':' + T('Show name')
+    )
+    , Field(
+        'show_price', 'boolean', default=True,
+        label=T('Label') + ':' + T('Show price')
+    )
 )
 db.labels_page_layout.name.requires = not_empty_requires
 db.labels_page_layout.margin_top.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
@@ -357,6 +415,8 @@ db.labels_page_layout.margin_left.requires = IS_DECIMAL_IN_RANGE(1, 10, dot='.')
 db.labels_page_layout.id_paper_size.requires = IS_IN_DB(db, db.paper_size.id, '%(name)s')
 db.labels_page_layout.label_cols.requires = IS_INT_IN_RANGE(1, 20)
 db.labels_page_layout.label_rows.requires = IS_INT_IN_RANGE(1, 20)
+db.labels_page_layout.space_x.requires = IS_DECIMAL_IN_RANGE(0, 2)
+db.labels_page_layout.space_y.requires = IS_DECIMAL_IN_RANGE(0, 2)
 
 
 db.define_table("category",
@@ -377,6 +437,7 @@ db.define_table("trait",
 db.trait.trait_option.requires = not_empty_requires
 
 
+
 db.define_table("item",
     Field("id_brand", "reference brand", label=T('Brand')),
     Field("categories", "list:reference category", default=[], label=T('Categories')),
@@ -385,12 +446,28 @@ db.define_table("item",
     Field("description", "text", default='', label=T('Description')),
     Field("upc", "string", length=12, default=None, label=T('UPC')),
     Field("ean", "string", length=13, default=None, label=T('EAN')),
-    Field("sku", "string", length=20, default=None, label=T('SKU')),
+    Field("sku", "string", length=40, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
     Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
+
     Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
     Field("price3", "decimal(16,6)", default=None, label=T('Price')+" 3"),
+
+    # last earning percentage reported, used to calculate the sale prices based on purchase price
+    Field(
+        "earnp_base", "decimal(16,6)", default=0,
+        label=T("Earning percentage base")
+    ),
+    Field(
+        "earnp_2", "decimal(16,6)", default=0,
+        label=T("Earning percentage 2")
+    ),
+    Field(
+        "earnp_3", "decimal(16,6)", default=0,
+        label=T("Earning percentage 3")
+    ),
+
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
     Field("taxes", "list:reference tax", label=T('Taxes')),
     Field("url_name", "string", default='', label=T('URL Name'), readable=False, writable=False),
@@ -398,19 +475,37 @@ db.define_table("item",
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
     Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
-    Field("reward_points", "integer", default=0, label=T('Reward Points')),
+    Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),
-    auth.signature)
+    auth.signature
+)
 db.item.name.requires = not_empty_requires
-db.item.id_brand.requires=IS_IN_DB(db(db.brand.is_active == True), 'brand.id', ' %(name)s')
-db.item.id_measure_unit.requires=IS_IN_DB( db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s')
-db.item.taxes.requires=IS_EMPTY_OR(IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True))
+db.item.id_brand.requires=IS_IN_DB(
+    db(db.brand.is_active == True), 'brand.id', ' %(name)s'
+)
+db.item.id_measure_unit.requires=IS_IN_DB(
+    db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s'
+)
+db.item.taxes.requires=IS_EMPTY_OR(
+    IS_IN_DB(db(db.tax.is_active == True), 'tax.id', ' %(name)s', multiple=True)
+)
 
-BC_MATCH = IS_MATCH('^[0-9a-zA-Z-$.%*/]+$', error_message=T('Only alphanumeric characters, -, $, ., %, *, /'))
+BC_MATCH = IS_MATCH(
+    '^[0-9a-zA-Z-$.%*/]+$',
+    error_message=T('Only alphanumeric characters, -, $, ., %, *, /')
+)
 db.item.sku.requires=[IS_BARCODE_AVAILABLE(db, request.vars.sku), BC_MATCH]
-db.item.ean.requires=[IS_BARCODE_AVAILABLE(db, request.vars.ean), IS_EMPTY_OR(BC_MATCH)]
-db.item.upc.requires=[IS_BARCODE_AVAILABLE(db, request.vars.upc), IS_EMPTY_OR(BC_MATCH)]
+db.item.ean.requires=[
+    IS_EMPTY_OR(IS_LENGTH(13, 5)),
+    IS_BARCODE_AVAILABLE(db, request.vars.ean),
+    IS_EMPTY_OR(BC_MATCH),
+]
+db.item.upc.requires=[
+    IS_EMPTY_OR(IS_LENGTH(12, 6)),
+    IS_BARCODE_AVAILABLE(db, request.vars.upc),
+    IS_EMPTY_OR(BC_MATCH),
+]
 
 PRICE_RANGE_VALIDATOR = IS_DECIMAL_IN_RANGE(
     .00001, 10000000, dot=".", error_message=T('Price needs to be more than 0')
@@ -418,6 +513,7 @@ PRICE_RANGE_VALIDATOR = IS_DECIMAL_IN_RANGE(
 db.item.base_price.requires = PRICE_RANGE_VALIDATOR
 db.item.price2.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
 db.item.price3.requires = IS_EMPTY_OR(PRICE_RANGE_VALIDATOR)
+db.item.reward_points.requires = IS_DECIMAL_IN_RANGE(0, 100000)
 
 
 
@@ -445,9 +541,10 @@ db.define_table("purchase",
     Field("id_payment_opt", "reference payment_opt", label=T('Payment option')),
     Field("id_supplier", "reference supplier", label=T('Supplier')),
     Field("id_store", "reference store", label=T('Store')),
-    Field("invoice_number", "integer", default=None, label=T('Invoice number')),
+    Field("invoice_number", default=None, label=T('Invoice number')),
     Field("subtotal", "decimal(16,6)", default=0, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=0, label=T('Total')),
+    Field("items_subtotal", "decimal(16,6)", default=0, label=T('Subotal'), readable=False, writable=False),
     Field("items_total", "decimal(16,6)", default=0, label=T('Total'), readable=False, writable=False),
     Field("shipping_cost", "decimal(16,6)", default=0, label=T('Shipping cost')),
     Field("tracking_number", "integer", default=None, label=T('Tracking number')),
@@ -486,6 +583,7 @@ db.define_table("bag_item",
     Field("id_item", "reference item", label=T('Item')),
     Field("id_bag", "reference bag", label=T('Bag')),
     Field("quantity", "decimal(16,6)", default=1, label=T('Quantity')),
+    # buy price + taxes and considering quantity
     Field("total_buy_price", "decimal(16,6)", default=None, label=T('Buy price')),
     Field("wavg_days_in_shelf", "integer", default=-1, label=T('Average shelf life')),
     # price minus discount
@@ -497,6 +595,7 @@ db.define_table("bag_item",
     # holds the actual taxes quantity based on the items taxes list
     Field("sale_taxes", "decimal(16,6)", default=None, label=T('Sale taxes')),
     Field("product_name", "string", default=None, label=T('Product name')),
+    Field("reward_points", "decimal(16,6)", default=0),
     Field("sale_code", "string", default=None, label=T('Sale code')),
     Field("serial_number", "string", default=None, label=T('Serial number')),
 
@@ -553,7 +652,7 @@ db.define_table("sale",
     Field("discount_percentage", "decimal(16,6)", default=0, label=T('Discount percentage')),
 
     Field("quantity", "decimal(16,6)", default=0, label=T('Quantity'), readable=False, writable=False),
-    Field("reward_points", "integer", default=0, label=T('Reward Points'), readable=False, writable=False),
+    Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Points'), readable=False, writable=False),
     Field("id_client", "reference auth_user", default=None, label=T('Client')),
     Field("is_invoiced", "boolean", default=False, label=T('Is invoiced'), readable=False, writable=False),
     Field("id_store", "reference store", label=T('Store'), writable=False, readable=False),
@@ -576,6 +675,7 @@ db.define_table("sale_log",
 
 db.define_table("credit_note",
     Field("id_sale", "reference sale", label=T('Sale')),
+    Field("id_store", "reference store", label=T('Store')),
     Field("subtotal", "decimal(16,6)", default=None, label=T('Subtotal')),
     Field("total", "decimal(16,6)", default=None, label=T('Total')),
     Field("is_usable", "boolean", default=None, label=T('Is usable')),
@@ -607,7 +707,8 @@ db.sale_order.id_store.requires = IS_IN_DB(db, 'store.id')
 db.define_table("inventory",
     Field("id_store", "reference store", label=T('Store')),
     Field("is_partial", "boolean", default=None, label=T('Is partial')),
-    Field("is_done", "boolean", default=None, label=T('Is done')),
+    Field("is_done", "boolean", default=False, label=T('Is done')),
+    Field("has_missing_items", "boolean", default=False, label=T('Has missing items')),
     auth.signature)
 
 db.define_table("inventory_item",
@@ -616,7 +717,7 @@ db.define_table("inventory_item",
     Field("system_qty", "integer", default=None, label=T('System quantity')),
     Field("physical_qty", "integer", default=None, label=T('Physical quantity')),
     Field("is_missing", "boolean", default=False, label=T('Is missing'))
-    )
+)
 
 
 db.define_table(
@@ -655,11 +756,13 @@ db.define_table("stock_item",
 
 db.define_table(
     'stock_item_removal'
+    , Field("id_store", "reference store", label=T('Store'))
     , Field('id_bag_item', 'reference bag_item', default=None)
     , Field('id_inventory_item', 'reference inventory_item', default=None)
     , Field('id_stock_item', 'reference stock_item', default=None)
     , Field('id_item', 'reference item', default=None)
     , Field('qty', 'decimal(16,6)', label=T('Quantity'))
+    , auth.signature
 )
 
 

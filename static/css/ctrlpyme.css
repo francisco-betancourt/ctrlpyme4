@@ -1,4 +1,5 @@
-/* overrides */
+/*=============================================*/
+/* Bootstrap overrides */
 .footer > .container-fluid {
     padding-left: 15px;
     padding-right: 15px;
@@ -85,21 +86,100 @@ h1 {
   /* Support for IE. */
   font-feature-settings: 'liga';
 }
+input[type=checkbox], input[type=radio] {
+  margin: 0px;
+  margin-right: 8px;
+}
+.input-group-addon:last-child {
+  padding: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.form-control {
+  height: 40px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+}
+.dropdown-menu>li>a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding: 7px 8px 7px 8px;
+}
 @media(max-width: 767px) {
   .left-sidebar>.panel {
     margin-left: -15px;
     margin-right: -15px;
   }
 }
-
+/*=============================================*/
 
 
 
 /* Custom styles */
+
 .print {
   display: none;
 }
 
+
+
+
+/*==========================================*/
+/* Utility */
+/*==========================================*/
+/* Avoid text selection */
+.no-text-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
+/* Flex utils */
+.flex {
+  display: flex;
+}
+.flex.vertical {
+  flex-direction: column;
+}
+.flex.fill>* {
+  flex: 1;
+}
+.flex.fill>*>* {
+  width: 100%;
+}
+.flex.justified.around {
+  justify-content: space-around;
+}
+.flex.justified.between {
+  justify-content: space-between;
+}
+.flex.center-items {
+  align-items: center;
+}
+
+.base-padding-left {
+  padding-left: 16px;
+}
+/*==========================================*/
+
+
+
+
+/*==========================================*/
+/* FAB maybe deprecated */
+/*==========================================*/
 .cp-fab {
   border-radius: 50%;
   height: 56px;
@@ -108,25 +188,21 @@ h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 1px rgba(0, 0, 0, 0.3);
   margin: 12px auto;
 }
-
 button.cp-fab.btn.btn-default:active{
 	outline: 0;
 	outline-style:none;
 	outline-width:0;
 }
-
 button.cp-fab:focus{
 	outline:none;
 	box-shadow: 0 0 0 2pt rgba(49,207,210,0.5);
 }
-
 .cp-fab-container {
   position: fixed;
   right: 0px;
   bottom: 10px;
   z-index: 20;
 }
-
 .cp-fab-list {
   background-color: white;
   position: fixed;
@@ -143,18 +219,15 @@ button.cp-fab:focus{
 
   display: none;
 }
-
 .cp-fab-list .cp-fab-option {
   padding-top: 16px;
   padding-bottom:16px;
   padding-left: 16px;
   padding-right: 16px;
 }
-
 .cp-fab-list .cp-fab-option:hover {
   background-color: #F0F0F0;
 }
-
 .cp-modal-overlay {
   position: fixed;
   top: 0px;
@@ -162,14 +235,21 @@ button.cp-fab:focus{
   width: 100%;
   height: 100%;
 }
+/*==========================================*/
 
+
+
+
+
+/*==========================================*/
+/* Core button */
+/*==========================================*/
 #core_button {
   box-shadow: 0px 2px 4px rgba(0,0,0,.5);
   border-radius: 6px;
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
-
 #core_button button {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
@@ -182,7 +262,6 @@ button.cp-fab:focus{
 #core_button button:focus {
   outline: 0;
 }
-
 #expand_core {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
@@ -191,8 +270,13 @@ button.cp-fab:focus{
   max-width: 38px;
   min-width: 38px;
 }
+/*==========================================*/
 
 
+
+/*==========================================*/
+/* Info card */
+/*==========================================*/
 .info-card {
   position: fixed;
   bottom: 10px;
@@ -200,7 +284,6 @@ button.cp-fab:focus{
   width: 300px;
   z-index: 100;
 }
-
 .info-card .close {
   color: rgb(210,210,210);
   opacity: .4;
@@ -208,14 +291,16 @@ button.cp-fab:focus{
 .info-card .info-btn {
   margin-top: 15px;
 }
-#thumbs {
-  margin: auto;
-  margin-top: 10px;
-}
+/*==========================================*/
+
+
 .main-container {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+
+
 .table_id, .table-selector {
   width: 4%;
 }
@@ -237,31 +322,8 @@ button.cp-fab:focus{
 
 
 
-#scan_order_btn, .bag-scan-btn {
-  margin-bottom: 10px;
-}
-
-
-
 #item_info>span {
   margin-left: 10px;
-}
-
-
-
-.floating-container {
-  background-color: #F0F0F0;
-  /*min-width: 300px;
-  max-width: 500px;*/
-  position: fixed;
-  right: 0px;
-  z-index: 1000;
-  height: 100vh;
-  top: 0px;
-  overflow-y: scroll;
-
-  box-shadow: 0px 0px 8px rgba(0,0,0,.3);
-  padding: 0px;
 }
 
 
@@ -277,7 +339,6 @@ button.cp-fab:focus{
 .sale-data {
   display: flex;
 }
-
 .sale-data h4 {
   flex: auto;
 }
@@ -288,6 +349,85 @@ button.cp-fab:focus{
   padding-right: 15px;
 }
 
+
+
+.cp-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cp-pager>* {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+
+#current_inventory_item .form-group input {
+  width: 100px;
+  text-align: right;
+}
+
+.icon-text i {
+  margin-right: 8px;
+}
+.icon-text a {
+  margin-right: 8px;
+}
+
+.cp-checkbox {
+  display: none;
+}
+
+.section-header.services-header {
+  margin-bottom: 8px;
+}
+
+
+
+/*==========================================*/
+/* Item view */
+/*==========================================*/
+#thumbs {
+  margin: auto;
+  margin-top: 10px;
+}
+/*==========================================*/
+
+
+
+/*==========================================*/
+/* Item creator - Traits section */
+/*==========================================*/
+.trait-values {
+  display: flex;
+}
+.trait-input-container {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+}
+.trait-input-container input {
+  margin-right: 18px;
+}
+.trait-values .form-control {
+  width: auto;
+}
+/*==========================================*/
+
+
+/* Used to create a colored circle */
+.status-circle {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background-color: black;
+}
+
+
+/*==========================================*/
+/* Right toggle menus */
+/*==========================================*/
 .floating-container {
   position: fixed;
   right: 0px;
@@ -299,21 +439,31 @@ button.cp-fab:focus{
   box-shadow: 0px 0px 8px rgba(0,0,0,.3);
   padding: 0px;
 
-  /*transition: transform .2s ease-out;*/
-  /*transition: transform .2s cubic-bezier(.72,.26,.54,1.25);*/
   transition: transform .2s cubic-bezier(.6,.02,.53,1.05);
   transform: translateX(100%);
 }
 
+/* Bag related */
 #bag_container, #notifications_container, #help_container {
   padding-top: 64px;
 }
 .bag-container {
   padding: 8px;
 }
+#scan_order_btn, .bag-scan-btn {
+  margin-bottom: 10px;
+}
+.employee-selector {
+  margin-top: 8px;
+}
+/*==========================================*/
 
 
 
+
+/*==========================================*/
+/* Highlights */
+/*==========================================*/
 .highlights_container {
   padding-right: 15px;
 }
@@ -355,8 +505,12 @@ button.cp-fab:focus{
   border-bottom-right-radius: 25px;
 }
 .highlight>.data>h2 {
+  font-size: 20px;
   margin-top: 0px;
   font-weight: bold;
+}
+.highlight>.data>p {
+  font-size: 16px;
 }
 .highlight>.data>a.btn {
   text-shadow: none;
@@ -369,8 +523,6 @@ button.cp-fab:focus{
 .highlight a, .highlight a:hover, .highlight a:visited {
   color: white;
 }
-
-
 .offer-group-highlight-header {
   width: 100%;
   margin: 0px;
@@ -380,9 +532,13 @@ button.cp-fab:focus{
   margin: 0px;
   border-radius: 2px;
 }
+/*=================================================*/
 
 
+
+/*==========================================*/
 /* notifications */
+/*==========================================*/
 .notifications-list {
   padding-left: 0px;
   list-style-type: none;
@@ -398,7 +554,32 @@ button.cp-fab:focus{
 }
 
 
+@keyframes beat {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.anim-beat {
+  animation: beat 1s ease-in-out;
+  animation-iteration-count: 40;
+  animation-fill-mode: both;
+}
+
+
+/*==========================================*/
+
+
+
+/*==========================================*/
 /* theme previews */
+/*==========================================*/
 .preview-container {
   overflow: auto;
   padding-bottom: 15px;
@@ -417,57 +598,34 @@ button.cp-fab:focus{
   border-radius: 0px;
   margin-bottom: -1px;
 }
+/*==========================================*/
 
 
-.input-group-addon:last-child {
-  padding: 0px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
 
-.form-control {
-  height: 40px;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-}
-.dropdown-menu>li>a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding: 7px 8px 7px 8px;
-}
 
-.cp-pager {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.cp-pager>* {
-  margin-left: 16px;
-  margin-right: 16px;
-}
-
+/*===============================================*/
+/* Page fade in animation */
+/*===============================================*/
 body {
   opacity: 0;
   transition: .3s opacity;
   -webkit-transition: .3s opacity;
 }
-
 .fade-in {
   opacity: 1;
 }
+/*===============================================*/
 
 
-#items_list {
-  margin-bottom: 15px;
+/*===============================================*/
+/* Rounded category links that appear in the index */
+/*===============================================*/
+.categories-container {
+  margin-bottom: 40px;
 }
-
+.category-links {
+  text-align: center;
+}
 .category-link {
   font-size: 18px;
   border: 1px solid;
@@ -478,11 +636,13 @@ body {
   display: inline-block;
 }
 .category-link:hover {
-  /*background-color: */
   text-decoration: none;
 }
 
 
+/*===============================================*/
+/* Search form */
+/*===============================================*/
 #search_form > .form-group, .search-bar > .form-group {
   display: flex;
   align-items: center;
@@ -496,8 +656,13 @@ body {
 #search_form .search-icon, .search-bar .search-icon {
   margin-left: -38px;
 }
+/*===============================================*/
 
 
+
+/*===============================================*/
+/*Card*/
+/*===============================================*/
 .card {
   display: flex;
   border-radius: 4px;
@@ -530,8 +695,22 @@ body {
   display: flex;
   background-color: white;
 }
+.card-shadow {
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
+}
+
+.card h1 {
+  margin-top: 0px;
+  font-size: 32px;
+}
+
+/*===============================================*/
 
 
+
+
+/*===============================================*/
+/* Appear animation (the one used for the cards) */
 @keyframes appear {
   0% {
     transform: scale(.7);
@@ -542,16 +721,56 @@ body {
     opacity: 1;
   }
 }
-
 .appear {
   animation: appear .2s ease-in-out;
 }
 .invisible {
   opacity: 0 !important;
 }
+/*===============================================*/
 
 
 
+/*=======================================================*/
+/* Barcode scanner */
+/*=======================================================*/
+@keyframes bc_scanner_laser {
+  0% { background-position: -20px; }
+  100% { background-position: calc(100% + 20px); }
+}
+.scanner-input {
+  max-width: 500px;
+  background-repeat: no-repeat;
+  background-position: -20px;
+  animation: bc_scanner_laser 1s infinite;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
+}
+.scanner-form>.results {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+.scanner-result-element {
+  height: 64px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.scanner-result-element>.result-thumb {
+  background-color: white;
+  width: 48px;
+  margin-right: 16px;
+}
+/*=======================================================*/
+
+
+
+
+/*==============================================================*/
+/* Purchases */
+/*==============================================================*/
+#items_list {
+  margin-bottom: 15px;
+}
 #current_stock_item .header .barcode {
   opacity: .5;
   margin-left: 16px;
@@ -567,109 +786,21 @@ body {
   padding: 0px 16px 16px 16px;
 }
 
-#current_inventory_item .form-group input {
+.input-group .form-control.number, .form-control.number {
   width: 100px;
-  text-align: right;
 }
-
-
-.trait-values {
-  display: flex;
-}
-.trait-input-container {
-  display: flex;
-  flex-direction: column;
-  flex: auto;
-}
-.trait-input-container input {
-  margin-right: 18px;
-}
-.trait-values .form-control {
-  width: auto;
-}
-
-
-.status-circle {
-  height: 8px;
-  width: 8px;
-  border-radius: 50%;
-  margin-right: 8px;
-  background-color: black;
-}
-
-
-.flex {
-  display: flex;
-}
-
-.icon-text i {
-  margin-right: 18px;
-}
-.icon-text a {
-  margin-right: 8px;
-}
+/*==============================================================*/
 
 
 
-/* Barcode scanner */
-@keyframes bc_scanner_laser {
-  0% { background-position: -20px; }
-  100% { background-position: calc(100% + 20px); }
-}
-.scanner-input {
-  max-width: 500px;
-  background-repeat: no-repeat;
-  background-position: -20px;
-  animation: bc_scanner_laser 1s infinite;
-  animation-timing-function: cubic-bezier(0.7, 0, 0.74, 1);
-}
-.scanner-form .scanner-input:focus {
-  /*border: 1px solid red;
-  box-shadow: 0px 0px 4px rgba(255, 0, 0, .5);*/
-  /*background-color: red;
-  color: white;*/
-}
-.scanner-form>.results {
-  max-height: 300px;
-  overflow-y: scroll;
-}
-.scanner-result-element {
-  height: 64px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-.scanner-result-element>.result-thumb {
-  background-color: white;
-  width: 48px;
-  /*height: 48px;*/
-  margin-right: 16px;
+
+/*==============================================================*/
+/* Charts */
+/*==============================================================*/
+
+.chart.card {
+  padding: 16px 32px 16px 16px;
 }
 
 
-
-.cp-checkbox {
-  display: none;
-}
-
-
-.employee-selector {
-  margin-top: 8px;
-}
-
-
-.categories-container {
-  margin-bottom: 40px;
-}
-.category-links {
-  text-align: center;
-}
-
-.card-shadow {
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
-}
-
-
-.section-header.services-header {
-  margin-bottom: 8px;
-}
+/*==============================================================*/

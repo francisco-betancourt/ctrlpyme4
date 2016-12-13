@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 from constants import STRIPE_SK, STRIPE_PK
 from bag_utils import check_bag_owner, bag_selection_return_format, bag_item_taxes, get_ordered_items_count
 
@@ -291,7 +293,7 @@ def ready():
     is_ready = global_data['is_ready']
 
     buttons = [] if is_ready else [A(T('Purchase order'), _class="btn btn-primary", _href=URL('purchase', 'create_from_order', args=order.id))]
-    if not buttons and order.id_sale.id_client:
+    if not buttons and order.id_client:
         form = SQLFORM.factory(submit_button=T('Notify buyer'), formstyle='bootstrap')
     elif order.is_for_defered_sale and is_ready:
         buttons = [

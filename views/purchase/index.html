@@ -1,5 +1,5 @@
 {{extend 'layout.html'}}
-<h1>{{=T('Purchases')}}</h1>
+<h1>{{=T('Purchases')}} ({{=db.store(session.store).name}})</h1>
 
 {{if data:}}
   {{delete_enabled = True}}

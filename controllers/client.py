@@ -38,12 +38,15 @@ def profile():
 
 @auth.requires_membership('Clients management')
 def update():
+    expiration_redirect()
+
     client = db.auth_user(request.args(0))
     if not client or not client.is_client:
         raise HTTP(404)
     form = SQLFORM(db.auth_user, client)
     if form.process().accepted:
         response.flash = T('form accepted')
+        redirect(URL('index'))
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
@@ -51,6 +54,8 @@ def update():
 
 @auth.requires_membership('Clients management')
 def create():
+    expiration_redirect()
+
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         clients_group = db(db.auth_group.role == 'Clients').select().first()
@@ -62,7 +67,7 @@ def create():
         if clients_group:
             db.auth_membership.insert(user_id=form.vars.id, group_id=clients_group.id)
         response.flash = T('Client created')
-        redirect(URL('user', 'clients'))
+        redirect(URL('index'))
         # redirection()
     elif form.errors:
         response.flash = T('Error in form')
@@ -71,6 +76,8 @@ def create():
 
 @auth.requires_membership('Clients management')
 def ban():
+    expiration_redirect()
+
     user = db.auth_user(request.args(0))
     if not user:
         raise HTTP(404)
@@ -89,6 +96,8 @@ def ban():
 def index():
     """ List of clients """
 
+    expiration_redirect()
+
     import supert
     Supert = supert.Supert()
 
@@ -103,12 +112,26 @@ def index():
         ban_btn = supert.OPTION_BTN(
             icon_name, URL('ban', args=row.id), title=T('ban')
         )
-        return edit_btn, ban_btn
+        wallet_btn = supert.OPTION_BTN(
+            'account_balance_wallet',
+            URL('wallet', 'index', args=row.id_wallet.id), title=T('wallet')
+        )
+        return edit_btn, ban_btn, wallet_btn
 
     query = (db.auth_user.is_client == True)
     data = Supert.SUPERT(
         query, [db.auth_user.ALL], fields=[
             'first_name', 'last_name', 'email',
+            dict(
+                fields=['phone_number'],
+                custom_format=lambda r, f : A(r[f[0]], _href="tel:%s" % r[f[0]])
+                , label_as=T('Phone number')
+            ),
+            dict(
+                fields=['mobile_number'],
+                custom_format=lambda r, f : A(r[f[0]], _href="tel:%s" % r[f[0]])
+                , label_as=T('Mobile number')
+            ),
             dict(
                 fields=['id_wallet.balance'],
                 custom_format=lambda r, f : '$ %s' % DQ(r[f[0]], True),

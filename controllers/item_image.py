@@ -18,6 +18,10 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+
+expiration_redirect()
+
+
 from PIL import Image
 import os
 

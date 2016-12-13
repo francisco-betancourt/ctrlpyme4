@@ -50,7 +50,7 @@ def discounts_list(discounts):
             a_text = '%s %s %s' % (T('item'), discount.id_item.name, discount.id_item.id)
             a_href = URL('item', 'get_item', args=discount.id_item.id)
         if discount.id_brand:
-            brand = discount.id_brand.name
+            brand = discount.id_brand
             a_text = '%s %s' % (T('brand'), brand.name)
             a_href = URL('item', 'browse', vars=dict(brand=brand.id))
         if discount.id_category:

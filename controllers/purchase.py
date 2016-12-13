@@ -19,11 +19,13 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 
+expiration_redirect()
 precheck()
 
 import json
 from decimal import Decimal as D
 from datetime import date, timedelta, datetime
+import item_utils
 from item_utils import item_barcode
 import purchase_utils
 # from cfdi import *
@@ -122,12 +124,13 @@ def response_stock_item(stock_item):
     """ Returns relevant stock_item information """
 
     serials = stock_item.serial_numbers.replace(',', ',\n') if stock_item.serial_numbers else ''
+    item_name = stock_item.id_item.name + item_utils.concat_traits(stock_item.id_item)
+
     res = {
           "id": stock_item.id
         , "id_item": stock_item.id_item
-        , "item": { "name": stock_item.id_item.name,
-                    "barcode": item_barcode(stock_item.id_item)
-                  }
+        , "item_name": item_name
+        , "item_barcode": item_barcode(stock_item.id_item)
         , "purchase_qty": str(stock_item.purchase_qty or 0)
         , "price": str(DQ(stock_item.price or 0))
         , "base_price": str(DQ(stock_item.base_price or 0))
@@ -135,16 +138,64 @@ def response_stock_item(stock_item):
         , "price3": str(DQ(stock_item.price3 or 0))
         , "taxes": str(DQ(stock_item.taxes) or 0)
         , "serial_numbers": serials
+        , "earnp_base_price": 0
+        , "earnp_price2": 0
+        , "earnp_price3": 0
     }
+
+    if stock_item.price:
+        price = DQ(stock_item.price) + DQ(stock_item.taxes)
+        for target in ['base_price', 'price2', 'price3']:
+            earnp = DQ(
+                ((stock_item[target] or 0) / price - 1) * 100, True, True
+            )
+            earnp = max(0, earnp)
+            res['earnp_' + target] = earnp
 
     return res
 
 
 def valid_purchase(purchase):
     if not purchase:
-        raise HTTP(404)
+        raise HTTP(404, "Purchase not found")
     if purchase.is_done:
-        raise HTTP(405)
+        raise HTTP(405, "Purchase is done")
+
+
+def create_new_stock_item(purchase, item):
+    """ Create and settup stock item """
+
+    price = 0
+    if item.id_brand and item.id_brand.earnp_base:
+        price = item.base_price / (1 + item.id_brand.earnp_base / 100)
+
+    if not price:
+        # get prices from the last stock items
+        last_stock_item = db( db.stock_item.id_item == item.id ).select(
+            db.stock_item.price
+        ).last()
+        price = last_stock_item.price if last_stock_item else item.base_price
+
+    price = D(price or 1.0)
+
+    taxes = item_utils.item_taxes(item, 1)
+    price /= 1 + taxes
+
+    stock_item = db.stock_item.insert(
+        id_purchase=purchase.id, id_item=item.id, purchase_qty=1,
+        price=price,
+        taxes=price * taxes,
+        base_price=item.base_price,
+        price2=item.price2 or 0,
+        price3=item.price3 or 0
+    )
+
+    purchase.items_subtotal += price
+    purchase.items_total = purchase.items_total or 0
+    purchase.items_total += price + price * taxes
+    purchase.update_record()
+
+    return stock_item
 
 
 @auth.requires_membership('Purchases')
@@ -169,19 +220,19 @@ def add_stock_item():
         (db.stock_item.id_item == item.id) &
         (db.stock_item.id_purchase == purchase.id)
     ).select().first()
+
+    stock_item_id = None
     if not stock_item:
-        stock_item = db.stock_item.insert(
-            id_purchase=purchase.id, id_item=item.id,
-            base_price=item.base_price, price2=item.price2, price3=item.price3,
-            purchase_qty=1
-        )
-        stock_item = db.stock_item(stock_item)
-        stock_item = response_stock_item(stock_item)
-    redirect(URL('fill', args=[purchase.id, stock_item['id']]))
-    return locals()
+        stock_item_id = create_new_stock_item(purchase, item)
+    else:
+        stock_item_id = stock_item.id
+
+    redirect(URL('fill', args=[purchase.id, stock_item_id]))
 
 
 def stock_items_buy_price(stock_item):
+    """ Returns the total stock item buy price, considering taxes and
+        quantity """
     return (D(stock_item.price or 0) + D(stock_item.taxes or 0)) * D(stock_item.purchase_qty or 0)
 
 
@@ -199,6 +250,7 @@ def delete_stock_item():
     valid_purchase(stock_item.id_purchase)
 
     purchase = db.purchase(stock_item.id_purchase.id)
+    purchase.items_subtotal -= stock_items_buy_price(stock_item) - stock_item.taxes * stock_item.purchase_qty
     purchase.items_total -= stock_items_buy_price(stock_item)
     purchase.update_record()
     stock_item.delete_record()
@@ -228,6 +280,70 @@ def postprocess_stock_item(stock_item):
 
 
 @auth.requires_membership('Purchases')
+def update_stock_item_price():
+    """ Used to update the stock item price, considering earning percentages or custom prices """
+
+    stock_item =  db.stock_item(request.args(0))
+    purchase = db.purchase(stock_item.id_purchase.id)
+    valid_purchase(purchase)
+
+    target = request.vars.target
+    ep = 0
+    price = 0
+    try:
+        ep = D(request.vars.ep or 0)
+        price = D(request.vars.price or 0)
+    except:
+        raise HTTP(405, "Invalid arguments")
+    if not stock_item:
+        raise HTTP(404, "Stock item not found")
+    if not target in ['base_price', 'price2', 'price3']:
+        raise HTTP(405, "Invalid target")
+
+
+    # try to get earning percentage from brand
+    if not price and not ep:
+        ep_target = 'earning_percentage_'
+        if target == 'base_price':
+            ep_target += 'base'
+        if target == 'price2':
+            ep_target += '2'
+        if target == 'price3':
+            ep_target += '3'
+        ep = stock_item.id_item.id_brand[ep_target]
+        if not ep:
+            raise HTTP(405)
+
+    old_total_price = stock_items_buy_price(stock_item)
+    old_subtotal_price = old_total_price - stock_item.taxes * stock_item.purchase_qty
+
+    new_price = stock_item[target]
+    purchase_price = D(stock_item.price or 0) + D(stock_item.taxes or 0)
+    if price:
+        new_price = price
+    elif ep:
+        new_price = purchase_price + ep / 100 * purchase_price
+
+    stock_item[target] = new_price
+    stock_item = postprocess_stock_item(stock_item)
+    stock_item.update_record()
+
+    new_total_price = stock_items_buy_price(stock_item)
+    new_subtotal_price = new_total_price - stock_item.taxes * stock_item.purchase_qty
+    price_diff = old_total_price - new_total_price
+    purchase.items_total -= price_diff
+
+    subprice_diff = old_subtotal_price - new_subtotal_price
+
+    purchase.items_subtotal -= subprice_diff
+    purchase.update_record()
+
+    res = response_stock_item(stock_item)
+    return res
+
+
+
+@auth.requires_membership('Purchases')
 def modify_stock_item():
     """ This functions allows the modification of a stock item, by specifying the modified fields via url arguments.
 
@@ -245,13 +361,28 @@ def modify_stock_item():
     try:
 
         old_price = stock_items_buy_price(stock_item)
+        old_price_only = old_price / stock_item.purchase_qty
+        old_price_no_tax = old_price - stock_item.taxes * stock_item.purchase_qty
 
         param_name = request.args(1)
         param_value = request.args(2)
 
-        if param_name in ['purchase_qty', 'price', 'serial_numbers', 'base_price', 'price2', 'price3']:
-            stock_item[param_name] = param_value
+        if param_name in ['purchase_qty', 'price', 'base_price', 'price2', 'price3']:
+
+            stock_item[param_name] = DQ(param_value)
             stock_item = postprocess_stock_item(stock_item)
+
+
+            # given the purchase price, calculate the proportional prices based on the last earning percentage
+            if param_name == 'price':
+                for target in ['base_price', 'price2', 'price3']:
+                    earnp = DQ(
+                        (stock_item[target] / old_price_only - 1),
+                        True, True
+                    )
+                    new_total_price = stock_item.price + stock_item.taxes
+                    stock_item[target] = new_total_price + new_total_price * earnp
+
             # item base price should not be 0
             if stock_item.base_price <= D(0):
                 stock_item.base_price = stock_item.id_item.base_price or D(1)
@@ -260,6 +391,11 @@ def modify_stock_item():
         new_price = stock_items_buy_price(stock_item)
         price_diff = old_price - new_price
         purchase.items_total -= price_diff
+
+        new_price_no_tax = new_price - stock_item.taxes * stock_item.purchase_qty
+        subtotal_diff = old_price_no_tax - new_price_no_tax
+        purchase.items_subtotal -= subtotal_diff
+
         purchase.update_record()
 
         return response_stock_item(stock_item)
@@ -298,6 +434,7 @@ def add_item_and_stock_item():
     else:
         item_data['categories'] = None
 
+
     # add the traits
     if request.vars.traits and request.vars.traits != 'undefined':
         item_data['traits'] = create_traits_ref_list(request.vars.traits)
@@ -320,8 +457,8 @@ def add_item_and_stock_item():
         url_name = "%s%s" % (urlify_string(item_data['name']), item.id)
         db.item(ret.id).update_record(url_name=url_name)
 
-        stock_item = db.stock_item.insert(id_purchase=purchase.id, id_item=item.id, purchase_qty=1, base_price=item_data['base_price'], price2=item_data['price2'], price3=item_data['price3'])
-        stock_item = response_stock_item(db.stock_item(stock_item))
+        stock_item_id = create_new_stock_item(purchase, item)
+        stock_item = response_stock_item(db.stock_item(stock_item_id))
 
         return dict(item=item, stock_item=stock_item)
     else:
@@ -350,6 +487,18 @@ def update_value():
 
 
 @auth.requires_membership('Purchases')
+def set_total_and_subtotal():
+    purchase = db.purchase(request.args(0))
+    valid_purchase(purchase)
+
+    purchase.total = purchase.items_total
+    purchase.subtotal = purchase.items_subtotal
+    purchase.update_record()
+
+    return dict(total=purchase.total, subtotal=purchase.subtotal)
+
+
+@auth.requires_membership('Purchases')
 def fill():
     """ Used to add items to the specified purchase
     args: [purchase_id, current_stock_item]
@@ -361,6 +510,8 @@ def fill():
     purchase = db.purchase(request.args(0))
     valid_purchase(purchase)
     current_stock_item = db.stock_item(request.args(1))
+    if current_stock_item:
+        current_stock_item = Storage(response_stock_item(current_stock_item))
 
     if current_stock_item and current_stock_item.id_purchase != purchase.id:
         session.flash = T('Invalid stock item')
@@ -392,8 +543,8 @@ def fill():
                 custom_format=lambda r, f : SPAN(DQ(r[f[0]], True, True), _id="s_item_%s_%s" % (r.id, f[0])),
                 label_as=T('Quantity')
             ),
-            dict(fields=['price'],
-                custom_format=lambda r, f : SPAN(DQ(r[f[0]], True), _id="s_item_%s_%s" % (r.id, f[0])),
+            dict(fields=['price', 'taxes'],
+                custom_format=lambda r, f : SPAN(DQ(r[f[0]] + r[f[1]], True), _id="s_item_%s_%s" % (r.id, f[0])),
                 label_as=T('Buy Price')
             )
         ]
@@ -518,11 +669,20 @@ def purchase_options(row):
     else:
         buttons += supert.OPTION_BTN('receipt', URL('get', args=row.id), title=T('view')),
         buttons += supert.OPTION_BTN('label', URL('item', 'labels', vars=dict(id_purchase=row.id) ), title=T('print labels')),
-    # buttons += supert_default_options(row)[1],
     return buttons
 
 
 @auth.requires_membership('Purchases')
 def index():
-    data = common_index('purchase', ['invoice_number', 'subtotal', 'total', 'created_on'], dict(options_func=purchase_options, global_options=[]))
+
+    import supert
+    Supert = supert.Supert()
+
+    query = db.purchase.id_store == session.store
+    data = Supert.SUPERT(
+        query,
+        fields=[ 'invoice_number', 'subtotal', 'total', 'created_on' ],
+        options_func=purchase_options, global_options=[]
+    )
+
     return locals()

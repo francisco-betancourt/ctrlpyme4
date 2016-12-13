@@ -1,4 +1,25 @@
-from gluon import current
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2016 Bet@net
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Author Daniel J. Ramirez <djrmuv@gmail.com>
+
+
+from gluon import current, URL
 
 
 def create_payment_methods():
@@ -6,6 +27,9 @@ def create_payment_methods():
 
     db.payment_opt.update_or_insert(db.payment_opt.name == 'wallet', name='wallet', allow_change=False, requires_account=False)
     db.payment_opt.update_or_insert(db.payment_opt.name == 'stripe', name='stripe', allow_change=False)
+
+    db.commit()
+
 
 
 def create_locale_setting():
@@ -15,7 +39,9 @@ def create_locale_setting():
     """ creates some locale default settings """
     db.measure_unit.update_or_insert(db.measure_unit.name == T('unit'), name=T('unit'), symbol='u')
     db.brand.update_or_insert(db.brand.name == T('no brand'), name=T('no brand'))
-    db.payment_opt.update_or_insert(db.payment_opt.name == T('cash'), name=T('cash'), allow_change=True)
+    db.payment_opt.update_or_insert(db.payment_opt.name == T('cash'), name=T('cash'), allow_change=True, requires_account=False)
+
+    db.commit()
 
 
 
@@ -68,6 +94,59 @@ def create_groups():
             continue
         auth.add_group(key, new_groups[key])
 
+    db.commit()
+
+
+
+def admin_roles():
+    return [
+          "Admin"
+        , "Inventories"
+        , "Purchases"
+        , "Items info"
+        , "Items management"
+        , "Items prices"
+        , "Sales bags"
+        , "Sales checkout"
+        , "Sales delivery"
+        , "Sales invoices"
+        , "Sales returns"
+        , "Page layout"
+        , "VIP seller"
+        , "Employee"
+        , "Analytics"
+        , "Sale orders"
+        , "Stock transfers"
+        , "Offers"
+        , 'Accounts payable'
+        , 'Accounts receivable'
+        , 'Highlights'
+        , 'Config'
+        , 'Safe config'
+        , 'Admin config'
+        , 'Product loss'
+        , 'Cash out'
+        , "Clients management"
+    ]
+
+
+
+
+def settup_admin_user(user_id):
+    """ Transform a common user into an Admin """
+
+    db = current.db
+    auth = current.auth
+
+    for role in admin_roles():
+        group = db(db.auth_group.role == role).select().first()
+
+        db.auth_membership.insert(
+            user_id=user_id,
+            group_id=group.id
+        )
+
+
 
 def create_admin_user(email):
     db = current.db
@@ -76,36 +155,6 @@ def create_admin_user(email):
     password = auth.random_password()
     print password
 
-    admin_roles = [
-          "Admin"
-        # , "Inventories"
-        # , "Purchases"
-        , "Items info"
-        , "Items management"
-        , "Items prices"
-        # , "Sales bags"
-        # , "Sales checkout"
-        # , "Sales delivery"
-        # , "Sales invoices"
-        # , "Sales returns"
-        # , "Clients"
-        , "Page layout"
-        # , "VIP seller"
-        # , "Employee"
-        , "Analytics"
-        # , "Sale orders"
-        # , "Stock transfers"
-        , "Offers"
-        # , 'Accounts payable'
-        # , 'Accounts receivable'
-        , 'Highlights'
-        , 'Config'
-        , 'Safe config'
-        , 'Admin config'
-        # , 'Product loss'
-        # , 'Cash out'
-    ]
-
     admin = db.auth_user.validate_and_insert(
         first_name='Admin',
         last_name='user',
@@ -113,13 +162,107 @@ def create_admin_user(email):
         password=password
     )
 
-    for role in admin_roles:
+    for role in admin_roles():
         group = db(db.auth_group.role == role).select().first()
 
         db.auth_membership.insert(
             user_id=admin,
             group_id=group.id
         )
+
+    mail = auth.settings.mailer
+
+    mail.send(
+        email,
+        'Su punto de venta esta listo',
+        'Su punto de venta esta listo para ser usado, ingrese a {app_url}, e inicie sesión con su correo {admin_email} y su contraseña: {password}'.format(
+                app_url=URL('default', 'user/login'),
+                admin_email=email, password=password
+        )
+    )
+
+    db.commit()
+
+
+def update_admins():
+    db = current.db
+
+    admin_group = db(db.auth_group.role == 'Admin').select().first()
+
+    admins = db(
+        (db.auth_membership.user_id == db.auth_user.id) &
+        (db.auth_membership.group_id == admin_group.id)
+    ).select(db.auth_user.id, distinct=db.auth_membership.user_id)
+
+    # also consider the store groups
+    admin_groups = db(
+        (db.auth_group.role.belongs(admin_roles())) |
+        (db.auth_group.role.like("Store %"))
+    ).select()
+
+    # maybe not the most efficient thing but this functions should not be used often
+    for admin in admins:
+        for group in admin_groups:
+            membership = db(
+                (db.auth_membership.user_id == admin.id) &
+                (db.auth_membership.group_id == group.id)
+            ).select().first()
+
+            if not membership:
+                db.auth_membership.insert(
+                    user_id=admin,
+                    group_id=group.id
+                )
+                print "Inserted membership %s" % group.role
+    db.commit()
+
+
+
+def settup_mx():
+    db = current.db
+
+    db.settings.update_or_insert(db.settings.id_store == None, id_store=None)
+
+    # unidades de medida del SAT
+    m_units = [
+        ('Kilo', 'k'),
+        ('Gramo', 'g'),
+        ('Metro lineal', 'm'),
+        ('Metro cuadrado', 'm2'),
+        ('Metro cubico', 'm3'),
+        ('Pieza', 'pz'),
+        ('Cabeza', 'cabeza'),
+        ('Litro', 'l'),
+        ('Par', 'par'),
+        ('Kilowatt', 'kw'),
+        ('Millar', 'millar'),
+        ('Juego', 'juego'),
+        ('Kilowatt/hora', 'kw/h'),
+        ('Tonelada', 'ton'),
+        ('Barril', 'barril'),
+        ('Gramo neto', 'g neto'),
+        ('Decenas', 'decenas'),
+        ('Cientos', 'cientos'),
+        ('Docenas', 'docenas'),
+        ('Caja', 'caja'),
+        ('Botella', 'botella')
+    ]
+    for m_unit in m_units:
+        db.measure_unit.update_or_insert(
+            db.measure_unit.name == m_unit[0],
+            name=m_unit[0], symbol=m_unit[1]
+        )
+
+    db.brand.update_or_insert(
+        db.brand.name == 'Sin marca', name='Sin marca'
+    )
+    db.payment_opt.update_or_insert(
+        db.payment_opt.name == 'Efectivo',
+        name='Efectivo', allow_change=True, requires_account=False
+    )
+
+    db.commit()
+
 
 
 def settup():
@@ -130,9 +273,10 @@ def settup():
 
     create_locale_setting()
     create_payment_methods()
-    create_payment_methods()
 
     create_groups()
+
+    db.commit()
 
     # create admin user
     # user_id = db.auth_user.validate_and_insert(

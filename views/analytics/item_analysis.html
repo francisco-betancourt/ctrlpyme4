@@ -48,4 +48,57 @@
 {{ if item.has_inventory: }}
 <hr>
 {{=out_inventories_t}}
+
+{{ pass }}
+
+
+<hr>
+<section id="sales">
+  <h3>{{=T("Sales")}}</h3>
+  <div class="chart vertical card no-text-select" id="item_sales_chart_card">
+    {{include "components/time_range_chart_card_header.html"}}
+
+    <canvas style="width: 100%" id="item_sales_chart"></canvas>
+
+    <h3><span class="right">{{=T('Total')}}: <span id="total_sales"></span></span></h3>
+  </div>
+</section>
+
+
+
+<hr>
+<section id="affinity_items" hidden="hidden">
+  <h3>{{=T("Affinity")}}</h3>
+  <div id="affinity_items_container" class="items-container no-wrap"></div>
+</section>
+
+
+
+{{ block page_js }}
+<script src="{{=URL('static','js/chartjs/Chart.min.js')}}"></script>
+<script>
+
+  var today_date = new Date(
+    {{=request.now.year}},{{=request.now.month-1}},{{=request.now.day}}
+  );
+
+
+  function refresh_cb(res, current_date) {
+    $("#total_sales").text(res.total_sales);
+  }
+
+
+  var plot = TimeRangePlot(
+      $('#item_sales_chart_card'), $("#item_sales_chart"),
+      "{{=URL('analytics', 'get_item_sales_data', extension='json', args=item.id)}}",
+      today_date, refresh_cb, null
+  );
+
+
+  $(document).ready(function () {
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_affinity_items', args=item.id, extension='json')}}", $('#affinity_items_container'), function () {$("#affinity_items").show();}
+    );
+  });
+</script>
 {{ pass }}

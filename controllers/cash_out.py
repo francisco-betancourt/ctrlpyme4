@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+expiration_redirect()
 precheck()
 
 from datetime import timedelta, datetime
@@ -38,18 +39,18 @@ def create():
         btn_text = T('View last cash out')
         if not last_cash_out.is_done:
             redirect(
-                URL('analytics', 'sales_for_cash_out', args=last_cash_out.id)
+                URL('details', args=last_cash_out.id)
             )
         session.info = dict(
             text=T('Cash out interval is set to %s day(s)') % CASH_OUT_INTERVAL.days,
             btn=dict(
                 href=URL(
-                    'analytics', 'sales_for_cash_out', args=last_cash_out.id
+                    'details', args=last_cash_out.id
                 ),
                 text=btn_text
             )
         )
-        redirect(URL('analytics', 'index'))
+        redirect(URL('index'))
 
     seller = db.auth_user(request.args(0))
     if not seller:
@@ -63,7 +64,8 @@ def create():
         end_date=end_date
     )
 
-    redirect(URL('analytics', 'sales_for_cash_out', args=new_cash_out_id ))
+    redirect(URL('details', args=new_cash_out_id ))
+
 
 
 @auth.requires_membership('Cash out')
@@ -99,15 +101,115 @@ def done():
     session.info = INFO(
         T('Cash out done'),
         T('Print report'),
-        URL('analytics', 'sales_for_cash_out', args=cash_out.id, vars=dict(_print=True)),
+        URL('details', args=cash_out.id, vars=dict(_print=True)),
         '_blank'
     )
 
-    redirect(URL('analytics', 'index'))
+    redirect(URL('index'))
+
+
+@auth.requires_membership("Cash out")
+def details():
+    """ Get the sales created in the specified cash out time interval
+
+        args: [id_cash_out]
+    """
+
+    cash_out = db.cash_out(request.args(0))
+    if not cash_out:
+        raise HTTP(404)
+    seller = cash_out.id_seller
+
+    start_date = cash_out.start_date
+    end_date = cash_out.end_date
+
+    payment_opts = db(db.payment_opt.id > 0).select()
+    payment_opts_ref = {}
+    # will be used to create a payments chart
+    for payment_opt in payment_opts:
+        payment_opt.c_value = 0
+        payment_opt.c_label = payment_opt.name
+        payment_opt.c_color = similar_color(
+            ACCENT_COLOR, payment_opt.id * 771
+        )
+        payment_opts_ref[str(payment_opt.id)] = payment_opt
+
+
+    def payments_iter():
+        return db(
+            (db.sale_log.id_sale == db.sale.id)
+          & (db.payment.id_sale == db.sale.id)
+          & (
+              (db.sale_log.sale_event == SALE_PAID)
+              | (db.sale_log.sale_event == SALE_DEFERED)
+          )
+          & (db.sale.created_by == seller.id)
+          & (db.sale.id_store == session.store)
+          & time_interval_query('sale', start_date, end_date)
+        ).iterselect(db.payment.ALL, orderby=~db.payment.id_sale)
+
+    def sales_generator():
+        total = 0
+        total_cash = 0
+
+        # this will be the total amount of income
+        payments = payments_iter()
+
+        sale = None
+        for payment in payments:
+            if payment.id_sale and payment.id_sale != sale:
+                if sale:
+                    sale.total = sale.total - (sale.discount or 0)
+                    yield sale
+                sale = payment.id_sale
+                sale.total_change = 0
+                sale.payments = {}
+                sale.payments_total = 0
+                sale.change = 0
+
+            sale.payments_total = (sale.payments_total or 0) + payment.amount
+            payment_opt_key = str(payment.id_payment_opt.id)
+            if not sale.payments.has_key(payment_opt_key):
+                sale.payments[payment_opt_key] = Storage(dict(
+                    amount=payment.amount, change_amount=payment.change_amount
+                ))
+            else:
+                _payment = sale.payments[payment_opt_key]
+                _payment.amount += payment.amount
+                _payment.change_amount += payment.change_amount
+            sale.total_change += payment.change_amount
+            sale.change += payment.change_amount
+        if sale:
+            sale.total = sale.total - (sale.discount or 0)
+        yield sale
+
+    sales = sales_generator()
+
+    # this is ugly but it only happens when the cash out is created
+    if cash_out.sys_total < 0:
+        payments = payments_iter()
+
+        total = 0
+        total_cash = 0
+        for payment in payments:
+            # payments that allow change are considered cash.
+            if payment.id_payment_opt.allow_change:
+                total_cash += payment.amount - payment.change_amount
+            total += payment.amount - payment.change_amount
+
+        cash_out.sys_total = total
+        cash_out.sys_cash = total_cash
+        cash_out.update_record()
+
+    total = DQ(cash_out.sys_total, True)
+    total_cash = DQ(cash_out.sys_cash, True)
+
+    return locals()
+
 
 
 @auth.requires_membership('Cash out')
-def index():
+def archive():
     """
         args: [seller_id]
     """
@@ -123,13 +225,14 @@ def index():
 
     def cash_out_options(row):
         options = supert.OPTION_BTN(
-            'assignment', URL('analytics', 'sales_for_cash_out', args=row.id),
+            'assignment', URL('details', args=row.id),
             title=T('details')
         )
 
         return options
 
     def status_format(r, f):
+        diff = DQ(abs(r.sys_cash - (r.cash or 0)), True)
         if r.sys_cash == r.cash:
             return I(_class='status-circle bg-success'), A(T("Ok"),
                 _href=URL('index', args=seller.id, vars=dict(status="ok"))
@@ -137,11 +240,11 @@ def index():
         elif r.sys_cash < r.cash:
             return I(_class='status-circle bg-success'), A(T("Added money"),
                 _href=URL('index', args=seller.id, vars=dict(status="added"))
-            )
+            ), B(" ($ %s)" % diff)
         elif r.sys_cash > r.cash:
             return I(_class='status-circle bg-danger'), A(T("Missing money"),
                 _href=URL('index', args=seller.id, vars=dict(status="missing"))
-            )
+            ), B(" ($ %s)" % diff)
 
     status = request.vars.status
     query = (db.cash_out.id_seller == seller.id) & (db.cash_out.is_done == True)
@@ -168,3 +271,48 @@ def index():
     )
 
     return locals()
+
+
+
+@auth.requires_membership('Cash out')
+def index():
+    import supert
+    Supert = supert.Supert()
+
+    store_group = db(
+        db.auth_group.role == 'Store %s' % session.store
+    ).select().first()
+    checkout_group = db(db.auth_group.role == 'Sales checkout').select().first()
+    # query the employees with current store membership
+    store_employees_ids = [r.id for r in db(
+          (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_membership.group_id == store_group.id)
+    ).select(db.auth_user.id)]
+    # employees with store membership and checkout membership
+    employees_query = (
+        (db.auth_user.id == db.auth_membership.user_id)
+        & (db.auth_user.id.belongs(store_employees_ids))
+        & (db.auth_membership.group_id == checkout_group.id)
+        & (db.auth_user.registration_key == '')
+    )
+    employees_data = Supert.SUPERT(
+        employees_query,
+        select_fields=[db.auth_user.ALL],
+        fields=[
+            dict(
+                fields=['first_name', 'last_name'],
+                label_as=T('Name')
+            ), 'email'
+        ],
+        options_func=lambda row : (
+            supert.OPTION_BTN('attach_money',
+                URL('cash_out', 'create', args=row.id),
+                title=T('cash out')
+            ),
+            supert.OPTION_BTN('archive', URL('cash_out', 'archive',
+                args=row.id), title=T('previous cash outs'))
+            )
+        , global_options=[], title=T("Sellers")
+    )
+
+    return dict(employees=employees_data)

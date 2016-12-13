@@ -25,9 +25,15 @@ response.google_analytics_id = None
 
 response.menu = []
 
+
+memberships = {}
+for group in auth.user_groups.values():
+    memberships[group] = True
+
+
 # configuration menu
 config_menu_items = []
-if auth.has_membership('Config'):
+if memberships.get('Config'):
     config_menu_items += [
         (T('Settings'), False, URL('settings', 'update_main'), None)
         , (T('Stores'), False, URL('store', 'index'), None)
@@ -37,11 +43,11 @@ if auth.has_membership('Config'):
         , (T('Measure Units'), False, URL('measure_unit', 'index'), None)
         , (T('Taxes'), False, URL('tax', 'index'), None)
     ]
-if auth.has_membership('Clients management'):
+if memberships.get('Clients management'):
     config_menu_items += [
         (T('Clients'), False, URL('client', 'index'), None)
     ]
-if auth.has_membership('Safe config') or auth.has_membership('Config'):
+if memberships.get('Safe config') or memberships.get('Config'):
     config_menu_items += [
         (T('Paper sizes'), False, URL('paper_size', 'index'), None)
         , (T('Label pages'), False, URL('labels_page_layout', 'index'), None)
@@ -52,8 +58,8 @@ if config_menu_items:
     response.menu += [(T('Configuration'),False,None, config_menu_items)]
 
 # items menu
-if auth.has_membership("Items info"):
-    if auth.has_membership("Items management"):
+if memberships.get("Items info"):
+    if memberships.get("Items management"):
         submenu = [
               (T('Catalog'), False, URL('item', 'index'), None)
             , (T('Brands'), False, URL('brand', 'index'), None)
@@ -62,7 +68,7 @@ if auth.has_membership("Items info"):
             , (T('Transfers'), False, URL('stock_transfer', 'index'), None)
             , (T('Offers'), False, URL('offer_group', 'index'), None)
         ]
-        if auth.has_membership('Product loss'):
+        if memberships.get('Product loss'):
             submenu.append(
                 (T('Product losses'), False, URL('product_loss', 'index'), None)
             )
@@ -76,7 +82,7 @@ if auth.has_membership("Items info"):
 
 
 # purchases
-if auth.has_membership('Purchases'):
+if memberships.get('Purchases'):
     response.menu += [
         (T('Purchases'), False, None, [
              (T('List'), False, URL('purchase', 'index'), None)
@@ -86,13 +92,13 @@ if auth.has_membership('Purchases'):
     ]
 
 # sales
-if auth.has_membership('Sales invoices'):
+if memberships.get('Sales invoices'):
     url = URL('sale', 'index')
     submenu = []
-    if auth.has_membership('Sale orders'):
+    if memberships.get('Sale orders'):
         url = None
         submenu += [(T('Orders'), False, URL('sale_order', 'index'), None)]
-    if auth.has_membership('Sales returns'):
+    if memberships.get('Sales returns'):
         url = None
         submenu += [(T('Credit notes'), False, URL('credit_note', 'index'), None)]
     if not url:
@@ -100,23 +106,38 @@ if auth.has_membership('Sales invoices'):
     submenu.append((T('Accounts receivable'), False, URL('account_receivable', 'index'), None))
     response.menu += [(T('Sales'), False, url, submenu)]
 
-if auth.has_membership('Inventories'):
+if memberships.get('Inventories'):
     response.menu += [(T('Inventory'), False, URL('inventory', 'index'), [ ])]
 
-if auth.has_membership("Analytics"):
-    response.menu += [(T('Analytics'), False, URL('analytics', 'index'), [ ])]
 
-if not auth.has_membership('Employee') and not auth.has_membership('Admin'):
+if memberships.get("Cash out"):
+    response.menu += [ (T('Cash out'), False, URL('cash_out', 'index'), [ ]) ]
+
+
+if memberships.get("Analytics"):
+    response.menu += [
+        (T('Analytics'), False, URL('analytics', 'index'), [ ])
+    ]
+
+if not memberships.get('Employee') and not memberships.get('Admin'):
     response.menu += [(T('Browse'), False, URL('item', 'browse'), [ ])]
 
 
 response.auth_menu = []
 if auth.is_logged_in():
-    response.auth_menu += [
-        (auth.user.first_name, False, None, [
+    auth_menu = []
+
+    if memberships.get('Admin') or memberships.get('Manager'):
+        auth_menu += [
+            (T('Change store'), False, URL('user', 'change_store'), [])
+        ]
+    auth_menu += [
             (T('Profile'), False, URL('user', 'profile'), [ ]),
             (T('Logout'), False, URL('default', 'user/logout'), [ ])
-        ])
+        ]
+
+    response.auth_menu += [
+        (auth.user.first_name, False, None, auth_menu)
     ]
 else:
     response.auth_menu += [

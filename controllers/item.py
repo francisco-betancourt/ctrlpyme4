@@ -19,7 +19,7 @@
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
 import json
-from datetime import date
+from datetime import date, timedelta
 from gluon.storage import Storage
 from item_utils  import *
 import item_utils
@@ -190,6 +190,7 @@ def create():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     # return item_form(is_bundle=request.vars.is_bundle)
     redirect(URL('create_or_update', vars=request.vars))
@@ -207,6 +208,7 @@ def create_or_update():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     item = db.item(request.args(0))
     if not item and not auth.has_membership('Items management'):
@@ -228,6 +230,7 @@ def fill_bundle():
         args:
             item_id: the bundle item that will be filled.
     """
+    expiration_redirect()
 
     bundle = db.item(request.args(0))
     if not bundle:
@@ -440,14 +443,15 @@ def find_by_matching_code():
 
     from item_utils import composed_name
 
-    barcode = request.args(0)
     try:
-        page = int(request.args(1)) or 0
+        page = int(request.args(0) or 0)
     except:
         page = 0
 
+    barcode = request.vars.barcode
     if not barcode:
-        raise HTTP(405)
+        raise HTTP(404)
+
 
     start = page * 10
     end = start + 10
@@ -487,17 +491,20 @@ def update():
         vars:
             is_bundle: whether the newly created item will be a bundle or not
     """
+    expiration_redirect()
 
     redirect(URL('create_or_update', args=request.args, vars=request.vars))
 
 
 @auth.requires_membership('Items management')
 def delete():
+    expiration_redirect()
     return common_delete('item', request.args)
 
 
 @auth.requires_membership('Items management')
 def undelete():
+    expiration_redirect()
     return common_undelete('item', request.args)
 
 
@@ -521,6 +528,8 @@ def item_options(row):
 
 @auth.requires(auth.has_membership('Employee') or auth.has_membership('Admin'))
 def index():
+    expiration_redirect()
+
     fields = [
         {
             'fields': ['name', 'is_bundle'],
@@ -557,7 +566,7 @@ def browse():
         vars: {category, sort, categories, is_service, brand, term}
     """
 
-    term = request.vars.term;
+    term = request.vars.term
 
     category = db.category(request.vars.category)
     is_service = request.vars.is_service == 'yes'
@@ -572,7 +581,7 @@ def browse():
 
     if term:
         query = search_item_query(term, category)
-        orderby = ~db.item.name.contains(term)
+        orderby = db.item.id|~db.item.name.contains(term)
 
     if category:
         query &= db.item.categories.contains(category.id)
@@ -623,6 +632,7 @@ def labels():
         args: [items]
         vars: [id_purchase, id_layout]
     """
+    expiration_redirect()
 
     from_purchase = False
 
@@ -641,8 +651,8 @@ def labels():
         'margin_right': page_layout.margin_right,
         'margin_bottom': page_layout.margin_bottom,
         'margin_left': page_layout.margin_left,
-        'space_x': page_layout.space_x,
-        'space_y': page_layout.space_y,
+        'space_x': page_layout.space_x or 0,
+        'space_y': page_layout.space_y or 0,
         'cols': page_layout.label_cols,
         'rows': page_layout.label_rows,
         'show_item_name': page_layout.show_name,
@@ -695,7 +705,7 @@ def get_popular_items():
 
     # best sellers this month
     start_date = date(request.now.year, request.now.month, 1)
-    end_date = date(request.now.year, request.now.month + 1, 1)
+    end_date = start_date + timedelta(days=30)
 
     values = db(
           (db.bag_item.id_item == db.item.id)
@@ -730,3 +740,28 @@ def get_some_services():
     services = [item_utils.data_for_card(v) for v in records]
 
     return dict(items=services)
+
+
+
+def get_affinity_items():
+    """ args: item_id """
+
+    item_id = request.args(0)
+
+    records = db(
+        (db.item_affinity.id_item1 == item_id) |
+        (db.item_affinity.id_item2 == item_id)
+    ).iterselect(
+        orderby=~db.item_affinity.affinity,
+        limitby=(0, 5)
+    )
+
+
+    items = []
+    for record in records:
+        item_id = long(item_id)
+
+        item = record.id_item1 if record.id_item1.id != item_id else record.id_item2
+        items.append(item_utils.data_for_card(item))
+
+    return dict(items=items)

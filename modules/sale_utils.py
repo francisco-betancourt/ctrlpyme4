@@ -30,6 +30,7 @@ from constants import BAG_COMPLETE
 from cp_errors import CP_PaymentError, CP_OutOfStockError
 
 import item_utils
+import wallet_utils
 
 
 # constants
@@ -37,6 +38,7 @@ SALE_DEFERED = 'defered'
 SALE_DELIVERED = 'delivered'
 SALE_CREATED = 'created'
 SALE_PAID = 'paid'
+SALE_REFUNDED = 'refunded'  # only applicable to deferred sales
 
 
 def new(bag, id_store, now, user):
@@ -124,6 +126,7 @@ def create_sale_event(sale, event_name, event_date=None):
 
     sale.last_log_event = event_name
     sale.last_log_event_date = event_date
+
     return db.sale_log.insert(
         id_sale=sale.id, sale_event=event_name, event_date=event_date
     )
@@ -137,6 +140,9 @@ def complete(sale):
 
     payments = db(db.payment.id_sale == sale.id).select()
     verify_payments(payments, sale)
+
+
+    affinity_list = []
 
     # verify items stock
     bag_items = db(db.bag_item.id_bag == sale.id_bag.id).iterselect()
@@ -158,19 +164,45 @@ def complete(sale):
             )
         requires_serials |= bag_item.id_item.has_serial_number or False
 
+        affinity_list.append(bag_item.id_item.id)
+
+
+    # kinda crappy
+    first = affinity_list[0]
+    for i, id in enumerate(affinity_list):
+        if i == len(affinity_list) - 1:
+            continue
+        for j, other_id in enumerate(affinity_list):
+            if j <= i:
+                continue
+            first, second = (id, other_id) if id < other_id else (other_id, id)
+
+            affinity = db(
+                (db.item_affinity.id_item1 == first) &
+                (db.item_affinity.id_item2 == second)
+            ).select().first()
+            if not affinity:
+                db.item_affinity.insert(
+                    id_item1=first, id_item2=second, affinity=1
+                )
+            else:
+                affinity.affinity += 1
+                affinity.update_record()
+
+
     # for every payment with a payment option with credit days, set payment to not settled
     for payment in payments:
         if payment.id_payment_opt.credit_days > 0:
             payment.epd = date(request.now.year, request.now.month, request.now.day) + timedelta(days=payment.id_payment_opt.credit_days)
             payment.is_settled = False
-            payment.update_record();
+            payment.update_record()
 
     store = db(db.store.id == sale.id_store.id).select(for_update=True).first()
     sale.consecutive = store.consecutive
     sale.is_done = True
     create_sale_event(sale, SALE_PAID)
     sale.update_record()
-    store.consecutive += 1;
+    store.consecutive += 1
     store.update_record()
 
     # if defered sale, remove sale order
@@ -178,9 +210,10 @@ def complete(sale):
 
     # add reward points to the client's wallet, we assume that the user has a wallet
     if sale.id_client and sale.id_client.id_wallet:
-        wallet = db.wallet(sale.id_client.id_wallet.id)
-        wallet.balance += sale.reward_points
-        wallet.update_record()
+        wallet_utils.transaction(
+            sale.reward_points, wallet_utils.CONCEPT_SALE_REWARD, ref=sale.id,
+            wallet_id=sale.id_client.id_wallet.id
+        )
 
 
 def add_payment(sale, payment_opt):
@@ -246,10 +279,6 @@ def modify_payment(sale, payment, payment_data, delete=False):
 
     new_amount = payment_data.get('amount')
 
-    # is wallet payment
-    if payment.wallet_code:
-        new_amount = payment.amount
-
     # delete payment
     if delete:
         new_amount = 0
@@ -288,26 +317,29 @@ def modify_payment(sale, payment, payment_data, delete=False):
          account = None
     if not common_utils.is_wallet(payment.id_payment_opt):
          wallet_code = None
+    # in this case the payment is wallet
     else:
         if payment.wallet_code:
             # return wallet funds, if the wallet payment is removed or the wallet code is changed
             if delete or wallet_code != payment.wallet_code:
-                wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-                if wallet:
-                    wallet.balance += payment.amount
-                    wallet.update_record()
-        else:
-            new_amount = 0
+                wallet_utils.transaction(
+                    payment.amount, wallet_utils.UNDO_PAYMENT, ref=payment.id,
+                    wallet_code=payment.wallet_code
+                )
 
         # only accept the first wallet code specified
         if wallet_code != payment.wallet_code:
-            wallet = db(db.wallet.wallet_code == wallet_code).select().first()
-            if wallet:
-                new_amount = min(wallet.balance, (sale.total - sale.discount) - new_total)
-                wallet.balance -= new_amount
-                wallet.update_record()
-            # if the code is invalid, remove its specified value
-            else:
+            try:
+                # new_amount = max(0, min(wallet.balance, (sale.total - sale.discount) - new_total))
+
+                rem_q = (sale.total - sale.discount) - new_total
+                if rem_q >= 0:
+                    _wallet, _amount = wallet_utils.transaction(
+                        -rem_q, wallet_utils.CONCEPT_PAYMENT, ref=payment.id,
+                        wallet_code=wallet_code
+                    )
+                    new_amount = abs(_amount)
+            except:
                 wallet_code = None
                 new_amount = 0
 
@@ -388,6 +420,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
     subtotal = 0
     total = 0
+    reward_points = 0
 
     if not sale.is_deferred:
         for bag_item, qty in return_items_iter():
@@ -404,15 +437,17 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
                 id_bag_item=bag_item.id, quantity=qty,
                 id_credit_note=id_new_credit_note
             )
-            sale_price = bag_item.sale_price * (1 - sale.discount_percentage / 100)
+            dp = (1 - sale.discount_percentage / 100)
+            sale_price = bag_item.sale_price * dp
             subtotal += sale_price * qty
-            taxes = bag_item.sale_taxes * (1 - sale.discount_percentage / 100)
-            total += subtotal + taxes * qty
+            total += (sale_price + bag_item.sale_taxes * dp) * qty
+            reward_points += bag_item.reward_points * qty
 
             item_utils.reintegrate_bag_item(
                 bag_item, qty, True, 'id_credit_note', id_new_credit_note
             )
 
+    # since defered sales do not remove stocks we just have to return the money
     else:
 
         payments_sum = (db.payment.amount - db.payment.change_amount).sum()
@@ -422,6 +457,9 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
         subtotal = total = payments_total
         db(db.sale_order.id_sale == sale.id).delete()
+
+        create_sale_event(sale, SALE_REFUNDED, now)
+        sale.update_record()
 
 
     create_new_wallet = False
@@ -443,9 +481,8 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     if create_new_wallet:
         wallet = db.wallet(common_utils.new_wallet())
 
-    # add wallet funds
-    wallet.balance += total
-    wallet.update_record()
+    if sale.id_client:
+        total -= reward_points
 
     # update credit note data
     credit_note = db.credit_note(id_new_credit_note)
@@ -454,6 +491,12 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
     credit_note.code = wallet.wallet_code
     credit_note.id_wallet = wallet.id
     credit_note.update_record()
+
+    # add wallet funds
+    wallet_utils.transaction(
+        total, wallet_utils.CONCEPT_CREDIT_NOTE, ref=credit_note.id,
+        wallet_id=wallet.id
+    )
 
 
     return credit_note

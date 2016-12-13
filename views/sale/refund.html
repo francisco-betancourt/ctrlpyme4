@@ -11,7 +11,7 @@
     <p>{{=T('Client')}} {{=sale.id_client.email}}</p>
   {{pass}}
 
-  {{ if not no_more_items and not invalid: }}
+  {{ if not invalid and (not no_more_items or sale.is_deferred): }}
     <hr>
     {{=form}}
   {{ pass }}
@@ -30,13 +30,15 @@
       <tbody>
 
         {{ for current in item_removals.itervalues(): }}
-          <tr>
-            <td>{{=current.product_name}}</td>
-            <td>
-              <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=current.id}}"
-                  max={{=current.max}} min=0 value="0">
-            </td>
-          </tr>
+          {{ if current.max: }}
+            <tr>
+              <td>{{=current.product_name}}</td>
+              <td>
+                <input id="" type="number" class="form-control return_item_qty" bagitemid="{{=current.id}}"
+                    max={{=current.max}} min=0 value="0">
+              </td>
+            </tr>
+          {{ pass }}
         {{ pass }}
 
       </tbody>

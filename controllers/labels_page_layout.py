@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 
 @auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def index():
@@ -34,7 +36,7 @@ def index():
     ], options_func=lambda row : supert.supert_default_options(row)[0], global_options=[] )
 
     return locals()
-    
+
 
 @auth.requires(auth.has_membership('Config') or auth.has_membership('Safe config'))
 def create():

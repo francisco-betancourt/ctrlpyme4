@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 
 @auth.requires_membership('Items management')
 def create():
@@ -79,16 +81,13 @@ def delete():
 
 
 def get_trait_by_category_and_option():
-    """ args: [category_name, trait_option] """
+    """ vars: [category_name, trait_option] """
 
     cat_name = ''
     option = ''
     try:
-        raw_args = request.raw_args.split('/')
-        cat_name = raw_args[0]
-        option = ''
-        if len(raw_args) > 1:
-            option = raw_args[1]
+        cat_name = request.vars.category_name
+        option = request.vars.trait_option
     except:
         raise HTTP(404)
     if not cat_name and not option:
@@ -108,11 +107,8 @@ def search():
     """ args: [category_name, term] """
 
     try:
-        raw_args = request.raw_args.split('/')
-        cat_name = raw_args[0]
-        term = ''
-        if len(raw_args) > 1:
-            term = raw_args[1]
+        cat_name = request.vars.category_name
+        term = request.vars.term
 
         match = db(
             (db.trait.id_trait_category == db.trait_category.id) &

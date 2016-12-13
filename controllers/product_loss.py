@@ -17,6 +17,10 @@
 #
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
+
+
+expiration_redirect()
+
 from bag_utils import get_valid_bag
 from bag_utils import refresh_bag_data
 from item_utils import remove_stocks
@@ -68,12 +72,22 @@ def create():
 
 
 def bag_supert(id_bag):
+    import supert
+    Supert = supert.Supert()
+
     query = (db.bag_item.id_bag == id_bag)
-    return SUPERT(query, fields=['product_name', {
-        'fields':['quantity'],
-        'custom_format': lambda r, f : DQ(r.quantity, True, True),
-        'label_as': T('Quantity')
-        }], options_enabled=False, searchable=False)
+    return Supert.SUPERT(
+        query,
+        fields=[
+            'product_name',
+            {
+                'fields':['quantity'],
+                'custom_format': lambda r, f : DQ(r.quantity, True, True),
+                'label_as': T('Quantity')
+            }
+        ],
+        options_enabled=False, searchable=False
+    )
 
 
 @auth.requires_membership('Product loss')

@@ -18,6 +18,12 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
+
+import item_utils
+
+
 @auth.requires_membership('Offers')
 def create():
     form = SQLFORM(db.offer_group)
@@ -134,6 +140,9 @@ def get():
             query |= (db.item.categories.contains(discount.id_category.id))
     pages, limits = pages_menu(query, request.vars.page, request.vars.ipp, distinct=db.item.name)
     items = db(query).select(limitby=limits)
+    items = [item_utils.data_for_card(v) for v in items]
+    items_data_script = SCRIPT("var items_data = %s" % json.dumps(items))
+    del items
 
     return locals()
 

@@ -25,7 +25,7 @@ import math
 import json
 from uuid import uuid4
 from gluon.storage import Storage
-from gluon import current
+from gluon import current, SCRIPT, URL, redirect
 
 from common_utils import *
 
@@ -59,6 +59,8 @@ def item_url(_name, _id):
 
 
 def item_taxes(item, price):
+    """ Returns the amoutn of taxes for the given item and price """
+
     total = 0
     if not item.taxes:
         return 0
@@ -72,7 +74,7 @@ def item_stock_query(item, id_store=None, include_empty=False, max_date=None):
     db = current.db
 
     query = (db.stock_item.id_item == item.id)
-    if id_store > 0:
+    if id_store and id_store > 0:
         query &= db.stock_item.id_store == id_store
     if not include_empty:
         query &= db.stock_item.stock_qty > 0
@@ -319,14 +321,16 @@ def _remove_stocks(item, remove_qty, sale_date, bag_item=None,
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
                 id_bag_item=bag_item.id,
-                id_item=item.id
+                id_item=item.id,
+                id_store=stock_item.id_store.id
             )
         elif inventory_item:
             db.stock_item_removal.insert(
                 id_stock_item=stock_item.id,
                 qty=to_be_removed_qty,
                 id_inventory_item=inventory_item.id,
-                id_item=item.id
+                id_item=item.id,
+                id_store=stock_item.id_store.id
             )
 
     wavg_days_in_shelf /= remove_qty
@@ -618,6 +622,8 @@ def data_for_card(item):
     db = current.db
     auth = current.auth
 
+    memberships = dict([(v, True) for v in auth.user_groups.values()])
+
 
     if not item:
         return None
@@ -644,10 +650,10 @@ def data_for_card(item):
 
     # extra options for employees
     item.options = []
-    if auth.has_membership('Employee'):
+    if memberships.get('Employee'):
         item.barcode = item_barcode(item)
 
-        if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'):
+        if memberships.get('Items info') or memberships.get('Items management') or memberships.get('Items prices'):
             item.options.append((
                 T('Update'), URL('item', 'update', args=item.id)
             ))
@@ -657,7 +663,7 @@ def data_for_card(item):
             item.options.append((
                 T('Add images'), URL('item_image', 'create', args=item.id)
             ))
-        if auth.has_membership('Analytics'):
+        if memberships.get('Analytics'):
             item.options.append((
                 T('Analysis'), URL('analytics', 'item_analysis', args=item.id)
             ))

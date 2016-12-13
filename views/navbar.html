@@ -55,18 +55,22 @@
       {{ notifications_qty = '99+' }}
     {{ pass }}
     {{if auth.user:}}
-      <div class="menu-element" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('notifications')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
+      <div class="menu-element {{if notifications_qty:}}anim-beat{{pass}}" onclick="toggle_container('notifications_container');" id="notifications_btn">{{=ICON('notifications')}} <span class="badge" id="notifications_qty">{{=notifications_qty}}</span></div>
     {{pass}}
 
     <!-- bag icon -->
-    {{if include_bag:}}
+    {{if include_bag and not EXPIRED:}}
       <div class="menu-element" onclick="toggle_container('bag_container');" id="bag_btn">{{=ICON('shopping_basket')}}</div>
     {{pass}}
 
     <!-- help -->
-    <!-- <div class="menu-element" id="help_menu_btn" onclick="show_help();">
+    <!-- {{ help_key = ''}}
+    {{ if request.controller != 'default': }}
+      {{ help_key = '-'.join((request.controller, request.function))}}
+    {{ pass }}
+    <a class="menu-element" id="help_menu_btn" href="http://localhost:8000/ctrlpyme_admin/the_help/browse/?key={{=help_key}}" target="blank">
       {{=ICON('help_outline')}}
-    </div> -->
+    </a> -->
 
     <!-- auth -->
 

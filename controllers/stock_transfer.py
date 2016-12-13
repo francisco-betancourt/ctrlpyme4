@@ -18,6 +18,7 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
 precheck()
 
 from item_utils import remove_stocks, reintegrate_stock

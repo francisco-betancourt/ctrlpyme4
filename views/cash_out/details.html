@@ -1,0 +1,177 @@
+{{left_sidebar_enabled = True}}
+{{extend "layout.html"}}
+
+{{from gluon.serializers import json}}
+
+{{block page_css}}
+  <link rel="stylesheet" href="{{=URL('static', 'css/ctrlpyme_print.css')}}">
+  <style media="print">
+    @page { margin: 1cm; }
+  </style>
+{{end}}
+
+
+<div class="cash-out-report">
+  <h1 class="noprint">{{=T('Details')}}</h1>
+  <h3>{{=cash_out.created_on}}</h3>
+  <h3 class="print">
+    {{=T('Cash out report')}} {{=T('for')}}:
+    {{=seller.first_name}} {{=seller.last_name}}
+    &lt{{=seller.email}}&gt
+    <hr>
+  </h3>
+  {{if not sales:}}
+    <p>{{=T("No sales reported")}} </p>
+  {{else:}}
+
+
+
+    {{block left_sidebar}}
+      <h1>{{=T("Cash out")}}</h1>
+
+      <h4>{{=T("Date")}}:
+        <span class="right">{{=cash_out.created_on}}</span>
+      </h4>
+      <h4>{{=T("Seller")}}:
+        <span class="right">{{=seller.first_name}}</span>
+      </h4>
+      <hr>
+      <div>
+        <canvas id="payment_opt_distrib" style="width: 100%;"></canvas>
+      </div>
+
+      <h3>{{=T('Total')}}:
+        <span id="total" class="right">$ {{=total}} </span>
+      </h3>
+      <h3>{{=T('Total Cash')}}:
+        <span id="total_cash" class="right">$ {{=total_cash}}</span>
+      </h3>
+
+      {{if not cash_out.is_done:}}
+        <hr>
+        <div class="form-group">
+          <label for="phys_cash">{{=T('Physical cash')}}:</label>
+          <input type="number" class="form-control cash-out-update" id="phys_cash" name="phys_cash" value="{{=cash_out.cash}}" target="cash">
+        </div>
+        <div class="form-group">
+          <label for="cash_out_notes">{{=T('Notes')}}:</label>
+          <textarea id="cash_out_notes" name="cash_out_notes" rows="8" cols="40" class="form-control cash-out-update" target="notes">{{=cash_out.notes if cash_out.notes else ''}}</textarea>
+        </div>
+        <a class="btn btn-primary btn-block" href="{{=URL('done', args=cash_out.id)}}">{{=T('Done')}}</a>
+      {{else:}}
+        <hr>
+        <h3>{{=T('Physical cash')}}:
+          <span class="right">$ {{=DQ(cash_out.cash, True)}}</span>
+        </h3>
+        {{ if cash_out.notes: }}
+          <p>{{=cash_out.notes}}</p>
+        {{ else: }}
+          <p>{{=T('Cash out does not have notes')}}</p>
+        {{ pass }}
+        <hr>
+        <button onclick="window.print()" class="btn btn-primary btn-block">
+          {{=T('Print')}}
+        </button>
+      {{pass}}
+    {{end}}
+
+
+
+    <h2 class="noprint">{{=T("Sales")}}</h2>
+
+    {{for sale in sales:}}
+      {{ if sale: }}
+        <div>
+        <div class="media cash-out-sale">
+          <div class="media-left media-top noprint">
+            <a onclick="window.open('{{=URL('ticket', 'show_ticket', vars=dict(id_sale=sale.id))}}', '1', resizable=true)">
+              <h3 class="noprint">#{{=sale.id}}</h3>
+            </a>
+          </div>
+          <div class="media-body" style="padding-left: 16px;">
+            <div class="sale-data">
+              <h4> <b class="print"> {{=T('sale')}} #{{=sale.id}} - </b>
+                {{=sale.created_on}}
+              </h4>
+              <h4 class="right">
+                {{=T('payments total')}}: $ {{=DQ(sale.payments_total, True)}} |
+                {{=T('change')}}: $ {{=DQ(sale.change, True)}} |
+                {{=T('total')}}: $ {{=DQ(sale.total, True)}}
+              </h4>
+            </div>
+
+            <div class="progress sale-progress noprint">
+              {{for _key in sale.payments.iterkeys(): }}
+                {{ payment_opt = payment_opts_ref.get(_key) }}
+                {{ if not payment_opt: }}
+                  {{ continue}}
+                {{ pass }}
+                {{ payment = sale.payments.get(_key) }}
+                {{ hex = payment_opt.c_color }}
+
+                {{ payment_amount = payment.amount - payment.change_amount }}
+                {{ p = payment_amount / sale.total * 100 }}
+                <div class="progress-bar" style="width: {{=p}}%; background-color: {{=hex}}; font-size: 14px;">
+                  <span>
+                    {{=payment_opt.c_label}}: {{=DQ(payment_amount, True)}}
+                  </span>
+                  {{ payment_opt.c_value += DQ(payment_amount, True) }}
+                </div>
+              {{pass}}
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {{ pass }}
+
+    {{pass}}
+
+    <div class="print">
+      <h5><span class="right">{{=T('Total')}} : $ {{=total}}</span></h5><br>
+      <hr>
+      {{for payment_opt in payment_opts: }}
+        {{ if payment_opt.c_value: }}
+          <h5><span class="right">{{=payment_opt.c_label}} : $ {{=payment_opt.c_value}}</span></h5><br>
+        {{pass}}
+      {{pass}}
+      <hr>
+      <h5><b class="right">{{=T('System cash')}} : $ {{=total_cash}}</b></h5><br>
+      <h5><b class="right">
+        {{=T('Physical cash')}} : $ <span id="cash_out_cash">{{=DQ(cash_out.cash, True)}}</span>
+      </b></h5>
+    </div>
+
+
+
+
+    {{block page_js}}
+      {{=SCRIPT("var payment_opt_distrib = %s" % json(pie_data_format(payment_opts)) )}}
+      <script src="{{=URL('static', 'js/chartjs/Chart.min.js')}}" charset="utf-8"></script>
+      <script type="text/javascript">
+        var ctx = document.getElementById("payment_opt_distrib").getContext("2d");
+        new Chart(ctx, {type: 'pie', data: payment_opt_distrib});
+
+        $('.cash-out-update').change(function (event) {
+          info_card("{{=T('Saving...')}}");
+
+          var target = $(event.target);
+          $.ajax({
+            url: "{{=URL('update', args=cash_out.id, extension='json')}}?target=" + target.attr('target') + '&value=' + target.val()
+          })
+          .done(function (res) {
+            info_card("{{=T('Saved')}}", null, 'success');
+            if (res.target) {
+              $('#cash_out_' + res.target).text(res.value);
+              target.val(res.value);
+            }
+          })
+          .fail(function (res) {
+            info_card("{{=T('Error')}}", null, 'error');
+          })
+        });
+      </script>
+    {{end}}
+
+  {{pass}}
+</div>

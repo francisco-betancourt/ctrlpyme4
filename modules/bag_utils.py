@@ -25,6 +25,7 @@ import math
 import json
 from uuid import uuid4
 from gluon.storage import Storage
+from gluon.http import HTTP
 
 from common_utils import *
 import item_utils
@@ -93,7 +94,8 @@ def add_bag_item(bag, item, quantity=None, sale_price=None):
             id_bag=bag.id, id_item=item.id, quantity=quantity,
             sale_price=sale_price, discount=discount,
             product_name=item.name, item_taxes=item_taxes_str,
-            sale_taxes=item_utils.item_taxes(item, sale_price)
+            sale_taxes=item_utils.item_taxes(item, sale_price),
+            reward_points=item.reward_points or 0
         )
         bag_item = db.bag_item(id_bag_item)
     else:
@@ -141,9 +143,6 @@ def auto_bag_selection():
     session = current.session
     request = current.request
 
-    # admin cannot sell
-    if auth.has_membership('Admin'):
-        return
     # Automatic bag creation
 
     current_bag = None
@@ -191,7 +190,7 @@ def refresh_bag_data(id_bag):
         taxes += bag_item.sale_taxes * bag_item.quantity
         total += (bag_item.sale_taxes + bag_item.sale_price) * bag_item.quantity
         quantity += bag_item.quantity
-        reward_points += bag_item.id_item.reward_points or 0
+        reward_points += (bag_item.id_item.reward_points or 0) * bag_item.quantity
 
     bag.update_record(subtotal=DQ(subtotal), taxes=DQ(taxes), total=DQ(total), quantity=quantity, reward_points=DQ(reward_points))
 

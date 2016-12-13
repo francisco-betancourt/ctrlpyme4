@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+if not request.function in ['index', 'ticket']:
+    expiration_redirect()
 precheck()
 
 
@@ -29,6 +31,7 @@ from item_utils import item_discounts, apply_discount, item_stock_qty, remove_st
 from constants import *
 
 import sale_utils
+import wallet_utils
 
 
 def ticket():
@@ -36,10 +39,12 @@ def ticket():
 
 
 def valid_sale(sale):
-    if not sale.created_by.id == auth.user.id:
-        raise HTTP(401)
     if not sale:
         raise HTTP(404)
+    if not sale.created_by.id == auth.user.id:
+        raise HTTP(401)
+    if sale.is_deferred and sale.last_log_event == sale_utils.SALE_REFUNDED:
+        raise HTTP(400)
     if sale.is_done:
         session.info = {
             'text': T('Sale has been paid'),
@@ -114,8 +119,10 @@ def update_payment():
     if sale.id_bag.is_paid:
         raise HTTP(405)
 
-    payment = db((db.payment.id == request.args(1))
-               & (db.payment.id_sale == sale.id)).select().first()
+    payment = db(
+        (db.payment.id == request.args(1)) &
+        (db.payment.id_sale == sale.id)
+    ).select().first()
     if not payment:
         raise HTTP(404)
     if not payment.is_updatable:
@@ -132,6 +139,7 @@ def update_payment():
         new_amount = D(request.vars.amount or payment.amount)
     except:
         raise HTTP(417)
+
 
     delete_payment = bool(request.vars.delete)
 
@@ -163,12 +171,11 @@ def cancel():
     wallet_opt = get_wallet_payment_opt()
     payments = db((db.payment.id_payment_opt == wallet_opt.id) & (db.payment.id_sale == sale.id)).select()
     for payment in payments:
-        wallet = db(
-            db.wallet.wallet_code == payment.wallet_code
-        ).select().first()
-        if wallet:
-            wallet.balance += payment.amount
-            wallet.update_record()
+        wallet_utils.transaction(
+            payment.amount,
+            wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
+            wallet_code=payment.wallet_code
+        )
 
     # delete the bag and all its bag items
     db(db.bag_item.id_bag == sale.id_bag.id).delete()
@@ -192,7 +199,9 @@ def update():
 
     valid_sale(sale)
 
-    clients = db(db.auth_user.is_client == True).select()
+    clients = db(
+        db.auth_user.is_client == True
+    ).select(orderby=db.auth_user.first_name|db.auth_user.last_name)
 
     payments = db(db.payment.id_sale == sale.id).select()
     payment_options = db((db.payment_opt.is_active == True) & (db.payment_opt.name != 'stripe')).select(orderby=~db.payment_opt.allow_change)
@@ -224,7 +233,7 @@ def set_sale_discount():
     discount = 0
     try:
         discount = D(request.args(1))
-        if not auth.has_membership("Manager"):
+        if not (auth.has_membership("Manager") or auth.has_membership("Admin")):
             discount = min(discount, auth.user.max_discount)
         discount = min(max(0, discount), 100)
     except:
@@ -259,10 +268,11 @@ def set_sale_client():
     # we cannot modify defered sale or online purchased bag
     if sale.is_deferred or sale.id_bag.is_paid:
         raise HTTP(405)
-    client = db((db.auth_user.is_client == True)
-                & (db.auth_user.registration_key == '')
-                & (db.auth_user.id == request.args(1))
-                ).select().first()
+    client = db(
+        (db.auth_user.is_client == True)
+        & (db.auth_user.registration_key == '')
+        & (db.auth_user.id == request.args(1))
+    ).select().first()
     wallet = None
     #TODO remove credit payments if the client is None
     if not client:
@@ -425,18 +435,27 @@ def undo():
     err = ''
     if not sale:
         err = T('Sale not found')
-    if request.now > sale.created_on + timedelta(minutes=5):
-        print sale.created_on
+    if request.now > sale.modified_on + timedelta(minutes=5):
         err = T('Its too late to undo it')
     if err:
         session.info = err
         redirect(URL('default', 'index'))
 
     # return wallet payments
-    for payment in db(db.payment.id_payment_opt == get_wallet_payment_opt()).select():
-        wallet = db(db.wallet.wallet_code == payment.wallet_code).select().first()
-        wallet.balance += payment.amount
-        wallet.update_record()
+    for payment in db(
+        (db.payment.id_payment_opt == get_wallet_payment_opt()) &
+        (db.payment.id_sale == sale.id)
+    ).select():
+        wallet_utils.transaction(
+            payment.amount, wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
+            wallet_code=payment.wallet_code
+        )
+
+    if sale.id_client:
+        wallet_utils.transaction(
+            sale.reward_points, wallet_utils.CONCEPT_UNDO_SALE_REWARD,
+            ref=sale.id, wallet_id=sale.id_client.id_wallet.id
+        )
 
     undo_stock_removal(bag=sale.id_bag)
 
@@ -531,6 +550,7 @@ def refund():
     item_removals = {}
     no_more_items = True
 
+
     if is_delivered:
         # obtain all returnable items from the specified sale
         c_items = db(
@@ -567,8 +587,9 @@ def refund():
         credit_note = db(db.credit_note.id_sale == sale.id).select().first()
         invalid = bool(credit_note)  # hack to convert to boolean
 
-        session.info = T('The sale already has a credit note')
-        redirect(URL('index'))
+        if invalid:
+            session.info = T('The sale already has a credit note')
+            redirect(URL('index'))
 
 
     btn_text = T('Refund') if item_removals else T('Return all payments')
@@ -579,20 +600,54 @@ def refund():
     )
 
 
-    if form.process().accepted and not no_more_items and not invalid:
+    if form.process().accepted and (not no_more_items or sale.is_deferred) and not invalid:
         # normalize to the max number of allowed returns (since the ones specified in r_item are user defined)
+
+        items_count = 0
+
+        def fix_returned(raw_pair):
+            raw = raw_pair.split(':')
+            if len(raw) > 1:
+                item_id, qty = raw[0:2]
+            else:
+                item_id = raw[0]
+                qty = 0
+
+            item_id = str(item_id)
+            try:
+                qty = qty if qty else 0
+            except:
+                qty = 0
+            qty = D(qty)
+
+            return item_id, qty
+
+
         def max_available(r_item):
-            return DQ(
-                max(min(D(r_item[1]), item_removals[str(r_item[0])].max), 0)
-            )
+            item_id, qty = r_item[0], r_item[1]
+            return item_id, DQ(max(min(qty, item_removals[item_id].max), 0))
 
-
+        # try to generate the returned items, if this fails, return error
+        r_items = None
+        # at this point we have fixed the max quantities and everything
         r_items = map(
-            lambda r : r.split(':')[0:2], form.vars.returned_items.split(',')
+            max_available,
+            map(
+                fix_returned,
+                filter(lambda x: x, form.vars.returned_items.split(','))
+            )
         )
-        r_items = (
-            (db.bag_item(int(r_item[0])), max_available(r_item)) for r_item in r_items
-        )
+
+        # if there are no returned items avoid creating the credit note
+        items_count = sum((r_item[1] for r_item in r_items))
+        if items_count <= .000001 and not sale.is_deferred:
+            session.info = T('There are no items to refund')
+            redirect(URL('sale', 'refund', args=sale.id))
+
+        # so now we can query the bag items
+        r_items = ((db.bag_item(r_item[0]), r_item[1]) for r_item in r_items)
+
+
         credit_note = sale_utils.refund(
             sale, request.now, auth.user, r_items,
             wallet_code=form.vars.wallet_code
@@ -626,13 +681,14 @@ def index():
 
     def sale_options(row):
         buttons = ()
-        if row.is_deferred or not row.last_log_event:
+        if (row.is_deferred and row.last_log_event != sale_utils.SALE_REFUNDED) or not row.last_log_event:
+
             buttons += supert.OPTION_BTN(
                 'edit', URL('update', args=row.id), title=T('update')
             ),
         buttons += supert.OPTION_BTN(
             'receipt', URL('ticket', 'show_ticket', vars=dict(id_sale=row.id)), title=T('view ticket'), _target='_blank'
-            ), supert.OPTION_BTN('description', URL('invoice', 'create')),
+            ),
         return buttons
 
     def status_format(r, f):

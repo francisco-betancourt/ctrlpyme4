@@ -3,10 +3,15 @@
 
 {{block page_css}}
   <link rel="stylesheet" href="{{=URL('static', 'css/ctrlpyme_print.css')}}">
+  <style media="print">
+    @page {
+      margin: 1cm;
+    }
+  </style>
 {{end}}
 
 
-<div class="default-sheet ">
+<div class="default-sheet inventory-report">
   <h1>
     {{ if inventory.is_partial: }}
       {{=T('Partial Inventory')}}
@@ -19,6 +24,14 @@
   <h4>
     {{=T('Created by')}}: {{=auth.user.first_name + ' ' + auth.user.last_name}} {{=T('On')}}: {{ =inventory.created_on }}
   </h4>
+
+  {{ if inventory.has_missing_items: }}
+    <hr>
+    <h4 class="text-danger">{{=T('Some items were not reported in the inventory')}}</h4>
+    {{=missing_items_data}}
+
+    <hr>
+  {{ pass }}
 
   {{=data}}
 </div>

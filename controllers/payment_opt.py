@@ -18,6 +18,8 @@
 #
 # Author Daniel J. Ramirez <djrmuv@gmail.com>
 
+expiration_redirect()
+
 
 @auth.requires_membership('Config')
 def create():
@@ -31,15 +33,22 @@ def get():
 
 @auth.requires_membership('Config')
 def update():
-    return common_update('payment_opt',request.args)
+    return common_update('payment_opt', request.args)
 
 
 @auth.requires_membership('Config')
 def delete():
-    common_delete('payment_opt',request.args)
+    common_delete('payment_opt', request.args)
 
 
 @auth.requires_membership('Config')
 def index():
-    data = common_index('payment_opt', ['name', 'allow_change', 'credit_days'])
+    import supert
+    Supert = supert.Supert()
+
+    data = Supert.SUPERT(
+        (~db.payment_opt.name.belongs('wallet', 'stripe'))
+        , fields=['name', 'allow_change', 'credit_days']
+    )
+
     return locals()

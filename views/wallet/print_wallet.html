@@ -1,37 +1,82 @@
-{{include 'web2py_ajax.html'}}
+{{extend "basic_layout.html"}}
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="{{=URL('static','css/ctrlpyme.css')}}"/>
-<link rel="stylesheet" href="{{=URL('static','css/bootstrap-treeview.min.css')}}"/>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
 
 <style>
-  .card {
-    width: 500px;
-    text-align: center;
+  body {
+    padding: 0px;
+    margin: 0px;
+  }
+  .id1 {
+    font-family: 'Source Sans Pro', sans-serif;
+
+    width: 85.60mm;
+    height: 53.98mm;
+    padding: .2cm;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+
+    background-image: url({{=URL('static', 'images/id1_card_bg.svg')}});
+    background-size: cover;
+  }
+
+  .id1 .head {
+    height: 20mm;
+    display: flex;
+  }
+  .id1 .body {
+    display: flex;
+    flex: auto;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .id1 .head .logo {
+    height: 20mm;
+  }
+  .id1 .head .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex: auto;
+    font-size: 28px;
+    flex-direction: column;
+  }
+  .id1 .head .title>* {
+    margin: 0px;
+  }
+  .id1 .head .title>.subtitle {
+    font-size: 16px;
+    margin-top: -24px;
+    opacity: .6;
   }
 
 
-  .icon {
-    margin-top: 50px;
-    margin-bottom: 20px;
-  }
-
-  .fa-money {
-    font-size: 100px;
-  }
 </style>
 
 
-<div class="card panel">
-  <div class="icon">
-    <i class="fa fa-money"></i>
+<div class="id1">
+  <div class="head">
+    <span>
+      <img src="{{=COMPANY_LOGO_URL}}" alt="" class="logo">
+    </span>
+    <span class="title">
+      <p>{{=COMPANY_NAME}}</p>
+      <p class="subtitle">{{=T("wallet")}}</p>
+    </span>
   </div>
-  <h1>{{=T('Wallet')}}</h1>
-  <div id="barcode"></div>
+
+  <div class="body">
+    <div id="barcode"></div>
+  </div>
 </div>
 
 
-<script type="text/javascript" src="{{=URL('static','js/jquery-barcode.min.js')}}"></script>
-<script>
-  $("#barcode").barcode({code: "{{=wallet.wallet_code}}", crc: false}, "code39");
-</script>
+{{block page_js}}
+  <script type="text/javascript" 
+    src="{{=URL('static','js/jquery-barcode.min.js')}}">
+  </script>
+  <script>
+    $("#barcode").barcode({code: "{{=wallet.wallet_code}}", crc: false}, "code39");
+  </script>
+{{end}}

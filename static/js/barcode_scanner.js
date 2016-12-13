@@ -76,8 +76,16 @@ function BarcodeScanner(id_suffix, container) {
   var fetch_matching = function(barcode) {
     if (last_page == -1) return;
 
+    // hack
+    rurl = ""
+    if (url == DEFAULT_BARCODE_SCANNER_URL) {
+      rurl = url + last_page + '?barcode=' + barcode;
+    } else {
+      rurl = url + barcode + '/' + last_page;
+    }
+
     $.ajax({
-      url: url + barcode + '/' + last_page
+      url: rurl
     })
     .done(function(data) {
       if (fetch_items) {
@@ -171,6 +179,9 @@ function BarcodeScanner(id_suffix, container) {
 
 
 
+// ---------------------------------------------------
+// Deprecated, should be removed
+// ---------------------------------------------------
 
 function create_scanner(id_suffix, container) {
   // clone proto scanner

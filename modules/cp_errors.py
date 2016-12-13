@@ -35,3 +35,10 @@ class CP_OutOfStockError(CP_BaseError):
 
 class CP_PaymentError(CP_BaseError):
     pass
+
+class CP_AnalysisError(CP_BaseError):
+    pass
+
+
+class CP_WalletTransactionError(CP_BaseError):
+    pass

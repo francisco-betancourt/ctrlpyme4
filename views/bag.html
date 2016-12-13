@@ -16,7 +16,7 @@
 {{ pass }}
 
 
-{{ user_is_employee = auth.has_membership('Employee') }}
+{{ user_is_employee = MEMBERSHIPS.get('Employee') }}
 {{ # employess only, bag selector and add bag button }}
 {{ if user_is_employee and not bag_only_items_list: }}
   <div class="btn-group btn-group-justified" role="group" aria-label="...">
@@ -88,12 +88,12 @@
       <a class="btn btn-primary btn-block sell_bag" href="{{=URL('bag', 'complete')}}">
         {{=T('Complete')}}
       </a>
-      {{if auth.has_membership('Stock transfers'):}}
+      {{if MEMBERSHIPS.get('Stock transfers'):}}
         <button class="btn btn-default btn-block transfer_bag" onclick="BAG.transfer();">
           {{=T('Stock transfer')}}
         </button>
       {{pass}}
-      {{if auth.has_membership('Product loss'):}}
+      {{if MEMBERSHIPS.get('Product loss'):}}
         <a class="btn btn-default btn-block" href="{{=URL('product_loss', 'create', args=session.current_bag)}}">
           {{=T('Product loss')}}
         </a>
@@ -485,7 +485,6 @@
             url: "{{=URL('bag', 'change_bag_item_sale_price', extension='json')}}/" + price_index + '/' + bag_item_id + '/' + $('#access_code').val()
           })
           .done(function (data) {
-            console.log(data);
             $('#modal').modal('hide');
             $(target).parent().find('.btn-primary').removeClass('btn-primary');
             $(target).addClass('btn-primary');
@@ -537,7 +536,7 @@
           bag_item_id = _bag_item_id;
           target = _target;
 
-          {{if auth.has_membership('Admin') or auth.has_membership('Manager'):}}
+          {{if MEMBERSHIPS.get('VIP seller'):}}
             validate_access_code();
           {{else:}}
             $('#common_modal').modal();

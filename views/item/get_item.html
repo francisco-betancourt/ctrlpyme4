@@ -8,7 +8,7 @@
 <hr>
 <h4 id="item_info">
   <a href="{{=URL('item', 'browse', vars=dict(brand=item.id_brand.id))}}">{{=item.id_brand.name}}</a>  <span class="stock">{{=stock}}</span>
-      {{if auth.has_membership('Employee') and item_barcode(item):}}
+      {{if MEMBERSHIPS.get('Employee') and item_barcode(item):}}
         <span class="barcode">{{=item_barcode(item)}}</span>
       {{pass}}
 </h4>
@@ -46,10 +46,10 @@
 
 <button class="btn btn-primary btn-block" onclick="add_bag_item(current_item_id)">{{=T("Add to bag")}}</button>
 
-{{if auth.has_membership('Employee'):}}
+{{if MEMBERSHIPS.get('Employee'):}}
 <hr>
 <div class="btn-group btn-group-justified" role="group" aria-label="...">
-  {{if auth.has_membership('Items info') or auth.has_membership('Items management') or auth.has_membership('Items prices'): }}
+  {{if MEMBERSHIPS.get('Items info') or MEMBERSHIPS.get('Items management') or MEMBERSHIPS.get('Items prices'): }}
     <div class="btn-group">
       <button class="btn btn-default" onclick="update_item(current_item_id)">
       {{=ICON('edit')}}</button>
@@ -130,7 +130,11 @@
 
 <h3>{{=T('Description')}}</h3>
 <div id="description">
-  {{=MARKMIN(item.description)}}
+  {{ if item.description: }}
+    {{=MARKMIN(item.description)}}
+  {{ else: }}
+    {{=T("No description available")}}
+  {{ pass }}
 
   {{ if item.traits: }}
     {{ for trait in item.traits: }}
@@ -147,6 +151,12 @@
   </ul>
   {{pass}}
 </div>
+
+
+<section id="suggested_items" hidden="hidden">
+  <h3>{{=T("You may also be interested in these items")}}</h3>
+  <div id="suggested_items_container" class="items-container no-wrap"></div>
+</section>
 
 
 {{block page_js}}
@@ -208,5 +218,15 @@
   function create_labels(item_id) {
     window.location.href = "{{=URL('item', 'labels')}}/" + item_id;
   }
+
+
+
+  $(document).ready(function () {
+
+    ITEM_CARDS.fetch_items(
+      "{{=URL('item', 'get_affinity_items', args=item.id, extension='json')}}", $('#suggested_items_container'), function () {$("#suggested_items").show();}
+    );
+  })
+
 </script>
 {{end}}
