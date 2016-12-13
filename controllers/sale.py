@@ -32,6 +32,7 @@ from constants import *
 
 import sale_utils
 import wallet_utils
+from cp_errors import CP_PaymentError
 
 
 def ticket():
@@ -366,7 +367,11 @@ def defer():
         raise HTTP(405)
 
     payments = db(db.payment.id_sale == sale.id).select()
-    sale_utils.verify_payments(payments, sale, False)
+    try:
+        sale_utils.verify_payments(payments, sale, False)
+    except CP_PaymentError:
+        session.info = T("There are no payments")
+        redirect(URL('sale', 'update', args=sale.id))
 
     payments = db(db.payment.id_sale == sale.id).iterselect()
     # Since this sale will be edited later we have to make sure that current payments will not be modified, so we set them as non updatable
@@ -540,7 +545,7 @@ def refund():
     if not is_delivered and not sale.is_deferred:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
-        
+
     if sale.id_store.id != session.store:
         session.info = T('The sale was not made in this store!')
         redirect(URL('scan_for_refund'))

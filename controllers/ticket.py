@@ -23,6 +23,7 @@ from bag_utils import get_valid_bag, check_bag_owner
 import item_utils
 
 
+
 def ticket_store_data(store):
     store_data = DIV(_class="store-data")
     if store:
@@ -156,25 +157,32 @@ def ticket_payments_data(payments, include_payment_date=False):
             payment_name = '%s %s ' % (payment.created_on, payment_name)
         if payment.id_payment_opt.requires_account:
             payment_name += ' %s' % payment.account
+        if payment.wallet_code:
+            payment_name += ' %s' % payment.wallet_code
         change += payment.change_amount
         payments_data.append(
-            DIV('%s : $ %s' % (payment_name, DQ(payment.amount, True)) )
+            DIV('%s : $ %s' % (payment_name, DQ(payment.amount, True)))
         )
     payments_data.append(DIV('%s : $ %s' % (T('change'), DQ(change, True))))
 
     return payments_data
 
 
-def mini_ticket_format(title, content=None, barcode="", date=None):
-    """ Used to create ticket extra data, basically appending multiple tickets into one """
-    return DIV(
+
+def mini_ticket_format(title, content=None, barcode="", date=None,
+    footer="", include_barcode=True):
+    """ Used to create ticket extra data, basically appending multiple tickets into one
+    """
+    mini = DIV(
         DIV(P(title), P(date), _class="right head"),
-        content,
-        DIV(_id="barcode%s" % barcode, _class="barcode"),
-        SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
-        SCRIPT('$("#barcode%s").barcode({code: "%s", crc: false}, "code39");' % (barcode, barcode)),
-        _class="extra-ticket"
+        content, footer
     )
+    if include_barcode:
+        mini.append(DIV(_id="barcode%s" % barcode, _class="barcode"))
+        mini.append(SCRIPT('$("#barcode%s").barcode({code: "%s", crc: false}, "code39");' % (barcode, barcode))
+        )
+    return mini
+
 
 
 def ticket_format(store_data=None, title="", content=None, barcode="", footer=None, date=None, user=None, author=None):
@@ -182,9 +190,10 @@ def ticket_format(store_data=None, title="", content=None, barcode="", footer=No
     _user = ""
     _author = ""
     if user:
-        _user = P("%s: %s %s" % (
+        _user = P("%s: %s %s -- %s: $ %s" % (
             T("Client"),
-            user.first_name, user.last_name
+            user.first_name, user.last_name,
+            T("Balance"), DQ(user.id_wallet.balance, True)
         ))
     if author:
         _author = P("%s: %s %s" % (
@@ -205,7 +214,6 @@ def ticket_format(store_data=None, title="", content=None, barcode="", footer=No
         P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
         DIV(footer),
         DIV(_id="barcode", _class="barcode"),
-        SCRIPT(_type="text/javascript", _src=URL('static','js/jquery-barcode.min.js')),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
         _id="ticket", _class="ticket"
     )
@@ -255,7 +263,7 @@ def credit_note_ticket(id_credit_note):
     payments_data = data['payments_data']
 
     return ticket_format(
-        store_data, T('Credit note'),
+        store_data, T('Credit note') + ' %s' % id_credit_note,
         DIV(items_list, payments_data),
         credit_note.code, P(T('')),
         date=credit_note.created_on,
@@ -269,7 +277,7 @@ def sale_ticket(id_sale):
         raise HTTP(404)
     sale = db.sale(id_sale)
     store_data = ticket_store_data(sale.id_store)
-    items = db( (db.bag_item.id_bag == sale.id_bag.id) ).select()
+    items = db((db.bag_item.id_bag == sale.id_bag.id)).select()
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
@@ -293,16 +301,26 @@ def sale_ticket(id_sale):
             (db.credit_note.is_usable == True)
         ).iterselect()
         for credit_note in credit_notes:
+            wallet = db(
+                db.wallet.wallet_code == credit_note.code
+            ).select().first()
+
+            include_barcode = sale.id_client.id_wallet.id != wallet.id
+            footer = ''
+            if include_barcode:
+                footer = P(T("balance")+": $ %s" % DQ(wallet.balance, True))
+
             credit_note_data = credit_note_ticket_data(credit_note)
             credit_notes_tickets.append(HR())
             credit_notes_tickets.append(mini_ticket_format(
-                T('Credit note'),
+                T('Credit note') + ' %s' % credit_note.id,
                 DIV(
                     credit_note_data['items_list'],
                     credit_note_data['payments_data']
                 ),
                 credit_note.code,
-                date=credit_note.created_on
+                date=credit_note.created_on,
+                footer=footer, include_barcode=include_barcode
             ))
         credit_notes_tickets.append(HR())
 

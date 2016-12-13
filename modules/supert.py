@@ -547,6 +547,7 @@ class Supert:
 
             for f_string in request.vars['orderby_%s' % self.t_index].split('+'):
 
+                # currently this can't sort by reference fields
                 tname, f_name = f_string.split('.')[:2]
                 orderparam = db[tname][f_name] if request.vars['order_%s' % self.t_index] == 'asc' else ~db[tname][f_name]
                 if not orderby:
