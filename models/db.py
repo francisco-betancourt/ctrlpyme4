@@ -95,7 +95,9 @@ auth.settings.extra_fields['auth_user'] = [
       , Field('max_discount', "decimal(16,6)", default=0, readable=False, writable=False)
       , Field('phone_number', 'string', default='', label=T('Phone number'))
       , Field('mobile_number', 'string', default='', label=T('Mobile number'))
+      , Field.Virtual('balance', lambda row: row.id_wallet.balance if row.id_wallet else 0)
 ]
+
 
 ## create all tables needed by auth if not custom tables
 auth.define_tables(username=False, signature=False)

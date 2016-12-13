@@ -78,7 +78,7 @@ def merge_wallets():
 
     session.info = T(
         'Transaction done, added $ %s to the specified wallet.'
-    ) % (DQ(b, True))
+    ) % (DQ(amount, True))
 
     redirect(URL('index', args=w1.id))
 
@@ -139,12 +139,13 @@ def index():
             text += T('Credit note') + ' %s' % row.ref_id
             href = URL('ticket', 'show_ticket', vars={"id_credit_note": row.ref_id})
         elif row.concept == wallet_utils.CONCEPT_SALE_REWARD:
-            text += T('sale reward') + ' %s' % row.ref_id
+            text += T('Sale reward') + ' %s' % row.ref_id
             href = URL('ticket', 'show_ticket', vars={"id_sale": row.ref_id})
         elif row.concept == wallet_utils.CONCEPT_ADMIN:
             text += T('Admin')
         elif row.concept == wallet_utils.CONCEPT_WALLET_MERGE:
-            text += T('Wallet merge') + ' %s' % row.ref_id
+            text += T('Merge with wallet') + ' %s' % row.ref_id
+            href = URL('index', args=row.ref_id)
 
 
         if href:
