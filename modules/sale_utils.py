@@ -392,6 +392,7 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
         return_items = []
 
     db = current.db
+    session = current.session
 
 
     full_refund = False
@@ -414,7 +415,8 @@ def refund(sale, now, user, return_items=None, wallet_code=None):
 
 
     id_new_credit_note = db.credit_note.insert(
-        id_sale=sale.id, is_usable=True,
+        id_sale=sale.id, id_store=session.store,
+        is_usable=True, # deprecated
         created_on=now, modified_on=now, created_by=user.id
     )
 

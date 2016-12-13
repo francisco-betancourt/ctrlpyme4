@@ -540,6 +540,10 @@ def refund():
     if not is_delivered and not sale.is_deferred:
         session.info = T('The sale has not been delivered!')
         redirect(URL('scan_for_refund'))
+        
+    if sale.id_store.id != session.store:
+        session.info = T('The sale was not made in this store!')
+        redirect(URL('scan_for_refund'))
 
     payments_sum = (db.payment.amount - db.payment.change_amount).sum()
     payments_total = db(
