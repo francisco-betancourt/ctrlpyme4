@@ -368,9 +368,15 @@ def stock_transfer_ticket(id_stock_transfer):
 
     items_list, subtotal, total, taxes, taxes_percentages = ticket_item_list(items)
 
+    totals = [ 
+        '%s : $ %s' % (T('total'), DQ(bag.total, True)),
+        '%s : %s' % (T('items quantity'), DQ(bag.quantity, True, True))
+    ]
+    total_data = ticket_total_data(totals)
+
     title = "%s - %s -> %s" % (T('Stock transfer'), stock_transfer.id_store_from.name, stock_transfer.id_store_to)
     return ticket_format(store_data, title,
-        items_list,
+        DIV(items_list, total_data),
         "%010d" % stock_transfer.id, P(T('')), date=stock_transfer.created_on
     )
 
