@@ -227,9 +227,12 @@ def json_categories_tree(
 def redirection(url=None):
     session = current.session
     request = current.request
-    _next = session._next or request.vars._next
+
+    _next = request.vars._next or session._next
+
+    session._next = None
+
     if _next:
-        session._next = None
         redirect(_next)
     elif url:
         redirect(url)
