@@ -305,7 +305,7 @@ def sale_ticket(id_sale):
                 db.wallet.wallet_code == credit_note.code
             ).select().first()
 
-            include_barcode = sale.id_client.id_wallet.id != wallet.id
+            include_barcode = not bool(sale.id_client) or sale.id_client.id_wallet.id != wallet.id
             footer = ''
             if include_barcode:
                 footer = P(T("balance")+": $ %s" % DQ(wallet.balance, True))

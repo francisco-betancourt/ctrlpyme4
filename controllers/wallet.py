@@ -52,7 +52,10 @@ def get_by_code():
 
 
 
-@auth.requires_membership("Manager")
+@auth.requires(
+    auth.has_membership('Admin') or
+    auth.has_membership('Manager')
+)
 def merge_wallets():
     """ Merge wallet_2 into wallet_1, removing the balance from wallet_2 and adding it to wallet_1
         args[id_wallet_1, id_wallet_2]
