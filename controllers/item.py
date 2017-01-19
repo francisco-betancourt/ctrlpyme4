@@ -526,6 +526,143 @@ def item_options(row):
     return buttons
 
 
+@auth.requires(auth.has_membership('Manager') or auth.has_membership('Admin'))
+def load_from_csv():
+    """ Used to load item from a CSV file
+        vars: {file_name, spec}
+
+        the `spec` is a string like 'name,price2,sku', that its used to create
+        parsers in order to parse every line of the file.
+    """
+
+    import importer
+
+    tmp_dir = os.path.join(request.folder, "private/data/tmp")
+    file_name = request.vars.file_name
+
+    spec = request.vars.spec
+
+
+    item_fields = [
+        "brand", "trait", "name", "description", "upc", "ean", "sku",
+        "base_price", "price2", "price3", "measure unit", "taxes",
+        "extra_data1", "extra_data2", "extra_data3", "allow_fractions",
+        "category"
+    ]
+
+
+    # if there is no file specified we return a form to load one
+    if not file_name:
+        file_form = SQLFORM.factory(
+            Field('csv_file', 'upload', uploadfolder=tmp_dir,
+                label=T("CSV file")
+            )
+        )
+        if file_form.process().accepted:
+            redirect(URL('load_from_csv', vars=dict(file_name=file_form.vars.csv_file)))
+    # when we receive a spec and a file, we can start processing the file with
+    # the given spec
+    elif spec:
+        fields = spec.split(',');
+
+        def create_parser(field_name):
+            """ Returns the most useful parser for the given field_name """
+            print field_name
+
+            if field_name.startswith('trait:'):
+                try:
+                    field_name, trait_name = field_name.split(':')[:2]
+                    return importer.TraitFieldParser(trait_name);
+                except:
+                    pass
+            elif field_name in ['base_price', 'price2', 'price3']:
+                return importer.FieldParser(
+                    field_name, parse_function=importer.price_parser_function
+                )
+            elif field_name in ['brand', 'category']:
+                # in this case we create a field parser that checks a relationship
+                if field_name == 'category':
+                    return importer.FieldParser(
+                        'categories',
+                        parse_function=importer.category_parser_function,
+                        field_type=importer.FIELD_APPEND
+                    )
+                else:
+                    return importer.FieldParser(
+                        'id_brand',
+                        parse_function=importer.brand_parser_function
+                    )
+            else:
+                return importer.FieldParser(field_name)
+
+
+        f = open('%s/%s' % (tmp_dir, file_name), 'r')
+        headers = f.readline().split(',')
+        f.close()
+
+        required_fields = ['name', 'sku', 'base_price']
+        parser_classes = {}
+        parsers = []
+        for i, field in enumerate(fields):
+            parser = parser_classes.get(field)
+            if not parser:
+                if field == 'trait':
+                    field = '%s:%s' % (field, headers[i])
+                parser = create_parser(field)
+                parser_classes[field] = parser
+
+            parsers.append(parser)
+
+        valid = True
+        missing = []
+        for r_field in required_fields:
+            has_field = r_field in fields
+            valid &= has_field
+            if not has_field:
+                missing.append(r_field)
+        if not valid:
+            t_missing = map(lambda f : str(T(f)), missing)
+            session.info = T("Some fields are missing: %s") % t_missing
+            redirect(URL('load_from_csv', vars=dict(file_name=file_name)))
+
+        no_brand = db(db.brand.is_active == True).select().first()
+        default_measure_unit = db(
+            db.measure_unit.is_active == True
+        ).select().first()
+
+        print no_brand
+        print default_measure_unit
+
+        def custom_format(data):
+            if not data.id_brand:
+                data.id_brand = no_brand.id
+            if not data.id_measure_unit:
+                data.id_measure_unit = default_measure_unit.id
+
+        line_parser = importer.LineParser(parsers)
+        importer.parse_file(
+            'tmp/%s' % file_name, line_parser,
+            item_format_function=custom_format
+        )
+
+        session.info = T('loaded')
+        redirect(URL('load_from_csv'))
+    # in this case the user has to bind the item columns to the CSV columns
+    else:
+        # read file
+        f = open('%s/%s' % (tmp_dir, file_name), 'r')
+
+        lines = []
+        while(len(lines) < 5):
+            line = f.readline()
+            if line:
+                lines.append(line)
+        f.close()
+
+
+    return locals()
+
+
 @auth.requires(auth.has_membership('Employee') or auth.has_membership('Admin'))
 def index():
     expiration_redirect()
@@ -550,7 +687,7 @@ def index():
     Supert = supert.Supert()
     data = Supert.SUPERT(
         query, fields=fields, options_func=item_options,
-        global_options=[supert.visibility_g_option()]
+        global_options=[supert.visibility_g_option(), (T("load from CSV"), URL('load_from_csv'))]
     )
 
     return locals()

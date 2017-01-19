@@ -163,7 +163,7 @@ db.define_table("brand",
         label=T("Earning percentage 3")
     ),
     auth.signature)
-db.brand.name.requires = not_empty_requires
+db.brand.name.requires = [not_empty_requires, IS_NOT_IN_DB(db, 'brand.name')]
 db.brand.earnp_base.requires = EARNING_VALIDATOR
 db.brand.earnp_2.requires = EARNING_VALIDATOR
 db.brand.earnp_3.requires = EARNING_VALIDATOR
@@ -172,14 +172,18 @@ db.brand.earnp_3.requires = EARNING_VALIDATOR
 db.define_table("trait_category",
     Field("name", "string", default="", label=T('Name')),
     auth.signature)
-db.trait_category.name.requires = not_empty_requires
+db.trait_category.name.requires = [
+    not_empty_requires, IS_NOT_IN_DB(db, 'trait_category.name')
+]
 
 
 db.define_table("measure_unit",
     Field("name", "string", default="", label=T('Name')),
     Field("symbol", "string", default="", label=T('Symbol')),
     auth.signature)
-db.measure_unit.name.requires = not_empty_requires
+db.measure_unit.name.requires = [
+    not_empty_requires, IS_NOT_IN_DB(db, 'measure_unit.name')
+]
 
 
 db.define_table("tax",
@@ -189,7 +193,9 @@ db.define_table("tax",
     Field("tax_type", "integer", default=1, label=T('Tax Type')),
     auth.signature,
     format='%(name)s')
-db.tax.name.requires = not_empty_requires
+db.tax.name.requires = [
+    not_empty_requires, IS_NOT_IN_DB(db, 'tax.name')
+]
 db.tax.percentage.requires = IS_INT_IN_RANGE(1, 99)
 db.tax.symbol.requires = [not_empty_requires, IS_LENGTH(1)]
 
@@ -376,7 +382,7 @@ db.define_table(
     , Field('width', 'decimal(16,6)', label=T('Paper width (cm)'))
     , Field('height', 'decimal(16,6)', label=T('Paper height (cm)'))
 )
-db.paper_size.name.requires = not_empty_requires
+db.paper_size.name.requires = [not_empty_requires, IS_NOT_IN_DB(db, 'paper_size.name')]
 db.paper_size.width.requires = IS_DECIMAL_IN_RANGE(1, 100, dot='.')
 db.paper_size.height.requires = IS_DECIMAL_IN_RANGE(1, 100, dot='.')
 
@@ -428,7 +434,9 @@ db.define_table("category",
     Field("icon", "upload", default=None, label=T('Icon'), uploadfolder=os.path.join(request.folder, 'static/uploads')),
     Field("parent", "reference category", label=T('Parent category'), readable=False, writable=False),
     auth.signature)
-db.category.name.requires = not_empty_requires
+db.category.name.requires = [
+    not_empty_requires, IS_NOT_IN_DB(db, 'category.name')
+]
 db.category.parent.requires=IS_EMPTY_OR(IS_IN_DB(db(db.category.is_active == True), 'category.id', ' %(name)s %(description)s %(url_name)s %(icon)s %(parent)s'))
 
 
@@ -436,7 +444,7 @@ db.define_table("trait",
     Field("id_trait_category", "reference trait_category", label=T('Trait category')),
     Field("trait_option", "string", default=None, label=T('Option')),
     auth.signature)
-db.trait.trait_option.requires = not_empty_requires
+db.trait.trait_option.requires = [not_empty_requires]
 
 
 
@@ -450,7 +458,7 @@ db.define_table("item",
     Field("ean", "string", length=13, default=None, label=T('EAN')),
     Field("sku", "string", length=40, default=None, label=T('SKU')),
     Field("is_bundle", "boolean", default=False, label=T('Is bundle'), readable=False, writable=False),
-    Field("has_inventory", "boolean", default=True, label=T('Has inventory')),
+    Field("has_inventory", "boolean", default=True, label=T('Is product?')),
 
     Field("base_price", "decimal(16,6)", default=1, label=T('Base price')),
     Field("price2", "decimal(16,6)", default=None, label=T('Price')+" 2"),
@@ -476,7 +484,7 @@ db.define_table("item",
     Field("extra_data1", "string", default=None, label=T('Extra Data')+" 1"),
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),
     Field("extra_data3", "string", default=None, label=T('Extra Data')+" 3"),
-    Field("allow_fractions", "boolean", default=None, label=T('Allow fractions')),
+    Field("allow_fractions", "boolean", default=False, label=T('Allow fractions')),
     Field("reward_points", "decimal(16,6)", default=0, label=T('Reward Points')),
     Field("is_returnable", "boolean", default=True, label=T('Is returnable')),
     Field("has_serial_number", "boolean", default=False, label=T('Has serial number')),

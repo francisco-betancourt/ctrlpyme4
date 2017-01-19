@@ -114,14 +114,13 @@ def name_parser_function(data):
     pass
 
 
-BRANDS = {}
 def brand_parser_function(data):
     db = current.db
 
     record = db( db.brand.name == data ).select().first()
     if record:
         return record.id
-    new_id = db.brand.insert( name=data )
+    new_id = db.brand.validate_and_insert( name=data )
     return new_id
 
 
@@ -210,6 +209,50 @@ class ColorFieldParser(FieldParser):
         )
 
 
+class TraitFieldParser(FieldParser):
+    T_VALUES = {}
+    TRAIT_CATEOGRY = None
+
+
+    def __init__( self, trait_name ):
+        db = current.db
+
+        self.field = "traits"
+        self.field_type = FIELD_APPEND
+        self.trait_name = trait_name
+
+        self.TRAIT_CATEGORY = db(
+            db.trait_category.name == self.trait_name
+        ).select().first()
+        if not self.TRAIT_CATEGORY:
+            self.TRAIT_CATEGORY = db.trait_category.insert(name=self.trait_name)
+
+
+    def parse(self, data):
+        return trait_parser_function(
+            self.T_VALUES, self.TRAIT_CATEGORY, data
+        )
+
+
+# class RelationshipFieldParser(FieldParser):
+#
+#     def _relationship_parser_function(data):
+#         db = current.db
+#
+#         record = db( db.brand.name == data ).select().first()
+#         if record:
+#             return record.id
+#         db[table].validate_and_insert(name=data)
+#         new_id = db.brand.insert( name=data )
+#         return new_id
+#
+#
+#     def __init__( self, field, table_name, id_field ):
+#         super(field, _relationship_parser_function)
+#         self.table_name = table_name
+
+
+
 
 def file_parser_generator(file_path, line_parser):
     with open(file_path, 'r') as f:
@@ -221,7 +264,7 @@ def file_parser_generator(file_path, line_parser):
 
 
 
-def parse_file(filename, line_parser, item_format_function=None):
+def parse_file(filename, line_parser, item_format_function=None, custom_insert_function=None):
     """ DO NOT place data in the first row of the csv """
 
     db = current.db
@@ -239,8 +282,16 @@ def parse_file(filename, line_parser, item_format_function=None):
     for item_data in generator:
         if item_format_function:
             item_format_function(item_data)
-        print item_data
-        db.item.insert(**item_data)
+        if not custom_insert_function:
+            print item_data
+            q = db.item.sku == item_data.sku
+            if item_data.ean:
+                q |= db.item.ean == item_data.ean
+            if item_data.upc:
+                q |= db.item.upc == item_data.upc
+            db.item.update_or_insert(q, **item_data)
+        else:
+            custom_insert_function(item_data)
         if counter % commit_max == 0:
             db.commit()
         counter += 1

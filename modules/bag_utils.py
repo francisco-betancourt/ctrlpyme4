@@ -83,7 +83,7 @@ def add_bag_item(bag, item, quantity=None, sale_price=None):
     # create item taxes string, the string contains the tax name and its percentage, see db.py > bag_item table for more info
     if not bag_item:
         item_taxes_str = ''
-        for tax in item.taxes:
+        for tax in item.taxes or []:
             item_taxes_str += '%s:%s' % (tax.name, tax.percentage)
             if tax != item.taxes[-1]:
                 item_taxes_str += ','

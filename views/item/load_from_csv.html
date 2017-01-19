@@ -1,0 +1,61 @@
+{{left_sidebar_enabled = True}}
+{{extend "layout.html"}}
+
+
+{{block left_sidebar}}
+<h1>{{=T('Item preview')}}</h1>
+
+<button class="btn btn-primary btn-block" id="main_btn">
+  {{=T('Import')}}
+</button>
+{{end}}
+
+
+<h1>{{=T('Data')}}</h1>
+{{ if not file_name: }}
+  {{ =file_form }}
+{{ else: }}
+  <table>
+    <thead>
+      <tr>
+        {{ for field in lines[0].split(','): }}
+          <th>
+            <select class="field-select" name="">
+              {{ for i, field_name in enumerate(item_fields): }}
+                <option value="{{=field_name}}" data-index="{{=i}}">
+                  {{=T(field_name)}}
+                </option>
+              {{ pass }}
+            </select>
+          </th>
+        {{ pass }}
+      </tr>
+    </thead>
+    <tbody>
+      {{ for line in lines: }}
+        <tr>
+          {{ for field in line.split(','): }}
+            <td> {{ =field }} </td>
+          {{ pass }}
+        </tr>
+      {{ pass }}
+    </tbody>
+  </table>
+
+{{ pass }}
+
+
+{{ block page_js }}
+<script>
+  $('#main_btn').click(function(event) {
+    var spec = '';
+    $(".field-select").each(function(index, item) {
+      console.log(index, item.value);
+      spec += item.value + ',';
+    });
+    spec = spec.slice(0, -1);
+    window.location = '{{=URL("load_from_csv", vars=dict(file_name=file_name))}}&spec=' + spec;
+
+  })
+</script>
+{{ end }}
