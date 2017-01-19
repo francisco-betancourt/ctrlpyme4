@@ -479,7 +479,7 @@ db.define_table("item",
     ),
 
     Field("id_measure_unit", "reference measure_unit", label=T('Measure unit')),
-    Field("taxes", "list:reference tax", label=T('Taxes')),
+    Field("taxes", "list:reference tax", label=T('Taxes'), default=[]),
     Field("url_name", "string", default='', label=T('URL Name'), readable=False, writable=False),
     Field("extra_data1", "string", default=None, label=T('Extra Data')+" 1"),
     Field("extra_data2", "string", default=None, label=T('Extra Data')+" 2"),

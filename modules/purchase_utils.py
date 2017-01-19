@@ -52,7 +52,7 @@ def postprocess_stock_item(stock_item):
 
     # recalculate the taxes.
     total_tax = 1 if stock_item.id_item.taxes else 0
-    for tax in stock_item.id_item.taxes:
+    for tax in stock_item.id_item.taxes or []:
         total_tax *= tax.percentage / 100.0
     stock_item.taxes = D(stock_item.price or 0) * D(total_tax)
     if not stock_item.id_item.allow_fractions:

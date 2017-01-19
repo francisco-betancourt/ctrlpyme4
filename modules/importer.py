@@ -132,9 +132,9 @@ def categories_parser_function(data):
 
 
 def trait_parser_function(container, trait_category_id, data):
-    saved_id = container.get(data)
-    if saved_id:
-        return saved_id
+    # saved_id = container.get(data)
+    # if saved_id:
+    #     return saved_id
 
     db = current.db
     record = db(
@@ -142,12 +142,12 @@ def trait_parser_function(container, trait_category_id, data):
         (db.trait.trait_option == data)
     ).select().first()
     if record:
-        container[data] = record.id
+        # container[data] = record.id
         return record.id
     new_id = db.trait.insert(
         id_trait_category=trait_category_id, trait_option=data
     )
-    container[data] = new_id
+    # container[data] = new_id
     return new_id
 
 
@@ -283,7 +283,6 @@ def parse_file(filename, line_parser, item_format_function=None, custom_insert_f
         if item_format_function:
             item_format_function(item_data)
         if not custom_insert_function:
-            print item_data
             q = db.item.sku == item_data.sku
             if item_data.ean:
                 q |= db.item.ean == item_data.ean

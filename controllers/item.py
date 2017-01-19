@@ -630,14 +630,15 @@ def load_from_csv():
             db.measure_unit.is_active == True
         ).select().first()
 
-        print no_brand
-        print default_measure_unit
-
         def custom_format(data):
-            if not data.id_brand:
+            if data.id_brand is None:
                 data.id_brand = no_brand.id
-            if not data.id_measure_unit:
+            if data.id_measure_unit is None:
                 data.id_measure_unit = default_measure_unit.id
+            if data.price2 is None:
+                data.price2 = None
+            if data.price3 is None:
+                data.price3 = None
 
         line_parser = importer.LineParser(parsers)
         importer.parse_file(
