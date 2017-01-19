@@ -589,7 +589,8 @@ def concat_traits(item):
 
     if item.traits:
         for trait in item.traits:
-            c_name += ' ' + trait.trait_option
+            if trait and trait.trait_option:
+                c_name += ' ' + trait.trait_option
 
     return c_name
 

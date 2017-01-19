@@ -69,4 +69,6 @@ uploads/
 
 cfdi.py
 
+models/0_conf.py
+
 .pythonhistory
