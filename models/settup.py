@@ -31,16 +31,17 @@ if MEMBERSHIPS.get('Employee'):
 
 
 
-EXPIRATION_DAYS = 0
+EXPIRATION_DAYS = 360000
 EXPIRED = True
-file_path = os.path.join(request.folder, 'private/', 'expiration_date')
-with open(file_path, 'r') as f:
-    from datetime import datetime, timedelta
-    year, month, day = map(int, f.read().replace('\n', '').split('-'))
-    expiration_date = datetime(year, month, day)
+MAX_STORES = 100000
+try:
+    EXPIRATION_DAYS = (INSTANCE_CONF.expiration_date - request.now).days
+    MAX_STORES = INSTANCE_CONF.max_stores
+except NameError:
+    pass
 
-    EXPIRATION_DAYS = (expiration_date - request.now).days
-    if EXPIRATION_DAYS > 0:
-        EXPIRED = False
+if EXPIRATION_DAYS > 0:
+    EXPIRED = False
 
+current.MAX_STORES = MAX_STORES
 current.EXPIRATION_DAYS = EXPIRATION_DAYS

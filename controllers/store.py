@@ -26,6 +26,13 @@ expiration_redirect()
 @auth.requires_membership('Config')
 def create():
     """ args: [id_address] """
+
+    count = db.store.id.count()
+    stores_count = db(db.store.is_active == True).select(count).first()[count]
+
+    if stores_count >= MAX_STORES:
+        redirect("default", "plan_upgrade")
+
     address = db.address(request.args(0))
     if not address:
         redirect(URL('address', 'create', vars=dict(_next=URL('create'))))
@@ -44,6 +51,7 @@ def create():
     elif form.errors:
         response.flash = T('form has errors')
     return dict(form=form)
+
 
 
 @auth.requires_membership('Config')
