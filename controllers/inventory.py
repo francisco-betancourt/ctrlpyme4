@@ -49,8 +49,8 @@ def fill():
     Supert = supert.Supert()
 
     inventory = db.inventory(request.args(0))
-    is_partial = inventory.is_partial
     is_valid_inventory(inventory)
+    is_partial = inventory.is_partial
 
     def inventory_item_options(row):
         return supert.OPTION_BTN('edit', URL('fill', args=[inventory.id, row.id], vars=request.vars))
