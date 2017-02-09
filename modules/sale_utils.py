@@ -323,7 +323,7 @@ def modify_payment(sale, payment, payment_data, delete=False):
             # return wallet funds, if the wallet payment is removed or the wallet code is changed
             if delete or wallet_code != payment.wallet_code:
                 wallet_utils.transaction(
-                    payment.amount, wallet_utils.UNDO_PAYMENT, ref=payment.id,
+                    payment.amount, wallet_utils.CONCEPT_UNDO_PAYMENT, ref=payment.id,
                     wallet_code=payment.wallet_code
                 )
 
