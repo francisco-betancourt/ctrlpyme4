@@ -45,6 +45,9 @@ def profile():
 def create():
     """ Create employee """
 
+    if employees_count >= MAX_EMPLOYEES:
+        redirect(URL("default", "plan_upgrade"))
+
     form = SQLFORM(db.auth_user)
     if form.process().accepted:
         employee_group = db(db.auth_group.role == 'Employee').select().first()
@@ -206,6 +209,7 @@ def add_employee_membership():
     return locals()
 
 
+
 @auth.requires_membership('Admin config')
 def set_access_card():
     user = db.auth_user(request.args(0))
@@ -225,9 +229,11 @@ def set_access_card():
     return dict()
 
 
+
 @auth.requires_membership('Admin config')
 def update():
     return common_update('auth_user', request.args)
+
 
 
 @auth.requires_membership('Admin config')
@@ -243,6 +249,7 @@ def delete():
     user.update_record()
 
     redirection()
+
 
 
 @auth.requires_membership('Admin config')

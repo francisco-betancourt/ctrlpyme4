@@ -31,7 +31,7 @@ def create():
     stores_count = db(db.store.is_active == True).select(count).first()[count]
 
     if stores_count >= MAX_STORES:
-        redirect("default", "plan_upgrade")
+        redirect(URL("default", "plan_upgrade"))
 
     address = db.address(request.args(0))
     if not address:

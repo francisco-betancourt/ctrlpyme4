@@ -132,12 +132,14 @@ def index():
 
 
     def concept_format(row, fields):
-        text = ""
+        text = "???"
         href = None
         if row.concept == wallet_utils.CONCEPT_PAYMENT:
-            sale_id = db(db.payment.id == row.ref_id).select().first().id_sale.id
-            text += T('Sale') + ' %s' % sale_id
-            href = URL('ticket', 'show_ticket', vars={"id_sale": sale_id})
+            payment = db(db.payment.id == row.ref_id).select().first()
+            if payment:
+                sale_id = payment.id_sale.id
+                text += T('Sale') + ' %s' % sale_id
+                href = URL('ticket', 'show_ticket', vars={"id_sale": sale_id})
         elif row.concept == wallet_utils.CONCEPT_CREDIT_NOTE:
             text += T('Credit note') + ' %s' % row.ref_id
             href = URL('ticket', 'show_ticket', vars={"id_credit_note": row.ref_id})

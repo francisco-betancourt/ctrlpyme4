@@ -49,6 +49,11 @@ def fill():
     Supert = supert.Supert()
 
     inventory = db.inventory(request.args(0))
+
+    if not inventory:
+        session.info = T("Inventory not found")
+        redirect(URL('index'))
+
     is_partial = inventory.is_partial
     is_valid_inventory(inventory)
 
