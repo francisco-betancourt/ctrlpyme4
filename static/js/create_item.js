@@ -1,14 +1,17 @@
 // dont forget to set item_id.
-$('#categories_tree').treeview({
-  data: categories_tree_data,
-  checkedIcon: 'fa fa-check-square-o',
-  uncheckedIcon: 'fa fa-square-o',
-  expandIcon: 'fa fa-plus',
-  collapseIcon: 'fa fa-minus',
-  showCheckbox: true,
-  highlightSelected: false,
-  levels: 1
-});
+try {
+  $('#categories_tree').treeview({
+    data: categories_tree_data,
+    checkedIcon: 'fa fa-check-square-o',
+    uncheckedIcon: 'fa fa-square-o',
+    expandIcon: 'fa fa-plus',
+    collapseIcon: 'fa fa-minus',
+    showCheckbox: true,
+    highlightSelected: false,
+    levels: 1
+  });  
+} catch (e) {}
+
 
 
 var traits_map = {};
