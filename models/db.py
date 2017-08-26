@@ -491,9 +491,9 @@ db.define_table("item",
     auth.signature
 )
 db.item.name.requires = not_empty_requires
-db.item.id_brand.requires=IS_IN_DB(
+db.item.id_brand.requires=IS_EMPTY_OR(IS_IN_DB(
     db(db.brand.is_active == True), 'brand.id', ' %(name)s'
-)
+))
 db.item.id_measure_unit.requires=IS_IN_DB(
     db(db.measure_unit.is_active == True), 'measure_unit.id', ' %(name)s %(symbol)s'
 )
@@ -505,7 +505,9 @@ BC_MATCH = IS_MATCH(
     '^[0-9a-zA-Z-$.%*/]+$',
     error_message=T('Only alphanumeric characters, -, $, ., %, *, /')
 )
-db.item.sku.requires=[IS_BARCODE_AVAILABLE(db, request.vars.sku), BC_MATCH]
+db.item.sku.requires=[
+    IS_EMPTY_OR(IS_LENGTH(40,1)),
+    IS_BARCODE_AVAILABLE(db, request.vars.sku), BC_MATCH]
 db.item.ean.requires=[
     IS_EMPTY_OR(IS_LENGTH(13, 5)),
     IS_BARCODE_AVAILABLE(db, request.vars.ean),
