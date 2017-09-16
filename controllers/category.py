@@ -97,5 +97,5 @@ def index():
         query &= db.category.is_active == True
 
     request.vars.orderby = 'name'
-    data = Supert.SUPERT(query, fields=['name'], options_func=category_options)
+    data = Supert.SUPERT(query,fields=['name'],options_func=category_options)
     return locals()

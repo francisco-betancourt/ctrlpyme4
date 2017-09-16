@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# Author Daniel J. Ramirez <djrmuv@gmail.com>
+# Authors
+# Daniel J. Ramirez <djrmuv@gmail.com>
+# Francisco Betancourt <betancourt.francisco@gmail.com> 
 
 import json
 from datetime import date, timedelta

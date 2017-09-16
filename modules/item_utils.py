@@ -678,7 +678,7 @@ def data_for_card(item):
         brand=Storage(
             id=item.id_brand.id,
             name=item.id_brand.name
-        ),
+        ) if item.id_brand else Storage(),
         base_price=float(item.base_price),
         discount=float(item.discount_percentage),
         price=float(item.price)

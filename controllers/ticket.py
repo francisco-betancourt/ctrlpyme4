@@ -211,7 +211,7 @@ def ticket_format(store_data=None, title="", content=None, barcode="", footer=No
         _user,
         content,
         store_data,
-        P(MARKMIN(TICKET_FOOTER), _id="ticket_footer"),
+        P(TICKET_FOOTER if TICKET_FOOTER else '', _id="ticket_footer"),
         DIV(footer),
         DIV(_id="barcode", _class="barcode"),
         SCRIPT('$("#barcode").barcode({code: "%s", crc: false}, "code39");' % barcode),
