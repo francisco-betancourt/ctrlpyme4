@@ -324,7 +324,7 @@ def sale_ticket(id_sale):
             ))
         credit_notes_tickets.append(HR())
 
-    return ticket_format(store_data, T('Sale'),
+    return ticket_format(store_data, T('Sale') + " {}".format(sale.id),
         DIV(
             DIV(items_list, total_data, payments_data),
             credit_notes_tickets
